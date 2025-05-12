@@ -32,7 +32,7 @@ import { useSession } from "next-auth/react"
 const data = {
   user: {
     name: "Welcome, Admin",
-    email: "yatrazone@admin.com",
+    email: "rishikeshhandmade@gmail.com",
   },
   projects: [
     // First group: Admin management
@@ -66,7 +66,17 @@ const data = {
       url: "/admin/manage_city_plans",
       icon: Flame,
     },
-    
+    { divider: true },
+    {
+      name: "Create Artisan",
+      url: "/admin/create_artisan",
+      icon: User,
+    },
+    {
+      name: "Edit Artisan",
+      url: "/admin/edit_artisan",
+      icon: User,
+    },
     // Space (empty item)
     { divider: true },
 

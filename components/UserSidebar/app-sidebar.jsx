@@ -47,7 +47,7 @@ export function AppSidebar({ className, menuItems, fixedMenuItems, policy }) {
             {open ? (
               <img src="/logo.png" alt="logo" className="w-[12rem] transition-all duration-200" />
             ) : (
-              <img src="/small-logo.png" alt="small logo" className="w-[5rem] transition-all duration-200" />
+              <img src="/small-logo.jpg" alt="small logo" className="w-[5rem] transition-all duration-200" />
             )}
           </span>
 

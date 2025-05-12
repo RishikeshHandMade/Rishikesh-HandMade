@@ -44,7 +44,7 @@ const Header = () => {
          absolute top-0 transition-all duration-300 font-barlow tracking-wider ease-in-out left-0 right-0 z-50 mx-auto w-full py-2`}
     >
       <div className="md:flex hidden items-center justify-between gap-8 border-b py-1 border-gray-400 md:px-8">
-        <p className="text-sm">Experience The Serene Spirituality</p>
+        <p className="text-sm">Crafted by Hand, Cherished by Heart</p>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-4">
             <Mail size={20} />

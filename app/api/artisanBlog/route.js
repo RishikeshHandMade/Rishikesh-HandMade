@@ -1,0 +1,75 @@
+import connectDB from "@/lib/connectDB";
+import mongoose from 'mongoose';
+let ArtisanBlog;
+try {
+  ArtisanBlog = mongoose.model('ArtisanBlog');
+} catch {
+  ArtisanBlog = require('@/models/ArtisanBlog');
+}
+
+export async function POST(req) {
+  try {
+    await connectDB();
+    const data = await req.json();
+    // Minimal validation
+    if (!data.title || !data.artisan) {
+      return new Response(JSON.stringify({ message: 'Missing required fields' }), { status: 400 });
+    }
+    const blog = new ArtisanBlog({
+      title: data.title,
+      youtubeUrl: data.youtubeUrl || '',
+      shortDescription: data.shortDescription || '',
+      longDescription: data.longDescription || '',
+      images: data.images || [],
+      artisan: data.artisan
+    });
+    await blog.save();
+    return new Response(JSON.stringify({ message: 'Blog created successfully', blog }), { status: 201 });
+  } catch (err) {
+    return new Response(JSON.stringify({ message: 'Error creating blog', error: err.message }), { status: 500 });
+  }
+}
+
+export async function GET() {
+  try {
+    await connectDB();
+    const blogs = await ArtisanBlog.find().populate('artisan').sort({ createdAt: -1 });
+    return new Response(JSON.stringify({ blogs }), { status: 200 });
+  } catch (error) {
+    return new Response(JSON.stringify({ message: 'Error fetching blogs', error: error.message }), { status: 500 });
+  }
+}
+
+export async function PATCH(req) {
+  try {
+    await connectDB();
+    const data = await req.json();
+    const { id, ...updateFields } = data;
+    if (!id) {
+      return new Response(JSON.stringify({ message: 'Missing blog ID' }), { status: 400 });
+    }
+    Object.keys(updateFields).forEach(key => updateFields[key] === undefined && delete updateFields[key]);
+    const updatedBlog = await ArtisanBlog.findByIdAndUpdate(id, updateFields, { new: true, overwrite: false });
+    if (!updatedBlog) {
+      return new Response(JSON.stringify({ message: 'Blog not found' }), { status: 404 });
+    }
+    return new Response(JSON.stringify({ message: 'Blog updated successfully', blog: updatedBlog }), { status: 200 });
+  } catch (error) {
+    return new Response(JSON.stringify({ message: 'Error updating blog', error: error.message }), { status: 500 });
+  }
+}
+
+export async function DELETE(req) {
+  try {
+    await connectDB();
+    const { id } = await req.json();
+    const blog = await ArtisanBlog.findById(id);
+    if (!blog) {
+      return new Response(JSON.stringify({ message: 'Blog not found' }), { status: 404 });
+    }
+    await ArtisanBlog.findByIdAndDelete(id);
+    return new Response(JSON.stringify({ message: 'Blog deleted successfully' }), { status: 200 });
+  } catch (error) {
+    return new Response(JSON.stringify({ error: error.message || "Internal Server Error" }), { status: 500 });
+  }
+}

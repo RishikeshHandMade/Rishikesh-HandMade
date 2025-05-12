@@ -139,17 +139,17 @@ const PackageDetailsPage = async ({ params }) => {
                     <div className="lg:p-6 p-2 border-b">
                         <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                             <div className="flex md:flex-row flex-col items-center gap-4">
-                            {packageDetails.thumbUrl ? (
-                                <Image
-                                    src={packageDetails.bannerUrl || "https://dummyimage.com/600x400/000/fff"}
-                                    alt="Tour package image"
-                                    width={300}
-                                    height={300}
-                                    className="object-cover w-full lg:w-96 rounded-xl aspect-video"
-                                />
-                            ):(
-                                <div className="w-full aspect-video bg-gray-200 flex items-center justify-center text-xl font-bold text-gray-500">Image<br/>Update Soon</div>
-                            )}
+                                {packageDetails.thumbUrl ? (
+                                    <Image
+                                        src={packageDetails.bannerUrl || "https://dummyimage.com/600x400/000/fff"}
+                                        alt="Tour package image"
+                                        width={300}
+                                        height={300}
+                                        className="object-cover w-full lg:w-96 rounded-xl aspect-video"
+                                    />
+                                ) : (
+                                    <div className="w-full aspect-video bg-gray-200 flex items-center justify-center text-xl font-bold text-gray-500">Image<br />Update Soon</div>
+                                )}
                                 <div className="flex flex-col gap-2 lg:w-[50rem]">
                                     <div className="flex items-center gap-2 text-sm text-gray-600">
                                         <Tag className="h-4 w-4" />
@@ -193,10 +193,10 @@ const PackageDetailsPage = async ({ params }) => {
                                 <div className="text-2xl font-bold text-primary">₹<span className="text-4xl text-blue-600">XXXX*</span></div>
                                 <div className="text-sm text-gray-600 font-medium">Per Person</div>
                                 <div className="flex items-center md:justify-end mt-1">
-                                        <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                                        <span className="ml-1 text-sm font-medium">0</span>
-                                         <span className="ml-1 text-sm text-gray-500 font-medium">reviews</span>
-                                    </div>
+                                    <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                                    <span className="ml-1 text-sm font-medium">0</span>
+                                    <span className="ml-1 text-sm text-gray-500 font-medium">reviews</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -332,12 +332,22 @@ const PackageDetailsPage = async ({ params }) => {
                         {/* Action Buttons */}
                         <div className="p-6 bg-blue-100 border-b">
                             <div className="flex flex-col sm:flex-row gap-3 justify-center mx-auto">
-                                <Link href={`/checkout/${packageDetails._id}`} className="flex-1">
-                                    <button className="w-full flex items-center justify-center !py-4 text-lg border-2 border-blue-600 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+                                {packageDetails.price === 0 ? (
+                                    <button
+                                        className="w-full flex items-center justify-center !py-4 text-lg border-2 border-blue-600 bg-blue-600 text-white rounded-lg opacity-50 cursor-not-allowed flex-1"
+                                        disabled
+                                    >
                                         <ShoppingCart className="mr-2 !h-6 !w-6" />
                                         Package Checkout
                                     </button>
-                                </Link>
+                                ) : (
+                                    <Link href={`/checkout/${packageDetails._id}`} className="flex-1">
+                                        <button className="w-full flex items-center justify-center !py-4 text-lg border-2 border-blue-600 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+                                            <ShoppingCart className="mr-2 !h-6 !w-6" />
+                                            Package Checkout
+                                        </button>
+                                    </Link>
+                                )}
                                 <Link href={`/customEnquiry/${packageDetails._id}`} className="flex-1">
                                     <button className="w-full flex items-center justify-center !py-4 text-lg border-2 border-blue-600 hover:bg-white rounded-lg" variant="outline">
                                         <MessageSquare className="mr-2 !h-6 !w-6" />
