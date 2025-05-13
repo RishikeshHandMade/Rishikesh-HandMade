@@ -1,5 +1,6 @@
 import connectDB from "@/lib/connectDB";
 import mongoose from 'mongoose';
+const Artisan = require('@/models/Artisan');
 let ArtisanBlog;
 try {
   ArtisanBlog = mongoose.model('ArtisanBlog');
@@ -24,6 +25,12 @@ export async function POST(req) {
       artisan: data.artisan
     });
     await blog.save();
+    // Push blog._id to artisan's blogs array
+    await Artisan.findByIdAndUpdate(
+      data.artisan,
+      { $push: { blogs: blog._id } },
+      { new: true }
+    );
     return new Response(JSON.stringify({ message: 'Blog created successfully', blog }), { status: 201 });
   } catch (err) {
     return new Response(JSON.stringify({ message: 'Error creating blog', error: err.message }), { status: 500 });
@@ -68,6 +75,15 @@ export async function DELETE(req) {
       return new Response(JSON.stringify({ message: 'Blog not found' }), { status: 404 });
     }
     await ArtisanBlog.findByIdAndDelete(id);
+    // Remove blog._id from artisan's blogs array
+    if (blog.artisan) {
+      const Artisan = require('@/models/Artisan');
+      await Artisan.findByIdAndUpdate(
+        blog.artisan,
+        { $pull: { blogs: blog._id } },
+        { new: true }
+      );
+    }
     return new Response(JSON.stringify({ message: 'Blog deleted successfully' }), { status: 200 });
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message || "Internal Server Error" }), { status: 500 });

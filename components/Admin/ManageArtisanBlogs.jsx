@@ -4,6 +4,8 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'react-hot-toast';
 import { UploadButton } from '../../utils/uploadthing';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 // Placeholder for TiptapEditor. Replace with your actual implementation or import.
 const TiptapEditor = ({ value, onChange }) => (
@@ -12,11 +14,12 @@ const TiptapEditor = ({ value, onChange }) => (
 
 const ManageArtisanBlogs = ({ artisanId, artisanDetails = null }) => {
   // All the state and logic from your provided code, adapted for Next.js and UI kit usage
-  const imageInputRef = useRef(null);
+  // Removed imageInputRef, not needed with UploadButton
   const [selectedImages, setSelectedImages] = useState([]);
   const [artisans, setArtisans] = useState([]);
   const [selectedArtisan, setSelectedArtisan] = useState(artisanId || '');
   const [title, setTitle] = useState('');
+  const [createdBy, setCreatedBy] = useState('');
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [shortDescription, setShortDescription] = useState('');
   const [longDescription, setLongDescription] = useState('');
@@ -30,6 +33,7 @@ const ManageArtisanBlogs = ({ artisanId, artisanDetails = null }) => {
   const [selectedArtisanBlogs, setSelectedArtisanBlogs] = useState([]);
   const [selectedArtisanInfo, setSelectedArtisanInfo] = useState(null);
   const [loadingReviews, setLoadingReviews] = useState(false);
+  const [reviews, setReviews] = useState([]);
 
   // Placeholder fetchers (replace with your API calls)
   const fetchArtisans = async ({ artisanId, artisanDetails = null } = {}) => {
@@ -51,23 +55,9 @@ const ManageArtisanBlogs = ({ artisanId, artisanDetails = null }) => {
     }
   };
 
-  const handleFileUpload = () => {
-    imageInputRef.current.click();
-  };
+  // Removed handleFileUpload, not needed with UploadButton
 
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    const remainingSlots = 10 - selectedImages.length;
-    if (files.length > remainingSlots) {
-      toast.error(`You can only add ${remainingSlots} more image${remainingSlots === 1 ? '' : 's'}. Maximum limit is 10 images.`);
-      return;
-    }
-    const newImages = files.map(file => ({
-      url: URL.createObjectURL(file),
-      file: file
-    }));
-    setSelectedImages(prevImages => [...prevImages, ...newImages]);
-  };
+  // Removed handleImageChange, not needed with UploadButton
 
   const removeImage = (index) => {
     setSelectedImages(prevImages => {
@@ -89,21 +79,39 @@ const ManageArtisanBlogs = ({ artisanId, artisanDetails = null }) => {
           const found = data.find(a => a._id === artisanId);
           if (found) {
             setSelectedArtisan(found._id);
-            setCreatedBy(`${found.firstName} ${found.lastName}`);
-            setTitle(found.title || '');
+            // setCreatedBy(`${found.firstName} ${found.lastName}`);
+            // setTitle(found.title || '');
+          } else {
+            setCreatedBy('');
+            setTitle('');
           }
+        } else {
+          setCreatedBy('');
+          setTitle('');
         }
       } catch (err) {
         toast.error('Failed to fetch artisans');
+        setCreatedBy('');
+        setTitle('');
       }
       // Fetch reviews/promotions
       try {
         setLoadingReviews(true);
-        const promoUrl = artisanId ? `/api/promotion?artisanId=${artisanId}` : '/api/promotion';
+        const promoUrl = '/api/promotion';
         const res = await fetch(promoUrl);
+        if (!res.ok) throw new Error('Failed to fetch promotions');
         const data = await res.json();
-        setReviews(data);
+        // Accept either array or object with .promotions
+        if (Array.isArray(data)) {
+          setReviews(data);
+        } else if (Array.isArray(data.promotions)) {
+          setReviews(data.promotions);
+        } else {
+          setReviews([]);
+          toast.error('No promotions found.');
+        }
       } catch (err) {
+        setReviews([]);
         toast.error('Failed to fetch promotions');
       } finally {
         setLoadingReviews(false);
@@ -130,14 +138,44 @@ const ManageArtisanBlogs = ({ artisanId, artisanDetails = null }) => {
     setShortDescription(blog.shortDescription || '');
     setLongDescription(blog.longDescription || '');
     setSelectedArtisan(blog.artisan?._id || blog.artisan || '');
-    setSelectedImages((Array.isArray(blog.images) ? blog.images : []).map(img => ({ url: img, file: null })));
+    setSelectedImages(
+      (Array.isArray(blog.images) ? blog.images : []).map((img, idx) => {
+        // Support both {url, key} objects and plain url strings
+        if (typeof img === 'string') {
+          return { url: img, key: `img-string-${idx}`, file: null };
+        } else if (typeof img === 'object' && img !== null) {
+          return {
+            url: img.url || '',
+            key: img.key || `img-obj-${idx}`,
+            file: null
+          };
+        }
+        return { url: '', key: `img-unknown-${idx}`, file: null };
+      })
+    );
   };
 
   const handleDelete = async () => {
-    setShowDeleteModal(false);
-    setDeleteBlogId(null);
-    toast.success('Blog deleted successfully!');
-    fetchBlogs();
+    if (!deleteBlogId) return;
+    try {
+      const res = await fetch('/api/artisanBlog', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: deleteBlogId })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success('Blog deleted successfully!');
+        fetchBlogs();
+      } else {
+        toast.error(data?.message || 'Failed to delete blog');
+      }
+    } catch (err) {
+      toast.error('Error deleting blog');
+    } finally {
+      setShowDeleteModal(false);
+      setDeleteBlogId(null);
+    }
   };
 
   const openDeleteModal = (id) => {
@@ -297,18 +335,19 @@ const ManageArtisanBlogs = ({ artisanId, artisanDetails = null }) => {
                     </div>
                     {/* Single Upload Button (UploadThing) */}
                     <UploadButton
-                      endpoint="imageUploader"
+                      endpoint="galleryUploader"
                       multiple
-                      onClientUploadComplete={(res) => {
-                        if (res && res.length > 0) {
-                          setSelectedImages(prev => [
-                            ...prev,
-                            ...res.map(img => ({ url: img.url, key: img.key, file: null }))
-                          ]);
-                          toast.success('Image uploaded successfully!');
-                        }
+                      maxFiles={10}
+                      onClientUploadComplete={files => {
+                        if (!files || files.length === 0) return;
+                        const newImages = files.map(file => ({ url: file.ufsUrl, key: file.key }));
+                        setSelectedImages(prev => {
+                          const combined = [...prev, ...newImages].slice(0, 10);
+                          return combined;
+                        });
+                        toast.success(`${newImages.length} image${newImages.length > 1 ? 's' : ''} uploaded!`);
                       }}
-                      onUploadError={() => toast.error('Image upload failed!')}
+                      onUploadError={error => toast.error("Error uploading images")}
                       className="ut-button:bg-blue-600 after:ut-button:ut-uploading:bg-blue-300 !mt-4"
                     >
                       Upload Images
@@ -341,48 +380,173 @@ const ManageArtisanBlogs = ({ artisanId, artisanDetails = null }) => {
               <div className="bg-white rounded shadow p-6">
                 <h4 className="mb-3 font-semibold text-lg">Manage Blogs</h4>
                 <div className="overflow-x-auto">
-                  <table className="min-w-full text-sm border border-gray-200 rounded">
-                    <thead className="bg-gray-100">
-                      <tr>
-                        <th className="py-2 px-3 border-b">S.no</th>
-                        <th className="py-2 px-3 border-b">Images</th>
-                        <th className="py-2 px-3 border-b">View</th>
-                        <th className="py-2 px-3 border-b">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {blogs.length === 0 || Object.keys(groupedBlogs).length === 0 ? (
-                        <tr><td colSpan="4" className="text-center py-4">No blogs found.</td></tr>
+                  <Table className="min-w-full divide-y divide-gray-200">
+                    <TableHeader>
+                      <TableRow className="bg-gray-100">
+                        <TableHead className="px-4 py-3 text-center">S.No</TableHead>
+                        <TableHead className="px-4 py-3 text-center">Image</TableHead>
+                        <TableHead className="px-4 py-3 text-center">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {blogs.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={3} className="text-center py-4">No blogs found.</TableCell>
+                        </TableRow>
                       ) : (
-                        Object.values(groupedBlogs).map((group, idx) => (
-                          <tr key={group.artisan._id}>
-                            <td className="py-2 px-3 border-b">{idx + 1}</td>
-                            <td className="py-2 px-3 border-b">
-                              {/* Show artisan name using original logic */}
-                              {group.artisan.title ? `${group.artisan.title} ${group.artisan.firstName} ${group.artisan.lastName}` : `${group.artisan.firstName} ${group.artisan.lastName}`}
-                            </td>
-                            <td className="py-2 px-3 border-b">
-                              <Button
-                                size="sm"
-                                className="bg-blue-500 text-white px-3 py-1 rounded"
-                                onClick={() => {
-                                  setSelectedArtisanBlogs(group.blogs);
-                                  setSelectedArtisanInfo(group.artisan);
-                                  setShowBlogsModal(true);
-                                }}
-                              >
-                                View Blogs
-                              </Button>
-                            </td>
-                          </tr>
+                        blogs.map((blog, idx) => (
+                          <TableRow key={blog._id}>
+                            <TableCell className="px-4 py-3 text-center font-medium">{idx + 1}</TableCell>
+                            <TableCell className="px-4 py-3 text-center ">
+                              {Array.isArray(blog.images) && blog.images.length > 0 ? (() => {
+                                let imgObj = blog.images[0];
+                                let url = typeof imgObj === 'object' && imgObj !== null ? imgObj.url : imgObj;
+                                if (typeof url === 'string' && url.trim() && url !== 'undefined') {
+                                  return (
+                                    <div className="w-16 h-16 rounded-lg overflow-hidden border flex items-center justify-center bg-white mx-auto">
+                                      <img
+                                        src={url}
+                                        alt="Blog Preview"
+                                        className="w-full h-full object-cover mx-auto"
+                                        onError={e => { e.target.style.display = 'none'; }}
+                                      />
+                                    </div>
+                                  );
+                                } else {
+                                  return <span className="text-gray-400">No image</span>;
+                                }
+                              })() : (
+                                <span className="text-gray-400">No image</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="px-4 py-3 text-center">
+                              <div className="flex gap-2 justify-center">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="bg-blue-500 text-white px-3 py-1 rounded"
+                                  onClick={() => {
+                                    setSelectedArtisanBlogs([blog]);
+                                    setSelectedArtisanInfo(blog.artisan);
+                                    setShowBlogsModal(true);
+                                  }}
+                                >
+                                  View
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="bg-yellow-500 text-white px-3 py-1 rounded"
+                                  onClick={() => handleEdit(blog)}
+                                >
+                                  Edit
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="bg-red-500 text-white px-3 py-1 rounded"
+                                  onClick={() => openDeleteModal(blog._id)}
+                                >
+                                  Delete
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
                         ))
                       )}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
               </div>
-              {/* Blogs Modal: List all blogs for selected artisan */}
-              {/* ...Modals can be added here as needed, see your original code for details... */}
+              {/* Delete Modal */}
+              {showDeleteModal && (
+                <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Delete Blog</DialogTitle>
+                    </DialogHeader>
+                    <p>Are you sure you want to delete this blog?</p>
+                    <DialogFooter>
+                      <Button variant="secondary" onClick={closeDeleteModal}>Cancel</Button>
+                      <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              )}
+
+              {/* View Modal */}
+              {showBlogsModal && selectedArtisanBlogs.length > 0 && selectedArtisanInfo && (
+                <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                  <div className="bg-white rounded shadow-lg max-w-lg w-full p-8 relative">
+                    <h4 className="font-bold text-lg mb-4">Blog Details</h4>
+                    <div className="grid grid-cols-1 gap-4 mb-2">
+                      <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
+                        <div className="font-semibold text-gray-800">Blog Title</div>
+                        <div className="text-gray-600">{selectedArtisanBlogs[0].title}</div>
+                      </div>
+
+                      <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 ">
+                        <div className="font-semibold text-gray-800">YouTube URL</div>
+                        <div className="text-gray-600 break-all">
+                          {selectedArtisanBlogs[0].youtubeUrl ? (
+                            <a
+                              href={selectedArtisanBlogs[0].youtubeUrl.startsWith('http') ? selectedArtisanBlogs[0].youtubeUrl : `https://${selectedArtisanBlogs[0].youtubeUrl}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 underline hover:text-blue-800"
+                            >
+                              {selectedArtisanBlogs[0].youtubeUrl}
+                            </a>
+                          ) : (
+                            '-'
+                          )}
+                        </div>
+                      </div>
+                      <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
+                        <div className="font-semibold text-gray-800">Short Description</div>
+                        <div className="text-gray-600">{selectedArtisanBlogs[0].shortDescription || '-'}</div>
+                      </div>
+
+                      <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 max-h-24 overflow-y-auto">
+                        <div className="font-semibold text-gray-800">Long Description</div>
+                        <div className="text-gray-600 whitespace-pre-line">{selectedArtisanBlogs[0].longDescription || '-'}</div>
+                      </div>
+                      <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 max-h-32 overflow-y-auto">
+                        <div className="font-semibold text-gray-800">Images</div>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {Array.isArray(selectedArtisanBlogs[0].images) && selectedArtisanBlogs[0].images.length > 0 ? (
+                            selectedArtisanBlogs[0].images.map((img, idx) => {
+                              let url = typeof img === 'object' && img !== null ? img.url : img;
+                              const key = (typeof img === 'object' && img !== null && img.key) ? img.key : (url ? url : idx);
+                              // Only render if url is valid
+                              if (typeof url !== 'string' || !url.trim() || url === 'undefined') {
+                                return null;
+                              }
+                              return (
+                                <img
+                                  key={key}
+                                  src={url}
+                                  alt={`Blog Image ${idx + 1}`}
+                                  className="w-28 h-20 object-cover rounded"
+                                  onError={e => { e.target.style.display = 'none'; }}
+                                />
+                              );
+                            })
+                          ) : (
+                            <span className="text-gray-400">No images</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <button className="absolute w-8 h-8 top-2 right-2 text-gray-700 hover:text-red-600" onClick={() => setShowBlogsModal(false)}>
+                      X
+                    </button>
+                    <button className="absolute px-4 py-1 bottom-2 right-2 border border-gray-200 rounded bg-red-500 text-white" onClick={() => setShowBlogsModal(false)}>
+                      Close
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
