@@ -3,7 +3,7 @@ import React, { useRef, useState, useEffect } from 'react';
 // import uploadimg from './upload-img.png';
 import { Button } from '@/components/ui/button';
 import { toast } from 'react-hot-toast';
-import { UploadButton } from '../../utils/cloudinary';
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
@@ -14,8 +14,10 @@ const TiptapEditor = ({ value, onChange }) => (
 
 const ManageArtisanBlogs = ({ artisanId, artisanDetails = null }) => {
   // All the state and logic from your provided code, adapted for Next.js and UI kit usage
-  // Removed imageInputRef, not needed with UploadButton
   const [selectedImages, setSelectedImages] = useState([]);
+const [imageUploading, setImageUploading] = useState(false);
+const [uploadProgress, setUploadProgress] = useState(0);
+const fileInputRef = useRef();
   const [artisans, setArtisans] = useState([]);
   const [selectedArtisan, setSelectedArtisan] = useState(artisanId || '');
   const [title, setTitle] = useState('');
@@ -55,9 +57,50 @@ const ManageArtisanBlogs = ({ artisanId, artisanDetails = null }) => {
     }
   };
 
-  // Removed handleFileUpload, not needed with UploadButton
+  // Handler for file input change
+const handleImageChange = async (e) => {
+  const files = Array.from(e.target.files);
+  if (!files.length) return;
+  if (selectedImages.length + files.length > 10) {
+    toast.error('You can only upload up to 10 images.');
+    return;
+  }
+  setImageUploading(true);
+  setUploadProgress(0);
+  try {
+    let newImages = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const formData = new FormData();
+      formData.append('file', file);
+      // Progress not natively supported by fetch; for demo, just set 100% after upload
+      const res = await fetch('/api/cloudinary', {
+        method: 'POST',
+        body: formData
+      });
+      if (!res.ok) throw new Error('Image upload failed');
+      const result = await res.json();
+      newImages.push({ url: result.url, key: result.key });
+      setUploadProgress(Math.round(((i + 1) / files.length) * 100));
+    }
+    setSelectedImages(prev => [...prev, ...newImages].slice(0, 10));
+    toast.success(`${newImages.length} image${newImages.length > 1 ? 's' : ''} uploaded!`);
+  } catch (err) {
+    toast.error('Image upload failed');
+  } finally {
+    setImageUploading(false);
+    setUploadProgress(0);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }
+};
 
-  // Removed handleImageChange, not needed with UploadButton
+const handleBrowseClick = () => {
+  if (selectedImages.length >= 10) {
+    toast.error('Maximum 10 images allowed.');
+    return;
+  }
+  fileInputRef.current?.click();
+};
 
   const removeImage = (index) => {
     setSelectedImages(prevImages => {
@@ -333,25 +376,33 @@ const ManageArtisanBlogs = ({ artisanId, artisanDetails = null }) => {
                         </small>
                       </div>
                     </div>
-                    {/* Single Upload Button (UploadThing) */}
-                    <UploadButton
-                      endpoint="galleryUploader"
-                      multiple
-                      maxFiles={10}
-                      onClientUploadComplete={files => {
-                        if (!files || files.length === 0) return;
-                        const newImages = files.map(file => ({ url: file.ufsUrl, key: file.key }));
-                        setSelectedImages(prev => {
-                          const combined = [...prev, ...newImages].slice(0, 10);
-                          return combined;
-                        });
-                        toast.success(`${newImages.length} image${newImages.length > 1 ? 's' : ''} uploaded!`);
-                      }}
-                      onUploadError={error => toast.error("Error uploading images")}
-                      className="ut-button:bg-blue-600 after:ut-button:ut-uploading:bg-blue-300 !mt-4"
-                    >
-                      Upload Images
-                    </UploadButton>
+                    <input
+  type="file"
+  accept="image/*"
+  multiple
+  style={{ display: 'none' }}
+  ref={fileInputRef}
+  onChange={handleImageChange}
+/>
+<Button
+  type="button"
+  className="bg-blue-600 text-white px-4 py-2 rounded mt-2"
+  onClick={handleBrowseClick}
+  disabled={imageUploading || selectedImages.length >= 10}
+>
+  {imageUploading ? 'Uploading...' : 'Browse Image(s)'}
+</Button>
+{imageUploading && (
+  <div className="w-full mt-2">
+    <div className="bg-gray-200 rounded h-2 overflow-hidden">
+      <div
+        className="bg-blue-500 h-2 rounded"
+        style={{ width: `${uploadProgress}%`, transition: 'width 0.3s' }}
+      />
+    </div>
+    <div className="text-sm text-gray-600 mt-1">Uploading... {uploadProgress}%</div>
+  </div>
+)}
                   </div>
                 </div>
                 <div className="mb-4">

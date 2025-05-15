@@ -7,35 +7,71 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Input } from '@/components/ui/input';
 import { toast } from 'react-hot-toast';
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { UploadButton } from '../../utils/cloudinary'; // Add UploadButton import
+
 import { Switch } from '@/components/ui/switch';
 // Placeholder for TiptapEditor, replace with your actual implementation
 const TiptapEditor = ({ value, onChange }) => (
   <textarea className="w-full border rounded p-2" value={value} onChange={e => onChange(e.target.value)} placeholder="Rich text editor coming soon..." />
 );
-// Helper to format date for <input type="date">
-function formatDateForInput(date) {
+// Helper to format date as 'DD-MM-YYYY'
+function formatDateDDMMYYYY(date) {
   if (!date) return '';
   const d = new Date(date);
   if (isNaN(d)) return '';
-  return d.toISOString().slice(0, 10);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}-${month}-${year}`;
 }
-// Helper for readable view
-function formatDateForView(date) {
+// Helper to convert timestamp to 'YYYY-MM-DD' for input type="date"
+function dateToInputValue(date) {
   if (!date) return '';
-  const d = new Date(Number(date));
+  const d = new Date(date);
   if (isNaN(d)) return '';
-  return d.toLocaleDateString();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
+
 
 import { useRef } from 'react';
 
 const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
+  const [uploadedImageUrl, setUploadedImageUrl] = useState("");
+  const [imageUploading, setImageUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const fileInputRef = useRef();
+
+  // Handler for file input change
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImageUploading(true);
+    setUploadProgress(0);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/cloudinary", {
+        method: "POST",
+        body: formData
+      });
+      if (!res.ok) throw new Error("Image upload failed");
+      const result = await res.json();
+      setUploadedImageUrl(result.url); // Single source of truth
+      toast.success("Image uploaded successfully");
+    } catch (err) {
+      toast.error("Image upload failed");
+    } finally {
+      setImageUploading(false);
+      setUploadProgress(0);
+    }
+  };
+
   // Certificate-style handlers
   const handleUploadComplete = (res) => {
     if (res && res.length > 0) {
       setUploadedImageUrl(res[0].url);
-      setSelectedImage({ url: res[0].url, key: res[0].key });
       toast.success('Image uploaded successfully');
     }
   };
@@ -43,7 +79,6 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
     toast.error('Image upload failed');
   };
   const removeImage = () => {
-    setSelectedImage(null);
     setUploadedImageUrl("");
   };
 
@@ -65,7 +100,7 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
         shortText,
         shortDescription,
         createdBy,
-        date,
+        date: date ? new Date(date).getTime() : undefined,
         rating,
         artisan: selectedArtisan,
         image: uploadedImageUrl,
@@ -181,8 +216,6 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
   }, [artisanId, artisanDetails]);
 
   // --- Image Upload State ---
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [uploadedImageUrl, setUploadedImageUrl] = useState("");
   const [uploading, setUploading] = useState(false);
 
   // Handle image upload (using uploadthing endpoint)
@@ -222,9 +255,9 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
         shortDescription,
         rating,
         createdBy,
-        date,
+        date: date ? new Date(date).getTime() : undefined,
         artisan: selectedArtisan,
-        image: uploadedImageUrl || undefined,
+        image: uploadedImageUrl,
       };
       const res = await fetch('/api/promotion', {
         method: 'POST',
@@ -240,8 +273,7 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
         setRating(0);
         setCreatedBy('');
         setDate('');
-        setUploadedImageUrl('');
-        setSelectedImage(null);
+        setUploadedImageUrl("");
         // Refresh reviews
         const promoRes = await fetch(selectedArtisan ? `/api/promotion?artisanId=${selectedArtisan}` : '/api/promotion');
         const promos = await promoRes.json();
@@ -329,10 +361,10 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
         <div className="mb-4">
           <label className="block font-semibold mb-1">Promotional Image</label>
           <div className="border rounded p-4 text-center">
-            {(selectedImage && selectedImage.url) || uploadedImageUrl ? (
+            {uploadedImageUrl ? (
               <div className="relative inline-block mb-3">
                 <img
-                  src={selectedImage && selectedImage.url ? selectedImage.url : uploadedImageUrl}
+                  src={uploadedImageUrl}
                   alt="Promotion Preview"
                   className="w-56 h-36 object-cover rounded mx-auto"
                 />
@@ -349,11 +381,32 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
                 <img src="/upload-img.png" width="50" alt="Upload" className="mb-2" />
                 <h5 className="mb-1">Browse Image</h5>
                 <p className="text-gray-500">From Drive</p>
-                <UploadButton
-                  endpoint="imageUploader"
-                  onClientUploadComplete={handleUploadComplete}
-                  onUploadError={handleUploadError}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  ref={fileInputRef}
+                  onChange={handleImageChange}
                 />
+                <button
+                  type="button"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                  onClick={() => fileInputRef.current.click()}
+                  disabled={imageUploading}
+                >
+                  Browse Image
+                </button>
+                {imageUploading && (
+                  <div className="mt-2 w-full max-w-xs mx-auto">
+                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                      <div
+                        className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                        style={{ width: `${uploadProgress}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-sm text-center mt-1">Uploading...</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -409,7 +462,7 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
                         setShortText(review.shortText || '');
                         setShortDescription(review.shortDescription || '');
                         setCreatedBy(review.createdBy || '');
-                        setDate(formatDateForInput(review.date));
+                        setDate(dateToInputValue(review.date));
                         setRating(review.rating || 0);
                         setSelectedArtisan(review.artisan || '');
                         setUploadedImageUrl(review.imageUrl || review.image || '');
@@ -458,32 +511,32 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
                 <DialogTitle>Promotion Details</DialogTitle>
               </DialogHeader>
               <div className="space-y-2">
-                <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
-                  <div className="font-semibold text-gray-800">Title</div>
-                  <div className="text-gray-600">{selectedPromotion.title}</div>
-                </div>
-                <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
-                  <div className="font-semibold text-gray-800">Rating</div>
-                  <div className="text-gray-600">{selectedPromotion.rating}</div>
-                </div>
-                  <div className="flex gap-2">
-                  <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 w-1/2">
-                    <div className="font-semibold text-gray-800">Created By</div>
-                    <div className="text-gray-600">{selectedPromotion.createdBy}</div>
-                  </div>
-                  <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 w-1/2">
-                    <div className="font-semibold text-gray-800">Date</div>
-                    <div className="text-gray-600">{formatDateForView(selectedPromotion.date)}</div>
-                  </div>
-                </div>
-                <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
-                  <div className="font-semibold text-gray-800">Short Text</div>
-                  <div className="text-gray-600">{selectedPromotion.shortText}</div>
-                </div>
-                <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 max-h-28 overflow-y-auto">
-                  <div className="font-semibold text-gray-800">Short Description</div>
-                  <div className="text-gray-600">{selectedPromotion.shortDescription}</div>
-                </div>
+  <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
+    <div className="font-semibold text-gray-800">Title</div>
+    <div className="text-gray-600">{selectedPromotion.title}</div>
+  </div>
+  <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
+    <div className="font-semibold text-gray-800">Rating</div>
+    <div className="text-gray-600">{selectedPromotion.rating}</div>
+  </div>
+  <div className="flex gap-2">
+    <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 w-1/2">
+      <div className="font-semibold text-gray-800">Created By</div>
+      <div className="text-gray-600">{selectedPromotion.createdBy}</div>
+    </div>
+    <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 w-1/2">
+      <div className="font-semibold text-gray-800">Date</div>
+      <div className="text-gray-600">{formatDateDDMMYYYY(selectedPromotion.date)}</div>
+    </div>
+  </div>
+  <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
+    <div className="font-semibold text-gray-800">Short Text</div>
+    <div className="text-gray-600">{selectedPromotion.shortText}</div>
+  </div>
+  <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 max-h-28 overflow-y-auto">
+    <div className="font-semibold text-gray-800">Short Description</div>
+    <div className="text-gray-600">{selectedPromotion.shortDescription}</div>
+  </div>
                 {(selectedPromotion.imageUrl || selectedPromotion.image) && (
                   <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
                     <div className="font-semibold text-gray-800">Image</div>

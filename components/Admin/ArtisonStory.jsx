@@ -1,7 +1,9 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-hot-toast';
-import { UploadButton } from "@/utils/cloudinary";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+  
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 // Placeholder for TiptapEditor. Replace with your actual implementation or import.
 const TiptapEditor = ({ value, onChange }) => (
@@ -16,6 +18,40 @@ const ArtisonStory = ({ artisanId, artisanDetails = null }) => {
   const [shortDescription, setShortDescription] = useState('');
   const [longDescription, setLongDescription] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
+  const [imageUploading, setImageUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  // Image upload handler
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImageUploading(true);
+    setUploadProgress(0);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/cloudinary', {
+        method: 'POST',
+        body: formData
+      });
+      if (!res.ok) throw new Error('Image upload failed');
+      const result = await res.json();
+      setSelectedImage({ url: result.url, key: result.key });
+      toast.success('Image uploaded successfully');
+    } catch (err) {
+      toast.error('Image upload failed');
+    } finally {
+      setImageUploading(false);
+      setUploadProgress(0);
+      if (imageInputRef.current) imageInputRef.current.value = '';
+    }
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    if (imageInputRef.current) imageInputRef.current.value = '';
+  };
+
   const [stories, setStories] = useState([]);
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedStory, setSelectedStory] = useState(null);
@@ -41,13 +77,6 @@ const ArtisonStory = ({ artisanId, artisanDetails = null }) => {
       toast.error('Failed to fetch stories');
     }
   };
-
-
-
-  const removeImage = () => {
-    setSelectedImage(null);
-  };
-
   const handleEditStory = (story) => {
     setEditMode(true);
     setEditingId(story._id);
@@ -114,21 +143,46 @@ const ArtisonStory = ({ artisanId, artisanDetails = null }) => {
     }
 
     try {
-      const res = await fetch('/api/artisanStory', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(storyData),
-      });
-      const data = await res.json();
-      if (data.success) {
-        toast.success('Story created successfully!');
-        clearForm();
-        fetchStories();
-      } else {
-        if (data.message && data.message.includes('already exists')) {
-          toast.error('This artisan story already exists!');
+      let res, data;
+      if (editMode && editingId) {
+        // Update existing story
+        res = await fetch('/api/artisanStory', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ _id: editingId, ...storyData }),
+        });
+        data = await res.json();
+        if (data.success) {
+          toast.success('Story updated successfully!');
+          clearForm();
+          setEditMode(false);
+          setEditingId(null);
+          fetchStories();
         } else {
-          toast.error(data.message || 'Failed to create story');
+          if (data.message && data.message.includes('already exists')) {
+            toast.error('This artisan story already exists!');
+          } else {
+            toast.error(data.message || 'Failed to update story');
+          }
+        }
+      } else {
+        // Create new story
+        res = await fetch('/api/artisanStory', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(storyData),
+        });
+        data = await res.json();
+        if (data.success) {
+          toast.success('Story created successfully!');
+          clearForm();
+          fetchStories();
+        } else {
+          if (data.message && data.message.includes('already exists')) {
+            toast.error('This artisan story already exists!');
+          } else {
+            toast.error(data.message || 'Failed to create story');
+          }
         }
       }
     } catch (err) {
@@ -239,16 +293,32 @@ const ArtisonStory = ({ artisanId, artisanDetails = null }) => {
                         <img src="/upload-img.png" width="50" alt="Upload" className="mb-2" />
                         <h5 className="mb-1">Browse Image</h5>
                         <p className="text-gray-500">From Drive</p>
-                        <UploadButton
-                          endpoint="imageUploader"
-                          onClientUploadComplete={(res) => {
-                            if (res && res[0]) {
-                              setSelectedImage({ url: res[0].url, key: res[0].key });
-                              toast.success("Image uploaded successfully");
-                            }
-                          }}
-                          onUploadError={() => toast.error("Image upload failed")}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          style={{ display: 'none' }}
+                          ref={imageInputRef}
+                          onChange={handleImageChange}
                         />
+                        <button
+                          type="button"
+                          className="bg-blue-600 text-white px-4 py-2 rounded mt-2"
+                          onClick={() => imageInputRef.current && imageInputRef.current.click()}
+                          disabled={imageUploading}
+                        >
+                          {imageUploading ? 'Uploading...' : 'Browse Image'}
+                        </button>
+                        {imageUploading && (
+                          <div className="w-full mt-2">
+                            <div className="bg-gray-200 rounded h-2 overflow-hidden">
+                              <div
+                                className="bg-blue-500 h-2 rounded"
+                                style={{ width: `${uploadProgress}%`, transition: 'width 0.3s' }}
+                              />
+                            </div>
+                            <div className="text-sm text-gray-600 mt-1">Uploading... {uploadProgress}%</div>
+                          </div>
+                        )}
                       </div>
                     )}
                     {selectedImage && (
@@ -379,7 +449,7 @@ const ArtisonStory = ({ artisanId, artisanDetails = null }) => {
               <div className="font-semibold text-gray-800">Short Description</div>
               <div className="text-gray-600">{selectedStory.shortDescription}</div>
             </div>
-            <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
+            <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 max-h-24 overflow-y-auto">
               <div className="font-semibold text-gray-800">Long Description</div>
               <div className="text-gray-600">{selectedStory.longDescription}</div>
             </div>
@@ -393,16 +463,18 @@ const ArtisonStory = ({ artisanId, artisanDetails = null }) => {
       )}
       {/* Delete Modal */}
       {showDeleteModal && selectedStory && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-30">
-          <div className="bg-white p-6 rounded shadow-lg max-w-md w-full">
-            <h3 className="font-bold text-lg mb-4">Confirm Delete</h3>
-            <p>Are you sure you want to delete the story <b>{selectedStory.title}</b>?</p>
-            <div className="flex gap-4 mt-6">
-              <button className="bg-red-600 text-white px-4 py-2 rounded" onClick={confirmDelete}>Delete</button>
-              <button className="bg-gray-400 text-white px-4 py-2 rounded" onClick={() => setShowDeleteModal(false)}>Cancel</button>
-            </div>
-          </div>
-        </div>
+        <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Story</DialogTitle>
+            </DialogHeader>
+            <p>Are you sure you want to delete this story?</p>
+            <DialogFooter>
+              <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
+              <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );

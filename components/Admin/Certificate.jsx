@@ -1,13 +1,48 @@
 "use client";
 import React, { useRef, useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { UploadButton } from '../../utils/cloudinary';
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 const Certificate = ({ artisanId, artisanDetails = null }) => {
-  const [certificates, setCertificates] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [uploadedImage, setUploadedImage] = useState(null); // { url, key }
+  const [imageUploading, setImageUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const fileInputRef = useRef();
+
+  // Handler for file input change
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImageUploading(true);
+    setUploadProgress(0);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/cloudinary", {
+        method: "POST",
+        body: formData
+      });
+      if (!res.ok) throw new Error("Image upload failed");
+      const result = await res.json();
+      setUploadedImage(result); // { url, key }
+      if (result.url) {
+        setSelectedImage({ url: result.url, key: result.key });
+      } else {
+        setSelectedImage(null);
+      }
+      toast.success("Image uploaded successfully");
+    } catch (err) {
+      toast.error("Image upload failed");
+    } finally {
+      setImageUploading(false);
+      setUploadProgress(0);
+    }
+  };
+
+  const [certificates, setCertificates] = useState([]);
   const [specializations, setSpecializations] = useState([]);
   const [selectedSpec, setSelectedSpec] = useState('');
   const [specializationLoading, setSpecializationLoading] = useState(false);
@@ -23,7 +58,6 @@ const Certificate = ({ artisanId, artisanDetails = null }) => {
   const [deleteId, setDeleteId] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [id, setId] = useState(null);
-
   const [loadingCertificates, setLoadingCertificates] = useState(false);
 
   const fetchSpecializations = async () => {
@@ -87,7 +121,7 @@ const Certificate = ({ artisanId, artisanDetails = null }) => {
   };
   const removeImage = () => {
     setSelectedImage(null);
-  };
+};
   const handleEdit = (certificate) => {
     setCertificateName(certificate.title || '');
     setYearOfIssue(certificate.issueDate || '');
@@ -253,7 +287,7 @@ const Certificate = ({ artisanId, artisanDetails = null }) => {
                 <div className="mb-4">
                   <label className="block mb-1">Certificate Image</label>
                   <div className="border rounded p-4 text-center">
-                    {selectedImage ? (
+                    {selectedImage && selectedImage.url ? (
                       <div className="relative inline-block mb-3">
                         <img
                           src={selectedImage.url}
@@ -273,11 +307,32 @@ const Certificate = ({ artisanId, artisanDetails = null }) => {
                         <img src="/upload-img.png" width="50" alt="Upload" className="mb-2" />
                         <h5 className="mb-1">Browse Image</h5>
                         <p className="text-gray-500">From Drive</p>
-                        <UploadButton
-                          endpoint="imageUploader"
-                          onClientUploadComplete={handleUploadComplete}
-                          onUploadError={handleUploadError}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          ref={fileInputRef}
+                          onChange={handleImageChange}
                         />
+                        <button
+                          type="button"
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                          onClick={() => fileInputRef.current.click()}
+                          disabled={imageUploading}
+                        >
+                          Browse Image
+                        </button>
+                        {imageUploading && (
+                          <div className="mt-2 w-full max-w-xs mx-auto">
+                            <div className="w-full bg-gray-200 rounded-full h-2.5">
+                              <div
+                                className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                                style={{ width: `${uploadProgress}%` }}
+                              ></div>
+                            </div>
+                            <p className="text-sm text-center mt-1">Uploading...</p>
+                          </div>
+                        )}
                       </div>
                     )}
                     {selectedImage && (

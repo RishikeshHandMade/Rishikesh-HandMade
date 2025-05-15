@@ -51,6 +51,9 @@ const CreateArtisan = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editForm, setEditForm] = useState({});
   const [uploadProgress, setUploadProgress] = useState(0);
+  // Inline delete modal state for the table
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [artisanToDelete, setArtisanToDelete] = useState(null);
   const INDIAN_STATES = [
     "Andhra Pradesh",
     "Arunachal Pradesh",
@@ -290,9 +293,6 @@ const CreateArtisan = () => {
     }
   };
 
-  // Inline delete modal state for the table
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [artisanToDelete, setArtisanToDelete] = useState(null);
 
   // View artisan modal
   const handleTableView = (artisan) => {
@@ -340,7 +340,7 @@ const CreateArtisan = () => {
     setValue("address", artisan.address?.fullAddress || "");
     setValue("city", artisan.address?.city || "");
     setValue("state", artisan.address?.state || "");
-    setSelectedImage(artisan.profileImage || "");
+    setSelectedImage(artisan.profileImage?.url || "");
   };
 
   // Edit form change handler
@@ -397,8 +397,8 @@ const CreateArtisan = () => {
             ? uploadedImage
             : typeof editForm.profileImage === "object" &&
               editForm.profileImage !== null
-            ? editForm.profileImage
-            : { url: editForm.profileImage || "", key: "" },
+              ? editForm.profileImage
+              : { url: editForm.profileImage || "", key: "" },
       };
 
       console.log("PATCH payload being sent:", payload);
@@ -427,6 +427,8 @@ const CreateArtisan = () => {
     setShowEditModal(false);
     setEditingUser(null);
     setEditForm({});
+    setSelectedImage("");
+    setUploadedImage(null);
   };
   // Inline delete handlers for the table
   const handleInlineDelete = (artisan) => {
@@ -729,66 +731,66 @@ const CreateArtisan = () => {
         </div>
         {/* Right: Image Upload with UploadThing */}
         <div className="relative border rounded-lg p-4 mb-4 h-[400px] flex flex-col items-center justify-center gap-4">
-    <input
-        type="file"
-        onChange={handleImageChange}
-        accept="image/*"
-        className="hidden"
-        id="profileImage"
-        ref={fileInputRef}
-    />
-    <div className="flex flex-col items-center gap-4">
-        {selectedImage ? (
-            <div className="relative w-48 h-48">
-                <img
-                    src={selectedImage}
-                    alt="Profile"
-                    className="w-full h-full object-cover rounded-lg"
-                />
-            </div>
-        ) : (
-            <div className="w-48 h-48 border-2 border-dashed rounded-lg flex items-center justify-center bg-gray-50">
-                <span className="text-gray-500">Image Preview</span>
-            </div>
-        )}
-        
-        <Button
-            type="button"
-            variant={selectedImage ? "destructive" : "outline"}
-            size="sm"
-            className="flex items-center gap-2"
-            onClick={(e) => {
-                if (selectedImage) {
-                    setSelectedImage('');
-                    setUploadedImage(null);
-                } else {
-                    fileInputRef.current.click();
-                }
-            }}
-        >
+          <input
+            type="file"
+            onChange={handleImageChange}
+            accept="image/*"
+            className="hidden"
+            id="profileImage"
+            ref={fileInputRef}
+          />
+          <div className="flex flex-col items-center gap-4">
             {selectedImage ? (
-                "Remove Image"
+              <div className="relative w-48 h-48">
+                <img
+                  src={selectedImage}
+                  alt="Profile"
+                  className="w-full h-full object-cover rounded-lg"
+                />
+              </div>
             ) : (
-                <>
-                    <Plus className="w-4 h-4" />
-                    Choose Image
-                </>
+              <div className="w-48 h-48 border-2 border-dashed rounded-lg flex items-center justify-center bg-gray-50">
+                <span className="text-gray-500">Image Preview</span>
+              </div>
             )}
-        </Button>
-    </div>
-    
-    {imageUploading && (
-        <div className="mt-4 w-full max-w-xs">
-            <div className="w-full bg-gray-200 rounded-full h-2.5">
+
+            <Button
+              type="button"
+              variant={selectedImage ? "destructive" : "outline"}
+              size="sm"
+              className="flex items-center gap-2"
+              onClick={(e) => {
+                if (selectedImage) {
+                  setSelectedImage('');
+                  setUploadedImage(null);
+                } else {
+                  fileInputRef.current.click();
+                }
+              }}
+            >
+              {selectedImage ? (
+                "Remove Image"
+              ) : (
+                <>
+                  <Plus className="w-4 h-4" />
+                  Choose Image
+                </>
+              )}
+            </Button>
+          </div>
+
+          {imageUploading && (
+            <div className="mt-4 w-full max-w-xs">
+              <div className="w-full bg-gray-200 rounded-full h-2.5">
                 <div
-                    className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
-                    style={{ width: `${uploadProgress}%` }}
+                  className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                  style={{ width: `${uploadProgress}%` }}
                 ></div>
+              </div>
+              <p className="text-sm text-center mt-1">{uploadProgress}%</p>
             </div>
-            <p className="text-sm text-center mt-1">{uploadProgress}%</p>
+          )}
         </div>
-    )}
-</div>
       </form>
       <Dialog open={showModal} onOpenChange={setShowModal}>
         <DialogContent>
@@ -919,7 +921,8 @@ const CreateArtisan = () => {
               <h2 className="text-xl font-bold">Artisan Profile</h2>
               <button
                 onClick={closeUserModal}
-                className="text-gray-500 hover:text-black"
+                className="text-gray-500 hover:text-black text-4xl leading-none focus:outline-none transition-transform duration-150 transform hover:scale-110"
+                aria-label="Close"
               >
                 &times;
               </button>
@@ -1018,6 +1021,14 @@ const CreateArtisan = () => {
                 </div>
               </div>
             </div>
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={closeUserModal}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded shadow transition-colors duration-150"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1035,7 +1046,7 @@ const CreateArtisan = () => {
                 onClick={closeEditModal}
                 className="text-gray-500 hover:text-black"
               >
-                &times;
+                X
               </button>
             </div>
             <form

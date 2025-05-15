@@ -53,6 +53,12 @@ export async function PUT(req) {
     const body = await req.json();
     const { _id, ...updateData } = body;
     const updated = await ArtisanStory.findByIdAndUpdate(_id, updateData, { new: true });
+    if (updateData.artisan) {
+      const existing = await ArtisanStory.findOne({ artisan: updateData.artisan, _id: { $ne: _id } });
+      if (existing) {
+        return NextResponse.json({ success: false, message: 'An artisan story already exists for this artisan.' }, { status: 400 });
+      }
+    }
     if (!updated) return NextResponse.json({ success: false, message: 'Story not found' }, { status: 404 });
     return NextResponse.json({ success: true, story: updated });
   } catch (err) {
