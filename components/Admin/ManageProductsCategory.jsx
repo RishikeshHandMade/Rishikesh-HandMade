@@ -20,7 +20,7 @@ import {
 import toast from "react-hot-toast"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import Link from "next/link"
-import { UploadButton } from "@/utils/uploadthing"
+import { UploadButton } from "@/utils/cloudinary"
 import Image from "next/image"
 import { deleteFileFromUploadthing } from "@/utils/Utapi"
 

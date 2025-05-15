@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Input } from '@/components/ui/input';
 import { toast } from 'react-hot-toast';
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { UploadButton } from '../../utils/uploadthing'; // Add UploadButton import
+import { UploadButton } from '../../utils/cloudinary'; // Add UploadButton import
 import { Switch } from '@/components/ui/switch';
 // Placeholder for TiptapEditor, replace with your actual implementation
 const TiptapEditor = ({ value, onChange }) => (

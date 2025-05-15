@@ -73,9 +73,16 @@ const data = {
       icon: User,
     },
     {
-      name: "Edit Artisan",
+      name: "View / Edit Artisan",
       url: "/admin/edit_artisan",
       icon: User,
+    },
+    { divider: true },
+
+    {
+      name: "Add Direct Product",
+      url: "/admin/add_direct_product",
+      icon: Plus,
     },
     // Space (empty item)
     { divider: true },

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import toast from "react-hot-toast";
-import { UploadButton } from "@/utils/uploadthing";
+import { UploadButton } from "@/utils/cloudinary";
 import { PencilIcon, Trash2Icon } from "lucide-react";
 
 const InstaFbPost = () => {

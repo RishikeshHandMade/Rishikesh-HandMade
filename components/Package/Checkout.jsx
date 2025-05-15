@@ -13,7 +13,7 @@ import { useSession } from "next-auth/react"
 import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 import toast from "react-hot-toast"
-import { UploadButton } from "@/utils/uploadthing"
+import { UploadButton } from "@/utils/cloudinary"
 import { deleteFileFromUploadthing } from "@/utils/Utapi"
 import { X } from "lucide-react"
 

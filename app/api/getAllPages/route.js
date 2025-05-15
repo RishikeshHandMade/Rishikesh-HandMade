@@ -3,7 +3,7 @@ import Page from "@/models/Page";
 import { NextResponse } from "next/server";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { getServerSession } from "next-auth";
-import { deleteFileFromUploadthing } from "@/utils/Utapi";
+
 
 // GET all webpages
 export async function GET() {

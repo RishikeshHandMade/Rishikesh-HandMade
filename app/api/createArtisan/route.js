@@ -1,3 +1,4 @@
+'use server';
 import connectDB from "@/lib/connectDB";
 import mongoose from 'mongoose';
 let Artisan;
@@ -7,31 +8,31 @@ try {
   Artisan = require('@/models/Artisan');
 }
 import { addSpecializationIfNotExists } from "@/lib/specialization";
-import { deleteFileFromUploadthing } from "@/utils/Utapi";
+import { deleteFileFromCloudinary } from "@/utils/Utapi";
 
 // Helper to normalize form data
-function normalizeFormData(body) {
-  const normalized = {};
-  for (const key in body) {
-    if (Array.isArray(body[key])) {
-      normalized[key] = body[key][0];
-    } else {
-      normalized[key] = body[key];
-    }
-  }
-  if (normalized.yearsOfExperience) {
-    normalized.yearsOfExperience = Number(normalized.yearsOfExperience);
-  }
-  if (typeof normalized.specializations === 'string') {
-    try {
-      normalized.specializations = JSON.parse(normalized.specializations);
-    } catch {}
-  }
-  if (!Array.isArray(normalized.specializations)) {
-    normalized.specializations = normalized.specializations ? [normalized.specializations] : [];
-  }
-  return normalized;
-}
+// function normalizeFormData(body) {
+//   const normalized = {};
+//   for (const key in body) {
+//     if (Array.isArray(body[key])) {
+//       normalized[key] = body[key][0];
+//     } else {
+//       normalized[key] = body[key];
+//     }
+//   }
+//   if (normalized.yearsOfExperience) {
+//     normalized.yearsOfExperience = Number(normalized.yearsOfExperience);
+//   }
+//   if (typeof normalized.specializations === 'string') {
+//     try {
+//       normalized.specializations = JSON.parse(normalized.specializations);
+//     } catch {}
+//   }
+//   if (!Array.isArray(normalized.specializations)) {
+//     normalized.specializations = normalized.specializations ? [normalized.specializations] : [];
+//   }
+//   return normalized;
+// }
 
 export async function POST(req) {
   try {
@@ -71,7 +72,10 @@ export async function POST(req) {
         city: data.city,
         state: data.state
       },
-      profileImage: (typeof profileImage === 'object' && profileImage !== null && profileImage.url) ? profileImage.url : (typeof profileImage === 'string' ? profileImage : '')
+      profileImage: (data.profileImage && typeof data.profileImage === 'object')
+        ? data.profileImage
+        : { url: '', key: '' },
+      active: true
     });
     await artisan.save();
     if (Array.isArray(data.specializations)) {
@@ -104,8 +108,10 @@ export async function PATCH(req) {
   try {
     await connectDB();
     const data = await req.json();
+    console.log('PATCH incoming data:', data); // Debug log
     const { id, ...updateFields } = data;
     if (!id) {
+      console.log('PATCH error: Missing artisan ID');
       return new Response(JSON.stringify({ message: 'Missing artisan ID' }), { status: 400 });
     }
     // Remove undefined fields from updateFields
@@ -116,6 +122,10 @@ export async function PATCH(req) {
         updateFields.specializations = JSON.parse(updateFields.specializations);
       } catch {}
     }
+    // Ensure profileImage is always an object { url, key }
+    if (!updateFields.profileImage || typeof updateFields.profileImage !== 'object') {
+      updateFields.profileImage = { url: '', key: '' };
+    }
     if (!Array.isArray(updateFields.specializations)) {
       updateFields.specializations = updateFields.specializations ? [updateFields.specializations] : [];
     }
@@ -123,14 +133,21 @@ export async function PATCH(req) {
     if (typeof updateFields.active !== 'undefined') {
       updateFields.active = !!updateFields.active;
     }
-    console.log('PATCH updateFields:', updateFields); // Debug log
+    console.log('PATCH updateFields after processing:', updateFields); // Debug log
     // Directly replace all fields with the new data (admin full update)
-    const updatedArtisan = await Artisan.findByIdAndUpdate(id, updateFields, { new: true, overwrite: false });
+    const updatedArtisan = await Artisan.findByIdAndUpdate(id, updateFields, { new: true});
+    // Ensure profileImage is always an object if present
+    if (updatedArtisan && updatedArtisan.profileImage && typeof updatedArtisan.profileImage === 'string') {
+      updatedArtisan.profileImage = { url: updatedArtisan.profileImage, key: '' };
+    }
     if (!updatedArtisan) {
+      console.log('PATCH error: Artisan not found for id', id);
       return new Response(JSON.stringify({ message: 'Artisan not found' }), { status: 404 });
     }
+    console.log('PATCH update successful:', updatedArtisan);
     return new Response(JSON.stringify({ message: 'Artisan profile updated successfully', artisan: updatedArtisan }), { status: 200 });
   } catch (error) {
+    console.error('PATCH error:', error);
     if (error.code === 11000 && error.keyPattern && error.keyPattern.artisanNumber) {
       return new Response(JSON.stringify({ message: 'Artisan number already exists', code: 11000 }), { status: 400 });
     }
@@ -147,12 +164,12 @@ export async function DELETE(req) {
     if (!artisan) {
       return new Response(JSON.stringify({ message: 'Artisan not found' }), { status: 404 });
     }
-    // Delete the image from Uploadthing if key exists
+    // Delete the image from Cloudinary if key exists
     if (artisan.profileImage?.key) {
       try {
-        await deleteFileFromUploadthing(artisan.profileImage.key);
+        await deleteFileFromCloudinary(artisan.profileImage.key);
       } catch (err) {
-        console.error('Uploadthing deletion failed:', err.message);
+        console.error('Cloudinary deletion failed:', err.message);
       }
     }
     await Artisan.findByIdAndDelete(id);

@@ -96,9 +96,9 @@ const artisanSchema = new mongoose.Schema({
     url: { type: String, default: '' },
     key: { type: String, default: '' }
   },
-  promotions: [{ 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Promotion' 
+  promotions: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Promotion'
   }],
   blogs: [{
     type: mongoose.Schema.Types.ObjectId,
@@ -117,7 +117,8 @@ const artisanSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'SocialPlugin',
     default: null
-  }
+  },
+  products: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }]
 }, {
   timestamps: true
 });

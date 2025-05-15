@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-hot-toast';
-import { UploadButton } from "@/utils/uploadthing";
+import { UploadButton } from "@/utils/cloudinary";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 // Placeholder for TiptapEditor. Replace with your actual implementation or import.
 const TiptapEditor = ({ value, onChange }) => (

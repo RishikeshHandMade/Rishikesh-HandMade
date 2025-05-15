@@ -9,7 +9,7 @@ import { Send, Check, CheckCheck, Pin, Paperclip, X, Loader2 } from "lucide-reac
 import { cn } from "@/lib/utils"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
-import { UploadButton } from "@/utils/uploadthing"
+import { UploadButton } from "@/utils/cloudinary"
 import Image from "next/image"
 import { deleteFileFromUploadthing } from "@/utils/Utapi"
 import {

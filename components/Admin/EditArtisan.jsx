@@ -25,10 +25,8 @@ export default function EditArtisan({ artisan }) {
       const res = await fetch('/api/createArtisan');
       if (!res.ok) throw new Error('Failed to fetch artisans');
       const data = await res.json();
-      console.log(data)
       setUsers(data);
     } catch (err) {
-      console.error('Error in fetchUsers:', err);
       toast.error("Failed to fetch users. Please try again later.");
     } finally {
       setLoading(false);
@@ -107,7 +105,7 @@ export default function EditArtisan({ artisan }) {
                     </Button>
                   </TableCell>
                   <TableCell className="px-4 py-3 space-x-2">
-                    <Button size="sm" variant="outline" onClick={() => onView && onView(artisan)}>View</Button>
+                    <Button size="sm" variant="outline" onClick={() => router.push(`/admin/artisan_dashboard/${artisan._id}`)}>View</Button>
                     <Button size="sm" variant="secondary" onClick={() => onEdit && onEdit(artisan)}>Edit</Button>
                     <Button size="sm" variant="destructive" onClick={() => handleDeleteClick(artisan)}>Delete</Button>
                   </TableCell>

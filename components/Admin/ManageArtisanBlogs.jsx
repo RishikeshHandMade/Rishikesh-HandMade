@@ -3,7 +3,7 @@ import React, { useRef, useState, useEffect } from 'react';
 // import uploadimg from './upload-img.png';
 import { Button } from '@/components/ui/button';
 import { toast } from 'react-hot-toast';
-import { UploadButton } from '../../utils/uploadthing';
+import { UploadButton } from '../../utils/cloudinary';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 

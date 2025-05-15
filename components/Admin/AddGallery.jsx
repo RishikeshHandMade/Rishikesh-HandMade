@@ -1,6 +1,6 @@
 'use client'
 
-import { UploadButton } from "@/utils/uploadthing";
+import { UploadButton } from "@/utils/cloudinary";
 import { X } from "lucide-react";
 import Image from "next/image";
 import { useState, useEffect } from "react";

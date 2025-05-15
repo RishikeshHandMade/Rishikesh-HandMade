@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/connectDB";
 import HeroBanner from "@/models/HeroBanner";
-import { deleteFileFromUploadthing } from "@/utils/Utapi";
-
+import { deleteFileFromCloudinary } from "@/utils/Utapi";
 connectDB();
 
 export async function GET() {
@@ -52,7 +51,7 @@ export async function DELETE(req) {
 
         // Delete the image from Uploadthing (if key exists)
         if (banner.image?.key) {
-            await deleteFileFromUploadthing(banner.image.key);
+            await deleteFileFromCloudinary(banner.image.key);
         }
 
         // Delete banner from database
