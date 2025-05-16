@@ -51,21 +51,21 @@ const data = {
       url: "/admin/change_banner_image",
       icon: Image,
     },
-    {
-      name: "Create City",
-      url: "/admin/create_city",
-      icon: MapPin,
-    },
-    {
-      name: "Create Package Plan Type",
-      url: "/admin/create_package_plan_type",
-      icon: ShoppingBag,
-    },
-    {
-      name: "Manage City Plans",
-      url: "/admin/manage_city_plans",
-      icon: Flame,
-    },
+    // {
+    //   name: "Create City",
+    //   url: "/admin/create_city",
+    //   icon: MapPin,
+    // },
+    // {
+    //   name: "Create Package Plan Type",
+    //   url: "/admin/create_package_plan_type",
+    //   icon: ShoppingBag,
+    // },
+    // {
+    //   name: "Manage City Plans",
+    //   url: "/admin/manage_city_plans",
+    //   icon: Flame,
+    // },
     { divider: true },
     {
       name: "Create Artisan",

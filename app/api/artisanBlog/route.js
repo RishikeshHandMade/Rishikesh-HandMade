@@ -37,10 +37,17 @@ export async function POST(req) {
   }
 }
 
-export async function GET() {
+export async function GET(req) {
   try {
     await connectDB();
-    const blogs = await ArtisanBlog.find().populate('artisan').sort({ createdAt: -1 });
+    const url = req?.url ? new URL(req.url) : null;
+    const artisanId = url?.searchParams?.get('artisanId');
+    let blogs;
+    if (artisanId) {
+      blogs = await ArtisanBlog.find({ artisan: artisanId }).populate('artisan').sort({ createdAt: -1 });
+    } else {
+      blogs = await ArtisanBlog.find().populate('artisan').sort({ createdAt: -1 });
+    }
     return new Response(JSON.stringify({ blogs }), { status: 200 });
   } catch (error) {
     return new Response(JSON.stringify({ message: 'Error fetching blogs', error: error.message }), { status: 500 });

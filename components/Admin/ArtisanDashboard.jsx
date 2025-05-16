@@ -1,8 +1,9 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { toast } from 'react-hot-toast';
 
 const sectionTitles = [
   'Profile',
@@ -95,18 +96,31 @@ const sectionConfig = [
   {
     key: 'social',
     label: 'Social Plugins',
-    component: ({ artisanId }) => <div>Social plugins for artisan {artisanId} (form or cards)</div>,
+    component: ({ artisanId }) => (
+      <div style={boxStyle}>
+        <div className="font-bold text-lg">Social Plugins</div>
+        <div className="text-gray-600 text-sm">Plugins for artisan {artisanId}</div>
+        <Button>View</Button>
+        <Button>Delete</Button>
+      </div>
+    )
   },
   {
     key: 'certifications',
     label: 'Certifications',
-    component: ({ artisanId }) => <div>Certificates for artisan {artisanId} (form or cards)</div>,
+    component: ({ artisanId }) => (
+      <div style={boxStyle}>
+        <div className="font-bold text-lg">Certifications</div>
+        <div className="text-gray-600 text-sm">Certifications for artisan {artisanId}</div>
+        <Button>View</Button>
+        <Button>Delete</Button>
+      </div>
+    )
   },
 ];
 
 const ArtisanDashboard = () => {
   const params = useParams();
-  const router = useRouter();
   const artisanId = params?.id;
   // State for artisan and all section data
   const [artisan, setArtisan] = useState(null);
@@ -119,22 +133,55 @@ const ArtisanDashboard = () => {
   const [activeKey, setActiveKey] = useState('Profile');
   const [showPromotionModal, setShowPromotionModal] = useState(false);
   const [selectedPromotion, setSelectedPromotion] = useState(null);
+  const [showBlogModal, setShowBlogModal] = useState(false);
+  const [selectedBlog, setSelectedBlog] = useState(null);
+  const [showStoryModal, setShowStoryModal] = useState(false);
+  const [selectedStory, setSelectedStory] = useState(null);
+  const [showCertificateModal, setShowCertificateModal] = useState(false);
+  const [selectedCertificate, setSelectedCertificate] = useState(null);
   const [deleteModal, setDeleteModal] = useState({ show: false, type: '', id: null });
 
   useEffect(() => {
     async function fetchAll() {
       setLoading(true);
       try {
-        // Fetch artisan details
-        const res = await fetch(`/api/createArtisan`);
-        const data = await res.json();
-        const found = data.find(a => a._id === artisanId);
+        const [
+          artisanRes,
+          promoRes,
+          blogRes,
+          storyRes,
+          pluginRes,
+          certRes
+        ] = await Promise.all([
+          fetch(`/api/createArtisan`),
+          fetch(`/api/promotion?artisanId=${artisanId}`),
+          fetch(`/api/artisanBlog?artisanId=${artisanId}`),
+          fetch(`/api/artisanStory?artisanId=${artisanId}`),
+          fetch(`/api/artisanPlugins?artisanId=${artisanId}`),
+          fetch(`/api/artisanCertificates?artisanId=${artisanId}`)
+        ]);
+        const [
+          artisanData,
+          promoData,
+          blogData,
+          storyData,
+          pluginData,
+          certData
+        ] = await Promise.all([
+          artisanRes.json(),
+          promoRes.json(),
+          blogRes.json(),
+          storyRes.json(),
+          pluginRes.json(),
+          certRes.json()
+        ]);
+        const found = artisanData.find(a => a._id === artisanId);
         setArtisan(found);
-        // Fetch promotions
-        const promoRes = await fetch(`/api/promotion?artisanId=${artisanId}`);
-        setPromotions(await promoRes.json());
-        // TODO: Fetch blogs, stories, plugins, certificates using similar APIs
-        // setBlogs(...); setStories(...); setSocialPlugin(...); setCertificates(...);
+        setPromotions(Array.isArray(promoData) ? promoData : (promoData.promotions || []));
+        setBlogs(Array.isArray(blogData) ? blogData : (blogData.blogs || []));
+        setStories(Array.isArray(storyData) ? storyData : (storyData.stories || []));
+        setSocialPlugin(Array.isArray(pluginData) ? pluginData : (pluginData.plugins || []));
+        setCertificates(Array.isArray(certData) ? certData : (certData.certificates || []));
       } catch (e) {
         setArtisan(null);
       } finally {
@@ -143,25 +190,55 @@ const ArtisanDashboard = () => {
     }
     if (artisanId) fetchAll();
   }, [artisanId]);
-
   const handleDelete = (type, id) => setDeleteModal({ show: true, type, id });
   const handleConfirmDelete = async () => {
     try {
+      let deleted = false;
       if (deleteModal.type === 'promotion') {
         await fetch(`/api/promotion`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: deleteModal.id }) });
         setPromotions(promotions.filter(p => p._id !== deleteModal.id));
+        deleted = true;
+      } else if (deleteModal.type === 'blog') {
+        await fetch(`/api/artisanBlog`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: deleteModal.id }) });
+        setBlogs(blogs.filter(b => b._id !== deleteModal.id));
+        deleted = true;
+      } else if (deleteModal.type === 'story') {
+        await fetch(`/api/artisanStory`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: deleteModal.id }) });
+        setStories(stories.filter(s => s._id !== deleteModal.id));
+        deleted = true;
       }
-      // TODO: Add deletion for blogs, stories, certificates, plugins
+      else if (deleteModal.type === 'certificate') {
+        await fetch(`/api/artisanCertificates`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: deleteModal.id }) });
+        setCertificates(certificates.filter(c => c._id !== deleteModal.id));
+        deleted = true;
+      } else if (deleteModal.type === 'plugin') {
+        await fetch(`/api/artisanPlugins`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: deleteModal.id }) });
+        setSocialPlugin((prev) => Array.isArray(prev) ? prev.filter(p => p._id !== deleteModal.id) : null);
+        deleted = true;
+      }
+      if (deleted) toast.success('Deleted successfully.');
     } catch (err) {
-      // toast.error('Failed to delete.');
+      toast.error('Failed to delete.');
     } finally {
       setDeleteModal({ show: false, type: '', id: null });
     }
-  };
+  }
   const handleCancelDelete = () => setDeleteModal({ show: false, type: '', id: null });
 
-  if (loading) return <div className="text-center my-5">Loading...</div>;
-  if (!artisan) return <div className="text-center my-5">Artisan not found.</div>;
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center my-10">
+      <div className="flex items-center gap-2">
+        <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <span className="text-lg text-gray-700 font-medium">Loading artisan details...</span>
+      </div>
+    </div>
+  );
+  if (!artisan) return (
+    <div className="flex flex-col items-center justify-center my-10">
+      <div className="text-center text-lg mb-2">Artisan not found.</div>
+      <Button href="/admin/createArtisan" className="inline-block mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">Create New Artisan</Button>
+    </div>
+  );
 
   return (
     <div className="flex" style={{ minHeight: '85vh', background: '#f8f9fa', padding: '20px' }}>
@@ -182,6 +259,7 @@ const ArtisanDashboard = () => {
       {/* Main Content */}
       <div className="flex-1" style={{ border: '1px solid #ced4da', borderRadius: '8px', background: '#fff', padding: '20px', height: '100%', overflowY: 'auto' }}>
         <h2 className="mb-4 text-center" style={{ fontWeight: 600 }}>{activeKey}</h2>
+
         {/* Profile Section */}
         {activeKey === 'Profile' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -212,15 +290,24 @@ const ArtisanDashboard = () => {
               <div className="col-span-3 text-center">No promotions found for this artisan.</div>
             ) : (
               promotions.map((promotion, idx) => (
-                <div key={promotion._id || idx} className="relative bg-white rounded-xl shadow-lg p-6 flex flex-col items-start min-h-[220px]">
+                <div key={promotion._id || idx} className="relative bg-white rounded-xl shadow-lg p-6 flex flex-col items-start min-h-[260px]">
+                  {/* Promotion Image */}
+                  <img
+                    src={promotion.image || '/promotion-placeholder.png'}
+                    alt={promotion.title || 'Promotion Image'}
+                    style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '8px', marginBottom: '10px' }}
+                    onError={e => { e.target.onerror = null; e.target.src = '/promotion-placeholder.png'; }}
+                  />
+                  {/* Title */}
+                  <div className="font-bold text-lg mb-1">{promotion.title || 'Promotion'}</div>
+                  {/* Short Description */}
+                  <div className="text-gray-700 mb-2" style={{ flexGrow: 1, minHeight: '40px', maxHeight: '70px', overflowY: 'auto' }}>
+                    {promotion.shortDescription || 'No description available.'}
+                  </div>
                   {/* Rating at top-right */}
                   <div className="absolute top-4 right-4 bg-yellow-100 text-yellow-800 rounded-full px-3 py-1 text-xs font-bold shadow">
                     ⭐ {promotion.rating || 'N/A'}
                   </div>
-                  {/* Created By */}
-                  <div className="font-semibold mb-1">{promotion.createdBy}</div>
-                  {/* Description Box */}
-                  <div className="text-gray-700 mb-2" style={{ flexGrow: 1, minHeight: '60px', maxHeight: '120px', overflowY: 'auto' }} dangerouslySetInnerHTML={{ __html: promotion.shortDescription || 'No description available.' }} />
                   {/* View, Delete Buttons */}
                   <div className="flex gap-2 mt-2 self-end">
                     <Button size="sm" variant="default" onClick={() => { setSelectedPromotion(promotion); setShowPromotionModal(true); }}>View</Button>
@@ -231,7 +318,137 @@ const ArtisanDashboard = () => {
             )}
           </div>
         )}
-        {/* TODO: Add Blog, Story, Plugins, Certificates sections here */}
+        {/* Blogs Section */}
+        {activeKey === 'Blog' && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {blogs.length === 0 ? (
+              <div className="col-span-3 text-center">No blogs found for this artisan.</div>
+            ) : (
+              blogs.map((blog, idx) => (
+                <div key={blog._id || idx} className="relative bg-white rounded-xl shadow-lg p-6 flex flex-col items-start min-h-[260px]">
+                  {/* Blog Image */}
+                  <img
+                    src={
+                      blog.images?.[0]?.url ||
+                      blog.images?.[0] ||
+                      '/blog-placeholder.png'
+                    }
+                    alt={blog.title || 'Blog Image'}
+                    style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '8px', marginBottom: '10px' }}
+                    onError={e => { e.target.onerror = null; e.target.src = '/blog-placeholder.png'; }}
+                  />
+                  {/* Blog Title at top */}
+                  <div className="font-semibold mb-1">{blog.title || 'Untitled Blog'}</div>
+                  {/* Blog Snippet */}
+                  <div className="text-gray-700 mb-2" style={{ flexGrow: 1, minHeight: '60px', maxHeight: '70px', overflowY: 'auto' }} dangerouslySetInnerHTML={{ __html: blog.shortDescription || 'No description available.' }} />
+                  {/* View, Delete Buttons */}
+                  <div className="flex gap-2 mt-2 self-end">
+                    <Button size="sm" variant="default" onClick={() => { setSelectedBlog(blog); setShowBlogModal(true); }}>View</Button>
+                    <Button size="sm" variant="destructive" onClick={() => handleDelete('blog', blog._id)}>Delete</Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+        {/* Artisan Story Section */}
+        {activeKey === 'Artisan Story' && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {stories.length === 0 ? (
+              <div className="col-span-3 text-center">No stories found for this artisan.</div>
+            ) : (
+              stories.map((story, idx) => (
+                <div key={story._id || idx} className="relative bg-white rounded-xl shadow-lg p-6 flex flex-col items-start min-h-[260px]">
+                  {/* Story Image */}
+                  <img
+                    src={
+                      Array.isArray(story.image)
+                        ? (typeof story.image[0] === 'object' && story.image[0] !== null
+                          ? story.image[0].url
+                          : story.image[0])
+                        : (story.image?.url || story.image || '/story-placeholder.png')
+                    }
+                    alt={story.title || 'Story Image'}
+                    style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '8px', marginBottom: '10px' }}
+                    onError={e => { e.target.onerror = null; e.target.src = '/story-placeholder.png'; }}
+                  />
+                  {/* Story Title at top */}
+                  <div className="font-semibold mb-1">{story.title || 'Untitled Story'}</div>
+                  {/* Story Snippet */}
+                  <div className="text-gray-700 mb-2" style={{ flexGrow: 1, minHeight: '60px', maxHeight: '70px', overflowY: 'auto' }} dangerouslySetInnerHTML={{ __html: story.shortDescription || 'No description available.' }} />
+                  {/* View, Delete Buttons */}
+                  <div className="flex gap-2 mt-2 self-end">
+                    <Button size="sm" variant="default" onClick={() => { setSelectedStory(story); setShowStoryModal(true); }}>View</Button>
+                    <Button size="sm" variant="destructive" onClick={() => handleDelete('story', story._id)}>Delete</Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+        {/* Social Plugins Section */}
+        {activeKey === 'Social Plugins' && (
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+            <div style={boxStyle}>
+              <b>Facebook: &nbsp;</b>
+              <a href={socialPlugin[0].facebook} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
+                {socialPlugin[0].facebook}
+              </a>
+            </div>
+            <div style={boxStyle}>
+              <b>Instagram: &nbsp;</b>
+              <a href={socialPlugin[0].instagram} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
+                {socialPlugin[0].instagram}
+              </a>
+            </div>
+            <div style={boxStyle}>
+              <b>Google: &nbsp;</b>
+              <a href={socialPlugin[0].google} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
+                {socialPlugin[0].google}
+              </a>
+            </div>
+            <div style={boxStyle}>
+              <b>Website: &nbsp;</b>
+              <a href={socialPlugin[0].website} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
+                {socialPlugin[0].website}
+              </a>
+            </div>
+          </div>
+        )}
+        {/*Certificates*/}
+        {activeKey === 'Certificates' && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {(!certificates || certificates.length === 0) ? (
+              <div className="text-center">No certificates found for this artisan.</div>
+            ) : (
+              certificates.map((cert, idx) => (
+                <div key={cert._id || idx} className="bg-white rounded-xl shadow-lg p-6 flex flex-col items-center min-h-[220px]">
+                  {/* Certificate Image */}
+                  <img
+                    src={cert.imageUrl || '/certificate-placeholder.png'}
+                    alt={cert.title || 'Certificate Image'}
+                    style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '8px', marginBottom: '10px' }}
+                    onError={e => { e.target.onerror = null; e.target.src = '/certificate-placeholder.png'; }}
+                  />
+                  {/* Certificate Title */}
+                  <div className="font-semibold text-lg mb-1 text-center">{cert.title || 'Certificate'}</div>
+                  {/* Issuer and Date */}
+                  <div className="text-gray-700 mb-2">{cert.issuedBy ? `Issued by: ${cert.issuedBy}` : '-'}</div>
+                  <div className="text-gray-600 text-xs mb-2">{cert.issueDate ? `Date: ${cert.issueDate}` : ''}</div>
+                  {/* Actions */}
+                  <div className="flex gap-2 mt-2">
+                    <Button size="sm" variant="default" onClick={() => { setSelectedCertificate(cert); setShowCertificateModal(true); }}>View</Button>
+                    <Button size="sm" variant="destructive" onClick={() => handleDelete('certificate', cert._id)}>Delete</Button>
+                  </div>
+                </div>
+              ))
+
+            )}
+          </div>
+        )}
+
+        {/* VIEW MODEL START */}
+
         {/* Promotion Modal */}
         {showPromotionModal && (
           <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-40">
@@ -240,15 +457,223 @@ const ArtisanDashboard = () => {
               <h3 className="mb-4 text-lg font-semibold">Promotion Details</h3>
               {selectedPromotion && (
                 <div>
-                  <div className="mb-2 font-bold">Title: {selectedPromotion.title || 'Untitled Promotion'}</div>
-                  <div className="mb-2">Created By: {selectedPromotion.artisan?.title} {selectedPromotion.artisan?.firstName} {selectedPromotion.artisan?.lastName}</div>
-                  <div className="mb-2">Artisan Number: {selectedPromotion.artisan?.artisanNumber || 'N/A'}</div>
-                  <div className="mb-2">Short Text: {selectedPromotion.shortText || 'N/A'}</div>
-                  <div className="mb-2">Description: <span dangerouslySetInnerHTML={{ __html: selectedPromotion.shortDescription || '' }} /></div>
+                  <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
+                    <div className="font-semibold text-gray-800">Title</div>
+                    <div className="text-gray-600">{selectedPromotion.title || '-'}</div>
+                  </div>
+                  <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
+                    <div className="font-semibold text-gray-800">Rating</div>
+                    <div className="text-gray-600">{selectedPromotion.rating || '-'}</div>
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 w-1/2">
+                      <div className="font-semibold text-gray-800">Created By</div>
+                      <div className="text-gray-600">{selectedPromotion.createdBy || '-'}</div>
+                    </div>
+                    <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 w-1/2">
+                      <div className="font-semibold text-gray-800">Date</div>
+                      <div className="text-gray-600">
+                        {selectedPromotion.date
+                          ? (() => {
+                            const d = new Date(Number(selectedPromotion.date));
+                            const day = String(d.getDate()).padStart(2, '0');
+                            const month = String(d.getMonth() + 1).padStart(2, '0');
+                            const year = d.getFullYear();
+                            return `${day}-${month}-${year}`;
+                          })()
+                          : '-'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
+                    <div className="font-semibold text-gray-800">Short Text</div>
+                    <div className="text-gray-600">{selectedPromotion.shortText || '-'}</div>
+                  </div>
+                  <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
+                    <div className="font-semibold text-gray-800">Description</div>
+                    <div className="text-gray-600">{selectedPromotion.shortDescription || '-'}</div>
+                  </div>
                 </div>
               )}
               <div className="flex justify-end mt-4">
-                <Button variant="secondary" onClick={() => setShowPromotionModal(false)}>Close</Button>
+                <Button variant="destructive" onClick={() => setShowPromotionModal(false)}>Close</Button>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Blog Modal */}
+        {showBlogModal && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-40">
+            <div className="bg-white rounded-lg p-8 max-w-lg w-full shadow-lg relative">
+              <button className="absolute top-2 right-2 text-xl" onClick={() => setShowBlogModal(false)}>×</button>
+              <h3 className="mb-4 text-lg font-semibold">Blog Details</h3>
+              <div className="grid grid-cols-1 gap-4 mb-2">
+                <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
+                  <div className="font-semibold text-gray-800">Blog Title</div>
+                  <div className="text-gray-600">{selectedBlog.title}</div>
+                </div>
+                <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 ">
+                  <div className="font-semibold text-gray-800">YouTube URL</div>
+                  <div className="text-gray-600 break-all">
+                    {selectedBlog.youtubeUrl ? (
+                      <a
+                        href={selectedBlog.youtubeUrl.startsWith('http') ? selectedBlog.youtubeUrl : `https://${selectedBlog.youtubeUrl}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline hover:text-blue-800"
+                      >
+                        {selectedBlog.youtubeUrl}
+                      </a>
+                    ) : (
+                      '-'
+                    )}
+                  </div>
+                </div>
+                <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
+                  <div className="font-semibold text-gray-800">Short Description</div>
+                  <div className="text-gray-600">{selectedBlog.shortDescription || '-'}</div>
+                </div>
+                <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 max-h-24 overflow-y-auto">
+                  <div className="font-semibold text-gray-800">Long Description</div>
+                  <div className="text-gray-600 whitespace-pre-line">{selectedBlog.longDescription || '-'}</div>
+                </div>
+                <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 max-h-32 overflow-y-auto">
+                  <div className="font-semibold text-gray-800">Images</div>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {Array.isArray(selectedBlog.images) && selectedBlog.images.length > 0 ? (
+                      selectedBlog.images.map((img, idx) => {
+                        let url = typeof img === 'object' && img !== null ? img.url : img;
+                        const key = (typeof img === 'object' && img !== null && img.key) ? img.key : (url ? url : idx);
+                        // Only render if url is valid
+                        if (typeof url !== 'string' || !url.trim() || url === 'undefined') {
+                          return null;
+                        }
+                        return (
+                          <img
+                            key={key}
+                            src={url}
+                            alt={`Blog Image ${idx + 1}`}
+                            className="w-28 h-20 object-cover rounded"
+                            onError={e => { e.target.style.display = 'none'; }}
+                          />
+                        );
+                      })
+                    ) : (
+                      <span className="text-gray-400">No images</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-end mt-4">
+                <Button variant="secondary" onClick={() => setShowBlogModal(false)}>Close</Button>
+              </div>
+            </div>
+
+          </div>
+        )}
+        {/* Story Modal */}
+        {showStoryModal && selectedStory && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-40">
+            <div className="bg-white rounded-lg p-8 max-w-lg w-full shadow-lg relative">
+              <button className="absolute top-2 right-2 text-xl" onClick={() => setShowStoryModal(false)}>×</button>
+              <h3 className="mb-4 text-lg font-semibold">Artisan Story Details</h3>
+              <div className="grid grid-cols-1 gap-4 mb-2">
+                <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
+                  <div className="font-semibold text-gray-800">Story Title</div>
+                  <div className="text-gray-600">{selectedStory.title}</div>
+                </div>
+                <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
+                  <div className="font-semibold text-gray-800">Short Description</div>
+                  <div className="text-gray-600">{selectedStory.shortDescription || '-'}</div>
+                </div>
+                <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 max-h-24 overflow-y-auto">
+                  <div className="font-semibold text-gray-800">Long Description</div>
+                  <div className="text-gray-600 whitespace-pre-line">{selectedStory.longDescription || '-'}</div>
+                </div>
+                <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 max-h-32 overflow-y-auto">
+                  <div className="font-semibold text-gray-800">Images</div>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {Array.isArray(selectedStory.image) && selectedStory.image.length > 0 ? (
+                      selectedStory.image.map((url, idx) => {
+                        console.log(url);
+                        if (typeof url !== 'string' || !url.trim() || url === 'undefined') {
+                          return null;
+                        }
+                        return (
+                          <img
+                            key={url + idx}
+                            src={url}
+                            alt={`Story Image ${idx + 1}`}
+                            className="w-28 h-20 object-cover rounded"
+                            onError={e => { e.target.style.display = 'none'; }}
+                          />
+                        );
+                      })
+                    ) : (
+                      <span className="text-gray-400">No images</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-end mt-4">
+                <Button variant="secondary" onClick={() => setShowStoryModal(false)}>Close</Button>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Certificates Modal */}
+        {showCertificateModal && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-40">
+            <div className="bg-white rounded-lg p-8 max-w-md w-full shadow-lg relative">
+              <button className="absolute top-2 right-2 text-xl" onClick={() => setShowCertificateModal(false)}>×</button>
+              <h3 className="mb-4 text-lg font-semibold">Certificate Details</h3>
+              {selectedCertificate && (
+                <div>
+                  <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
+                    <div className="font-semibold text-gray-800">Certificate Name</div>
+                    <div className="text-gray-600">{selectedCertificate.title || '-'}</div>
+                  </div>
+                  <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
+                    <div className="font-semibold text-gray-800">Issued By</div>
+                    <div className="text-gray-600">{selectedCertificate.issuedBy || '-'}</div>
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 w-1/2">
+                      <div className="font-semibold text-gray-800">Issued Date</div>
+                      <div className="text-gray-600">{selectedCertificate.issueDate || 'N/A'}</div>
+                    </div>
+                    <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 w-1/2">
+                      <div className="font-semibold text-gray-800">Specialization In</div>
+                      <div className="text-gray-600">{selectedCertificate.description || 'N/A'}</div>
+                    </div>
+                  </div>
+                  <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 max-h-48 overflow-y-auto">
+                    <div className="font-semibold text-gray-800">Images</div>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {selectedCertificate.imageUrl
+                        ? (Array.isArray(selectedCertificate.imageUrl)
+                          ? selectedCertificate.imageUrl
+                          : [selectedCertificate.imageUrl]
+                        ).map((url, idx) => (
+                          typeof url === 'string' && url.trim() && url !== 'undefined' ? (
+                            <img
+                              key={url + idx}
+                              src={url}
+                              alt={`Certificate Image ${idx + 1}`}
+                              className="w-28 h-20 object-cover rounded"
+                              onError={e => { e.target.style.display = 'none'; }}
+                            />
+                          ) : null
+                        ))
+                        : <span className="text-gray-400">No images</span>
+                      }
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div className="flex justify-end mt-4">
+                <Button variant="destructive" onClick={() => setShowCertificateModal(false)}>Close</Button>
               </div>
             </div>
           </div>
@@ -270,91 +695,6 @@ const ArtisanDashboard = () => {
       </div>
     </div>
   );
-
-
-
-  // useEffect(() => {
-  //   // Try to get artisan from sessionStorage (set in EditArtisan)
-  //   let artisan = null;
-  //   try {
-  //     const stored = sessionStorage.getItem(`artisan_${artisanId}`);
-  //     if (stored) {
-  //       artisan = JSON.parse(stored);
-  //     }
-  //   } catch { }
-  //   if (artisan) {
-  //     setArtisanDetails(artisan);
-  //   } else if (artisanId) {
-  //     // fallback: fetch from API
-  //     fetch(`/api/createArtisan`).then(res => res.json()).then(data => {
-  //       const found = data.find(a => a._id === artisanId);
-  //       if (found) setArtisanDetails(found);
-  //     });
-  //   }
-  // }, [artisanId]);
-
-  // if (!artisanId) {
-  //   return <div>No artisan selected.</div>;
-  // }
-
-  // return (
-  //   <div style={{ minHeight: '85vh', background: '#fff', padding: '20px' }}>
-  //     {artisanDetails && (
-  //       <div className="mb-4 p-4 bg-blue-50 rounded shadow flex gap-8 items-center">
-  //         <div>
-  //           <div className="font-bold text-lg">{artisanDetails.title} {artisanDetails.firstName} {artisanDetails.lastName}</div>
-  //           <div className="text-gray-600 text-sm">Artisan Number: {artisanDetails.artisanNumber}</div>
-  //         </div>
-  //       </div>
-  //     )}
-  //     {/* Sidebar and Section Card Layout */}
-  //     <div className="flex h-full">
-  //       {/* Sidebar Tabs */}
-  //       <div className="flex flex-col gap-2 min-w-[220px] w-[220px] bg-gray-300 border-r border-gray-200 py-4 px-2 rounded-l-lg shadow-sm h-fit">
-  //         {sectionConfig.map(section => (
-  //           <div
-  //             key={section.key}
-  //             onClick={() => setActiveSection(section.key)}
-  //             className={`text-base px-6 py-3 text-left rounded-lg transition-all font-medium cursor-pointer
-  //               ${activeSection === section.key ? 'bg-blue-600 text-white' : 'bg-blue-100 text-gray-900'}
-  //               hover:bg-blue-400 focus:outline-none w-full`}
-  //             style={{ justifyContent: 'flex-start', marginBottom: 6 }}
-  //           >
-  //             {section.label}
-  //           </div>
-  //         ))}
-  //       </div>
-  //       {/* Section Card Data */}
-  //       <div className="flex-1 flex justify-center items-start p-8">
-  //         <div className="relative bg-white rounded-xl shadow-lg p-6 flex flex-col items-center w-full max-w-md min-h-[320px]">
-  //           {/* Review at top right */}
-  //           <div className="absolute top-4 right-4 bg-yellow-100 text-yellow-800 rounded-full px-3 py-1 text-xs font-bold shadow">
-  //             {/* Replace with actual review/rating logic if available */}
-  //             Review: {artisanDetails?.rating ?? 'N/A'}
-  //           </div>
-  //           {/* Artisan Image */}
-  //           <img
-  //             src={artisanDetails?.profileImage?.url || '/artisan-placeholder.png'}
-  //             alt="Artisan"
-  //             className="w-32 h-32 object-cover rounded-full border mb-4"
-  //           />
-  //           {/* Section Title */}
-  //           <div className="font-bold text-lg mb-2">{sectionConfig.find(s => s.key === activeSection)?.label}</div>
-  //           {/* Section Description or Data Preview */}
-  //           <div className="text-gray-700 mb-4 text-center">
-  //             {/* Show minimal data preview - can be customized per section */}
-  //             {artisanDetails?.firstName} {artisanDetails?.lastName}
-  //           </div>
-  //           {/* Action Buttons */}
-  //           <div className="flex gap-4 mt-auto">
-  //             <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">View</button>
-  //             <button className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition">Delete</button>
-  //           </div>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   </div>
-  // );
 };
 
 export default ArtisanDashboard;
