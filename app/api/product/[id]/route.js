@@ -1,6 +1,24 @@
-// API Route for updating and deleting a product by ID
+// API Route for fetching, updating, and deleting a product by ID
 import connectDB from "@/lib/connectDB";
 import Product from '@/models/Product';
+
+// GET: Fetch a single product by ID
+export async function GET(req, { params }) {
+  try {
+    await connectDB();
+    const { id } =await params;
+    if (!id) {
+      return new Response(JSON.stringify({ error: "Missing product ID" }), { status: 400 });
+    }
+    const product = await Product.findById(id);
+    if (!product) {
+      return new Response(JSON.stringify({ error: "Product not found" }), { status: 404 });
+    }
+    return new Response(JSON.stringify(product), { status: 200 });
+  } catch (error) {
+    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+  }
+}
 
 // PATCH: Update any part of the product (sizes, colors, gallery, etc.)
 export async function PATCH(req, { params }) {

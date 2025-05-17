@@ -1,7 +1,9 @@
-import CreateCity from "@/components/Admin/CreateCity"
+import CreateDiscount from "@/components/Admin/CreateDiscount"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 
-const page = () => {
+export const dynamic = "force-dynamic"
+
+const CreateDiscountPage = async () => {
 
     return (
         <SidebarInset>
@@ -11,11 +13,11 @@ const page = () => {
                 </div>
             </header>
             <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-                <h1 className="text-4xl px-12 font-semibold">Create City Name</h1>
-                <CreateCity />
+                <h1 className="text-4xl px-12 font-semibold">Create Discount</h1>
+                <CreateDiscount />
             </div>
         </SidebarInset>
     )
 }
 
-export default page
+export default CreateDiscountPage

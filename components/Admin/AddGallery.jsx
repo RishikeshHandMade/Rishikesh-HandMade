@@ -1,6 +1,6 @@
 'use client'
 
-import { UploadButton } from "@/utils/cloudinary";
+// import { UploadButton } from "@/utils/cloudinary"; // Removed UploadThing
 import { X } from "lucide-react";
 import Image from "next/image";
 import { useState, useEffect } from "react";
@@ -20,6 +20,8 @@ const AddGallery = () => {
 
     const [images, setImages] = useState([]);
     const [loadedImages, setLoadedImages] = useState([]);
+    const [uploading, setUploading] = useState(false);
+    const fileInputRef = useState(null);
 
     useEffect(() => {
         if (packages.gallery) {
@@ -34,14 +36,33 @@ const AddGallery = () => {
         });
     };
 
-    const handleImageUpload = (files) => {
-        const newFiles = files.map(file => ({ url: file.ufsUrl, key: file.key }));
-        setImages(prev => [...prev, ...newFiles]);
-
-        setValue("gallery", [...(getValues("gallery") || []), ...newFiles], { shouldValidate: true });
-
-        // ✅ Only save new images to the database
-        saveImagesToDatabase(newFiles);
+    const handleImageUpload = async (event) => {
+        const files = Array.from(event.target.files);
+        if (!files.length) return;
+        setUploading(true);
+        let newFiles = [];
+        try {
+            for (const file of files) {
+                const formData = new FormData();
+                formData.append('file', file);
+                const res = await fetch('/api/cloudinary', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!res.ok) throw new Error('Image upload failed');
+                const result = await res.json();
+                newFiles.push({ url: result.url, key: result.key });
+            }
+            setImages(prev => [...prev, ...newFiles]);
+            setValue("gallery", [...(getValues("gallery") || []), ...newFiles], { shouldValidate: true });
+            saveImagesToDatabase(newFiles);
+            toast.success('Images uploaded successfully');
+        } catch (err) {
+            toast.error('Image upload failed');
+        } finally {
+            setUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
     };
 
     const handleRemoveImage = async (key) => {
@@ -156,15 +177,22 @@ const AddGallery = () => {
                         <p className="text-gray-500">No Images uploaded</p>
                     )}
                 </div>
-                <UploadButton
-                    endpoint="galleryUploader"
+                <input
+                    type="file"
+                    accept="image/*"
                     multiple
-                    onClientUploadComplete={(files) => handleImageUpload(files)}
-                    onUploadError={(error) => console.error("Error uploading Images", error)}
-                    className="ut-button:bg-blue-600 after:ut-button:ut-uploading:bg-blue-300 !mt-12"
+                    ref={fileInputRef}
+                    style={{ display: 'none' }}
+                    onChange={handleImageUpload}
+                />
+                <button
+                    type="button"
+                    className="bg-blue-600 text-white px-4 py-2 rounded mt-12"
+                    onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                    disabled={uploading}
                 >
-                    Upload Images
-                </UploadButton>
+                    {uploading ? 'Uploading...' : 'Upload Images'}
+                </button>
             </div>
         </div>
     );

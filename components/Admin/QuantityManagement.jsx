@@ -8,7 +8,7 @@ const sizeLabels = ['L', 'M', 'XL', 'XXL'];
 const optionalSizes = ['Size 1', 'Size 2', 'Size 3', 'Size 4'];
 const colors = ['Red', 'Blue', 'Green', 'Yellow'];
 
-const QualityManagement = () => {
+const QuantityManagement = () => {
   const [artisans, setArtisans] = useState([]);
   const [products, setProducts] = useState([]);
   const [selectedArtisan, setSelectedArtisan] = useState("");
@@ -147,4 +147,4 @@ const QualityManagement = () => {
   );
 };
 
-export default QualityManagement;
+export default QuantityManagement;

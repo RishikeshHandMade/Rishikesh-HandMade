@@ -3,29 +3,29 @@ import React, { useState, useEffect } from 'react';
 import ProductGallery from './ProductGallery';
 import ProductInfo from './ProductInfo';
 import CategoryTag from './CategoryTag';
-import CreateReview from './CreateReview';
+import ProductReview from './ProductReview';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import ColorManagement from './ColorManagement';
 import PriceDiscount from './PriceDiscount';
 import VideoManagement from './VideoManagement';
 import ProductDescription from './ProductDescription';
 import SizeManagement from './SizeManagement';
-import QualityManagement from './QualityManagement';
+import QuantityManagement from './QuantityManagement';
 
 
 
 const AddDirectProduct = ({ productId }) => {
   const sectionConfig = [
-    { key: 'size', label: 'Size Management', component: (props) => <SizeManagement {...props} productId={productId} /> },
-    { key: 'color', label: 'Color Management', component: (props) => <ColorManagement {...props} /> },
-    { key: 'price', label: 'Price / Discount', component: (props) => <PriceDiscount {...props} /> },
-    { key: 'gallery', label: 'Product Gallery', component: (props) => <ProductGallery {...props} /> },
-    { key: 'video', label: 'Video Management', component: (props) => <VideoManagement {...props} /> },
-    { key: 'description', label: 'Product Description', component: (props) => <ProductDescription {...props} /> },
-    { key: 'info', label: 'Product Information', component: (props) => <ProductInfo {...props} /> },
-    { key: 'tag', label: 'Category Tag', component: (props) => <CategoryTag {...props} /> },
-    { key: 'review', label: 'Create Review', component: (props) => <CreateReview {...props} /> },
-    { key: 'quality', label: 'Quality Management', component: (props) => <QualityManagement {...props} /> },
+    { key: 'size', label: 'Size Management', component: (props) => <SizeManagement {...props} productData={productData} productId={productId} /> },
+    { key: 'color', label: 'Color Management', component: (props) => <ColorManagement {...props} productData={productData} productId={productId} /> },
+    { key: 'price', label: 'Price / Discount', component: (props) => <PriceDiscount {...props} productData={productData} productId={productId} /> },
+    { key: 'gallery', label: 'Product Gallery', component: (props) => <ProductGallery {...props} productData={productData} productId={productId} /> },
+    { key: 'video', label: 'Video Management', component: (props) => <VideoManagement {...props} productData={productData} productId={productId} /> },
+    { key: 'description', label: 'Product Description', component: (props) => <ProductDescription {...props} productData={productData} productId={productId} /> },
+    { key: 'info', label: 'Product Information', component: (props) => <ProductInfo {...props} productData={productData} productId={productId} /> },
+    { key: 'tag', label: 'Category Tag', component: (props) => <CategoryTag {...props} productData={productData} productId={productId} /> },
+    { key: 'review', label: 'Create Review', component: (props) => <ProductReview {...props} productData={productData} productId={productId} /> },
+    { key: 'quantity', label: 'Quantity Management', component: (props) => <QuantityManagement {...props} productData={productData} productId={productId} /> },
   ];
   const [activeSection, setActiveSection] = useState(sectionConfig[0].key);
   const [productData, setProductData] = useState(null);

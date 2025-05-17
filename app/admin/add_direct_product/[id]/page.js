@@ -3,8 +3,8 @@ import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 
 export const dynamic = "force-dynamic"
 
-const AddDirectProductPage = ({ params }) => {
-    const { id } = params;
+const AddDirectProductPage = async ({ params }) => {
+    const { id } = await params;
     return (
         <SidebarInset>
             <header className="flex h-16 shrink-0 items-center gap-2">

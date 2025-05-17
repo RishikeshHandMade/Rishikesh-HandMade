@@ -88,6 +88,12 @@ const data = {
     { divider: true },
 
     {
+      name:"Create Discount",
+      url:"/admin/create_discount",
+      icon:Plus
+    },
+    { divider: true },
+    {
       name:"Insta or Facebook Post",
       url:"/admin/insta_fb_post",
       icon:Image

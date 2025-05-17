@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import toast from "react-hot-toast";
-import { UploadButton } from "@/utils/cloudinary";
+// import { UploadButton } from "@/utils/cloudinary"; // Removed UploadThing
 import { PencilIcon, Trash2Icon } from "lucide-react";
 
 const InstaFbPost = () => {
@@ -49,15 +49,26 @@ const InstaFbPost = () => {
         setPostFormData({ ...postFormData, [e.target.name]: e.target.value });
     };
 
-    const handlePostImageUpload = (uploaded) => {
-        setIsUploading(false);
-        if (uploaded.length > 0) {
-            setPostFormData({ ...postFormData, image: { url: uploaded[0].url, key: uploaded[0].key } });
-        }
-    };
-
-    const handlePostImageUploadStart = () => {
+    const handlePostImageUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
         setIsUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            const res = await fetch('/api/cloudinary', {
+                method: 'POST',
+                body: formData
+            });
+            if (!res.ok) throw new Error('Image upload failed');
+            const result = await res.json();
+            setPostFormData({ ...postFormData, image: { url: result.url, key: result.key } });
+            toast.success('Image uploaded successfully!');
+        } catch (err) {
+            toast.error('Image upload failed');
+        } finally {
+            setIsUploading(false);
+        }
     };
 
     const handlePostSubmit = async (e) => {
@@ -97,14 +108,26 @@ const InstaFbPost = () => {
     const handleFbInputChange = (e) => {
         setFbFormData({ ...fbFormData, [e.target.name]: e.target.value });
     };
-    const handleFbImageUpload = (uploaded) => {
-        setIsFbUploading(false);
-        if (uploaded.length > 0) {
-            setFbFormData({ ...fbFormData, image: { url: uploaded[0].url, key: uploaded[0].key } });
-        }
-    };
-    const handleFbImageUploadStart = () => {
+    const handleFbImageUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
         setIsFbUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            const res = await fetch('/api/cloudinary', {
+                method: 'POST',
+                body: formData
+            });
+            if (!res.ok) throw new Error('Image upload failed');
+            const result = await res.json();
+            setFbFormData({ ...fbFormData, image: { url: result.url, key: result.key } });
+            toast.success('Image uploaded successfully!');
+        } catch (err) {
+            toast.error('Image upload failed');
+        } finally {
+            setIsFbUploading(false);
+        }
     };
     const handleFbSubmit = async (e) => {
         e.preventDefault();
@@ -219,7 +242,22 @@ const InstaFbPost = () => {
                             ) : (
                                 <div>
                                     {isUploading && <div className="w-24 h-24 flex items-center justify-center bg-gray-100 rounded shadow mb-2">Uploading...</div>}
-                                    <UploadButton endpoint="imageUploader" onUploadBegin={handlePostImageUploadStart} onClientUploadComplete={handlePostImageUpload} />
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        style={{ display: 'none' }}
+                                        id="insta-image-upload-input"
+                                        onChange={handlePostImageUpload}
+                                        disabled={isUploading}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="bg-blue-600 text-white px-4 py-2 rounded mt-2"
+                                        onClick={() => document.getElementById('insta-image-upload-input').click()}
+                                        disabled={isUploading}
+                                    >
+                                        {isUploading ? 'Uploading...' : 'Upload Image'}
+                                    </button>
                                 </div>
                             )}
                         </div>
@@ -297,7 +335,22 @@ const InstaFbPost = () => {
                             ) : (
                                 <div>
                                     {isFbUploading && <div className="w-24 h-24 flex items-center justify-center bg-gray-100 rounded shadow mb-2">Uploading...</div>}
-                                    <UploadButton endpoint="imageUploader" onUploadBegin={handleFbImageUploadStart} onClientUploadComplete={handleFbImageUpload} />
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        style={{ display: 'none' }}
+                                        id="fb-image-upload-input"
+                                        onChange={handleFbImageUpload}
+                                        disabled={isFbUploading}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="bg-blue-600 text-white px-4 py-2 rounded mt-2"
+                                        onClick={() => document.getElementById('fb-image-upload-input').click()}
+                                        disabled={isFbUploading}
+                                    >
+                                        {isFbUploading ? 'Uploading...' : 'Upload Image'}
+                                    </button>
                                 </div>
                             )}
                         </div>

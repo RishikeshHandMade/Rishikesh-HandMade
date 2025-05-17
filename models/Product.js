@@ -42,40 +42,17 @@ const ProductSchema = new mongoose.Schema({
   code: { type: String, required: true },
   artisan: { type: mongoose.Schema.Types.ObjectId, ref: 'Artisan' },
 
-  // SizeManagement
-  sizes: [SizeSchema],
-
-  // ColorManagement
-  colors: [ColorSchema],
-  colorStyle: String, // style1, style2, etc.
-
-  // PriceDiscount
-  price: { type: Number, required: true },
-  discount: { type: Number, default: 0 },
-  priceStyle: String, // style1, style2, etc.
-
-  // ProductGallery
-  gallery: [GalleryImageSchema],
-
-  // VideoManagement
-  videos: [VideoSchema],
-
-  // ProductDescription
-  titleTag: String,
-  description: String,
-
-  // ProductInfo
-  overview: String,
-
-  // CategoryTag
-  tagMenu: String, // style1, style2, etc.
-  subCategory: String,
-
-  // CreateReview
-  reviews: [ReviewSchema],
-
-  // QualityManagement
-  quality: [QualitySchema],
+  // Section references
+  size: { type: mongoose.Schema.Types.ObjectId, ref: 'Size' },
+  color: { type: mongoose.Schema.Types.ObjectId, ref: 'Color' },
+  price: { type: mongoose.Schema.Types.ObjectId, ref: 'Price' },
+  gallery: { type: mongoose.Schema.Types.ObjectId, ref: 'Gallery' },
+  video: { type: mongoose.Schema.Types.ObjectId, ref: 'Video' },
+  description: { type: mongoose.Schema.Types.ObjectId, ref: 'Description' },
+  info: { type: mongoose.Schema.Types.ObjectId, ref: 'Info' },
+  categoryTag: { type: mongoose.Schema.Types.ObjectId, ref: 'CategoryTag' },
+  review: { type: mongoose.Schema.Types.ObjectId, ref: 'ProductReview' },
+  quality: { type: mongoose.Schema.Types.ObjectId, ref: 'Quality' },
 
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },

@@ -9,9 +9,8 @@ import { Send, Check, CheckCheck, Pin, Paperclip, X, Loader2 } from "lucide-reac
 import { cn } from "@/lib/utils"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
-import { UploadButton } from "@/utils/cloudinary"
 import Image from "next/image"
-import { deleteFileFromUploadthing } from "@/utils/Utapi"
+import toast from 'react-hot-toast';
 import {
     Dialog,
     DialogContent,
@@ -132,8 +131,34 @@ export default function Chat({
         return () => {clearInterval(interval);  setAdminName(null); }
     }, [fetchMessages]);
 
+    const fileInputRef = useRef();
+    const [attachmentUploading, setAttachmentUploading] = useState(false);
+
     const handleUpload = () => {
-        document.querySelector("input[type='file']")?.click()
+        fileInputRef.current?.click();
+    }
+
+    const handleAttachmentUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        setAttachmentUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            const res = await fetch('/api/cloudinary', {
+                method: 'POST',
+                body: formData
+            });
+            if (!res.ok) throw new Error('Image upload failed');
+            const result = await res.json();
+            setAttachments(prev => [...prev, { url: result.url, key: result.key }]);
+            toast.success('Attachment uploaded successfully');
+        } catch (err) {
+            toast.error('Attachment upload failed');
+        } finally {
+            setAttachmentUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
     }
 
     const handleInputChange = (e) => {
@@ -240,9 +265,8 @@ export default function Chat({
         }
     }
 
-    const removeAttachment = async (key) => {
-        await deleteFileFromUploadthing(key)
-        setAttachments(attachments.filter((file) => file.key !== key))
+    const removeAttachment = (key) => {
+        setAttachments(attachments.filter((file) => file.key !== key));
     }
 
     const formatDate = (dateString) => {
@@ -509,58 +533,42 @@ export default function Chat({
                 </div>
 
                 {/* File upload button with loading state */}
+                <input
+                    type="file"
+                    accept="image/*"
+                    ref={fileInputRef}
+                    style={{ display: 'none' }}
+                    onChange={handleAttachmentUpload}
+                />
                 <Button
                     className="bg-blue-600 hover:bg-blue-700"
                     size="icon"
                     aria-label="Attach file"
                     onClick={handleUpload}
-                    disabled={isUploading}
+                    disabled={attachmentUploading}
                 >
-                    {isUploading ? (
+                    {attachmentUploading ? (
                         <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
                         <Paperclip className="h-5 w-5" />
                     )}
                 </Button>
 
-                {/* UploadButton with enhanced handlers */}
-                <UploadButton
-                    multiple
-                    endpoint="chatAttachments"
-                    onUploadBegin={() => {
-                        setIsUploading(true);
-                    }}
-                    onClientUploadComplete={(res) => {
-                        const newFiles = res.map(file => ({
-                            url: file.ufsUrl,
-                            key: file.key,
-                            isUploading: false
-                        }));
-                        setAttachments([...attachments, ...newFiles]);
-                        setIsUploading(false);
-                    }}
-                    onUploadError={(error) => {
-                        console.error("Upload error:", error);
-                        setIsUploading(false);
-                        toast.error("File upload failed");
-                    }}
-                    className="hidden"
-                />
 
                 <Input
                     value={message}
                     onKeyDown={handleKeyDown}
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="Type a message..."
-                    disabled={isUploading}
+                    disabled={attachmentUploading}
                 />
 
                 <Button
                     onClick={sendMessage}
                     className="bg-blue-600 hover:bg-blue-700"
-                    disabled={(!message.trim() && attachments.length === 0) || isUploading}
+                    disabled={(!message.trim() && attachments.length === 0) || attachmentUploading}
                 >
-                    {isUploading ? (
+                    {attachmentUploading ? (
                         <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
                         <Send className="h-5 w-5" />

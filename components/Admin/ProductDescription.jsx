@@ -1,45 +1,43 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-
-const ProductDescription = () => {
+const ProductDescription = ({ productData, productId }) => {
   const [titleTag, setTitleTag] = useState("");
   const [description, setDescription] = useState("");
-  const [artisans, setArtisans] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [selectedArtisan, setSelectedArtisan] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState("");
-  const [loadingArtisans, setLoadingArtisans] = useState(false);
-  const [loadingProducts, setLoadingProducts] = useState(false);
+  const productTitle = productData?.title || "";
 
-  useEffect(() => {
-    setLoadingArtisans(true);
-    fetch("/api/createArtisan")
-      .then((res) => res.json())
-      .then((data) => {
-        setArtisans(Array.isArray(data) ? data : []);
-        setLoadingArtisans(false);
-      })
-      .catch(() => setLoadingArtisans(false));
+  const [loading, setLoading] = useState(false);
 
-    setLoadingProducts(true);
-    fetch("/api/products") // Replace with your actual product API endpoint
-      .then((res) => res.json())
-      .then((data) => {
-        setProducts(Array.isArray(data) ? data : []);
-        setLoadingProducts(false);
-      })
-      .catch(() => setLoadingProducts(false));
-  }, []);
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Implement save logic here
-    alert(`Saved! Artisan: ${selectedArtisan}, Product: ${selectedProduct}, Title Tag: ${titleTag}, Description: ${description}`);
+    if (!productId || !description) {
+      alert('Please provide a description and valid product.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch('/api/productDescription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId, description, titleTag })
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        alert(data.error || 'Failed to save description');
+      } else {
+        alert('Description saved successfully!');
+        setDescription("");
+        setTitleTag("");
+      }
+    } catch (err) {
+      alert('Error saving description.');
+    } finally {
+      setLoading(false);
+    }
   };
+
 
   return (
     <form className="page-content" onSubmit={handleSubmit}>
@@ -50,42 +48,14 @@ const ProductDescription = () => {
             <div className="card my-2">
               <div className="card-body px-4 py-2">
                 <div className="mb-4">
-                  <label className="font-semibold">Select Artisan</label>
-                  <Select value={selectedArtisan} onValueChange={setSelectedArtisan} disabled={loadingArtisans}>
-                    <SelectTrigger className="w-full border-2 border-blue-600 bg-gray-200">
-                      <SelectValue placeholder={loadingArtisans ? 'Loading artisans...' : 'Select Artisan'} />
-                    </SelectTrigger>
-                    <SelectContent className="border-2 border-blue-600 bg-gray-200">
-                      <SelectGroup>
-                        {artisans.length > 0 ? (
-                          artisans.map(a => (
-                            <SelectItem key={a._id} value={a._id} className="font-bold">
-                              {a.title ? `${a.title} ` : ''}{a.firstName} {a.lastName}
-                            </SelectItem>
-                          ))
-                        ) : null}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="mb-4">
-                  <label className="font-semibold">Select Product</label>
-                  <Select value={selectedProduct} onValueChange={setSelectedProduct} disabled={loadingProducts}>
-                    <SelectTrigger className="w-full border-2 border-blue-600 bg-gray-200">
-                      <SelectValue placeholder={loadingProducts ? 'Loading products...' : 'Select Product'} />
-                    </SelectTrigger>
-                    <SelectContent className="border-2 border-blue-600 bg-gray-200">
-                      <SelectGroup>
-                        {products.length > 0 ? (
-                          products.map(p => (
-                            <SelectItem key={p._id} value={p._id} className="font-bold">
-                              {p.title}
-                            </SelectItem>
-                          ))
-                        ) : null}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+                  <label className="font-semibold">Product Name</label>
+                  <Input
+                    type="text"
+                    className="form-control"
+                    value={productTitle}
+                    disabled
+                    readOnly
+                  />
                 </div>
                 <div className="mb-4">
                   <label className="form-label">Product Title Tag</label>

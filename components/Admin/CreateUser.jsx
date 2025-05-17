@@ -23,7 +23,6 @@ const CreateUser = () => {
             try {
                 const response = await fetch(`/api/admin/createUser`);
                 const res = await response.json();
-                console.log(res)
 
                 if (response.ok) {
                     setAllUsers(res.admins);

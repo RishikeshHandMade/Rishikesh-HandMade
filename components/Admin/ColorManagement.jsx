@@ -7,32 +7,12 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 const ColorManagement = () => {
   const [style1, setStyle1] = useState("style1");
   const [colorInputs, setColorInputs] = useState([""]);
-  const [artisans, setArtisans] = useState([]);
   const [products, setProducts] = useState([]);
   const [selectedArtisan, setSelectedArtisan] = useState("");
   const [selectedProduct, setSelectedProduct] = useState("");
   const [loadingArtisans, setLoadingArtisans] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(false);
 
-  useEffect(() => {
-    setLoadingArtisans(true);
-    fetch("/api/createArtisan")
-      .then((res) => res.json())
-      .then((data) => {
-        setArtisans(Array.isArray(data) ? data : []);
-        setLoadingArtisans(false);
-      })
-      .catch(() => setLoadingArtisans(false));
-
-    setLoadingProducts(true);
-    fetch("/api/products") // Replace with your actual product API endpoint
-      .then((res) => res.json())
-      .then((data) => {
-        setProducts(Array.isArray(data) ? data : []);
-        setLoadingProducts(false);
-      })
-      .catch(() => setLoadingProducts(false));
-  }, []);
 
   const handleColorInputChange = (idx, value) => {
     const updated = [...colorInputs];
@@ -40,9 +20,7 @@ const ColorManagement = () => {
     setColorInputs(updated);
   };
 
-  const addColorInput = () => {
-    setColorInputs([...colorInputs, ""]);
-  };
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -58,44 +36,6 @@ const ColorManagement = () => {
             <h3 className="my-3 text-center">Color Management</h3>
             <div className="card my-2">
               <div className="card-body px-4 py-2">
-                <div className="mb-4">
-                  <label className="font-semibold">Select Artisan</label>
-                  <Select value={selectedArtisan} onValueChange={setSelectedArtisan} disabled={loadingArtisans}>
-                    <SelectTrigger className="w-full border-2 border-blue-600 bg-gray-200">
-                      <SelectValue placeholder={loadingArtisans ? 'Loading artisans...' : 'Select Artisan'} />
-                    </SelectTrigger>
-                    <SelectContent className="border-2 border-blue-600 bg-gray-200">
-                      <SelectGroup>
-                        {artisans.length > 0 ? (
-                          artisans.map(a => (
-                            <SelectItem key={a._id} value={a._id} className="font-bold">
-                              {a.title ? `${a.title} ` : ''}{a.firstName} {a.lastName}
-                            </SelectItem>
-                          ))
-                        ) : null}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="mb-4">
-                  <label className="font-semibold">Select Product</label>
-                  <Select value={selectedProduct} onValueChange={setSelectedProduct} disabled={loadingProducts}>
-                    <SelectTrigger className="w-full border-2 border-blue-600 bg-gray-200">
-                      <SelectValue placeholder={loadingProducts ? 'Loading products...' : 'Select Product'} />
-                    </SelectTrigger>
-                    <SelectContent className="border-2 border-blue-600 bg-gray-200">
-                      <SelectGroup>
-                        {products.length > 0 ? (
-                          products.map(p => (
-                            <SelectItem key={p._id} value={p._id} className="font-bold">
-                              {p.title}
-                            </SelectItem>
-                          ))
-                        ) : null}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
                 <div className="mb-4">
                   <label className="font-semibold">Product Color Management Style</label>
                   <Select value={style1} onValueChange={setStyle1}>
@@ -116,7 +56,6 @@ const ColorManagement = () => {
                   {colorInputs.map((color, idx) => (
                     <div className="d-flex mb-2" key={idx}>
                       <Input type="text" className="form-control" placeholder="Product Title" value={color} onChange={e => handleColorInputChange(idx, e.target.value)} />
-                      <Button type="button" variant="dark" className="ms-2" onClick={addColorInput}>Add More</Button>
                     </div>
                   ))}
                 </div>

@@ -3,16 +3,30 @@ import React, { useState, useEffect } from 'react';
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import toast from 'react-hot-toast';
 
 
 const ProductProfile = () => {
     const [title, setTitle] = useState("");
-    const [code, setCode] = useState("");
+    const [code, setCode] = useState(""); // Will be auto-generated
     const [price, setPrice] = useState("");
     const [artisan, setArtisan] = useState("");
     const [artisans, setArtisans] = useState([]);
     const [loading, setLoading] = useState(false);
     const [refreshTable, setRefreshTable] = useState(false);
+
+    // Generate product code on mount
+    useEffect(() => {
+        const generateCode = () => {
+            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            let code = "";
+            for (let i = 0; i < 6; i++) {
+                code += chars[Math.floor(Math.random() * chars.length)];
+            }
+            return code;
+        };
+        setCode(generateCode());
+    }, []);
 
     useEffect(() => {
         setLoading(true);
@@ -27,24 +41,20 @@ const ProductProfile = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!price) {
-            alert('Please enter a price');
-            return;
-        }
         const res = await fetch('/api/product', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title, code, artisan, price: Number(price) })
+            body: JSON.stringify({ title, code, artisan })
         });
         if (res.ok) {
             const newProduct = await res.json();
-            setTitle(""); setCode(""); setPrice(""); setArtisan("");
+            setTitle(""); setCode(""); setArtisan("");
             // Show new product at the top of the table
             setProducts(prev => [newProduct, ...prev]);
-            alert('Product saved!');
+            toast.success('Product saved!');
         } else {
             const err = await res.json();
-            alert('Failed to save product: ' + (err.error || 'Unknown error'));
+            toast.error('Failed to save product: ' + (err.error || 'Unknown error'));
         }
     };
 
@@ -67,15 +77,11 @@ const ProductProfile = () => {
             <div className="flex md:flex-row flex-col items-center md:items-end gap-6 w-full">
                 <div className="flex flex-col gap-2 w-full">
                     <label htmlFor="productCode" className="font-semibold">Product Code</label>
-                    <Input name="productCode" className="w-full border-2 font-bold border-blue-600 focus:border-dashed focus:border-blue-500 focus:outline-none focus-visible:ring-0" placeholder="Pre Fix" value={code} onChange={e => setCode(e.target.value)} />
+                    <Input name="productCode" className="w-full border-2 font-bold border-blue-600 focus:border-dashed focus:border-blue-500 focus:outline-none focus-visible:ring-0 bg-gray-100" placeholder="Pre Fix" value={code} readOnly />
                 </div>
                 <div className="flex flex-col gap-2 w-full">
                     <label htmlFor="productTitle" className="font-semibold">Product Title</label>
                     <Input name="productTitle" className="w-full border-2 font-bold border-blue-600 focus:border-dashed focus:border-blue-500 focus:outline-none focus-visible:ring-0" placeholder="Type Here:" value={title} onChange={e => setTitle(e.target.value)} />
-                </div>
-                <div className="flex flex-col gap-2 w-full">
-                    <label htmlFor="productPrice" className="font-semibold">Product Price</label>
-                    <Input name="productPrice" type="number" min="0" className="w-full border-2 font-bold border-blue-600 focus:border-dashed focus:border-blue-500 focus:outline-none focus-visible:ring-0" placeholder="Enter Price" value={price} onChange={e => setPrice(e.target.value)} />
                 </div>
                 <div className="flex flex-col gap-2 w-full">
                     <label htmlFor="artisan" className="font-semibold">Artisan Name</label>
@@ -107,7 +113,6 @@ const ProductProfile = () => {
                     <tr>
                         <th className="py-2 px-4">S.No.</th>
                         <th className="py-2 px-4">Product Name</th>
-                        <th className="py-2 px-4">Price</th>
                         <th className="py-2 px-4">Action</th>
                     </tr>
                 </thead>
@@ -116,7 +121,6 @@ const ProductProfile = () => {
                         <tr key={prod._id} className="border-t">
                             <td className="py-2 px-4 text-center">{idx + 1}</td>
                             <td className="py-2 px-4 text-center">{prod.title}</td>
-                            <td className="py-2 px-4 text-center">{prod.price}</td>
                             <td className="py-2 px-4">
                                 <div className="flex gap-2 justify-center">
                                     <button

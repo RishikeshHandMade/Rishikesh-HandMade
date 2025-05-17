@@ -8,12 +8,12 @@ export async function POST(req) {
     await connectDB();
     const body = await req.json();
     // Accept ProductProfile fields (require price as well)
-    const { title, code, artisan, price } = body;
-    if (!title || !code || !artisan || price === undefined) {
+    const { title, code, artisan } = body;
+    if (!title || !code || !artisan) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400 });
     }
     // Create product
-    const product = await Product.create({ title, code, artisan, price });
+    const product = await Product.create({ title, code, artisan });
     // Add product ref to artisan
     await Artisan.findByIdAndUpdate(
       artisan,

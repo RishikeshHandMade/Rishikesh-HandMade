@@ -5,8 +5,8 @@ import { useState, useEffect } from "react"
 import toast from "react-hot-toast"
 import { Input } from "../ui/input"
 import { Button } from "../ui/button"
-import { UploadButton } from "@/utils/cloudinary"
-import { deleteFileFromUploadthing } from "@/utils/Utapi"
+// import { UploadButton } from "@/utils/cloudinary" // Removed UploadThing
+// import { deleteFileFromUploadthing } from "@/utils/Utapi" // Removed UploadThing
 import Image from "next/image"
 import { X, Copy, Loader2, Pencil, Trash2 } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -88,19 +88,30 @@ const ComingSoon = () => {
         }
     }
 
-    const handleBannerUpload = async (files) => {
+    const handleBannerUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
         setBannerLoading(true);
-        setBannerUrl(files[0]?.ufsUrl);
-        setBannerKey(files[0]?.key);
-        setBannerLoading(false);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            const res = await fetch('/api/cloudinary', {
+                method: 'POST',
+                body: formData
+            });
+            if (!res.ok) throw new Error('Image upload failed');
+            const result = await res.json();
+            setBannerUrl(result.url);
+            setBannerKey(result.key);
+        } catch (err) {
+            toast.error('Banner upload failed');
+        } finally {
+            setBannerLoading(false);
+        }
     }
     const handleRemoveBanner = async () => {
-        // Always clear local state
         setBannerUrl("");
         setBannerKey("");
-        if (bannerKey) {
-            await deleteFileFromUploadthing(bannerKey);
-        }
         // If editing, update the backend to clear fields
         if (editId) {
             await fetch("/api/comingSoon", {
@@ -108,29 +119,42 @@ const ComingSoon = () => {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ id: editId, bannerUrl: "", bannerKey: "" })
             });
-            toast.success("Banner removed!");
         }
+        toast.success("Banner removed!");
     }
-    const handleThumbUpload = async (files) => {
+    const handleThumbUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
         setThumbLoading(true);
-        setThumbUrl(files[0]?.ufsUrl);
-        setThumbKey(files[0]?.key);
-        setThumbLoading(false);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            const res = await fetch('/api/cloudinary', {
+                method: 'POST',
+                body: formData
+            });
+            if (!res.ok) throw new Error('Image upload failed');
+            const result = await res.json();
+            setThumbUrl(result.url);
+            setThumbKey(result.key);
+        } catch (err) {
+            toast.error('Thumbnail upload failed');
+        } finally {
+            setThumbLoading(false);
+        }
     }
     const handleRemoveThumb = async () => {
         setThumbUrl("");
         setThumbKey("");
-        if (thumbKey) {
-            await deleteFileFromUploadthing(thumbKey);
-        }
+        // If editing, update the backend to clear fields
         if (editId) {
             await fetch("/api/comingSoon", {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ id: editId, thumbUrl: "", thumbKey: "" })
             });
-            toast.success("Thumbnail removed!");
         }
+        toast.success("Thumbnail removed!");
     }
 
     const onSubmit = async (data) => {
@@ -236,15 +260,22 @@ const ComingSoon = () => {
                             <p className="text-gray-500">No Thumbnail uploaded</p>
                         )}
                     </div>
-                    <UploadButton
-                        disabled={bannerLoading || bannerUrl}
-                        endpoint="imageUploader"
-                        onClientUploadComplete={handleBannerUpload}
-                        onUploadError={(error) => toast.error("Error uploading banner: " + error.message)}
-                        className="ut-button:bg-blue-600 after:ut-button:ut-uploading:bg-blue-300"
+                    <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        id="banner-upload-input"
+                        onChange={handleBannerUpload}
+                        disabled={bannerLoading}
+                    />
+                    <Button
+                        type="button"
+                        className="bg-blue-600 text-white px-4 py-2 rounded mt-2"
+                        onClick={() => document.getElementById('banner-upload-input').click()}
+                        disabled={bannerLoading}
                     >
-                        Upload Banner
-                    </UploadButton>
+                        {bannerLoading ? 'Uploading...' : 'Upload Banner'}
+                    </Button>
                 </div>
                 <div className="space-y-2 w-full">
                     <label className="font-semibold">Banner Image</label>
@@ -260,15 +291,22 @@ const ComingSoon = () => {
                             <p className="text-gray-500">No Banner uploaded</p>
                         )}
                     </div>
-                    <UploadButton
-                        disabled={thumbLoading || thumbUrl}
-                        endpoint="imageUploader"
-                        onClientUploadComplete={handleThumbUpload}
-                        onUploadError={(error) => toast.error("Error uploading thumbnail: " + error.message)}
-                        className="ut-button:bg-blue-600 after:ut-button:ut-uploading:bg-blue-300"
+                    <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        id="thumb-upload-input"
+                        onChange={handleThumbUpload}
+                        disabled={thumbLoading}
+                    />
+                    <Button
+                        type="button"
+                        className="bg-blue-600 text-white px-4 py-2 rounded mt-2"
+                        onClick={() => document.getElementById('thumb-upload-input').click()}
+                        disabled={thumbLoading}
                     >
-                        Upload Thumbnail
-                    </UploadButton>
+                        {thumbLoading ? 'Uploading...' : 'Upload Thumbnail'}
+                    </Button>
                 </div>
             </div>
             <Button type="submit" className="bg-blue-600 hover:bg-blue-500" disabled={isLoading}>

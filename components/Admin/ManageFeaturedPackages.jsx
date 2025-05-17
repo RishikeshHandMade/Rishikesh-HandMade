@@ -6,8 +6,8 @@ import Image from "next/image";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { UploadButton } from "@uploadthing/react"; // Import Uploadthing
-import { deleteFileFromUploadthing } from "@/utils/Utapi";
+// import { UploadButton } from "@uploadthing/react"; // Removed UploadThing
+// import { deleteFileFromUploadthing } from "@/utils/Utapi"; // Removed UploadThing
 import { X } from "lucide-react";
 
 const ManageFeaturedPackages = () => {
@@ -18,6 +18,7 @@ const ManageFeaturedPackages = () => {
         image: { url: "", key: "" }, // Storing both URL & Key
         link: "",
     });
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         const fetchPackages = async () => {
@@ -74,13 +75,8 @@ const ManageFeaturedPackages = () => {
         }
     };
 
-    const handleRemoveBanner = async (key) => {
-        if (key) {
-            const success = await deleteFileFromUploadthing(key);
-            if (success) {
-                setFormData({ ...formData, image: { url: "", key: "" } });
-            }
-        }
+    const handleRemoveBanner = () => {
+        setFormData({ ...formData, image: { url: "", key: "" } });
     };
 
     const handleDelete = async (id, imageKey) => {
@@ -127,21 +123,49 @@ const ManageFeaturedPackages = () => {
 
                 {/* Uploadthing Image Upload */}
                 <Label>Upload Image</Label>
-                {formData?.image?.url === "" && <UploadButton
-                    endpoint="imageUploader"
-                    onClientUploadComplete={(res) => {
-                        if (res && res[0]) {
-                            setFormData((prev) => ({
-                                ...prev,
-                                image: { url: res[0].ufsUrl, key: res[0].key }, // Storing both URL & Key
-                            }));
-                            toast.success("Image uploaded successfully!");
-                        }
-                    }}
-                    onUploadError={(error) => {
-                        toast.error(`Upload failed: ${error.message}`);
-                    }}
-                />}
+                {formData?.image?.url === "" && (
+                    <>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            id="featured-image-upload-input"
+                            onChange={async (event) => {
+                                const file = event.target.files[0];
+                                if (!file) return;
+                                setUploading(true);
+                                try {
+                                    const formDataUpload = new FormData();
+                                    formDataUpload.append('file', file);
+                                    const res = await fetch('/api/cloudinary', {
+                                        method: 'POST',
+                                        body: formDataUpload
+                                    });
+                                    if (!res.ok) throw new Error('Image upload failed');
+                                    const result = await res.json();
+                                    setFormData((prev) => ({
+                                        ...prev,
+                                        image: { url: result.url, key: result.key },
+                                    }));
+                                    toast.success('Image uploaded successfully!');
+                                } catch (err) {
+                                    toast.error('Upload failed');
+                                } finally {
+                                    setUploading(false);
+                                }
+                            }}
+                            disabled={uploading}
+                        />
+                        <Button
+                            type="button"
+                            className="bg-blue-600 text-white px-4 py-2 rounded mt-2"
+                            onClick={() => document.getElementById('featured-image-upload-input').click()}
+                            disabled={uploading}
+                        >
+                            {uploading ? 'Uploading...' : 'Upload Image'}
+                        </Button>
+                    </>
+                )}
 
                 {formData?.image?.url && (
                     <div
