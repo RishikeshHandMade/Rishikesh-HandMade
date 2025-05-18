@@ -17,8 +17,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { statesIndia } from "@/lib/IndiaStates"
 import toast from "react-hot-toast"
 import { useSession } from "next-auth/react"
-import { UploadButton } from "@/utils/cloudinary"
-import { deleteFileFromUploadthing } from "@/utils/Utapi"
+import { useRef } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import axios from "axios"
@@ -77,6 +76,41 @@ export default function TourPackageCalculator({ packages, plans }) {
     const [totalPrice, setTotalPrice] = useState(0)
     const [isFormDirty, setIsFormDirty] = useState(false);
     const [disabled, setDisabled] = useState(true);
+
+    // Cloudinary-style image upload (copied from AddGallery.jsx)
+    const [images, setImages] = useState([]);
+    const [loadedImages, setLoadedImages] = useState([]);
+    const [uploading, setUploading] = useState(false);
+    const fileInputRef = useRef(null);
+
+    const handleImageChange = async (e) => {
+        const files = Array.from(e.target.files);
+        setUploading(true);
+        for (const file of files) {
+            const formData = new FormData();
+            formData.append('file', file);
+            try {
+                const res = await fetch('/api/cloudinary', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (res.ok && data.url) {
+                    setImages(prev => [...prev, data.url]);
+                    toast.success('Image uploaded!');
+                } else {
+                    toast.error('Cloudinary upload failed: ' + (data.error || 'Unknown error'));
+                }
+            } catch (err) {
+                toast.error('Cloudinary upload error: ' + err.message);
+            }
+        }
+        setUploading(false);
+    };
+    const handleImageLoad = (index) => {
+        setLoadedImages(prev => [...prev, index]);
+    };
+
 
     const [pickupDetails, setPickupDetails] = useState(() => {
         return {
@@ -1772,18 +1806,19 @@ export default function TourPackageCalculator({ packages, plans }) {
                         </Button>
                     </form>
                 )}
-
-                {/* Booking Details Section */}
-                {step === "booking" && (
-                    <div className="flex flex-col gap-8">
-                        <div className="space-y-4 p-8 shadow-2xl rounded-xl border-2 border-blue-300 h-fit">
-                            <h2 className="text-3xl font-bold mb-6 font-gilda">Date Schedule</h2>
-
-                            {/* Travel Date */}
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Travel Date</label>
-                                <Input
-                                    type="date"
+                <div className="container mx-auto px-4 py-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div className="lg:col-span-2 space-y-8">
+                            {/* Image Upload Section */}
+                            <div className="mb-6">
+                                <Label className="block mb-2 font-bold">Upload Images</Label>
+                                <input
+                                    type="file"
+                                    multiple
+                                    accept="image/*"
+                                    onChange={handleImageChange}
+                                    ref={fileInputRef}
+                                    className="mb-2"
                                     className="resize-none w-fit outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
                                     value={bookingDetails.travelDate}
                                     onChange={(e) => setBookingDetails({ ...bookingDetails, travelDate: e.target.value })}
@@ -1857,7 +1892,7 @@ export default function TourPackageCalculator({ packages, plans }) {
                             </div>
                         </div>
                     </div>
-                )}
+                
             </div>
 
             {/* Package Summary - Sticky on mobile */}
@@ -1888,5 +1923,6 @@ export default function TourPackageCalculator({ packages, plans }) {
                 </div>
             </div>
         </div >
+        </div>
     )
 }

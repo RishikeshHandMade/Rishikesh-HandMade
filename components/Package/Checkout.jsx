@@ -13,8 +13,7 @@ import { useSession } from "next-auth/react"
 import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 import toast from "react-hot-toast"
-import { UploadButton } from "@/utils/cloudinary"
-import { deleteFileFromUploadthing } from "@/utils/Utapi"
+import { useRef } from "react"
 import { X } from "lucide-react"
 
 const Checkout = ({ packages }) => {
@@ -76,6 +75,41 @@ const Checkout = ({ packages }) => {
         travelDate: "",
         departureLocation: "",
     })
+
+    // Cloudinary-style image upload (copied from AddGallery.jsx)
+    const [images, setImages] = useState([]);
+    const [loadedImages, setLoadedImages] = useState([]);
+    const [uploading, setUploading] = useState(false);
+    const fileInputRef = useRef(null);
+
+    const handleImageChange = async (e) => {
+        const files = Array.from(e.target.files);
+        setUploading(true);
+        for (const file of files) {
+            const formData = new FormData();
+            formData.append('file', file);
+            try {
+                const res = await fetch('/api/cloudinary', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (res.ok && data.url) {
+                    setImages(prev => [...prev, data.url]);
+                    toast.success('Image uploaded!');
+                } else {
+                    toast.error('Cloudinary upload failed: ' + (data.error || 'Unknown error'));
+                }
+            } catch (err) {
+                toast.error('Cloudinary upload error: ' + err.message);
+            }
+        }
+        setUploading(false);
+    };
+    const handleImageLoad = (index) => {
+        setLoadedImages(prev => [...prev, index]);
+    };
+
 
     useEffect(() => {
         const fetchUser = async () => {
