@@ -21,8 +21,6 @@ const SocialPlugins = ({ artisanId, artisanDetails = null }) => {
   const [editPluginData, setEditPluginData] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
-  const [viewPlugin, setViewPlugin] = useState(null);
-  const [showViewModal, setShowViewModal] = useState(false);
   const [showPluginsModal, setShowPluginsModal] = useState(false);
   const [selectedArtisanPlugins, setSelectedArtisanPlugins] = useState([]);
   const [selectedArtisanInfo, setSelectedArtisanInfo] = useState(null);

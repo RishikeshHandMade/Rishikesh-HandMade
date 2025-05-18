@@ -1,11 +1,16 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Star } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const ProductReview = ({ productData, productId }) => {
+  const [viewModal, setViewModal] = useState(false);
+  const [viewedReview, setViewedReview] = useState(null);
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [title, setTitle] = useState("");
@@ -16,7 +21,7 @@ const ProductReview = ({ productData, productId }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!productId || !rating || !review) {
-      alert('Please provide a rating, review, and valid product.');
+      toast.error('Please provide a rating, review, and valid product.');
       return;
     }
     setLoading(true);
@@ -28,16 +33,17 @@ const ProductReview = ({ productData, productId }) => {
       });
       const data = await res.json();
       if (!res.ok || data.error) {
-        alert(data.error || 'Failed to submit review');
+        toast.error(data.error || 'Failed to submit review');
       } else {
-        alert('Review submitted successfully!');
+        toast.success('Review submitted successfully!');
         setRating(0);
         setHoverRating(0);
         setTitle("");
         setReview("");
+        fetchReviews();
       }
     } catch (err) {
-      alert('Error submitting review.');
+      toast.error('Error submitting review.');
     } finally {
       setLoading(false);
     }
@@ -62,15 +68,14 @@ const ProductReview = ({ productData, productId }) => {
         setReviews(data.reviews);
       }
     } catch (err) {
-      // handle error
+      toast.error('Error fetching reviews.');
     } finally {
       setTableLoading(false);
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetchReviews();
-    // eslint-disable-next-line
   }, [productId]);
 
   // Handle edit: populate form
@@ -82,37 +87,50 @@ const ProductReview = ({ productData, productId }) => {
     setEditId(review._id);
   };
 
-  // Handle delete
-  const handleDelete = async (id) => {
-    if (!window.confirm('Delete this review?')) return;
+  // Delete modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
+
+  // Open delete modal
+  const openDeleteModal = (id) => {
+    setDeleteTargetId(id);
+    setShowDeleteModal(true);
+  };
+
+  // Cancel delete
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setDeleteTargetId(null);
+  };
+
+  // Confirm delete
+  const confirmDelete = async () => {
+    if (!deleteTargetId) return;
     try {
       const res = await fetch('/api/productReviews', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reviewId: id })
+        body: JSON.stringify({ reviewId: deleteTargetId })
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        setReviews(reviews.filter(r => r._id !== id));
+        setReviews(reviews.filter(r => r._id !== deleteTargetId));
+        toast.success('Review deleted!');
       } else {
-        alert(data.error || 'Failed to delete');
+        toast.error(data.error || 'Failed to delete');
       }
     } catch (err) {
-      alert('Error deleting review.');
+      toast.error('Error deleting review.');
+    } finally {
+      setShowDeleteModal(false);
+      setDeleteTargetId(null);
     }
   };
-
-  // Handle view modal
-  const handleView = (review) => {
-    setModalReview(review);
-    setModalOpen(true);
-  };
-
   // Handle update (edit mode)
   const handleUpdate = async (e) => {
     e.preventDefault();
     if (!editId || !rating || !review) {
-      alert('Please provide a rating and review.');
+      toast.error('Please provide a rating and review.');
       return;
     }
     setLoading(true);
@@ -124,7 +142,7 @@ const ProductReview = ({ productData, productId }) => {
       });
       const data = await res.json();
       if (!res.ok || data.error) {
-        alert(data.error || 'Failed to update review');
+        toast.error(data.error || 'Failed to update review');
       } else {
         setEditMode(false);
         setEditId(null);
@@ -135,7 +153,7 @@ const ProductReview = ({ productData, productId }) => {
         fetchReviews();
       }
     } catch (err) {
-      alert('Error updating review.');
+      toast.error('Error updating review.');
     } finally {
       setLoading(false);
     }
@@ -151,8 +169,57 @@ const ProductReview = ({ productData, productId }) => {
     setReview("");
   };
 
+
   return (
     <>
+      {/* View Review Modal */}
+      <Dialog open={viewModal} onOpenChange={setViewModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Review Details</DialogTitle>
+            <button
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700"
+              onClick={() => setViewModal(false)}
+              aria-label="Close"
+            >
+              ×
+            </button>
+          </DialogHeader>
+          {viewedReview && (
+            <div className="mb-4">
+              <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
+                <div className="font-semibold text-gray-800">Title</div>
+                <div className="text-gray-600">{viewedReview.title}</div>
+              </div>
+              <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
+                <div className="font-semibold text-gray-800">Rating</div>
+                <div className="text-gray-600">{viewedReview.rating} stars</div>
+              </div>
+              <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
+                <div className="font-semibold text-gray-800">Review</div>
+                <div className="text-gray-600">{viewedReview.review}</div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setViewModal(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Review Modal */}
+      <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Review</DialogTitle>
+          </DialogHeader>
+          <p>Are you sure you want to delete this review?</p>
+          <DialogFooter>
+            <Button variant="secondary" onClick={cancelDelete}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <form className="page-content" onSubmit={editMode ? handleUpdate : handleSubmit}>
         <div className="container-fluid">
           <div className="row justify-content-center">
@@ -173,7 +240,7 @@ const ProductReview = ({ productData, productId }) => {
                   <div className="mb-4">
                     <label className="font-semibold">Rating</label>
                     <div className="flex items-center space-x-1">
-                      {[1,2,3,4,5].map(star => (
+                      {[1, 2, 3, 4, 5].map(star => (
                         <Star
                           key={star}
                           size={28}
@@ -216,37 +283,48 @@ const ProductReview = ({ productData, productId }) => {
                 <h5 className="mb-3">Reviews</h5>
                 {tableLoading ? (
                   <div>Loading...</div>
-                ) : reviews.length === 0 ? (
-                  <div>No reviews found.</div>
                 ) : (
-                  <div className="table-responsive">
-                    <table className="table table-bordered table-hover">
-                      <thead>
-                        <tr>
-                          <th>S.No</th>
-                          <th>Product Name</th>
-                          <th>Title</th>
-                          <th>Rating</th>
-                          <th>Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {reviews.map((r, idx) => (
-                          <tr key={r._id}>
-                            <td>{idx + 1}</td>
-                            <td>{productTitle}</td>
-                            <td>{r.title}</td>
-                            <td>{r.rating}</td>
-                            <td>
-                              <Button className="bg-blue-500 mr-2" size="sm" onClick={() => handleView(r)}>View</Button>
-                              <Button className="bg-yellow-500 mr-2" size="sm" onClick={() => handleEdit(r)}>Edit</Button>
-                              <Button className="bg-red-500" size="sm" onClick={() => handleDelete(r._id)}>Delete</Button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <Table className="min-w-full divide-y divide-gray-200">
+                    <TableHeader>
+                      <TableRow className="bg-gray-100">
+                        <TableHead className="px-4 py-3 text-center">S.No</TableHead>
+                        <TableHead className="px-4 py-3 text-center">Product Name</TableHead>
+                        <TableHead className="px-4 py-3 text-center">Title</TableHead>
+                        <TableHead className="px-4 py-3 text-center">Rating</TableHead>
+                        <TableHead className="px-4 py-3 text-center">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {reviews.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center py-4">No reviews found.</TableCell>
+                        </TableRow>
+                      ) : (
+                        reviews.map((r, idx) => (
+                          <TableRow key={r._id}>
+                            <TableCell className="px-4 py-3 text-center font-medium">{idx + 1}</TableCell>
+                            <TableCell className="px-4 py-3 text-center whitespace-nowrap ">{productTitle}</TableCell>
+                            <TableCell className="px-4 py-3 text-center whitespace-nowrap ">{r.title}</TableCell>
+                            <TableCell className="px-4 py-3 text-center whitespace-nowrap ">{r.rating}</TableCell>
+                            <TableCell className="px-4 py-3 flex gap-2 justify-center">
+                              <Button size="sm" variant="default" className="bg-blue-500 text-white px-3 py-1 rounded mr-2" onClick={() => {
+                                setViewedReview(r);
+                                setViewModal(true);
+                              }}>
+                                View
+                              </Button>
+                              <Button size="sm" variant="default" className="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onClick={() => handleEdit(r)}>
+                                Edit
+                              </Button>
+                              <Button size="sm" variant="destructive" className="bg-red-600 text-white px-3 py-1 rounded" onClick={() => openDeleteModal(r._id)}>
+                                Delete
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
                 )}
               </div>
             </div>

@@ -1,4 +1,3 @@
-
 import connectDB from "@/lib/connectDB";
 import Description from '@/models/Description';
 import Product from '@/models/Product';
@@ -7,13 +6,14 @@ export async function POST(req) {
   await connectDB();
   try {
     const { productId, description, titleTag } = await req.json();
-    if (!productId || !description) {
-      return Response.json({ error: 'Missing productId or description' }, { status: 400 });
+    if (!productId || !description || !titleTag) {
+      return Response.json({ error: 'Missing productId or description or titleTag' }, { status: 400 });
     }
     let descDoc = await Description.findOne({ product: productId });
+
     if (descDoc) {
+      descDoc.titleTag = titleTag;
       descDoc.description = description;
-      if (titleTag !== undefined) descDoc.titleTag = titleTag;
       await descDoc.save();
     } else {
       descDoc = await Description.create({ product: productId, description, titleTag });
@@ -28,7 +28,7 @@ export async function POST(req) {
 
 // GET: Get description for a product
 export async function GET(req) {
-  await dbConnect();
+  await connectDB();
   try {
     const { searchParams } = new URL(req.url);
     const productId = searchParams.get('productId');
@@ -44,11 +44,11 @@ export async function GET(req) {
 
 // PATCH: Update description
 export async function PATCH(req) {
-  await dbConnect();
+  await connectDB();
   try {
     const { productId, description, titleTag } = await req.json();
-    if (!productId || !description) {
-      return Response.json({ error: 'Missing productId or description' }, { status: 400 });
+    if (!productId || !description || !titleTag) {
+      return Response.json({ error: 'Missing productId or description or titleTag' }, { status: 400 });
     }
     const descDoc = await Description.findOneAndUpdate(
       { product: productId },
@@ -63,7 +63,7 @@ export async function PATCH(req) {
 
 // DELETE: Remove description by productId
 export async function DELETE(req) {
-  await dbConnect();
+  await connectDB();
   try {
     const { productId } = await req.json();
     if (!productId) {
