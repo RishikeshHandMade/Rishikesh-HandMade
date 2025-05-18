@@ -207,14 +207,14 @@ const ChangeBannerImage = () => {
                 <div>
                     <Label>Upload Banner Image</Label>
                     {formData.image.url ? (
-                        <div className="relative">
-                            <Image src={formData.image.url} alt="Banner Preview" width={400} height={200} className="rounded-lg shadow" />
-                            <Button type="button" onClick={() => { handleDeleteImage(formData.image.key) }} className="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 text-xs">Remove</Button>
-                        </div>
-                    ) : (
-                        <UploadButton endpoint="imageUploader" onClientUploadComplete={handleImageUpload} />
-                    )}
-                </div>
+    <div className="relative">
+        <Image src={formData.image.url} alt="Banner Preview" width={400} height={200} className="rounded-lg shadow" />
+        <Button type="button" onClick={() => { handleDeleteImage(formData.image.key) }} className="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 text-xs">Remove</Button>
+    </div>
+) : (
+    <Input type="file" accept="image/*" onChange={handleImageChange} disabled={uploading} />
+)}
+</div>
                 <Button type="submit" className="bg-blue-600 hover:bg-blue-500">
                     {editBanner ? "Update Banner" : "Add Banner"}
                 </Button>

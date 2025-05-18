@@ -95,7 +95,7 @@ export function NavUser({
               size="lg"
               className="hover:bg-blue-500 data-[state=open]:bg-blue-200 data-[state=open]:text-sidebar-accent-foreground">
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={'/android-chrome-512x512.png'} />
+                <AvatarImage src={'/small-logo.jpg'} />
                 <AvatarFallback className="rounded-lg bg-blue-600 text-white font-bold">AD</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">

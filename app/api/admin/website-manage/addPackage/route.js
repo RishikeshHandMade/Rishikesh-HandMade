@@ -2,7 +2,7 @@ import connectDB from "@/lib/connectDB";
 import { NextResponse } from "next/server";
 import Package from "@/models/Package";
 import MenuBar from "@/models/MenuBar";
-import { deleteFileFromUploadthing } from "@/utils/Utapi";
+import { deleteFileFromCloudinary } from "@/utils/cloudinary";
 
 export async function POST(req) {
     await connectDB();
@@ -111,17 +111,17 @@ export async function DELETE(req) {
 
         // Delete thumbnail and banner images
         if (packageToDelete.basicDetails.thumbnail?.key) {
-            await deleteFileFromUploadthing(packageToDelete.basicDetails.thumbnail.key);
+            await deleteFileFromCloudinary(packageToDelete.basicDetails.thumbnail.key);
         }
         if (packageToDelete.basicDetails.imageBanner?.key) {
-            await deleteFileFromUploadthing(packageToDelete.basicDetails.imageBanner.key);
+            await deleteFileFromCloudinary(packageToDelete.basicDetails.imageBanner.key);
         }
 
         // Delete all images from the gallery
         if (packageToDelete.gallery?.length > 0) {
             for (const image of packageToDelete.gallery) {
                 if (image.key) {
-                    await deleteFileFromUploadthing(image.key);
+                    await deleteFileFromCloudinary(image.key);
                 }
             }
         }

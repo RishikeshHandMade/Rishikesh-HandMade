@@ -2,7 +2,7 @@ import connectDB from "@/lib/connectDB";
 import { NextResponse } from "next/server";
 import MenuBar from "@/models/MenuBar";
 import Package from "@/models/Package";
-import { deleteFileFromUploadthing } from "@/utils/Utapi";
+import { deleteFileFromCloudinary } from "@/utils/cloudinary";
 
 export async function POST(req) {
     await connectDB();
@@ -103,7 +103,7 @@ export async function DELETE(req) {
 
         // Now delete all images from UploadThing (or other external storage)
         for (const key of imageKeysToDelete) {
-            await deleteFileFromUploadthing(key);
+            await deleteFileFromCloudinary(key);
         }
 
         // Finally, delete the menu

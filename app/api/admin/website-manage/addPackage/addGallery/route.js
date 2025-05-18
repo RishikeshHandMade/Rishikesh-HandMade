@@ -1,7 +1,7 @@
 import connectDB from "@/lib/connectDB";
 import { NextResponse } from "next/server";
 import Package from "@/models/Package";
-import { deleteFileFromUploadthing } from "@/utils/Utapi";
+import { deleteFileFromCloudinary } from "@/utils/cloudinary";
 
 export async function POST(req) {
     await connectDB();
@@ -30,7 +30,7 @@ export async function DELETE(req) {
         if (!pkg) {
             return NextResponse.json({ message: "Package not found" }, { status: 404 });
         }
-        await deleteFileFromUploadthing(key);
+        await deleteFileFromCloudinary(key);
         pkg.gallery = pkg.gallery.filter((image) => image.key !== key);
         await pkg.save();
         return NextResponse.json({ message: "Image deleted successfully" });

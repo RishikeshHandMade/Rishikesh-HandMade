@@ -84,7 +84,7 @@ const ManageFeaturedPackages = () => {
             try {
                 // Delete the image from Uploadthing first
                 if (imageKey) {
-                    await deleteFileFromUploadthing(imageKey);
+                    // Removed UploadThing delete, now just clear image from state(imageKey);
                 }
 
                 // Then delete the package from database

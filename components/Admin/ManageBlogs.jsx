@@ -149,7 +149,7 @@ const ManageBlogs = () => {
 
     const handleDeleteImage = async (key) => {
         if (key) {
-            await deleteFileFromUploadthing(key);
+            // Removed UploadThing delete, now just clear image from state(key);
             setFormData({ ...formData, image: "" });
         }
     };

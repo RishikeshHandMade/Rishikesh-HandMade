@@ -179,7 +179,7 @@ const Checkout = ({ packages }) => {
         if (fileKey) {
             try {
                 // Delete the file from UploadThing
-                await deleteFileFromUploadthing(fileKey);
+                // Removed UploadThing delete, now just clear image from state(fileKey);
 
                 // Remove the file from the state
                 const updatedCategory = [...heliFormData[category]];
@@ -862,15 +862,16 @@ const Checkout = ({ packages }) => {
                                             value={heliFormData.adults[index]?.weight || ""}
                                             onChange={(e) => handleInputChange(e, "weight", index, "adults")}
                                             className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
-
                                         />
                                     </div>
+
+                                    {/* ID Proof */}
                                     <div>
                                         <label className="block text-sm font-medium mb-1">ID Proof</label>
-                                        <UploadButton
-                                            endpoint="imageUploader" // Replace with your UploadThing endpoint
-                                            onClientUploadComplete={(res) => handleFileUpload(res, index, "adults")}
-                                            onUploadError={(error) => console.error("Upload Error:", error)}
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => handleFileChange(e, index, "adults")}
                                         />
                                         {heliFormData.adults[index]?.idProof?.url && (
                                             <div className="mt-2 relative flex items-center gap-4 aspect-video">
@@ -894,371 +895,266 @@ const Checkout = ({ packages }) => {
                                         )}
                                     </div>
                                 </div>
-                            ))}
-
-                            {/* Number of Children */}
+                            )}
+                    
                             <div>
-                                <label className="block text-sm font-medium mb-1">Number of Children</label>
+                                <label className="block text-sm font-medium mb-1">10-Digit Mobile Number</label>
                                 <Input
                                     type="number"
-                                    min={0}
-                                    value={heliFormData.numChildren}
-                                    onChange={(e) => handleInputChange(e, "numChildren")}
                                     className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
-
-                                />
-                            </div>
-
-                            {/* Children Details */}
-                            {Array.from({ length: heliFormData.numChildren }).map((_, index) => (
-                                <div key={index} className="space-y-4 p-4 bg-white rounded-lg border border-gray-200">
-                                    <h3 className="text-lg font-semibold">Child {index + 1}</h3>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">Full Name</label>
-                                        <Input
-                                            type="text"
-                                            value={heliFormData.children[index]?.fullname || ""}
-                                            onChange={(e) => handleInputChange(e, "fullname", index, "children")}
-                                            className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
-
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">Age</label>
-                                        <Input
-                                            type="number"
-                                            value={heliFormData.children[index]?.age || ""}
-                                            onChange={(e) => handleInputChange(e, "age", index, "children")}
-                                            className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
-
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">Weight (kg)</label>
-                                        <Input
-                                            type="number"
-                                            value={heliFormData.children[index]?.weight || ""}
-                                            onChange={(e) => handleInputChange(e, "weight", index, "children")}
-                                            className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
-
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">ID Proof</label>
-                                        <UploadButton
-                                            endpoint="imageUploader" // Replace with your UploadThing endpoint
-                                            onClientUploadComplete={(res) => handleFileUpload(res, index, "children")}
-                                            onUploadError={(error) => console.error("Upload Error:", error)}
-                                        />
-                                        {heliFormData.children[index]?.idProof?.url && (
-                                            <div className="mt-2 relative flex items-center gap-4 aspect-video">
-                                                <Image
-                                                    src={heliFormData.children[index].idProof.url}
-                                                    width={1280}
-                                                    height={720}
-                                                    quality={25}
-                                                    alt="ID Proof"
-                                                    className="w-full h-full object-cover rounded-lg"
-                                                />
-                                                <Button
-                                                    type="button"
-                                                    size={"icon"}
-                                                    onClick={() => handleDeleteImage(index, "children")}
-                                                    className="bg-red-500 absolute top-0 right-0 rounded-full text-white hover:bg-red-600"
-                                                >
-                                                    <X className="w-4 h-4" />
-                                                </Button>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-
-                            {/* Number of Infants */}
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Number of Infants</label>
-                                <Input
-                                    type="number"
-                                    min={0}
-                                    value={heliFormData.numInfants}
-                                    onChange={(e) => handleInputChange(e, "numInfants")}
-                                    className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
-
-                                />
-                            </div>
-
-                            {/* Infants Details */}
-                            {Array.from({ length: heliFormData.numInfants }).map((_, index) => (
-                                <div key={index} className="space-y-4 p-4 bg-white rounded-lg border border-gray-200">
-                                    <h3 className="text-lg font-semibold">Infant {index + 1}</h3>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">Full Name</label>
-                                        <Input
-                                            type="text"
-                                            value={heliFormData.infants[index]?.fullname || ""}
-                                            onChange={(e) => handleInputChange(e, "fullname", index, "infants")}
-                                            className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
-
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">Age</label>
-                                        <Input
-                                            type="number"
-                                            value={heliFormData.infants[index]?.age || ""}
-                                            onChange={(e) => handleInputChange(e, "age", index, "infants")}
-                                            className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
-
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">Weight (kg)</label>
-                                        <Input
-                                            type="number"
-                                            value={heliFormData.infants[index]?.weight || ""}
-                                            onChange={(e) => handleInputChange(e, "weight", index, "infants")}
-                                            className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
-
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">ID Proof</label>
-                                        <UploadButton
-                                            endpoint="imageUploader" // Replace with your UploadThing endpoint
-                                            onClientUploadComplete={(res) => handleFileUpload(res, index, "infants")}
-                                            onUploadError={(error) => console.error("Upload Error:", error)}
-                                        />
-                                        {heliFormData.infants[index]?.idProof?.url && (
-                                            <div className="mt-2 relative flex items-center gap-4 aspect-video">
-                                                <Image
-                                                    src={heliFormData.infants[index].idProof.url}
-                                                    width={1280}
-                                                    height={720}
-                                                    quality={25}
-                                                    alt="ID Proof"
-                                                    className="w-full h-full object-cover rounded-lg"
-                                                />
-                                                <Button
-                                                    type="button"
-                                                    size={"icon"}
-                                                    onClick={() => handleDeleteImage(index, "infants")}
-                                                    className="bg-red-500 absolute top-0 right-0 rounded-full text-white hover:bg-red-600"
-                                                >
-                                                    <X className="w-4 h-4" />
-                                                </Button>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-
-                            {/* Pickup Location */}
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Pickup Location</label>
-                                <Input
-                                    type="text"
-                                    value={heliFormData.pickupLocation}
-                                    onChange={(e) => handleInputChange(e, "pickupLocation")}
-                                    className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
+                                    value={formData.mobile}
+                                    onChange={(e) => {
+                                        // Ensure the input value is no longer than 10 digits
+                                        if (e.target.value.length <= 10) {
+                                            setFormData({ ...formData, mobile: e.target.value });
+                                        }
+                                    }}
                                     required
                                 />
                             </div>
 
-                            {/* Dropoff Location */}
+                            {/* Email */}
                             <div>
-                                <label className="block text-sm font-medium mb-1">Dropoff Location</label>
+                                <label className="block text-sm font-medium mb-1">Email</label>
                                 <Input
-                                    type="text"
-                                    value={heliFormData.dropoffLocation}
-                                    onChange={(e) => handleInputChange(e, "dropoffLocation")}
+                                    type="email"
                                     className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                     required
                                 />
                             </div>
 
-                            {/* Medical Requirements */}
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Medical Requirements</label>
+                            {/* Permanent Address */}
+                            <div className="col-span-2">
+                                <label className="block text-sm font-medium mb-1">Permanent Address</label>
                                 <Textarea
-                                    value={heliFormData.medicalRequirements}
-                                    onChange={(e) => handleInputChange(e, "medicalRequirements")}
-                                    className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
-                                />
-                            </div>
-
-                            {/* Special Requirements */}
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Special Requirements</label>
-                                <Textarea
-                                    value={heliFormData.specialRequirements}
-                                    onChange={(e) => handleInputChange(e, "specialRequirements")}
-                                    className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
-                                />
-                            </div>
-                        </div>}
-
-                        {/* Submit Button */}
-                        <Button type="submit" className="w-full mt-8 !py-6 border-2 font-barlow text-lg border-blue-600 bg-blue-200 hover:bg-blue-600 hover:text-white text-black">
-                            Continue to Booking Details
-                        </Button>
-                    </form>
-                )}
-
-                {/* Booking Details Section */}
-                {step === "booking" && (
-                    <div className="flex flex-col gap-8 font-barlow">
-                        <div className="space-y-4 p-8 shadow-2xl rounded-xl border-2 border-blue-300 h-fit">
-                            <h2 className="text-3xl font-bold mb-6 font-gilda">Booking Details</h2>
-
-                            {/* Travel Date */}
-                            <div className="font-barlow">
-                                <label className="block text-sm font-medium mb-1">Travel Date</label>
-                                <Input
-                                    type="date"
-                                    className="resize-none w-fit outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
-                                    value={bookingDetails.travelDate}
-                                    onChange={(e) => setBookingDetails({ ...bookingDetails, travelDate: e.target.value })}
+                                    className="resize-none outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
+                                    value={formData.address}
+                                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                                     required
                                 />
                             </div>
 
-                            {/* Departure Location */}
+                            {/* Apartment, Suite, etc. (Optional) */}
                             <div>
-                                <label className="block text-sm font-medium mb-1">
-                                    From which location (city) Bus/Rail/Airport would you like to leave?
-                                </label>
+                                <label className="block text-sm font-medium mb-1">Apartment, Suite, etc. (Optional)</label>
                                 <Input
                                     type="text"
                                     className="resize-none outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
-                                    value={bookingDetails.departureLocation}
-                                    onChange={(e) =>
-                                        setBookingDetails({ ...bookingDetails, departureLocation: e.target.value })
-                                    }
-                                    required
+                                    value={formData.apartment}
+                                    onChange={(e) => setFormData({ ...formData, apartment: e.target.value })}
                                 />
                             </div>
-
-                            {/* Previous Button */}
-                            <Button
-                                variant="outline"
-                                className="outline-none w-full !mt-12 border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
-                                onClick={() => setStep("form")}
-                            >
-                                Previous
-                            </Button>
                         </div>
-                        {packages?.basicDetails?.heliBooking === "Yes" && <div className="space-y-4 p-8 bg-blue-100 rounded-xl border-2 border-blue-300 h-fit">
-                            <h2 className="text-3xl font-bold mb-6 font-gilda">Special Note: Follow Heli Tour Policy</h2>
+                        
+                        {/* Pickup Location */}
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Pickup Location</label>
+                            <Input
+                                type="text"
+                                value={heliFormData.pickupLocation}
+                                onChange={(e) => handleInputChange(e, "pickupLocation")}
+                                className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
+                                required
+                            />
+                        </div>
 
-                            <div className="space-y-4 pt-8">
-                                <p className="font-semibold text-justify">
-                                    Each helicopter can accommodate up to 6 passengers with a total body weight limitation of 445 kg for 6 passengers.</p>
-                                <p className="font-semibold text-justify">
-                                    Yatrazone: Your Spiritual Travel Solution holds the right to de-board the passenger if the given body weight deviates from the actual body weight provided at the time of making the booking. In such a scenario, we will not be liable to provide the refund amount to any passenger de-boarded. Passengers are requested to share the exact body weight measured on an electronic measuring scale.</p>
-                                <p className="font-semibold text-justify">
-                                    Passengers with body weight above 75 kg will be charged INR 2,000. This amount will be collected in Dehradun to avoid last-minute hassle.</p>
-                                <p className="font-semibold text-justify">
-                                    In case the overall body weight exceeds more than 450 kg, passengers whose given body weight is wrong will be charged INR 2,500 per kg only on the final call of the pilot, else will be de-boarded without any refund.</p>
-                                <p className="font-semibold text-justify">
-                                    By submitting this information, you acknowledge that the details provided are accurate and complete. The service provider is not responsible for any inaccuracies or omissions in the provided data. Any medical or special requirements should be communicated clearly, and the service provider will make reasonable efforts to accommodate these needs.</p>
-                                <p className="font-semibold text-justify">
-                                    The transportation service is provided based on availability, and all applicable terms and conditions apply. The tour package pricing and the minimum rate indicated above may change based on the hotels and transportation options available on that particular date. While subject to change, providing an estimated date as early as possible helps streamline the planning process and ensures that you secure the best options for your travel. Be sure to review and update this date if your plans change to avoid any potential disruptions.</p>
-                            </div>
-                        </div>}
-                        <div className="space-y-4 p-8 bg-blue-100 rounded-xl border-2 border-blue-300 h-fit">
-                            <h2 className="text-3xl font-bold mb-6 font-gilda">Review Customer Information</h2>
+                        {/* Dropoff Location */}
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Dropoff Location</label>
+                            <Input
+                                type="text"
+                                value={heliFormData.dropoffLocation}
+                                onChange={(e) => handleInputChange(e, "dropoffLocation")}
+                                className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
+                                required
+                            />
+                        </div>
 
-                            {/* Customer Name */}
-                            <div>
-                                <p className="block mb-1 text-sm font-medium text-gray-800">Name of Traveller: <span className="font-bold text-base text-blue-600">{formData.fullName}</span></p>
-                                <p className="block mb-1 text-sm font-medium text-gray-800">Contact Number: <span className="font-bold text-base text-blue-600">+91 {formData.mobile}</span></p>
-                                <p className="block mb-1 text-sm font-medium text-gray-800">Email: <span className="font-bold text-base text-blue-600">{formData.email}</span></p>
-                                <p className="block mb-1 text-sm font-medium text-gray-800">Address: <span className="font-bold text-base text-blue-600">{formData.address}, {formData.city}, {formData.state}, {formData.pincode}</span></p>
-                            </div>
+                        {/* Medical Requirements */}
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Medical Requirements</label>
+                            <Textarea
+                                value={heliFormData.medicalRequirements}
+                                onChange={(e) => handleInputChange(e, "medicalRequirements")}
+                                className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
+                            />
+                        </div>
 
-                            <div className="space-y-8 pt-8">
-                                <p className="font-semibold text-justify">Note: The tour package pricing and the minimum rate indicated above may change based on the hotels and transportation options available on that particular date. While subject to change, providing an estimated date as early as possible helps streamline the planning process and ensures that you secure the best options for your travel. Be sure to review and update this date if your plans change to avoid any potential disruptions.</p>
-
-                                <p>Our team will connect with you shortly to discuss the details and help you create an amazing travel experience.</p>
-
-                                <p>If you have any immediate questions or preferences,
-                                    feel free to share with us!</p>
-
-                                <p>Email: <Link href={"mailto:info@yatrazone.com"} className="text-blue-600 font-semibold">Info@yatrazone.com</Link> or call <Link href={"tel:+918006000325"} className="text-blue-600 font-semibold"> +91 8006000325</Link></p>
-                            </div>
+                        {/* Special Requirements */}
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Special Requirements</label>
+                            <Textarea
+                                value={heliFormData.specialRequirements}
+                                onChange={(e) => handleInputChange(e, "specialRequirements")}
+                                className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
+                            />
                         </div>
                     </div>
+
+                        {/* Submit Button */}
+                <Button type="submit" className="w-full mt-8 !py-6 border-2 font-barlow text-lg border-blue-600 bg-blue-200 hover:bg-blue-600 hover:text-white text-black">
+                    Continue to Booking Details
+                </Button>
+            </form>
                 )}
 
-                {/* Booking Preview Section */}
-                <div className="p-8 rounded-xl sticky top-24 font-barlow bg-white shadow-2xl w-fit h-fit space-y-6">
-                    {/* Header */}
-                    <h2 className="text-3xl font-bold text-gray-900 font-gilda">Booking Preview</h2>
+            {/* Booking Details Section */}
+            {step === "booking" && (
+                <div className="flex flex-col gap-8 font-barlow">
+                    <div className="space-y-4 p-8 shadow-2xl rounded-xl border-2 border-blue-300 h-fit">
+                        <h2 className="text-3xl font-bold mb-6 font-gilda">Booking Details</h2>
 
-                    {/* Package Thumbnail */}
-                    <div className="relative aspect-video overflow-hidden rounded-lg">
-                        <Image
-                            src={packages.basicDetails?.thumbnail?.url}
-                            alt={packages.packageName}
-                            blurDataURL={packages.basicDetails?.thumbnail?.url}
-                            placeholder="blur"
-                            fill
-                            className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
-                        <h3 className="absolute bottom-4 left-4 text-2xl md:text-4xl font-semibold font-gilda text-white">
-                            {packages.packageName}
-                        </h3>
+                        {/* Travel Date */}
+                        <div className="font-barlow">
+                            <label className="block text-sm font-medium mb-1">Travel Date</label>
+                            <Input
+                                type="date"
+                                className="resize-none w-fit outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
+                                value={bookingDetails.travelDate}
+                                onChange={(e) => setBookingDetails({ ...bookingDetails, travelDate: e.target.value })}
+                                required
+                            />
+                        </div>
+
+                        {/* Departure Location */}
+                        <div>
+                            <label className="block text-sm font-medium mb-1">
+                                From which location (city) Bus/Rail/Airport would you like to leave?
+                            </label>
+                            <Input
+                                type="text"
+                                className="resize-none outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
+                                value={bookingDetails.departureLocation}
+                                onChange={(e) =>
+                                    setBookingDetails({ ...bookingDetails, departureLocation: e.target.value })
+                                }
+                                required
+                            />
+                        </div>
+
+                        {/* Previous Button */}
+                        <Button
+                            variant="outline"
+                            className="outline-none w-full !mt-12 border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
+                            onClick={() => setStep("form")}
+                        >
+                            Previous
+                        </Button>
                     </div>
+                    {packages?.basicDetails?.heliBooking === "Yes" && <div className="space-y-4 p-8 bg-blue-100 rounded-xl border-2 border-blue-300 h-fit">
+                        <h2 className="text-3xl font-bold mb-6 font-gilda">Special Note: Follow Heli Tour Policy</h2>
 
-                    {/* Package Details */}
-                    <div className="space-y-4">
-                        {/* Package Code */}
-                        <p className="text-sm font-medium text-gray-600">
-                            Package Code: <span className="text-blue-600 font-bold">{packages.packageCode}</span>
-                        </p>
+                        <div className="space-y-4 pt-8">
+                            <p className="font-semibold text-justify">
+                                Each helicopter can accommodate up to 6 passengers with a total body weight limitation of 445 kg for 6 passengers.</p>
+                            <p className="font-semibold text-justify">
+                                Yatrazone: Your Spiritual Travel Solution holds the right to de-board the passenger if the given body weight deviates from the actual body weight provided at the time of making the booking. In such a scenario, we will not be liable to provide the refund amount to any passenger de-boarded. Passengers are requested to share the exact body weight measured on an electronic measuring scale.</p>
+                            <p className="font-semibold text-justify">
+                                Passengers with body weight above 75 kg will be charged INR 2,000. This amount will be collected in Dehradun to avoid last-minute hassle.</p>
+                            <p className="font-semibold text-justify">
+                                In case the overall body weight exceeds more than 450 kg, passengers whose given body weight is wrong will be charged INR 2,500 per kg only on the final call of the pilot, else will be de-boarded without any refund.</p>
+                            <p className="font-semibold text-justify">
+                                By submitting this information, you acknowledge that the details provided are accurate and complete. The service provider is not responsible for any inaccuracies or omissions in the provided data. Any medical or special requirements should be communicated clearly, and the service provider will make reasonable efforts to accommodate these needs.</p>
+                            <p className="font-semibold text-justify">
+                                The transportation service is provided based on availability, and all applicable terms and conditions apply. The tour package pricing and the minimum rate indicated above may change based on the hotels and transportation options available on that particular date. While subject to change, providing an estimated date as early as possible helps streamline the planning process and ensures that you secure the best options for your travel. Be sure to review and update this date if your plans change to avoid any potential disruptions.</p>
+                        </div>
+                    </div>}
+                    <div className="space-y-4 p-8 bg-blue-100 rounded-xl border-2 border-blue-300 h-fit">
+                        <h2 className="text-3xl font-bold mb-6 font-gilda">Review Customer Information</h2>
 
-                        {/* Package Price */}
-                        <div className="p-4 bg-gray-50 rounded-lg">
-                            <p className="text-lg font-semibold text-gray-800">
-                                Package Price: ₹<span className="text-2xl text-blue-600 font-bold">{formatNumber(packages.price)}</span>/
-                                <span className="lowercase font-medium text-gray-600">{packages.priceUnit}</span>
-                            </p>
+                        {/* Customer Name */}
+                        <div>
+                            <p className="block mb-1 text-sm font-medium text-gray-800">Name of Traveller: <span className="font-bold text-base text-blue-600">{formData.fullName}</span></p>
+                            <p className="block mb-1 text-sm font-medium text-gray-800">Contact Number: <span className="font-bold text-base text-blue-600">+91 {formData.mobile}</span></p>
+                            <p className="block mb-1 text-sm font-medium text-gray-800">Email: <span className="font-bold text-base text-blue-600">{formData.email}</span></p>
+                            <p className="block mb-1 text-sm font-medium text-gray-800">Address: <span className="font-bold text-base text-blue-600">{formData.address}, {formData.city}, {formData.state}, {formData.pincode}</span></p>
+                        </div>
+
+                        <div className="space-y-8 pt-8">
+                            <p className="font-semibold text-justify">Note: The tour package pricing and the minimum rate indicated above may change based on the hotels and transportation options available on that particular date. While subject to change, providing an estimated date as early as possible helps streamline the planning process and ensures that you secure the best options for your travel. Be sure to review and update this date if your plans change to avoid any potential disruptions.</p>
+
+                            <p>Our team will connect with you shortly to discuss the details and help you create an amazing travel experience.</p>
+
+                            <p>If you have any immediate questions or preferences,
+                                feel free to share with us!</p>
+
+                            <p>Email: <Link href={"mailto:info@yatrazone.com"} className="text-blue-600 font-semibold">Info@yatrazone.com</Link> or call <Link href={"tel:+918006000325"} className="text-blue-600 font-semibold"> +91 8006000325</Link></p>
                         </div>
                     </div>
+                </div>
+            )}
 
-                    {/* Total Price Section */}
-                    <div className="p-6 bg-blue-50 rounded-lg">
-                        <h4 className="text-xl font-bold text-blue-900 mb-3">Total Amount</h4>
-                        <p className="text-lg font-semibold text-gray-800">
-                            ₹<span className="text-2xl text-blue-600 font-bold">{formatNumber(totalPrice)}</span> (
-                            <span className="text-xl text-blue-600 font-bold">{formData.totalPersons || 0}</span> persons)
-                        </p>
-                        <p className="text-sm text-gray-600 mt-2">
-                            This is the total amount you need to pay for the booking.
-                        </p>
-                    </div>
+            {/* Booking Preview Section */}
+            <div className="p-8 rounded-xl sticky top-24 font-barlow bg-white shadow-2xl w-fit h-fit space-y-6">
+                {/* Header */}
+                <h2 className="text-3xl font-bold text-gray-900 font-gilda">Booking Preview</h2>
 
-                    {/* Advance Payment Section */}
-                    <div className="p-6 bg-blue-50 rounded-lg">
-                        <h4 className="text-xl font-bold text-blue-900 mb-3">Advance Payment (25%)</h4>
-                        <p className="text-lg font-semibold text-gray-800">
-                            ₹<span className="text-2xl text-blue-600 font-bold">{formatNumber(advancePayment)}</span>
-                        </p>
-                        <p className="text-sm text-gray-600 mt-2">
-                            Pay this amount now to confirm your booking. The remaining amount will be paid later.
-                        </p>
-                    </div>
-
-                    {/* Payment Button */}
-                    <button onClick={handlePayment} disabled={step !== "booking" || !bookingDetails.travelDate || !bookingDetails.departureLocation} className="w-full disabled:bg-blue-600/50 disabled:cursor-not-allowed font-bold bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors duration-300">
-                        Pay Now (₹<span className="text-xl text-white font-bold">{formatNumber(advancePayment)}</span>)
-                    </button>
+                {/* Package Thumbnail */}
+                <div className="relative aspect-video overflow-hidden rounded-lg">
+                    <Image
+                        src={packages.basicDetails?.thumbnail?.url}
+                        alt={packages.packageName}
+                        blurDataURL={packages.basicDetails?.thumbnail?.url}
+                        placeholder="blur"
+                        fill
+                        className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+                    <h3 className="absolute bottom-4 left-4 text-2xl md:text-4xl font-semibold font-gilda text-white">
+                        {packages.packageName}
+                    </h3>
                 </div>
 
+                {/* Package Details */}
+                <div className="space-y-4">
+                    {/* Package Code */}
+                    <p className="text-sm font-medium text-gray-600">
+                        Package Code: <span className="text-blue-600 font-bold">{packages.packageCode}</span>
+                    </p>
+
+                    {/* Package Price */}
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                        <p className="text-lg font-semibold text-gray-800">
+                            Package Price: ₹<span className="text-2xl text-blue-600 font-bold">{formatNumber(packages.price)}</span>/
+                            <span className="lowercase font-medium text-gray-600">{packages.priceUnit}</span>
+                        </p>
+                    </div>
+                </div>
+
+                {/* Total Price Section */}
+                <div className="p-6 bg-blue-50 rounded-lg">
+                    <h4 className="text-xl font-bold text-blue-900 mb-3">Total Amount</h4>
+                    <p className="text-lg font-semibold text-gray-800">
+                        ₹<span className="text-2xl text-blue-600 font-bold">{formatNumber(totalPrice)}</span> (
+                        <span className="text-xl text-blue-600 font-bold">{formData.totalPersons || 0}</span> persons)
+                    </p>
+                    <p className="text-sm text-gray-600 mt-2">
+                        This is the total amount you need to pay for the booking.
+                    </p>
+                </div>
+
+                {/* Advance Payment Section */}
+                <div className="p-6 bg-blue-50 rounded-lg">
+                    <h4 className="text-xl font-bold text-blue-900 mb-3">Advance Payment (25%)</h4>
+                    <p className="text-lg font-semibold text-gray-800">
+                        ₹<span className="text-2xl text-blue-600 font-bold">{formatNumber(advancePayment)}</span>
+                    </p>
+                    <p className="text-sm text-gray-600 mt-2">
+                        Pay this amount now to confirm your booking. The remaining amount will be paid later.
+                    </p>
+                </div>
+
+                {/* Payment Button */}
+                <button onClick={handlePayment} disabled={step !== "booking" || !bookingDetails.travelDate || !bookingDetails.departureLocation} className="w-full disabled:bg-blue-600/50 disabled:cursor-not-allowed font-bold bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors duration-300">
+                    Pay Now (₹<span className="text-xl text-white font-bold">{formatNumber(advancePayment)}</span>)
+                </button>
             </div>
+
+        </div>
         </SidebarInset >
-    )
+    );
 }
 
-export default Checkout
+export default Checkout;
