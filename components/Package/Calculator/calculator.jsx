@@ -1818,10 +1818,7 @@ export default function TourPackageCalculator({ packages, plans }) {
                                     accept="image/*"
                                     onChange={handleImageChange}
                                     ref={fileInputRef}
-                                    className="mb-2"
                                     className="resize-none w-fit outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
-                                    value={bookingDetails.travelDate}
-                                    onChange={(e) => setBookingDetails({ ...bookingDetails, travelDate: e.target.value })}
                                     required
                                 />
                             </div>

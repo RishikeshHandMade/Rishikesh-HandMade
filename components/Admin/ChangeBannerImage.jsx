@@ -4,11 +4,11 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UploadButton } from "@/utils/cloudinary";
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Image from "next/image";
 import toast from "react-hot-toast";
-import { deleteFileFromUploadthing } from "@/utils/Utapi";
+
 import { PencilIcon, Trash2Icon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -47,11 +47,32 @@ const ChangeBannerImage = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleImageUpload = (uploaded) => {
-        if (uploaded.length > 0) {
-            setFormData({ ...formData, image: { url: uploaded[0].url, key: uploaded[0].key } });
+    // Cloudinary-style image upload (like AddGallery.jsx)
+    const [uploading, setUploading] = useState(false);
+    const handleImageChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        setUploading(true);
+        const formDataUpload = new FormData();
+        formDataUpload.append('file', file);
+        try {
+            const res = await fetch('/api/cloudinary', {
+                method: 'POST',
+                body: formDataUpload
+            });
+            const data = await res.json();
+            if (res.ok && data.url) {
+                setFormData(prev => ({ ...prev, image: { url: data.url, key: data.key || '' } }));
+                toast.success('Image uploaded!');
+            } else {
+                toast.error('Cloudinary upload failed: ' + (data.error || 'Unknown error'));
+            }
+        } catch (err) {
+            toast.error('Cloudinary upload error: ' + err.message);
         }
+        setUploading(false);
     };
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -128,17 +149,45 @@ const ChangeBannerImage = () => {
         }
     };
 
-    const handleDeleteImage = async (key) => {
-        if (key) {
-            await deleteFileFromUploadthing(key);
-            setFormData({ ...formData, image: { url: "", key: "" } });
-        }
+    // Remove image from formData only
+    const handleDeleteImage = () => {
+        setFormData(prev => ({ ...prev, image: { url: '', key: '' } }));
     };
+
 
     return (
         <div className="max-w-5xl mx-auto py-10 w-full">
             <h2 className="text-2xl font-bold mb-6">{editBanner ? "Edit Banner" : "Add New Banner"}</h2>
             <form onSubmit={handleSubmit} className="bg-white shadow-lg rounded-lg p-6 space-y-4">
+                {/* Banner Image Upload */}
+                <div className="mb-4">
+                    <Label className="block mb-2 font-bold">Banner Image</Label>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="mb-2"
+                    />
+                    {uploading && <div className="text-blue-600 font-semibold">Uploading...</div>}
+                    {formData.image.url && (
+                        <div className="relative w-48 h-28 border rounded overflow-hidden mb-2">
+                            <Image
+                                src={formData.image.url}
+                                alt="Banner Preview"
+                                fill
+                                className="object-cover"
+                            />
+                            <button
+                                type="button"
+                                onClick={handleDeleteImage}
+                                className="absolute top-1 right-1 bg-white bg-opacity-80 rounded-full p-1 hover:bg-red-200"
+                                title="Remove image"
+                            >
+                                <Trash2Icon className="w-5 h-5 text-red-600" />
+                            </button>
+                        </div>
+                    )}
+                </div>
                 <div>
                     <Label>Title</Label>
                     <Input name="title" value={formData.title} onChange={handleInputChange} />
