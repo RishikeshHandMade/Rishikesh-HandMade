@@ -19,13 +19,13 @@ const AddDirectProduct = ({ productId }) => {
     { key: 'size', label: 'Size Management', component: (props) => <SizeManagement {...props} productData={productData} productId={productId} /> },
     { key: 'color', label: 'Color Management', component: (props) => <ColorManagement {...props} productData={productData} productId={productId} /> },
     { key: 'price', label: 'Price / Discount', component: (props) => <PriceDiscount {...props} productData={productData} productId={productId} /> },
+    { key: 'quantity', label: 'Quantity Management', component: (props) => <QuantityManagement {...props} productData={productData} productId={productId} /> },
     { key: 'gallery', label: 'Product Gallery', component: (props) => <ProductGallery {...props} productData={productData} productId={productId} /> },
     { key: 'video', label: 'Video Management', component: (props) => <VideoManagement {...props} productData={productData} productId={productId} /> },
     { key: 'description', label: 'Product Description', component: (props) => <ProductDescription {...props} productData={productData} productId={productId} /> },
     { key: 'info', label: 'Product Information', component: (props) => <ProductInfo {...props} productData={productData} productId={productId} /> },
-    { key: 'tag', label: 'Category Tag', component: (props) => <CategoryTag {...props} productData={productData} productId={productId} /> },
     { key: 'review', label: 'Create Review', component: (props) => <ProductReview {...props} productData={productData} productId={productId} /> },
-    { key: 'quantity', label: 'Quantity Management', component: (props) => <QuantityManagement {...props} productData={productData} productId={productId} /> },
+    { key: 'tag', label: 'Category Tag', component: (props) => <CategoryTag {...props} productData={productData} productId={productId} /> },
   ];
   const [activeSection, setActiveSection] = useState(sectionConfig[0].key);
   const [productData, setProductData] = useState(null);

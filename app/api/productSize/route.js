@@ -10,7 +10,12 @@ export async function POST(req) {
   if (!product) {
     return new Response(JSON.stringify({ error: 'Missing product ID' }), { status: 400 });
   }
-  // Create the size document
+  // Prevent duplicate size entry for this product
+  const existing = await Size.findOne({ product });
+  if (existing) {
+    return new Response(JSON.stringify({ error: 'Sizes for this product already exist' }), { status: 409 });
+  }
+  // Create the size document (sizeChartUrl is optional)
   const sizeDoc = await Size.create({ product, sizes, sizeChartUrl, sizeStyle1 });
   // Update the product to reference this size doc and push size data
   await Product.findByIdAndUpdate(

@@ -4,11 +4,11 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UploadButton } from "@/utils/cloudinary";
+// import { UploadButton } from "@/utils/cloudinary"; // Removed UploadThing
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Image from "next/image";
 import toast from "react-hot-toast";
-import { deleteFileFromUploadthing } from "@/utils/Utapi";
+// import { deleteFileFromUploadthing } from "@/utils/Utapi"; // Removed UploadThing
 import { PencilIcon, Trash2Icon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
@@ -51,9 +51,27 @@ const ManageBlogs = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleImageUpload = (uploaded) => {
-        if (uploaded.length > 0) {
-            setFormData({ ...formData, image: uploaded[0].url });
+    const [isUploading, setIsUploading] = useState(false);
+
+    const handleImageUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        setIsUploading(true);
+        try {
+            const formDataData = new FormData();
+            formDataData.append('file', file);
+            const res = await fetch('/api/cloudinary', {
+                method: 'POST',
+                body: formDataData
+            });
+            if (!res.ok) throw new Error('Image upload failed');
+            const result = await res.json();
+            setFormData((prev) => ({ ...prev, image: result.url }));
+            toast.success('Image uploaded successfully!');
+        } catch (err) {
+            toast.error('Image upload failed');
+        } finally {
+            setIsUploading(false);
         }
     };
 
@@ -197,10 +215,13 @@ const ManageBlogs = () => {
                     {formData.image && typeof formData.image === "string" && formData.image.trim() !== "" ? (
                         <div className="relative">
                             <Image src={formData.image} alt="Blog Preview" width={600} height={400} className="rounded-lg shadow" />
-                            <Button type="button" onClick={() => { handleDeleteImage(formData.image) }} className="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 text-xs">Remove</Button>
+                            <Button type="button" onClick={() => setFormData(prev => ({ ...prev, image: "" }))} className="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 text-xs">Remove</Button>
                         </div>
                     ) : (
-                        <UploadButton endpoint="imageUploader" onClientUploadComplete={handleImageUpload} />
+                        <div>
+                            <Input type="file" accept="image/*" onChange={handleImageUpload} disabled={isUploading} />
+                            {isUploading && <span className="ml-2 text-blue-600">Uploading...</span>}
+                        </div>
                     )}
                 </div>
                 <Button type="submit" className="bg-blue-600 hover:bg-blue-500">

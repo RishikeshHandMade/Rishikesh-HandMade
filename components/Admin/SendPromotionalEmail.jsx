@@ -30,7 +30,7 @@ const modules = {
     toolbar: toolbarOptions,
 }
 
-export default function SendPromoEmailPage({ allUsers }) {
+export default function SendPromoEmailPage({ allUsers = [] }) {
     const [subject, setSubject] = useState("")
     const [message, setMessage] = useState("")
     const [selectedEmails, setSelectedEmails] = useState([])
@@ -96,7 +96,7 @@ export default function SendPromoEmailPage({ allUsers }) {
                 <p className="text-sm text-gray-600 mb-3">All Registered Users: {formatNumeric(allUsers.length)}</p>
                 <h3 className="text-lg font-semibold mb-3">Select Recipients <span>({formatNumeric(selectedEmails.length)})</span></h3>
                 <ul className="space-y-2 max-h-[600px] overflow-y-auto">
-                    {allUsers.map((user) => (
+                    {(Array.isArray(allUsers) ? allUsers : []).map((user) => (
                         <li
                             key={user.email}
                             className="flex items-center gap-2 p-2 bg-white rounded-md cursor-pointer hover:bg-blue-50"

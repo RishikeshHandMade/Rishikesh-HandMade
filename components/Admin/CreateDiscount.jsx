@@ -232,13 +232,6 @@ const CreateDiscount = () => {
           </tbody>
         </table>
       </div>
-      {/* <div style={{ marginTop: 18 }}>
-        <button style={buttonStyle} onClick={fetchDiscounts} disabled={loading || updating}>Update Data</button>
-        <span style={{ marginLeft: 16, fontWeight: 500 }}>Action Button</span>
-        <span style={{ marginLeft: 24, color: "#ff9800", fontWeight: 600 }}>Pause</span>
-        <span style={{ marginLeft: 12, color: "#43a047", fontWeight: 600 }}>Run</span>
-        <span style={{ marginLeft: 12, color: "#e53935", fontWeight: 600 }}>Delete</span>
-      </div> */}
     </div>
   );
 };

@@ -1,6 +1,5 @@
 'use client'
 
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
@@ -20,10 +19,9 @@ import {
 import toast from "react-hot-toast"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import Link from "next/link"
-import { UploadButton } from "@/utils/cloudinary"
 import Image from "next/image"
-import { deleteFileFromUploadthing } from "@/utils/Utapi"
-
+import { deleteFileFromCloudinary } from "@/utils/Utapi"
+import { useRef } from "react"
 
 const ManageProductsCategory = () => {
     const { handleSubmit, register, setValue, reset } = useForm()
@@ -31,6 +29,12 @@ const ManageProductsCategory = () => {
     const [selectedMenu, setSelectedMenu] = useState("")
     const [editItem, setEditItem] = useState(null)
     const [bannerImage, setBannerImage] = useState(null)
+    // Gallery state for product images
+    const [galleryImages, setGalleryImages] = useState([])
+    const [loadedGalleryImages, setLoadedGalleryImages] = useState([])
+    const [galleryUploading, setGalleryUploading] = useState(false)
+    const galleryFileInputRef = useRef(null);
+    const bannerFileInputRef = useRef(null);
 
     useEffect(() => {
         fetch("/api/getAllMenuItems")
@@ -39,6 +43,9 @@ const ManageProductsCategory = () => {
     }, [])
 
     const onSubmit = async (data) => {
+        // Attach gallery images to submenu data
+        data.gallery = galleryImages;
+
         if (!selectedMenu) {
             toast.error("Please select a Menu Type", { style: { borderRadius: "10px", border: "2px solid red" } })
             return
@@ -62,7 +69,8 @@ const ManageProductsCategory = () => {
             url: url,
             active: true,
             order: (menuItems.find(item => item.title === selectedMenu)?.subMenu.length || 0) + 1,
-            banner: bannerImage
+            banner: bannerImage,
+            gallery: galleryImages
         }
 
         try {
@@ -154,6 +162,7 @@ const ManageProductsCategory = () => {
         setValue("subMenu.title", item.title)
         setValue("subMenu.order", item.order)
         setBannerImage(item.banner)
+        setGalleryImages(item.gallery || [])
     }
 
     const deleteMenuItem = async (subMenuId) => {
@@ -182,10 +191,50 @@ const ManageProductsCategory = () => {
         }
     }
 
-    const handleRemoveImage = (async (key) => {
-        await deleteFileFromUploadthing(key)
+    const handleRemoveImage = async (key) => {
+        await deleteFileFromCloudinary(key)
         setBannerImage(null)
-    })
+    }
+
+    const handleGalleryImageLoad = (index) => {
+        setLoadedGalleryImages((prev) => {
+            const updated = [...prev, index]
+            return updated
+        })
+    }
+
+    const handleGalleryImageUpload = async (event) => {
+        const files = Array.from(event.target.files)
+        if (!files.length) return
+        setGalleryUploading(true)
+        let newFiles = []
+        try {
+            for (const file of files) {
+                const formData = new FormData()
+                formData.append('file', file)
+                const res = await fetch('/api/cloudinary', {
+                    method: 'POST',
+                    body: formData
+                })
+                if (!res.ok) throw new Error('Image upload failed')
+                const result = await res.json()
+                newFiles.push({ url: result.url, key: result.key })
+            }
+            setGalleryImages(prev => [...prev, ...newFiles])
+            toast.success('Images uploaded successfully')
+        } catch (err) {
+            toast.error('Image upload failed')
+        } finally {
+            setGalleryUploading(false)
+            if (galleryFileInputRef.current) galleryFileInputRef.current.value = ''
+        }
+    }
+
+    const handleRemoveGalleryImage = async (key) => {
+        await deleteFileFromCloudinary(key)
+        setGalleryImages(prev => prev.filter(file => file.key !== key))
+        toast.success('Image Deleted')
+    }
 
     return (
         <>
@@ -227,23 +276,102 @@ const ManageProductsCategory = () => {
                                 <button type="button" className="absolute top-2 right-2 bg-red-500 text-white rounded-full" onClick={() => handleRemoveImage(bannerImage?.key)}><X className="w-6 h-6" /></button>
                             </div>
                         )}
-                        <UploadButton
-                            endpoint="imageUploader"
-                            disabled={!selectedMenu || !!bannerImage}  // Disable upload if no menu is selected
-                            onClientUploadComplete={(res) => {
-                                setBannerImage({ url: res[0].ufsUrl, key: res[0].key }) // Save banner URL only
-                                toast.success("Banner uploaded successfully!", { style: { borderRadius: "10px", border: "2px solid green" } })
+                        <input
+                            type="file"
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            ref={bannerFileInputRef}
+                            onChange={async (event) => {
+                                const file = event.target.files[0];
+                                if (!file) return;
+                                try {
+                                    const formData = new FormData();
+                                    formData.append('file', file);
+                                    const res = await fetch('/api/cloudinary', {
+                                        method: 'POST',
+                                        body: formData
+                                    });
+                                    if (!res.ok) throw new Error('Banner upload failed');
+                                    const result = await res.json();
+                                    setBannerImage({ url: result.url, key: result.key });
+                                    toast.success('Banner uploaded successfully!');
+                                } catch (err) {
+                                    toast.error('Failed to upload banner');
+                                } finally {
+                                    if (bannerFileInputRef.current) bannerFileInputRef.current.value = '';
+                                }
                             }}
-                            onUploadError={() => {
-                                toast.error("Failed to upload banner", { style: { borderRadius: "10px", border: "2px solid red" } })
-                            }}
+                            disabled={!selectedMenu || !!bannerImage}
                         />
+                        <button
+                            type="button"
+                            className="bg-blue-600 text-white px-4 py-2 rounded mt-2"
+                            onClick={() => bannerFileInputRef.current && bannerFileInputRef.current.click()}
+                            disabled={!selectedMenu || !!bannerImage}
+                        >
+                            Upload Banner Image
+                        </button>
+                    </div>
+
+                    {/* Gallery Images Section */}
+                    <div className="flex flex-col gap-2 mt-4">
+                        <Label>Gallery Images</Label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 w-full gap-4">
+                            {galleryImages.length > 0 ? (
+                                galleryImages.map((file, index) => (
+                                    <div
+                                        key={index}
+                                        className="relative aspect-video rounded-lg overflow-hidden border-2 border-blue-600 group"
+                                    >
+                                        {!loadedGalleryImages.includes(index) && (
+                                            <div className="absolute inset-0 animate-pulse bg-gray-300 flex items-center justify-center">
+                                                <div className="w-8 h-8 border-4 border-gray-400 border-t-gray-600 rounded-full animate-spin"></div>
+                                            </div>
+                                        )}
+                                        <Image
+                                            src={file.url || 'https://dummyimage.com/600x400'}
+                                            alt={`Preview ${index + 1}`}
+                                            fill
+                                            className={`object-cover transition-opacity duration-500 ${loadedGalleryImages.includes(index) ? 'opacity-100' : 'opacity-0'}`}
+                                            onLoad={() => handleGalleryImageLoad(index)}
+                                        />
+                                        <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveGalleryImage(file.key)}
+                                                className="p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="text-gray-500">No Images uploaded</p>
+                            )}
+                        </div>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            ref={galleryFileInputRef}
+                            style={{ display: 'none' }}
+                            onChange={handleGalleryImageUpload}
+                        />
+                        <button
+                            type="button"
+                            className="bg-blue-600 text-white px-4 py-2 rounded mt-4"
+                            onClick={() => galleryFileInputRef.current && galleryFileInputRef.current.click()}
+                            disabled={galleryUploading}
+                        >
+                            {galleryUploading ? 'Uploading...' : 'Upload Gallery Images'}
+                        </button>
                     </div>
 
                 </div>
-                <Button className="bg-blue-600 !py-6 hover:bg-blue-500 text-lg" type="submit">
+                <button className="bg-blue-600 !py-6 hover:bg-blue-500 text-lg" type="submit">
                     Add SubMenu
-                </Button>
+                </button>
             </form>
 
             <div className="bg-blue-100 p-4 rounded-lg shadow max-w-5xl mx-auto w-full overflow-x-auto lg:overflow-visible text-center px-4">
@@ -275,12 +403,20 @@ const ManageProductsCategory = () => {
                                                 <TableCell className="border font-semibold border-blue-600">{subItem?.order}</TableCell>
                                                 <TableCell className="border font-semibold border-blue-600">
                                                     <div className="flex items-center justify-center gap-6">
-                                                        <Button size="icon" onClick={() => handleEdit(subItem)} variant="outline">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleEdit(subItem)}
+                                                            className="bg-blue-600 hover:bg-blue-500 p-2 rounded-full text-white"
+                                                        >
                                                             <Pencil className="w-4 h-4" />
-                                                        </Button>
-                                                        <Button size="icon" onClick={() => deleteMenuItem(subItem._id)} variant="destructive">
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => deleteMenuItem(subItem._id)}
+                                                            className="bg-red-500 hover:bg-red-600 p-2 rounded-full text-white"
+                                                        >
                                                             <Trash2 className="w-4 h-4" />
-                                                        </Button>
+                                                        </button>
                                                         <div className="flex items-center gap-2">
                                                             <Switch
                                                                 id={`switch-${subItem._id}`}
@@ -336,20 +472,44 @@ const ManageProductsCategory = () => {
                                             <button type="button" className="absolute top-2 right-2 bg-red-500 text-white rounded-full" onClick={() => handleRemoveImage(bannerImage?.key)}><X className="w-6 h-6" /></button>
                                         </div>
                                     )}
-                                    <UploadButton
-                                        endpoint="imageUploader"
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        style={{ display: 'none' }}
+                                        ref={bannerFileInputRef}
+                                        onChange={async (event) => {
+                                            const file = event.target.files[0];
+                                            if (!file) return;
+                                            try {
+                                                const formData = new FormData();
+                                                formData.append('file', file);
+                                                const res = await fetch('/api/cloudinary', {
+                                                    method: 'POST',
+                                                    body: formData
+                                                });
+                                                if (!res.ok) throw new Error('Banner upload failed');
+                                                const result = await res.json();
+                                                setBannerImage({ url: result.url, key: result.key });
+                                                toast.success('Banner uploaded successfully!');
+                                            } catch (err) {
+                                                toast.error('Failed to upload banner');
+                                            } finally {
+                                                if (bannerFileInputRef.current) bannerFileInputRef.current.value = '';
+                                            }
+                                        }}
                                         disabled={!!bannerImage}
-                                        onClientUploadComplete={(res) => {
-                                            setBannerImage({ url: res[0].ufsUrl, key: res[0].key })
-                                            toast.success("Banner uploaded successfully!", { style: { borderRadius: "10px", border: "2px solid green" } })
-                                        }}
-                                        onUploadError={(error) => {
-                                            toast.error("Failed to upload banner", { style: { borderRadius: "10px", border: "2px solid red" } })
-                                        }}
                                     />
+                                    <button
+                                        type="button"
+                                        className="bg-blue-600 text-white px-4 py-2 rounded mt-2"
+                                        onClick={() => bannerFileInputRef.current && bannerFileInputRef.current.click()}
+                                        disabled={!!bannerImage}
+                                    >
+                                        Upload Banner Image
+                                    </button>
                                 </div>
                                 <DialogFooter>
-                                    <Button className="bg-blue-600 hover:bg-blue-500 mt-4" type="submit">Save Changes</Button>
+                                    <button className="bg-blue-600 hover:bg-blue-500 mt-4" type="submit">Save Changes</button>
                                 </DialogFooter>
                             </form>
                         </DialogContent>

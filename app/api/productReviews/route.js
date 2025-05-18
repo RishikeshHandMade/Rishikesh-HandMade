@@ -16,7 +16,7 @@ export async function POST(req) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
-
+      
 // GET: Get reviews for a product
 export async function GET(req) {
   await connectDB();
