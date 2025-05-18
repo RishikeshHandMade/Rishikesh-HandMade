@@ -192,11 +192,11 @@ const data = {
       url: "/admin/payment_report",
       icon: ClipboardList,
     },
-    {
-      name: "Send Promotional Emails",
-      url: "/admin/send_promotional_emails",
-      icon: Send,
-    },
+    // {
+    //   name: "Send Promotional Emails",
+    //   url: "/admin/send_promotional_emails",
+    //   icon: Send,
+    // },
     {
       name: "Package Calculator Visitors",
       url: "/admin/contact_custom_visitors",

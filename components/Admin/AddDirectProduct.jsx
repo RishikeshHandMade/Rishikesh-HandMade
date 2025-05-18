@@ -6,7 +6,6 @@ import CategoryTag from './CategoryTag';
 import ProductReview from './ProductReview';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import ColorManagement from './ColorManagement';
-import PriceDiscount from './PriceDiscount';
 import VideoManagement from './VideoManagement';
 import ProductDescription from './ProductDescription';
 import SizeManagement from './SizeManagement';
@@ -18,8 +17,7 @@ const AddDirectProduct = ({ productId }) => {
   const sectionConfig = [
     { key: 'size', label: 'Size Management', component: (props) => <SizeManagement {...props} productData={productData} productId={productId} /> },
     { key: 'color', label: 'Color Management', component: (props) => <ColorManagement {...props} productData={productData} productId={productId} /> },
-    { key: 'price', label: 'Price / Discount', component: (props) => <PriceDiscount {...props} productData={productData} productId={productId} /> },
-    { key: 'quantity', label: 'Quantity Management', component: (props) => <QuantityManagement {...props} productData={productData} productId={productId} /> },
+    { key: 'quantity', label: 'Price / Quantity', component: (props) => <QuantityManagement {...props} productData={productData} productId={productId} /> },
     { key: 'gallery', label: 'Product Gallery', component: (props) => <ProductGallery {...props} productData={productData} productId={productId} /> },
     { key: 'video', label: 'Video Management', component: (props) => <VideoManagement {...props} productData={productData} productId={productId} /> },
     { key: 'description', label: 'Product Description', component: (props) => <ProductDescription {...props} productData={productData} productId={productId} /> },

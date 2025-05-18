@@ -4,8 +4,7 @@ import { toast } from 'react-hot-toast';
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-
-
+import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel } from "../ui/alert-dialog";
 const SizeManagement = ({ productData, productId }) => {
   // Modal state for image preview
   const [modalOpen, setModalOpen] = useState(false);
@@ -53,7 +52,6 @@ const SizeManagement = ({ productData, productId }) => {
   };
 
   const fileInputRef = useRef(null);
-  const [sizeStyle1, setSizeStyle1] = useState("");
   const [sizeChart, setSizeChart] = useState(null);
   const [sizeChartPreview, setSizeChartPreview] = useState(null);
   const [sizeChartUrl, setSizeChartUrl] = useState("");
@@ -65,7 +63,6 @@ const SizeManagement = ({ productData, productId }) => {
     { label: "XL", checked: false },
     { label: "XXL", checked: false },
   ]);
-  const [fetchedTitle, setFetchedTitle] = useState("");
   // For size data table and edit logic
   const [sizeEntries, setSizeEntries] = useState([]); // All size docs for this product
   const [editId, setEditId] = useState(null); // If editing, contains the _id
@@ -83,27 +80,7 @@ const SizeManagement = ({ productData, productId }) => {
   };
   useEffect(() => { fetchSizeEntries(); }, [productId]);
 
-  useEffect(() => {
-    if (!productData && productId) {
-      fetch(`/api/product/${productId}`)
-        .then(async res => {
-          if (!res.ok) {
-            setFetchedTitle("");
-            return;
-          }
-          const text = await res.text();
-          if (!text) {
-            setFetchedTitle("");
-            return;
-          }
-          const data = JSON.parse(text);
-          setFetchedTitle(data.title || "");
-        })
-        .catch(() => setFetchedTitle(""));
-    }
-  }, [productData, productId]);
-
-  const productName = productData?.title || fetchedTitle || "";
+  const productName = productData?.title || "";
 
   const handleSizeChartChange = async (e) => {
     const file = e.target.files[0];
@@ -154,12 +131,6 @@ const SizeManagement = ({ productData, productId }) => {
     );
   };
 
-  const handleAddMore = () => {
-    setOptionals((prev) => [
-      ...prev,
-      { label: `Size ${prev.length + 1}`, checked: false },
-    ]);
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -255,7 +226,7 @@ const SizeManagement = ({ productData, productId }) => {
     setSizeChartPreview(entry.sizeChartUrl || null);
     if (entry.sizes && entry.sizes.length > 0) {
       // Detect if optionals or custom: if all labels are among optionals, treat as optionals
-      const optionLabels = ["L","M","XL","XXL"];
+      const optionLabels = ["L", "M", "XL", "XXL"];
       const isOptionals = entry.sizes.every(item => optionLabels.includes(item.label));
       if (isOptionals) {
         setSizeInputMethod('optionals');
@@ -273,9 +244,14 @@ const SizeManagement = ({ productData, productId }) => {
       }
     }
   };
-  // Delete size entry
-  const handleDelete = async (id) => {
-    if (!window.confirm('Delete this size entry?')) return;
+  // Delete size entry using AlertDialog
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, id: null });
+  const handleDelete = (id) => {
+    setDeleteDialog({ open: true, id });
+  };
+  const confirmDelete = async () => {
+    const id = deleteDialog.id;
+    setDeleteDialog({ open: false, id: null });
     try {
       const res = await fetch(`/api/productSize?id=${id}`, { method: 'DELETE' });
       if (res.ok) {
@@ -288,6 +264,7 @@ const SizeManagement = ({ productData, productId }) => {
       toast.error('Failed to delete');
     }
   };
+
 
 
 
@@ -312,216 +289,230 @@ const SizeManagement = ({ productData, productId }) => {
 
       <form className="flex flex-col items-center w-full" onSubmit={handleSubmit}>
 
-      <h3 className="text-2xl font-bold my-4 text-center">Product Size Management</h3>
-      <div className="bg-white rounded shadow-md p-6 w-full">
-        <div className="mb-6 flex flex-col items-center justify-center">
-          <Label className="font-semibold mb-2">Product Name</Label>
-          <Input
-            className="mb-4 w-80 font-black text-center border-gray-300"
-            value={productName}
-            disabled
-            readOnly
-            placeholder={productName ? "Product Name" : "Product Name not found"}
-            style={productName ? {} : { border: '2px solid red', color: 'red' }}
-          />
-          {!productName && (
-            <div style={{ color: 'red', marginTop: '4px', fontWeight: 'bold' }}>
-              Product name not found! Please check if the product was created successfully.
-            </div>
-          )}
-        </div>
-        <div className="mb-6 flex flex-col items-center justify-center">
-          <Label className="font-semibold mb-2">Product Size Chart <span className="text-red-500">*</span></Label>
-          <div className="flex flex-col items-center justify-center rounded-lg border-2 border-gray-300 bg-gray-100 w-80 h-40 mb-2 overflow-hidden">
-            {sizeChartPreview ? (
-              <div className="flex items-center justify-center w-full h-full" style={{ height: '100%', width: '100%' }}>
-                <img src={sizeChartPreview} alt="Size Chart Preview" style={{ maxHeight: '144px', maxWidth: '100%', objectFit: 'contain', display: 'block', margin: '0 auto' }} />
+        <h3 className="text-2xl font-bold my-4 text-center">Product Size Management</h3>
+        <div className="bg-white rounded shadow-md p-6 w-full">
+          <div className="mb-6 flex flex-col items-center justify-center">
+            <Label className="font-semibold mb-2">Product Name</Label>
+            <Input
+              className="mb-4 w-80 font-black text-center border-gray-300"
+              value={productName}
+              disabled
+              readOnly
+              placeholder={productName ? "Product Name" : "Product Name not found"}
+              style={productName ? {} : { border: '2px solid red', color: 'red' }}
+            />
+            {!productName && (
+              <div style={{ color: 'red', marginTop: '4px', fontWeight: 'bold' }}>
+                Product name not found! Please check if the product was created successfully.
               </div>
-            ) : (
-              <>
-                <span className="text-3xl mb-2">📈</span>
-                <span className="font-semibold">Add Size Chart Image</span>
-                <span className="text-xs">Browse Image</span>
-              </>
             )}
           </div>
-          {/* Buttons below preview */}
-          <div className="flex flex-col items-center gap-2 mb-2">
-            {sizeChartPreview ? (
-              <Button type="button" className="bg-red-500 text-white" onClick={handleRemoveImage} disabled={uploading}>
-                Remove Image
-              </Button>
-            ) : (
-              <Button type="button" className="bg-blue-600 text-white" onClick={() => fileInputRef.current.click()} disabled={uploading}>
-                {uploading ? (
-                  <span className="flex items-center"><span className="loader mr-2"></span>Uploading...</span>
-                ) : (
-                  'Upload Image'
-                )}
-              </Button>
-            )}
-          </div>
-          <input
-            type="file"
-            accept="image/*"
-            ref={fileInputRef}
-            style={{ display: 'none' }}
-            onChange={handleSizeChartChange}
-            disabled={uploading}
-          />
-        </div>
-
-        {/* Toggle for size input method */}
-        <div className="mb-6 flex gap-6 items-center">
-          <Label className="font-semibold">Choose Size Input Method:</Label>
-          <button
-            type="button"
-            className={`px-4 py-2 rounded border font-semibold transition-colors duration-150 ${sizeInputMethod === 'optionals' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-blue-600 border-blue-600 hover:bg-blue-50'}`}
-            onClick={() => handleSizeInputMethodChange('optionals')}
-          >
-            Choose from Checkboxes
-          </button>
-          <button
-            type="button"
-            className={`px-4 py-2 rounded border font-semibold transition-colors duration-150 ${sizeInputMethod === 'custom' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-blue-600 border-blue-600 hover:bg-blue-50'}`}
-            onClick={() => handleSizeInputMethodChange('custom')}
-          >
-            Write Custom Sizes
-          </button>
-         
-        </div>
-
-        {/* Custom Sizes Input */}
-        {sizeInputMethod === 'custom' && (
-          <div className="mb-6">
-            <Label className="font-semibold">Write Product Sizes <span className="text-red-500">*</span></Label>
-            <div className="flex gap-2 mt-2">
-              <Input
-                type="text"
-                placeholder="Type size (e.g., S, M, L)"
-                value={customSizeInput}
-                onChange={(e) => setCustomSizeInput(e.target.value)}
-                className="bg-yellow-200 font-semibold text-lg px-4 py-2 rounded w-96"
-              />
-              <Button type="button" className="bg-black text-white font-bold px-4" onClick={handleAddCustomSize}>
-                Add Size
-              </Button>
-            </div>
-            {/* Show added custom sizes as checkboxes (with tick) */}
-            <div className="flex flex-wrap gap-4 mt-4">
-              {customSizes.map((item, idx) => (
-                <div key={item.label} className="flex items-center gap-2">
-                  <div className="bg-green-300 px-4 py-1 rounded font-semibold min-w-[70px] text-center">
-                    {item.label}
-                  </div>
-                  <Input
-                    type="checkbox"
-                    checked={item.checked}
-                    onChange={() => handleCustomSizeCheck(idx)}
-                    className="accent-green-600 w-5 h-5"
-                  />
-                  <Button type="button" className="bg-red-500 text-white px-2 py-1 text-xs" onClick={() => handleRemoveCustomSize(idx)}>
-                    Remove
-                  </Button>
+          <div className="mb-6 flex flex-col items-center justify-center">
+            <Label className="font-semibold mb-2">Product Size Chart <span className="text-red-500">*</span></Label>
+            <div className="flex flex-col items-center justify-center rounded-lg border-2 border-gray-300 bg-gray-100 w-80 h-40 mb-2 overflow-hidden">
+              {sizeChartPreview ? (
+                <div className="flex items-center justify-center w-full h-full" style={{ height: '100%', width: '100%' }}>
+                  <img src={sizeChartPreview} alt="Size Chart Preview" style={{ maxHeight: '144px', maxWidth: '100%', objectFit: 'contain', display: 'block', margin: '0 auto' }} />
                 </div>
-              ))}
+              ) : (
+                <>
+                  <span className="text-3xl mb-2">📈</span>
+                  <span className="font-semibold">Add Size Chart Image</span>
+                  <span className="text-xs">Browse Image</span>
+                </>
+              )}
             </div>
+            {/* Buttons below preview */}
+            <div className="flex flex-col items-center gap-2 mb-2">
+              {sizeChartPreview ? (
+                <Button type="button" className="bg-red-500 text-white" onClick={handleRemoveImage} disabled={uploading}>
+                  Remove Image
+                </Button>
+              ) : (
+                <Button type="button" className="bg-blue-600 text-white" onClick={() => fileInputRef.current.click()} disabled={uploading}>
+                  {uploading ? (
+                    <span className="flex items-center"><span className="loader mr-2"></span>Uploading...</span>
+                  ) : (
+                    'Upload Image'
+                  )}
+                </Button>
+              )}
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              style={{ display: 'none' }}
+              onChange={handleSizeChartChange}
+              disabled={uploading}
+            />
           </div>
-        )}
 
-        {/* Optionals Sizes (predefined checkboxes) */}
-        {sizeInputMethod === 'optionals' && (
-          <div className="mb-6">
-            <Label className="font-semibold">Choose Product Sizes <span className="text-red-500">*</span></Label>
-            <div className="grid grid-cols-2 gap-4 mt-2">
-              {optionals.map((item, idx) => (
-                <div key={item.label} className="flex items-center gap-2">
-                  <div className="bg-green-300 px-4 py-1 rounded font-semibold min-w-[70px] text-center">
-                    {item.label}
-                  </div>
-                  <Input
-                    type="checkbox"
-                    checked={item.checked}
-                    onChange={() => handleOptionalChange(idx)}
-                    className="accent-green-600 w-5 h-5"
-                  />
-                  <span className="text-sm font-medium">Check Box</span>
-                </div>
-              ))}
-            </div>
+          {/* Toggle for size input method */}
+          <div className="mb-6 flex gap-6 items-center">
+            <Label className="font-semibold">Choose Size Input Method:</Label>
+            <button
+              type="button"
+              className={`px-4 py-2 rounded border font-semibold transition-colors duration-150 ${sizeInputMethod === 'optionals' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-blue-600 border-blue-600 hover:bg-blue-50'}`}
+              onClick={() => handleSizeInputMethodChange('optionals')}
+            >
+              Choose from Checkboxes
+            </button>
+            <button
+              type="button"
+              className={`px-4 py-2 rounded border font-semibold transition-colors duration-150 ${sizeInputMethod === 'custom' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-blue-600 border-blue-600 hover:bg-blue-50'}`}
+              onClick={() => handleSizeInputMethodChange('custom')}
+            >
+              Write Custom Sizes
+            </button>
+
           </div>
-        )}
-        <div className="flex justify-center mt-6">
-          <Button type="submit" className="bg-red-500 text-white font-bold px-10 py-2 text-lg rounded-full" disabled={submitting || uploading}>
-            {submitting ? (editId ? 'Updating...' : 'Creating...') : (editId ? 'Update' : 'Data Save')}
-          </Button>
-          {editId && (
-            <Button type="button" className="ml-4 bg-gray-400 text-white font-bold px-6 py-2 rounded-full" onClick={() => {
-              setEditId(null);
-              setCustomSizes([]);
-              setCustomSizeInput("");
-              setOptionals([
-                { label: "L", checked: false },
-                { label: "M", checked: false },
-                { label: "XL", checked: false },
-                { label: "XXL", checked: false },
-              ]);
-              setSizeChart(null);
-              setSizeChartPreview(null);
-              setSizeChartUrl("");
-              setSizeInputMethod('optionals');
-            }}>
-              Cancel
-            </Button>
+
+          {/* Custom Sizes Input */}
+          {sizeInputMethod === 'custom' && (
+            <div className="mb-6">
+              <Label className="font-semibold">Write Product Sizes <span className="text-red-500">*</span></Label>
+              <div className="flex gap-2 mt-2">
+                <Input
+                  type="text"
+                  placeholder="Type size (e.g., S, M, L)"
+                  value={customSizeInput}
+                  onChange={(e) => setCustomSizeInput(e.target.value)}
+                  className="bg-yellow-200 font-semibold text-lg px-4 py-2 rounded w-96"
+                />
+                <Button type="button" className="bg-black text-white font-bold px-4" onClick={handleAddCustomSize}>
+                  Add Size
+                </Button>
+              </div>
+              {/* Show added custom sizes as checkboxes (with tick) */}
+              <div className="flex flex-wrap gap-4 mt-4">
+                {customSizes.map((item, idx) => (
+                  <div key={item.label} className="flex items-center gap-2">
+                    <div className="bg-green-300 px-4 py-1 rounded font-semibold min-w-[70px] text-center">
+                      {item.label}
+                    </div>
+                    <Input
+                      type="checkbox"
+                      checked={item.checked}
+                      onChange={() => handleCustomSizeCheck(idx)}
+                      className="accent-green-600 w-5 h-5"
+                    />
+                    <Button type="button" className="bg-red-500 text-white px-2 py-1 text-xs" onClick={() => handleRemoveCustomSize(idx)}>
+                      Remove
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
-        </div>
 
-        {/* Table of sizes */}
-        <div className="mt-10">
-          <h4 className="font-bold text-lg mb-2">All Size Entries</h4>
-          <table className="min-w-full bg-white border border-gray-200 rounded">
-            <thead>
-              <tr>
-                <th className="px-3 py-2 border-b">Sizes</th>
-                <th className="px-3 py-2 border-b">Type</th>
-                <th className="px-3 py-2 border-b">Size Chart</th>
-                <th className="px-3 py-2 border-b">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sizeEntries.length === 0 ? (
-                <tr><td colSpan={4} className="text-center py-4">No size entries found.</td></tr>
-              ) : sizeEntries.map(entry => (
-                <tr key={entry._id} className="border-b">
-                  <td className="px-3 py-2 text-center">{entry.sizes.map(s => s.label).join(', ')}</td>
-                  <td className="px-3 py-2 text-center">{["L","M","XL","XXL"].every(l => entry.sizes.some(s => s.label === l)) ? 'Optionals' : 'Custom'}</td>
-                  <td className="px-3 py-2 text-center">
-                    {entry.sizeChartUrl ? (
-                      <button
-                        type="button"
-                        className="text-blue-600 underline"
-                        onClick={() => {
-                          setModalImage(entry.sizeChartUrl);
-                          setModalOpen(true);
-                        }}
-                      >
-                        View
-                      </button>
-                    ) : 'N/A'}
-                  </td>
-                  <td className="px-3 py-2 text-center">
-                    <Button type="button" className="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onClick={() => handleEdit(entry)}>Edit</Button>
-                    <Button type="button" className="bg-red-500 text-white px-3 py-1 rounded" onClick={() => handleDelete(entry._id)}>Delete</Button>
-                  </td>
+          {/* Optionals Sizes (predefined checkboxes) */}
+          {sizeInputMethod === 'optionals' && (
+            <div className="mb-6">
+              <Label className="font-semibold">Choose Product Sizes <span className="text-red-500">*</span></Label>
+              <div className="grid grid-cols-2 gap-4 mt-2">
+                {optionals.map((item, idx) => (
+                  <div key={item.label} className="flex items-center gap-2">
+                    <div className="bg-green-300 px-4 py-1 rounded font-semibold min-w-[70px] text-center">
+                      {item.label}
+                    </div>
+                    <Input
+                      type="checkbox"
+                      checked={item.checked}
+                      onChange={() => handleOptionalChange(idx)}
+                      className="accent-green-600 w-5 h-5"
+                    />
+                    <span className="text-sm font-medium">Check Box</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="flex justify-center mt-6">
+            <Button type="submit" className="bg-red-500 text-white font-bold px-10 py-2 text-lg rounded-full" disabled={submitting || uploading}>
+              {submitting ? (editId ? 'Updating...' : 'Creating...') : (editId ? 'Update' : 'Data Save')}
+            </Button>
+            {editId && (
+              <Button type="button" className="ml-4 bg-gray-400 text-white font-bold px-6 py-2 rounded-full" onClick={() => {
+                setEditId(null);
+                setCustomSizes([]);
+                setCustomSizeInput("");
+                setOptionals([
+                  { label: "L", checked: false },
+                  { label: "M", checked: false },
+                  { label: "XL", checked: false },
+                  { label: "XXL", checked: false },
+                ]);
+                setSizeChart(null);
+                setSizeChartPreview(null);
+                setSizeChartUrl("");
+                setSizeInputMethod('optionals');
+              }}>
+                Cancel
+              </Button>
+            )}
+          </div>
+
+          {/* Table of sizes */}
+          <div className="mt-10">
+            <h4 className="font-bold text-lg mb-2">All Size Entries</h4>
+            <table className="min-w-full bg-white border border-gray-200 rounded">
+              <thead>
+                <tr>
+                  <th className="px-3 py-2 border-b">Sizes</th>
+                  <th className="px-3 py-2 border-b">Type</th>
+                  <th className="px-3 py-2 border-b">Size Chart</th>
+                  <th className="px-3 py-2 border-b">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {sizeEntries.length === 0 ? (
+                  <tr><td colSpan={4} className="text-center py-4">No size entries found.</td></tr>
+                ) : sizeEntries.map(entry => (
+                  <tr key={entry._id} className="border-b">
+                    <td className="px-3 py-2 text-center">{entry.sizes.map(s => s.label).join(', ')}</td>
+                    <td className="px-3 py-2 text-center">{["L", "M", "XL", "XXL"].every(l => entry.sizes.some(s => s.label === l)) ? 'Optionals' : 'Custom'}</td>
+                    <td className="px-3 py-2 text-center">
+                      {entry.sizeChartUrl ? (
+                        <button
+                          type="button"
+                          className="text-blue-600 underline"
+                          onClick={() => {
+                            setModalImage(entry.sizeChartUrl);
+                            setModalOpen(true);
+                          }}
+                        >
+                          View
+                        </button>
+                      ) : 'N/A'}
+                    </td>
+                    <td className="px-3 py-2 text-center">
+                      <Button type="button" className="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onClick={() => handleEdit(entry)}>Edit</Button>
+                      <Button type="button" className="bg-red-500 text-white px-3 py-1 rounded" onClick={() => handleDelete(entry._id)}>Delete</Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
-    </form>
-    </>
-  );
+      </form>
+    {/* Delete Confirmation Dialog */}
+    <AlertDialog open={deleteDialog.open} onOpenChange={open => setDeleteDialog(d => ({ ...d, open }))}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete Size Entry?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to delete this size entry? This action cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  </>);
 };
 
 export default SizeManagement;
