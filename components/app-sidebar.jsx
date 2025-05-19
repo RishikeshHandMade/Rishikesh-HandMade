@@ -142,11 +142,11 @@ const data = {
       url: "/admin/manage_products_category",
       icon: Boxes,
     },
-    {
-      name: "Add Direct Package",
-      url: "/admin/add_direct_package",
-      icon: Plus,
-    },
+    // {
+    //   name: "Add Direct Package",
+    //   url: "/admin/add_direct_package",
+    //   icon: Plus,
+    // },
     {
       name: "Approve/Reject Reviews",
       url: "/admin/manage_reviews",

@@ -1,0 +1,75 @@
+import connectDB from '@/lib/connectDB';
+import ProductCoupons from '@/models/ProductCoupons';
+
+// GET: /api/productCoupon?productId=xxx OR /api/productCoupon
+export async function GET(req) {
+  await connectDB();
+  const { searchParams } = new URL(req.url);
+  const productId = searchParams.get('productId');
+  try {
+    if (productId) {
+      const doc = await ProductCoupons.findOne({ productId });
+      return Response.json(doc || { productId, coupons: [] });
+    } else {
+      // Return all mappings
+      const docs = await ProductCoupons.find({});
+      return Response.json(docs);
+    }
+  } catch (err) {
+    return Response.json({ error: err.message }, { status: 500 });
+  }
+}
+
+
+
+// POST: set coupons for a product (create only, do not overwrite)
+export async function POST(req) {
+  await connectDB();
+  try {
+    const { productId, coupons } = await req.json();
+    if (!productId || !Array.isArray(coupons)) {
+      return Response.json({ error: 'Missing productId or coupons' }, { status: 400 });
+    }
+    // Check if mapping already exists
+    const existing = await ProductCoupons.findOne({ productId });
+    if (existing) {
+      return Response.json({ error: 'Coupons for this product already exist.' }, { status: 409 });
+    }
+    // Create new mapping
+    const doc = await ProductCoupons.create({ productId, coupons });
+    return Response.json(doc);
+  } catch (err) {
+    return Response.json({ error: err.message }, { status: 400 });
+  }
+}
+// PATCH: update coupons for a product
+export async function PATCH(req) {
+    await connectDB();
+    try {
+      const { productId, coupons } = await req.json();
+      if (!productId || !Array.isArray(coupons)) {
+        return Response.json({ error: 'Missing productId or coupons' }, { status: 400 });
+      }
+      const doc = await ProductCoupons.findOneAndUpdate(
+        { productId },
+        { coupons },
+        { new: true }
+      );
+      if (!doc) return Response.json({ error: 'ProductCoupons not found' }, { status: 404 });
+      return Response.json(doc);
+    } catch (err) {
+      return Response.json({ error: err.message }, { status: 400 });
+    }
+  }
+// DELETE: remove all coupons for a product
+export async function DELETE(req) {
+  await connectDB();
+  try {
+    const { productId } = await req.json();
+    if (!productId) return Response.json({ error: 'Missing productId' }, { status: 400 });
+    await ProductCoupons.deleteOne({ productId });
+    return Response.json({ success: true });
+  } catch (err) {
+    return Response.json({ error: err.message }, { status: 400 });
+  }
+}

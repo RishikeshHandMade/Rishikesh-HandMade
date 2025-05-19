@@ -8,7 +8,6 @@ const QuantitySchema = new mongoose.Schema({
       color: String,
       qty: Number,
       price: Number,
-      coupon: String,
       optional: Boolean
     }
   ],

@@ -4,16 +4,19 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import toast from 'react-hot-toast';
+import { Copy } from "lucide-react";
 
 
 const ProductProfile = () => {
     const [title, setTitle] = useState("");
     const [code, setCode] = useState(""); // Will be auto-generated
-    const [price, setPrice] = useState("");
     const [artisan, setArtisan] = useState("");
     const [artisans, setArtisans] = useState([]);
     const [loading, setLoading] = useState(false);
     const [refreshTable, setRefreshTable] = useState(false);
+    // For inline editing
+    const [editingId, setEditingId] = useState(null);
+    const [editTitle, setEditTitle] = useState("");
 
     // Generate product code on mount
     useEffect(() => {
@@ -71,9 +74,48 @@ const ProductProfile = () => {
         await fetch(`/api/product/${id}`, { method: 'DELETE' });
         setProducts(products => products.filter(p => p._id !== id));
     };
+    // Slugify utility
+    function slugify(str) {
+        return str
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '')
+            .replace(/-+/g, '-');
+    }
+    // Copy to clipboard helper
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text);
+        toast.success('URL copied!');
+    }
     return (
         <>
-        <form className="flex flex-col items-center justify-center gap-8 my-20 bg-gray-200 w-full max-w-xl md:max-w-3xl mx-auto p-4 rounded-lg" onSubmit={handleSubmit}>
+        <form className="flex flex-col items-center justify-center gap-8 my-20 bg-gray-200 w-full max-w-xl md:max-w-3xl mx-auto p-4 rounded-lg" onSubmit={async e => {
+            e.preventDefault();
+            if (!title.trim()) return toast.error('Title cannot be empty');
+            if (!artisan) return toast.error('Select an artisan');
+            if (editingId) {
+                // Update mode
+                const res = await fetch('/api/product', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: editingId, title, artisan })
+                });
+                if (res.ok) {
+                    const updated = await res.json();
+                    setProducts(ps => ps.map(p => p._id === editingId ? { ...p, title: updated.title, artisan: updated.artisan } : p));
+                    setEditingId(null);
+                    setTitle("");
+                    setArtisan("");
+                    toast.success('Product updated!');
+                } else {
+                    const err = await res.json();
+                    toast.error(err.error || 'Failed to update');
+                }
+            } else {
+                // Create mode
+                await handleSubmit(e);
+            }
+        }}>
             <div className="flex md:flex-row flex-col items-center md:items-end gap-6 w-full">
                 <div className="flex flex-col gap-2 w-full">
                     <label htmlFor="productCode" className="font-semibold">Product Code</label>
@@ -103,7 +145,14 @@ const ProductProfile = () => {
                     </Select>
                 </div>
             </div>
-            <Button type="submit" className="bg-red-500">Save Product</Button>
+            {editingId ? (
+                <div className="flex gap-4 mt-4">
+                    <Button type="submit" className="bg-green-600">Update</Button>
+                    <Button type="button" className="bg-gray-400" onClick={() => { setEditingId(null); setTitle(""); setArtisan(""); }}>Cancel</Button>
+                </div>
+            ) : (
+                <Button type="submit" className="bg-red-500">Save Product</Button>
+            )}
         </form>
         {/* Product Table copied inline */}
         <div className="mt-10 flex flex-col items-center">
@@ -113,6 +162,7 @@ const ProductProfile = () => {
                     <tr>
                         <th className="py-2 px-4">S.No.</th>
                         <th className="py-2 px-4">Product Name</th>
+                        <th className="py-2 px-4">Product URL</th>
                         <th className="py-2 px-4">Action</th>
                     </tr>
                 </thead>
@@ -120,12 +170,43 @@ const ProductProfile = () => {
                     {products.map((prod, idx) => (
                         <tr key={prod._id} className="border-t">
                             <td className="py-2 px-4 text-center">{idx + 1}</td>
-                            <td className="py-2 px-4 text-center">{prod.title}</td>
+                            <td className="py-2 px-4 text-center">
+                                <div className="flex flex-col items-center">
+                                    <span>{prod.title}</span>
+                                </div>
+                            </td>
+                            <td className="py-2 px-4 text-center">
+                                {/* Product URL Copy Button Only */}
+                                {prod.title && (() => {
+                                    const url = `${window.location.origin}/product/${slugify(prod.title)}`;
+                                    return (
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            onClick={() => copyToClipboard(url)}
+                                            disabled={!url}
+                                            title="Copy Product URL"
+                                        >
+                                            <Copy className="w-4 h-4" />
+                                        </Button>
+                                    );
+                                })()}
+                            </td>
                             <td className="py-2 px-4">
                                 <div className="flex gap-2 justify-center">
                                     <button
                                         className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-800"
                                         onClick={() => window.location.href = `/admin/add_direct_product/${prod._id}`}
+                                    >
+                                        Add Info
+                                    </button>
+                                    <button
+                                        className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-800"
+                                        onClick={() => {
+                                            setEditingId(prod._id);
+                                            setTitle(prod.title);
+                                            setArtisan(prod.artisan || "");
+                                        }}
                                     >
                                         Edit
                                     </button>

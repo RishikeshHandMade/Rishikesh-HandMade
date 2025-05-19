@@ -6,11 +6,11 @@ import ProductReview from '@/models/ProductReview';
 export async function POST(req) {
   await connectDB();
   try {
-    const { productId, rating, title, review } = await req.json();
-    if (!productId || !rating || !review) {
-      return NextResponse.json({ error: 'Missing productId, rating, or review' }, { status: 400 });
+    const { productId, rating, title, review, createdBy } = await req.json();
+    if (!productId || !rating || !review || !createdBy) {
+      return NextResponse.json({ error: 'Missing productId, rating, review, or createdBy' }, { status: 400 });
     }
-    const reviewDoc = await ProductReview.create({ product: productId, rating, title, review });
+    const reviewDoc = await ProductReview.create({ product: productId, rating, title, review, createdBy });
     return NextResponse.json({ success: true, review: reviewDoc });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
@@ -37,13 +37,13 @@ export async function GET(req) {
 export async function PATCH(req) {
   await connectDB();
   try {
-    const { reviewId, rating, title, review } = await req.json();
+    const { reviewId, rating, title, review,createdBy } = await req.json();
     if (!reviewId) {
       return NextResponse.json({ error: 'Missing reviewId' }, { status: 400 });
     }
     const updated = await ProductReview.findByIdAndUpdate(
       reviewId,
-      { rating, title, review },
+      { rating, title, review,createdBy },
       { new: true }
     );
     return NextResponse.json({ review: updated });

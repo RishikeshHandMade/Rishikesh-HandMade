@@ -2,6 +2,20 @@
 import connectDB from "@/lib/connectDB";
 import Product from '@/models/Product';
 
+export async function DELETE(req, { params }) {
+  try {
+    await connectDB();
+    const { id } = params;
+    const deleted = await Product.findByIdAndDelete(id);
+    if (!deleted) {
+      return new Response(JSON.stringify({ error: 'Product not found' }), { status: 404 });
+    }
+    return new Response(null, { status: 204 });
+  } catch (error) {
+    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+  }
+}
+
 // GET: Fetch a single product by ID
 export async function GET(req, { params }) {
   try {

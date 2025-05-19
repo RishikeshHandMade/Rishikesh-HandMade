@@ -9,6 +9,7 @@ import { Star } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const ProductReview = ({ productData, productId }) => {
+  const [createdBy, setCreatedBy] = useState("");
   const [viewModal, setViewModal] = useState(false);
   const [viewedReview, setViewedReview] = useState(null);
   const [rating, setRating] = useState(0);
@@ -20,8 +21,8 @@ const ProductReview = ({ productData, productId }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!productId || !rating || !review) {
-      toast.error('Please provide a rating, review, and valid product.');
+    if (!productId || !rating || !review || !createdBy) {
+      toast.error('Please provide a rating, review, createdBy, and valid product.');
       return;
     }
     setLoading(true);
@@ -29,7 +30,7 @@ const ProductReview = ({ productData, productId }) => {
       const res = await fetch('/api/productReviews', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId, rating, title, review })
+        body: JSON.stringify({ productId, rating, title, review, createdBy })
       });
       const data = await res.json();
       if (!res.ok || data.error) {
@@ -40,6 +41,7 @@ const ProductReview = ({ productData, productId }) => {
         setHoverRating(0);
         setTitle("");
         setReview("");
+        setCreatedBy("");
         fetchReviews();
       }
     } catch (err) {
@@ -192,10 +194,14 @@ const ProductReview = ({ productData, productId }) => {
                 <div className="text-gray-600">{viewedReview.title}</div>
               </div>
               <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
+                <div className="font-semibold text-gray-800">Created By</div>
+                <div className="text-gray-600">{viewedReview.createdBy}</div>
+              </div>
+              <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
                 <div className="font-semibold text-gray-800">Rating</div>
                 <div className="text-gray-600">{viewedReview.rating} stars</div>
               </div>
-              <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
+              <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 h-24 overflow-y-auto">
                 <div className="font-semibold text-gray-800">Review</div>
                 <div className="text-gray-600">{viewedReview.review}</div>
               </div>
@@ -238,6 +244,17 @@ const ProductReview = ({ productData, productId }) => {
                     />
                   </div>
                   <div className="mb-4">
+                    <label htmlFor="createdBy" className="block text-sm font-medium text-gray-700">Created By</label>
+                    <Input
+                      id="createdBy"
+                      value={createdBy}
+                      onChange={e => setCreatedBy(e.target.value)}
+                      className="w-full border rounded mt-1 px-3 py-2"
+                      placeholder="Your name"
+                      required
+                    />
+                  </div>
+                  <div className="mb-4">
                     <label className="font-semibold">Rating</label>
                     <div className="flex items-center space-x-1">
                       {[1, 2, 3, 4, 5].map(star => (
@@ -261,8 +278,17 @@ const ProductReview = ({ productData, productId }) => {
                   </div>
                   <div className="mb-4">
                     <label className="form-label">Review</label>
-                    <Textarea className="form-control" placeholder="Write your review..." value={review} onChange={e => setReview(e.target.value)} />
+                    <Textarea
+                      id="review"
+                      value={review}
+                      onChange={(e) => setReview(e.target.value)}
+                      rows={4}
+                      className="w-full border rounded mt-1 px-3 py-2"
+                      placeholder="Write your review here..."
+                      required
+                    />
                   </div>
+                  
                   <div className="text-center space-x-2">
                     <Button type="submit" className="bg-blue-600 px-5" disabled={loading}>{loading ? (editMode ? 'Updating...' : 'Saving...') : (editMode ? 'Update Review' : 'Submit Review')}</Button>
                     {editMode && <Button type="button" className="bg-gray-400 px-5" onClick={handleCancelEdit}>Cancel</Button>}
@@ -289,7 +315,7 @@ const ProductReview = ({ productData, productId }) => {
                       <TableRow className="bg-gray-100">
                         <TableHead className="px-4 py-3 text-center">S.No</TableHead>
                         <TableHead className="px-4 py-3 text-center">Product Name</TableHead>
-                        <TableHead className="px-4 py-3 text-center">Title</TableHead>
+                        <TableHead className="px-4 py-3 text-center">Created By</TableHead>
                         <TableHead className="px-4 py-3 text-center">Rating</TableHead>
                         <TableHead className="px-4 py-3 text-center">Action</TableHead>
                       </TableRow>
@@ -304,7 +330,7 @@ const ProductReview = ({ productData, productId }) => {
                           <TableRow key={r._id}>
                             <TableCell className="px-4 py-3 text-center font-medium">{idx + 1}</TableCell>
                             <TableCell className="px-4 py-3 text-center whitespace-nowrap ">{productTitle}</TableCell>
-                            <TableCell className="px-4 py-3 text-center whitespace-nowrap ">{r.title}</TableCell>
+                            <TableCell className="px-4 py-3 text-center whitespace-nowrap ">{r.createdBy}</TableCell>
                             <TableCell className="px-4 py-3 text-center whitespace-nowrap ">{r.rating}</TableCell>
                             <TableCell className="px-4 py-3 flex gap-2 justify-center">
                               <Button size="sm" variant="default" className="bg-blue-500 text-white px-3 py-1 rounded mr-2" onClick={() => {

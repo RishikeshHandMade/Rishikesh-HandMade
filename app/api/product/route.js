@@ -26,6 +26,24 @@ export async function POST(req) {
   }
 }
 
+export async function PATCH(req) {
+  try {
+    await connectDB();
+    const body = await req.json();
+    const { id, title } = body;
+    if (!id || !title) {
+      return new Response(JSON.stringify({ error: 'Missing id or title' }), { status: 400 });
+    }
+    const updated = await Product.findByIdAndUpdate(id, { title }, { new: true });
+    if (!updated) {
+      return new Response(JSON.stringify({ error: 'Product not found' }), { status: 404 });
+    }
+    return new Response(JSON.stringify(updated), { status: 200 });
+  } catch (error) {
+    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+  }
+}
+
 export async function GET() {
   try {
     await connectDB();

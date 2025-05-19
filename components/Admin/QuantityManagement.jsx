@@ -6,15 +6,19 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Label } from "../ui/label";
 import toast from "react-hot-toast"
 import { Dialog, DialogContent, DialogHeader, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from '@/components/ui/alert-dialog';
-import { AlignJustify } from 'lucide-react';
+import { AlertDialog, AlertDialogTrigger, AlertDialogContent } from '@/components/ui/alert-dialog';
+import { Trash2, Plus } from "lucide-react";
 const QuantityManagement = ({ productData, productId }) => {
+  // Remove a row by index, but always keep at least one row
+  const handleRemoveRow = (idx) => {
+    setRows(rows => rows.length > 1 ? rows.filter((_, i) => i !== idx) : rows);
+  };
+
   const [rows, setRows] = useState([
-    { size: '', price: '', qty: '', color: '', coupon: '' }
+    { size: '', price: '', qty: '', color: '' }
   ]);
   const [sizes, setSizes] = useState([]); // fetched from API
   const [allColors, setAllColors] = useState([]); // fetched from API
-  const [coupons, setCoupons] = useState([]); // fetched from API
 
   useEffect(() => {
     if (!productId) return;
@@ -34,15 +38,7 @@ const QuantityManagement = ({ productData, productId }) => {
         setAllColors(Array.isArray(data?.colors) ? data.colors : []);
       })
       .catch(() => setAllColors([]));
-    // Fetch coupons
-    fetch('/api/discountCoupon')
-      .then(async res => {
-        if (!res.ok) { setCoupons([]); return; }
-        const data = await res.json();
-        console.log(data);
-        setCoupons(Array.isArray(data) ? data : []);
-      })
-      .catch(() => setCoupons([]));
+
   }, [productId]);
 
   const productName = productData?.title || "";
@@ -52,14 +48,13 @@ const QuantityManagement = ({ productData, productId }) => {
   }; // qty now supported
 
   const handleAddRow = () => {
-    setRows(rows => [...rows, { size: '', price: '', qty: '', color: '', coupon: '' }]);
+    setRows(rows => [...rows, { size: '', price: '', qty: '', color: '' }]);
   };
 
   const [saving, setSaving] = useState(false);
   const [allQuantities, setAllQuantities] = useState([]);
   const [viewDialog, setViewDialog] = useState({ open: false, data: null });
   const [editMode, setEditMode] = useState(false);
-  const [editId, setEditId] = useState(null);
   const [deleteDialog, setDeleteDialog] = useState({ open: false, id: null });
 
   // Fetch all quantity records
@@ -91,7 +86,6 @@ const QuantityManagement = ({ productData, productId }) => {
           color: row.color,
           price: Number(row.price),
           qty: Number(row.qty),
-          coupon: row.coupon,
           optional: false // Default optional as false (customize as needed)
         };
       });
@@ -109,9 +103,8 @@ const QuantityManagement = ({ productData, productId }) => {
         throw new Error(error.error || 'Failed to save quantity');
       }
       toast.success(editMode ? 'Quantity data updated successfully' : 'Quantity data saved successfully');
-      setRows([{ size: '', price: '', color: '', coupon: '' }]); // clear form
+      setRows([{ size: '', price: '', color: '', }]); // clear form
       setEditMode(false);
-      setEditId(null);
       fetchQuantities();
     } catch (err) {
       toast.error(err.message || 'Failed to save quantity');
@@ -134,19 +127,16 @@ const QuantityManagement = ({ productData, productId }) => {
         price: v.price || '',
         qty: v.qty || '',
         color: v.color || '',
-        coupon: v.coupon || ''
       };
     }));
     setEditMode(true);
-    setEditId(record._id);
   };
 
 
   // Cancel edit
   const handleCancelEdit = () => {
-    setRows([{ size: '', price: '', qty: '', color: '', coupon: '' }]);
+    setRows([{ size: '', price: '', qty: '', color: '' }]);
     setEditMode(false);
-    setEditId(null);
   };
 
   // Delete
@@ -195,7 +185,6 @@ const QuantityManagement = ({ productData, productId }) => {
                 <th className="border px-2 py-1 text-center">Color</th>
                 <th className="border px-2 py-1 text-center">Price</th>
                 <th className="border px-2 py-1 text-center">Quantity</th>
-                <th className="border px-2 py-1 text-center">Discount Coupon</th>
                 <th className="border px-2 py-1 text-center">Action</th>
               </tr>
             </thead>
@@ -259,26 +248,15 @@ const QuantityManagement = ({ productData, productId }) => {
                       onChange={e => handleRowChange(idx, 'qty', e.target.value)}
                     />
                   </div></td>
-                  <td className="border px-2 py-1"><div className="flex justify-center">
-                    <Select value={row.coupon ?? ''} onValueChange={val => handleRowChange(idx, 'coupon', val)}>
-                      <SelectTrigger className="bg-gray-50 rounded border w-40">
-                        <SelectValue placeholder="Select Coupon" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          {coupons.map((coupon, i) => (
-                            <SelectItem key={coupon._id || coupon.couponCode || i} value={coupon.couponCode}>
-                              {coupon.couponCode} {coupon.amount ? `- ₹${coupon.amount}` : coupon.percent ? `- ${coupon.percent}%` : ''}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </div></td>
-                  <td className="border px-2 py-1 text-center"><div className="flex justify-center">
+                  <td className="border px-2 py-1 text-center"><div className="flex justify-center gap-2">
                     {idx === rows.length - 1 && (
-                      <Button type="button" className="bg-green-500 font-bold px-3 py-1" onClick={handleAddRow}>
-                        Add More
+                      <Button type="button" className="bg-green-500 font-bold px-3 py-1 flex items-center justify-center gap-1" onClick={handleAddRow}>
+                        <Plus size={18} />
+                      </Button>
+                    )}
+                    {rows.length > 1 && (
+                      <Button type="button" className="bg-red-500 font-bold px-3 py-1 flex items-center justify-center" onClick={() => handleRemoveRow(idx)}>
+                        <Trash2 size={18} />
                       </Button>
                     )}
                   </div></td>
@@ -341,7 +319,6 @@ const QuantityManagement = ({ productData, productId }) => {
                                   <span className="bg-blue-100 rounded px-2 py-1 font-medium">Price: ₹{v.price}</span>
                                   <span className="bg-green-100 rounded px-2 py-1 font-medium">Qty: {v.qty}</span>
                                   <span className="bg-yellow-100 rounded px-2 py-1 font-medium">Color: {v.color}</span>
-                                  <span className="bg-pink-100 rounded px-2 py-1 font-medium">Coupon: {v.coupon}</span>
                                 </div>
                               );
                             })}
@@ -351,24 +328,14 @@ const QuantityManagement = ({ productData, productId }) => {
                     </DialogContent>
                   </Dialog>
                   {/* Edit Button */}
-                  <Button size="sm" className="bg-yellow-500 text-white" onClick={() => handleEdit(q)}>Edit</Button>
+                  <Button size="sm" className="bg-yellow-500 text-white" onClick={() => handleEdit(q)}>
+               Edit
+                  </Button>
                   {/* Delete Dialog Trigger */}
                   <AlertDialog open={deleteDialog.open && deleteDialog.id === q._id} onOpenChange={open => setDeleteDialog(open ? { open: true, id: q._id } : { open: false, id: null })}>
                     <AlertDialogTrigger asChild>
                       <Button size="sm" className="bg-red-500 text-white">Delete</Button>
                     </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Quantity Record</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to delete this quantity record? This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <Button variant="outline" onClick={() => setDeleteDialog({ open: false, id: null })}>Cancel</Button>
-                        <Button className="bg-red-500 text-white" onClick={handleDelete}>Delete</Button>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
                   </AlertDialog>
                 </td>
               </tr>
