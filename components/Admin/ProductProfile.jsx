@@ -4,7 +4,8 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import toast from 'react-hot-toast';
-import { Copy } from "lucide-react";
+import { Copy, QrCode } from "lucide-react";
+import ProductQrModal from "./ProductQrModal";
 
 
 const ProductProfile = () => {
@@ -16,6 +17,11 @@ const ProductProfile = () => {
     const [refreshTable, setRefreshTable] = useState(false);
     // For inline editing
     const [editingId, setEditingId] = useState(null);
+
+    // QR Modal state
+    const [qrModalOpen, setQrModalOpen] = useState(false);
+    const [qrModalUrl, setQrModalUrl] = useState("");
+    const [qrModalTitle, setQrModalTitle] = useState("");
 
     // Generate product code on mount
     useEffect(() => {
@@ -167,6 +173,7 @@ const ProductProfile = () => {
                         <th className="py-2 px-4">S.No.</th>
                         <th className="py-2 px-4">Product Name</th>
                         <th className="py-2 px-4">Product URL</th>
+                        <th className="py-2 px-4">Product QR</th>
                         <th className="py-2 px-4">Action</th>
                     </tr>
                 </thead>
@@ -193,6 +200,28 @@ const ProductProfile = () => {
                                         >
                                             <Copy className="w-4 h-4" />
                                         </Button>
+                                    );
+                                })()}
+                            </td>
+                            <td className="py-2 px-4 text-center">
+                                {/* Product QR Copy/View Button */}
+                                {prod.title && (() => {
+                                    const qr = `${window.location.origin}/product/${slugify(prod.title)}`;
+                                    return (
+                                        <div className="flex gap-2 justify-center">
+                                            <Button
+                                                size="icon"
+                                                variant="ghost"
+                                                onClick={() => {
+                                                    setQrModalUrl(qr);
+                                                    setQrModalTitle(prod.title);
+                                                    setQrModalOpen(true);
+                                                }}
+                                                title="View QR & Download"
+                                            >
+                                                <QrCode className="w-6 h-6" />
+                                            </Button>
+                                        </div>
                                     );
                                 })()}
                             </td>
@@ -227,6 +256,13 @@ const ProductProfile = () => {
                 </tbody>
             </table>
         </div>
+        {/* QR Modal for viewing/downloading QR code */}
+        <ProductQrModal
+            open={qrModalOpen}
+            onOpenChange={setQrModalOpen}
+            qrUrl={qrModalUrl}
+            productTitle={qrModalTitle}
+        />
         </>
     );
 }
