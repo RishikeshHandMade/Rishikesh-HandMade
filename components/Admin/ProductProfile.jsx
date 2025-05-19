@@ -16,7 +16,6 @@ const ProductProfile = () => {
     const [refreshTable, setRefreshTable] = useState(false);
     // For inline editing
     const [editingId, setEditingId] = useState(null);
-    const [editTitle, setEditTitle] = useState("");
 
     // Generate product code on mount
     useEffect(() => {
@@ -95,10 +94,10 @@ const ProductProfile = () => {
             if (!artisan) return toast.error('Select an artisan');
             if (editingId) {
                 // Update mode
-                const res = await fetch('/api/product', {
+                const res = await fetch(`/api/product/${editingId}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: editingId, title, artisan })
+                    body: JSON.stringify({ title, artisan })
                 });
                 if (res.ok) {
                     const updated = await res.json();
@@ -108,7 +107,12 @@ const ProductProfile = () => {
                     setArtisan("");
                     toast.success('Product updated!');
                 } else {
-                    const err = await res.json();
+                    let err;
+                    try {
+                        err = await res.json();
+                    } catch {
+                        err = { error: 'Failed to update' };
+                    }
                     toast.error(err.error || 'Failed to update');
                 }
             } else {
