@@ -13,7 +13,7 @@ const AboutUsSection = () => {
     const dummyPackages = [
         {
             _id: "1",
-            link: "http://localhost:3000/product/jute-bag",
+            link: "#",
             image: { url: "https://dummyimage.com/1280x720/000/fff" },
             headerText: "Spiritual Retreat",
             title: "Himalayan Pilgrimage",
@@ -48,7 +48,7 @@ const AboutUsSection = () => {
             try {
                 const response = await fetch('/api/featured-packages');
                 const data = await response.json();
-                // console.log(data);
+                console.log(data);
                 setFeaturedPackages(data.length ? data : dummyPackages); // Use dummy data if API returns empty
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -62,7 +62,7 @@ const AboutUsSection = () => {
 
     if (isLoading) {
         return (
-            <section className="py-14 md:py-36 xl:py-20">
+            <section className="py-14 md:py-36 xl:py-20 bg-black">
                 {/* <div className="relative">
                     <img className="absolute -top-32 left-0 -z-10 lg:scale-[2]" src="/bg-shape.png" alt="background gradient shape" />
                 </div> */}
@@ -99,14 +99,14 @@ const AboutUsSection = () => {
     }
 
     return (
-        <section className="relative py-1 w-full px-10 md:px-8 lg:px-16 overflow-hidden max-w-screen overflow-x-hidden ">
-            <div className="w-full">
+        <section className="relative py-1 w-full px-10 md:px-8 lg:px-16 max-w-screen overflow-x-hidden bg-red-900">
+            <div className="w-full h-[100%]">
    
                 <h2 className="font-bold text-2xl md:text-4xl text-center mt-7">Be a part of a spiritual journey.</h2>
-                <p className="text-gray-600 py-8 text-center font-barlow  w-[80%] mx-auto">
+                {/* <p className="text-gray-600 py-8 text-center font-barlow  w-[80%] mx-auto">
                     YatraZone is more than just a travel company; we are facilitators of spiritual exploration and cultural immersion tailored for Indian pilgrims and global adventurers. With years of expertise in pilgrimage tourism within India, we curate authentic and meaningful journeys that resonate with every spiritual seeker.
                     From holy treks in the Himalayas to pilgrimages to ancient temples and sacred sites, we ensure transformative experiences.
-                </p>
+                </p> */}
                 <p className="flex items-center text-gray-600 font-barlow font-bold text-sm md:text-lg xl:text-xl mb-4">
 
                 </p>
@@ -115,7 +115,7 @@ const AboutUsSection = () => {
                         <div key={item._id} className="rounded-2xl group flex flex-col justify-between relative overflow-hidden w-full h-92 p-0">
                             <Image
                                 src={item.image.url}
-                                width={1280}
+                                width={720}
                                 height={720}
                                 priority
                                 quality={25}
@@ -124,7 +124,7 @@ const AboutUsSection = () => {
                                 style={{ width: '100%', height: '100%' }}
                             />
                             {/* Overlay for lighter, full black shade on hover */}
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>
+                            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>
                             {/* Text slides up on hover */}
                             <div className="absolute bottom-0 left-0 text-center w-full z-20 translate-y-full group-hover:translate-y-[-30%] opacity-0 group-hover:opacity-100 transition-all duration-500 ease-in-out">
                                 <h1 className="text-white text-xl xl:text-2xl mt-2 font-bold">{item.title}</h1>
