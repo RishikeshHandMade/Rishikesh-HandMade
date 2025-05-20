@@ -4,8 +4,8 @@ const ProductSchema = new mongoose.Schema({
   // ProductProfile
   title: { type: String, required: true },
   code: { type: String, required: true },
+  // url: { type: String }, // <-- Product URL
   artisan: { type: mongoose.Schema.Types.ObjectId, ref: 'Artisan' },
-
   // Section references
   size: { type: mongoose.Schema.Types.ObjectId, ref: 'Size' },
   color: { type: mongoose.Schema.Types.ObjectId, ref: 'Color' },

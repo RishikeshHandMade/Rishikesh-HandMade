@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { CalendarClock, MapPin, Heart, Bookmark } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,16 +13,29 @@ import { Button } from "./ui/button";
 import Link from "next/link";
 import Image from "next/image";
 import { Skeleton } from "./ui/skeleton";
+import Autoplay from "embla-carousel-autoplay";
+
+function slugify(text) {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9\-]/g, '')
+    .replace(/\-+/g, '-');
+}
 
 const RandomTourPackageSection = () => {
-  const [packages, setPackages] = useState([]);
+  const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [blogs, setBlogs] = useState([]);
   const [isBlogsLoading, setIsBlogsLoading] = useState(true);
   const [instagramPosts, setInstagramPosts] = useState([]);
   const [isInstaLoading, setIsInstaLoading] = useState(true);
+  const [isartisanLoading, setIsArtisanLoading] = useState(true);
   const [facebookPosts, setFacebookPosts] = useState([]);
   const [isFbLoading, setIsFbLoading] = useState(true);
+  const [artisan, setArtisan]=useState([])
 
   useEffect(() => {
     const fetchInstagramPosts = async () => {
@@ -41,6 +53,21 @@ const RandomTourPackageSection = () => {
     fetchInstagramPosts();
   }, []);
   useEffect(() => {
+    const fetchArtisan = async () => {
+      try {
+        const res = await fetch("/api/createArtisan");
+        const data = await res.json();
+        console.log(data);
+        setArtisan(data);
+      } catch (error) {
+        setArtisan([]);
+      } finally {
+        setIsArtisanLoading(false);
+      }
+    };
+    fetchArtisan();
+  }, []);
+  useEffect(() => {
     const fetchFacebookPosts = async () => {
       try {
         const res = await fetch("/api/facebook-posts");
@@ -56,20 +83,20 @@ const RandomTourPackageSection = () => {
     fetchFacebookPosts();
   }, []);
   useEffect(() => {
-    const fetchPackages = async () => {
+    const fetchProducts = async () => {
       try {
-        const res = await fetch("/api/getRandomPackages");
+        const res = await fetch("/api/product");
         const data = await res.json();
-        // console.log(data.packages);
+        console.log("Product API response:", data);
 
-        if (data.packages && data.packages.length > 0) {
-          setPackages(data.packages);
+        if (data && data.length > 0) {
+          setProducts(data);
         } else {
-          setPackages([]);
+          setProducts([]);
         }
       } catch (error) {
-        // console.error("Error fetching packages:", error);
-        setPackages([]);
+        // console.error("Error fetching products:", error);
+        setProducts([]);
       } finally {
         setIsLoading(false);
       }
@@ -95,19 +122,18 @@ const RandomTourPackageSection = () => {
       }
     };
 
-    fetchPackages();
+    fetchProducts();
     fetchBlogs();
   }, []);
 
   if (isLoading) {
     return (
-      <section className="md:mt-19 w-full px-2 md:px-8 lg:px-16 bg-[url('/bg-custom-3.jpg')] overflow-hidden max-w-screen overflow-x-hidden">
+      <section className="md:mt-19 w-full px-2 md:px-8 lg:px-16 overflow-hidden max-w-screen overflow-x-hidden">
         <div className=" w-full h-full overflow-hidden max-w-screen overflow-x-hidden">
           <div className="w-full py-10">
             <h2 className="flex items-center text-sm md:text-md lg:text-lg uppercase font-barlow font-semibold"></h2>
             <h1 className="font-bold text-xl md:text-3xl lg:text-4xl uppercase text-center">
-              {" "}
-              Trending Packages: The Best, Today
+              Trending Products: The Best, Today
             </h1>
             <Carousel className="w-[75%] md:w-[95%] drop-shadow-xl mx-auto xl:w-full my-6 md:my-12">
               <CarouselContent className="-ml-1">
@@ -166,25 +192,25 @@ const RandomTourPackageSection = () => {
       <div className=" w-full h-full overflow-hidden max-w-screen ">
         <div className="w-full py-9 px-1 md:px-8">
           <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mt-10">
-            Trending Packages: The Best, Today
+            Trending Products: The Best, Today
           </h1>
           <p className=" text-gray-600 py-8 text-center font-barlow w-[80%] mx-auto">
-            Discover the hottest deals with our Trending Packages! Curated
+            Discover the hottest deals with our Trending Products! Curated
             daily, these top-rated picks offer the best value and quality —
             handpicked for professionals who demand the best, today. Don’t miss
             out — elevate your experience now!
           </p>
           <Carousel
-            className={`w-full md:w-[95%]  mx-auto my-4 ${packages.length > 0 ? "block" : "hidden"}`}
+            className={`w-full md:w-[95%]  mx-auto my-4 ${products.length > 0 ? "block" : "hidden"}`}
           >
             <CarouselContent className="-ml-1 w-full ">
-              {packages.length > 0 &&
-                packages.map((item, index) => (
+              {products.length > 0 &&
+                products.map((item, index) => (
                   <CarouselItem
                     key={index}
                     className="pl-1 md:basis-1/2 lg:basis-1/4 min-w-0 snap-start"
                   >
-                    <div className="p-1">
+                    <div className="">
                       <Card>
                         <CardContent className=" rounded-2xl p-0 flex flex-col justify-between relative overflow-hidden group transition-all">
                           {/* 20% OFF Tag */}
@@ -229,8 +255,8 @@ const RandomTourPackageSection = () => {
                           {/* Main Image */}
                           <div className="relative w-full h-72 md:h-80 rounded-xl overflow-hidden flex items-center justify-center">
                             <Image
-                              src={item?.basicDetails?.thumbnail?.url || "/RandomTourPackageImages/u1.jpg"}
-                              alt={item?.packageName || "Tour package image"}
+                              src={item?.gallery?.mainImage || "/RandomTourPackageImages/u1.jpg"}
+                              alt={item?.title || "Tour package image"}
                               width={400}
                               height={400}
                               quality={60}
@@ -239,7 +265,7 @@ const RandomTourPackageSection = () => {
                             {/* Quick View Button - Slide Up from Bottom on Hover */}
                             <div className="absolute left-0 right-0 bottom-0 flex items-center justify-center translate-y-12 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 py-4">
                               <Button
-                                onClick={() => (window.location.href = `/package/${item._id}`)}
+
                                 className="bg-black text-white hover:bg-gray-800 transition-colors duration-300 uppercase text-sm font-bold px-8 py-3 rounded-full shadow-lg"
                               >
                                 QUICK VIEW
@@ -247,14 +273,17 @@ const RandomTourPackageSection = () => {
                             </div>
                           </div>
                           {/* Bottom Info Section */}
-                          <div className="flex items-center justify-between px-4 pt-2 pb-0 mb-0 bg-transparent">
+                          <div className="flex items-center justify-between px-4 pt-2 pb-0 mb-0 ">
                             <div className="flex flex-col">
-                              <span className="font-bold text-base md:text-lg text-gray-900 leading-tight max-w-[160px] truncate">
-                                {item?.packageName}
-                              </span>
+                              <Link
+                                href={`/product/${item._id}`}
+                                className="font-bold text-base md:text-lg text-gray-900 leading-tight max-w-[160px] truncate cursor-pointer hover:underline"
+                              >
+                                {item?.title}
+                              </Link>
                             </div>
                             <div className="text-right">
-                              <span className="font-bold text-lg text-gray-900">₹{formatNumeric(item?.price)}</span>
+                              <span className="font-bold text-lg text-gray-900">₹{formatNumeric(item?.quantity?.variants[0].price)}</span>
                             </div>
                           </div>
                         </CardContent>
@@ -266,6 +295,157 @@ const RandomTourPackageSection = () => {
             <CarouselPrevious />
             <CarouselNext />
           </Carousel>
+
+            {/* Artisan Carousel Section */}
+      <div className="w-full mt-16">
+        <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-8">Meet Our Artisans</h2>
+        <Carousel
+          className="w-full  mx-auto my-4"
+          plugins={[Autoplay({ delay: 4000 })]}
+        >
+          <CarouselContent className="-ml-1 w-full">
+            {
+              (artisan.length > 0
+                ? artisan.map((item, idx) => ({
+                    id: item._id || idx,
+                    name: `${item.title ? item.title + " " : ""}${item.firstName || ''} ${item.lastName || ''}`.trim() || "Unknown Artisan",
+                    date: item.createdAt
+                      ? new Date(item.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase()
+                      : "N/A",
+                    image: item.profileImage?.url || "/bg-custom-1.jpg",
+                    title: item.specializations && item.specializations.length > 0
+                      ? item.specializations.join(", ")
+                      : "Artisan",
+                    subtitle: item.shgName || "",
+                    experience: item.yearsOfExperience ? `${item.yearsOfExperience} years experience` : "",
+                    location: item.address ? `${item.address.city}, ${item.address.state}` : "",
+                    socials: [
+                      { icon: "/insta-Tranparent.webp", url: "#" },
+                      { icon: "/facebook.png", url: "#" },
+                      { icon: "/google.png", url: "#" }
+                    ],
+                  }))
+                : [
+                    {
+                      id: 1,
+                      name: "Aanya Sharma",
+                      date: "17 FEB 2025",
+                      image: "/bg-custom-1.jpg",
+                      title: "Chic & Unique: Personalized Fashion Finds",
+                      socials: [
+                        { icon: "/insta-Tranparent.webp", url: "#" },
+                        { icon: "/facebook.png", url: "#" },
+                        { icon: "/google.png", url: "#" },
+                      ],
+                    },
+                    {
+                      id: 2,
+                      name: "Riya & Meera",
+                      date: "19 FEB 2025",
+                      image: "/bg-custom-2.jpg",
+                      title: "Dress to Impress: Elevate Your Everyday Style",
+                      socials: [
+                        { icon: "/insta-Tranparent.webp", url: "#" },
+                        { icon: "/facebook.png", url: "#" },
+                        { icon: "/google.png", url: "#" },
+                      ],
+                    },
+                    {
+                      id: 3,
+                      name: "Kabir & Tara",
+                      date: "21 FEB 2025",
+                      image: "/bg-custom-3.jpg",
+                      title: "Street Style Safari: Global Fashion Influences",
+                      socials: [
+                        { icon: "/insta-Tranparent.webp", url: "#" },
+                        { icon: "/facebook.png", url: "#" },
+                        { icon: "/google.png", url: "#" },
+                      ],
+                    },
+                    {
+                      id: 4,
+                      name: "Priya Kapoor",
+                      date: "25 FEB 2025",
+                      image: "/bg-custom-4.jpg",
+                      title: "Fashion & Beauty: The Ultimate Style Guide",
+                      socials: [
+                        { icon: "/insta-Tranparent.webp", url: "#" },
+                        { icon: "/facebook.png", url: "#" },
+                        { icon: "/google.png", url: "#" },
+                      ],
+                    },
+                  ]
+              ).map((artisan, idx) => (
+              <CarouselItem
+                key={artisan.id}
+                className="pl-1 md:basis-1/2 lg:basis-1/4 min-w-0 snap-start"
+              >
+                <div className="relative bg-white rounded-2xl overflow-hidden shadow-md group transition-all h-full flex flex-col">
+                  {/* Date Badge */}
+                  <div className="absolute top-4 left-4 z-10">
+                    <div className="bg-white rounded px-3 py-1 text-xs font-bold shadow text-gray-800">
+                      {artisan.date}
+                    </div>
+                  </div>
+                  {/* Social Icons (hidden by default, show on hover) */}
+                  <div className="absolute top-1/2 -translate-y-1/2 left-4 z-20 flex flex-col gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    {artisan.socials.map((s, i) => (
+                      <a
+                        key={i}
+                        href={s.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-white rounded-full p-2 shadow hover:bg-gray-100 transition"
+                      >
+                        <img src={s.icon} alt="social" className="w-5 h-5" />
+                      </a>
+                    ))}
+                  </div>
+                  {/* Card Image */}
+                  <div className="relative w-full h-64 md:h-72">
+                    <Image
+                      src={artisan.image}
+                      alt={artisan.name}
+                      fill
+                      className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+                      style={{ borderTopLeftRadius: '1rem', borderTopRightRadius: '1rem' }}
+                    />
+                  </div>
+                  {/* Card Content */}
+                  <div className="flex-1 flex flex-col justify-between p-6 bg-white">
+                    <div>
+                      <h3 className="font-bold text-lg md:text-xl text-gray-900 mb-2 line-clamp-2">
+                        {artisan.title}
+                      </h3>
+                      <p className="text-gray-600 text-sm mb-1">by {artisan.name}</p>
+                      {artisan.subtitle && (
+                        <p className="text-gray-500 text-xs mb-1">SHG: {artisan.subtitle}</p>
+                      )}
+                      {artisan.experience && (
+                        <p className="text-gray-500 text-xs mb-1">{artisan.experience}</p>
+                      )}
+                      {artisan.location && (
+                        <p className="text-gray-500 text-xs mb-1">{artisan.location}</p>
+                      )}
+                    </div>
+                    {/* Arrow Button */}
+                    <div className="flex justify-end items-center mt-auto">
+                      <button className="bg-[#e84393] hover:bg-[#d6306a] text-white rounded-full w-10 h-10 flex items-center justify-center shadow transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          {/* <CarouselPrevious /> */}
+          {/* <CarouselNext /> */}
+        </Carousel>
+      </div>
+          
           {/* Blog Section with full-width background */}
           {!isBlogsLoading && blogs && blogs.length > 0 && (
             <div className="w-full flex flex-col items-center mt-12">
@@ -308,9 +488,9 @@ const RandomTourPackageSection = () => {
                         <p className="text-xs md:text-sm mb-4">
                           {blogs?.[0]?.shortDesc?.split(" ").length > 18
                             ? blogs?.[0]?.shortDesc
-                                .split(" ")
-                                .slice(0, 18)
-                                .join(" ") + "..."
+                              .split(" ")
+                              .slice(0, 18)
+                              .join(" ") + "..."
                             : blogs?.[0]?.shortDesc}
                         </p>
                         <a
@@ -363,9 +543,9 @@ const RandomTourPackageSection = () => {
                         <p className="text-xs md:text-sm mb-4">
                           {blogs?.[1]?.shortDesc?.split(" ").length > 18
                             ? blogs?.[1]?.shortDesc
-                                .split(" ")
-                                .slice(0, 18)
-                                .join(" ") + "..."
+                              .split(" ")
+                              .slice(0, 18)
+                              .join(" ") + "..."
                             : blogs?.[1]?.shortDesc}
                         </p>
                         <a
@@ -433,9 +613,9 @@ const RandomTourPackageSection = () => {
                         {/* shortDesc limited to 18 words */}
                         <div className="text-xs text-gray-600 mb-2 flex-grow">
                           {blog.shortDesc &&
-                          blog.shortDesc.split(" ").length > 18
+                            blog.shortDesc.split(" ").length > 18
                             ? blog.shortDesc.split(" ").slice(0, 18).join(" ") +
-                              "..."
+                            "..."
                             : blog.shortDesc}
                         </div>
                         <a
@@ -473,9 +653,8 @@ const RandomTourPackageSection = () => {
                   {allPosts.map((post, idx) => (
                     <CarouselItem
                       key={post._id || idx}
-                      className={`pl-1 ${
-                        allPosts.length <= 3 ? cardBasis : "md:basis-1/5"
-                      }`}
+                      className={`pl-1 ${allPosts.length <= 3 ? cardBasis : "md:basis-1/5"
+                        }`}
                       style={
                         allPosts.length <= 3
                           ? { minWidth: `calc(100%/${allPosts.length})` }
@@ -485,9 +664,8 @@ const RandomTourPackageSection = () => {
                       <div className="relative group rounded-lg overflow-hidden w-full h-60  md:h-52 bg-gray-100">
                         <Image
                           src={post.image}
-                          alt={`${
-                            post.type === "facebook" ? "Facebook" : "Instagram"
-                          } ${idx}`}
+                          alt={`${post.type === "facebook" ? "Facebook" : "Instagram"
+                            } ${idx}`}
                           width={400}
                           height={400}
                           className="object-cover md:object-cover w-full h-full"

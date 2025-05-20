@@ -2,6 +2,16 @@
 import connectDB from "@/lib/connectDB";
 import Product from '@/models/Product';
 import Artisan from '@/models/Artisan';
+import Size from '@/models/Size';
+import Color from '@/models/Color';
+import Gallery from '@/models/Gallery';
+import Video from '@/models/Video';
+import Description from '@/models/Description';
+import Info from '@/models/Info';
+import CategoryTag from '@/models/CategoryTag';
+import ProductReview from '@/models/ProductReview';
+import Quantity from '@/models/Quantity';
+import ProductCoupons from '@/models/ProductCoupons';
 
 export async function POST(req) {
   try {
@@ -25,13 +35,66 @@ export async function POST(req) {
     return new Response(JSON.stringify({ error: error.message }), { status: 500 });
   }
 }
-
-
-export async function GET() {
+export async function GET(req) {
   try {
     await connectDB();
-    const products = await Product.find({}, 'title code artisan'); // Only profile fields
-    return new Response(JSON.stringify(products), { status: 200 });
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+    const name = searchParams.get('name');
+    if (id) {
+      // Find by MongoDB _id
+      const product = await Product.findById(id)
+        .populate('artisan')
+        .populate('size')
+        .populate('color')
+        .populate('price')
+        .populate('gallery')
+        .populate('video')
+        .populate('description')
+        .populate('info')
+        .populate('categoryTag')
+        .populate('review')
+        .populate('quantity')
+        .populate('coupons');
+      if (!product) {
+        return new Response(JSON.stringify({ error: 'Product not found' }), { status: 404 });
+      }
+      return new Response(JSON.stringify(product), { status: 200 });
+    } else if (name) {
+      // Fallback to slug search
+      const product = await Product.findOne({ slug: name })
+        .populate('artisan')
+        .populate('size')
+        .populate('color')
+        .populate('price')
+        .populate('gallery')
+        .populate('video')
+        .populate('description')
+        .populate('info')
+        .populate('categoryTag')
+        .populate('review')
+        .populate('quantity')
+        .populate('coupons');
+      if (!product) {
+        return new Response(JSON.stringify({ error: 'Product not found' }), { status: 404 });
+      }
+      return new Response(JSON.stringify(product), { status: 200 });
+    } else {
+      const products = await Product.find({})
+        .populate('artisan')
+        .populate('size')
+        .populate('color')
+        .populate('price')
+        .populate('gallery')
+        .populate('video')
+        .populate('description')
+        .populate('info')
+        .populate('categoryTag')
+        .populate('review')
+        .populate('quantity')
+        .populate('coupons');
+      return new Response(JSON.stringify(products), { status: 200 });
+    }
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), { status: 500 });
   }

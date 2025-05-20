@@ -5,8 +5,24 @@ import Product from '@/models/Product';
 export async function GET(req, { params }) {
   try {
     await connectDB();
-    const { id } = params;
-    const product = await Product.findById(id);
+    let { id } = params;
+    try {
+      id = decodeURIComponent(id);
+    } catch (e) {}
+    // Strictly fetch by MongoDB _id
+    const product = await Product.findById(id)
+      .populate('artisan')
+      .populate('size')
+      .populate('color')
+      .populate('price')
+      .populate('gallery')
+      .populate('video')
+      .populate('description')
+      .populate('info')
+      .populate('categoryTag')
+      .populate('review')
+      .populate('quantity')
+      .populate('coupons');
     if (!product) {
       return new Response(JSON.stringify({ error: 'Product not found' }), { status: 404 });
     }
@@ -18,8 +34,8 @@ export async function GET(req, { params }) {
 
 export async function DELETE(req, { params }) {
   try {
-    await connectDB();
-    const { id } = params;
+    await connectDB()
+    const { id } = await params;
     const deleted = await Product.findByIdAndDelete(id);
     if (!deleted) {
       return new Response(JSON.stringify({ error: 'Product not found' }), { status: 404 });
@@ -33,8 +49,9 @@ export async function DELETE(req, { params }) {
 export async function PATCH(req, { params }) {
   try {
     await connectDB();
-    const { id } = params;
+    const { id } = await params;
     const body = await req.json();
+    // PATCH can update url, title, artisan, etc.
     const updated = await Product.findByIdAndUpdate(id, body, { new: true });
     if (!updated) return new Response(JSON.stringify({ error: 'Product not found' }), { status: 404 });
     return new Response(JSON.stringify(updated), { status: 200 });

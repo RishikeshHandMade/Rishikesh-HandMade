@@ -6,6 +6,7 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel } from "../ui/alert-dialog";
 const SizeManagement = ({ productData, productId }) => {
+  console.log(productData,productId)
   // Modal state for image preview
   const [modalOpen, setModalOpen] = useState(false);
   const [modalImage, setModalImage] = useState(null);
@@ -72,6 +73,7 @@ const SizeManagement = ({ productData, productId }) => {
     try {
       const res = await fetch(`/api/productSize?product=${productId}`);
       const data = await res.json();
+      console.log(data)
       if (res.ok && data && data._id) setSizeEntries([data]);
       else setSizeEntries([]);
     } catch {

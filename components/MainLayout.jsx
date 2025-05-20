@@ -53,7 +53,7 @@ export default function MainLayout({ children }) {
             <div
                 className={`flex-1 transition-all duration-300`}
             >
-                <Navbar
+                <Navbar 
                     className={`fixed top-0 transition-all duration-300 bg-white flex items-center px-4 py-2 z-50 shadow-lg ${isMobile === false ? (open ? "w-[calc(100%-var(--sidebar-width))]" : "w-[calc(100%-var(--sidebar-width-icon))]") : ''} ${isMobile ? "w-full justify-between gap-5" : "justify-between"}`}
                 />
                 <div className="mt-16">

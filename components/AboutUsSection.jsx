@@ -13,7 +13,7 @@ const AboutUsSection = () => {
     const dummyPackages = [
         {
             _id: "1",
-            link: "#",
+            link: "http://localhost:3000/product/jute-bag",
             image: { url: "https://dummyimage.com/1280x720/000/fff" },
             headerText: "Spiritual Retreat",
             title: "Himalayan Pilgrimage",
@@ -63,9 +63,9 @@ const AboutUsSection = () => {
     if (isLoading) {
         return (
             <section className="py-14 md:py-36 xl:py-20">
-                <div className="relative">
+                {/* <div className="relative">
                     <img className="absolute -top-32 left-0 -z-10 lg:scale-[2]" src="/bg-shape.png" alt="background gradient shape" />
-                </div>
+                </div> */}
                 <div className="max-w-[22rem] md:max-w-[45rem] lg:max-w-[60rem] xl:max-w-7xl mx-auto">
                     <h2 className="font-bold text-2xl md:text-4xl">
                         <Skeleton className="w-3/4 h-8" />
@@ -99,7 +99,7 @@ const AboutUsSection = () => {
     }
 
     return (
-        <section className="relative py-1 w-full px-10 md:px-8 lg:px-16 overflow-hidden max-w-screen overflow-x-hidden bg-repeat-y bg-[url('/bg-custom-1.jpg')] brightness-145">
+        <section className="relative py-1 w-full px-10 md:px-8 lg:px-16 overflow-hidden max-w-screen overflow-x-hidden ">
             <div className="w-full">
    
                 <h2 className="font-bold text-2xl md:text-4xl text-center mt-7">Be a part of a spiritual journey.</h2>
@@ -112,7 +112,7 @@ const AboutUsSection = () => {
                 </p>
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {featuredPackages.map((item) => (
-                        <div key={item._id} className="rounded-2xl group flex flex-col justify-between relative overflow-hidden w-full h-96 p-0">
+                        <div key={item._id} className="rounded-2xl group flex flex-col justify-between relative overflow-hidden w-full h-92 p-0">
                             <Image
                                 src={item.image.url}
                                 width={1280}

@@ -32,7 +32,7 @@ const Header = () => {
       className={`print:hidden ${pathName.includes("admin") ||
         pathName.includes("category") ||
         pathName.includes("page") ||
-        pathName.includes("package") ||
+        pathName.includes("product") ||
         pathName.includes("checkout") ||
         pathName.includes("search") ||
         pathName.includes("sign-up") ||

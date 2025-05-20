@@ -15,6 +15,7 @@ import ApplyCoupon from './ApplyCoupon';
 
 
 const AddDirectProduct = ({ productId }) => {
+  console.log(productId)
   const sectionConfig = [
     { key: 'size', label: 'Size Management', component: (props) => <SizeManagement {...props} productData={productData} productId={productId} /> },
     { key: 'color', label: 'Color Management', component: (props) => <ColorManagement {...props} productData={productData} productId={productId} /> },

@@ -39,7 +39,7 @@ const Footer = () => {
 
 
     return (
-        <footer className={`print:hidden ${pathName.includes('admin') && 'hidden'} ${pathName.includes('package') && 'block'} ${pathName.includes('customEnquiry') && 'block'} ${pathName.includes('checkout') && 'block'}  ${pathName.includes('category') && 'block'} ${pathName.includes('sign-up') && 'hidden'} ${pathName.includes('sign-in') && 'hidden'}  bg-[url('/bg-custom-2.jpg')] text-black py-5  border-t border-gray-300`}>
+        <footer className={`print:hidden ${pathName.includes('admin') && 'hidden'} ${pathName.includes('product') && 'block'} ${pathName.includes('customEnquiry') && 'block'} ${pathName.includes('checkout') && 'block'}  ${pathName.includes('category') && 'block'} ${pathName.includes('sign-up') && 'hidden'} ${pathName.includes('sign-in') && 'hidden'}  bg-[url('/bg-custom-2.jpg')] text-black py-5  border-t border-gray-300`}>
              <div className="flex flex-wrap lg:justify-between justify-evenly md:gap-20 lg:gap-0 gap-12 max-w-[22rem] md:max-w-[45rem] lg:max-w-[60rem] xl:max-w-6xl mx-auto">
                 <div className="flex flex-col gap-2">
                     <h1 className="font-semibold text-xl my-4">Main Menu</h1>
@@ -127,7 +127,7 @@ const Footer = () => {
             </Card>
             <div className="flex flex-col lg:flex-row items-center justify-center max-w-[25rem] md:max-w-[60rem] xl:max-w-6xl mx-auto font-barlow">
                 <p className="text-gray-900 text-center my-4">
-                    &copy; {new Date().getFullYear()} <Link href={'/'} className="hover:text-blue-600 font-bold">YatraZone</Link>. All rights reserved
+                    &copy; {new Date().getFullYear()} <Link href={'/'} className="hover:text-blue-600 font-bold">Rishikesh HandMade</Link>. All rights reserved
                 </p>
             </div>
         </footer >

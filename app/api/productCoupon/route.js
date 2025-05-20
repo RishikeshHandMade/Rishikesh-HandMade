@@ -1,5 +1,6 @@
 import connectDB from '@/lib/connectDB';
 import ProductCoupons from '@/models/ProductCoupons';
+import Product from '@/models/Product';
 
 // GET: /api/productCoupon?productId=xxx OR /api/productCoupon
 export async function GET(req) {
@@ -37,6 +38,8 @@ export async function POST(req) {
     }
     // Create new mapping
     const doc = await ProductCoupons.create({ productId, coupons });
+    // Push the mapping ref to Product.coupons field
+    await Product.findByIdAndUpdate(productId, { coupons: doc._id });
     return Response.json(doc);
   } catch (err) {
     return Response.json({ error: err.message }, { status: 400 });
@@ -56,6 +59,8 @@ export async function PATCH(req) {
         { new: true }
       );
       if (!doc) return Response.json({ error: 'ProductCoupons not found' }, { status: 404 });
+      // Push the mapping ref to Product.coupons field (in case not already set)
+      await Product.findByIdAndUpdate(productId, { coupons: doc._id });
       return Response.json(doc);
     } catch (err) {
       return Response.json({ error: err.message }, { status: 400 });
@@ -68,6 +73,8 @@ export async function DELETE(req) {
     const { productId } = await req.json();
     if (!productId) return Response.json({ error: 'Missing productId' }, { status: 400 });
     await ProductCoupons.deleteOne({ productId });
+    // Remove the mapping ref from Product.coupons field
+    await Product.findByIdAndUpdate(productId, { coupons: null });
     return Response.json({ success: true });
   } catch (err) {
     return Response.json({ error: err.message }, { status: 400 });

@@ -207,7 +207,7 @@ const ApplyCoupon = ({ productData, productId }) => {
                 return (
                   <tr key={row.productId}>
                     <td className="border p-2 text-center">{idx + 1}</td>
-                    <td className="border p-2 text-center">{prod.title || prod.name || row.productId}</td>
+                    <td className="border p-2 text-center">{row.productId?.title || "N/A"}</td>
                     <td className="border p-2 text-center">
                       <div className="flex flex-wrap gap-1">
                         {row.coupons.map(code => (

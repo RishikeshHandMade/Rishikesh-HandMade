@@ -100,7 +100,7 @@ const ProductProfile = () => {
             if (!artisan) return toast.error('Select an artisan');
             if (editingId) {
                 // Update mode
-                const res = await fetch(`/api/product/${editingId}`, {
+                const res = await fetch(`/api/product/${encodeURIComponent(title)}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ title, artisan })
@@ -189,7 +189,7 @@ const ProductProfile = () => {
                             <td className="py-2 px-4 text-center">
                                 {/* Product URL Copy Button Only */}
                                 {prod.title && (() => {
-                                    const url = `${window.location.origin}/product/${slugify(prod.title)}`;
+                                    const url = `${window.location.origin}/product/${slugify(prod._id)}`;
                                     return (
                                         <Button
                                             size="icon"
@@ -206,7 +206,7 @@ const ProductProfile = () => {
                             <td className="py-2 px-4 text-center">
                                 {/* Product QR Copy/View Button */}
                                 {prod.title && (() => {
-                                    const qr = `${window.location.origin}/product/${slugify(prod.title)}`;
+                                    const qr = `${window.location.origin}/product/${slugify(prod._id)}`;
                                     return (
                                         <div className="flex gap-2 justify-center">
                                             <Button

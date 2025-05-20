@@ -20,7 +20,8 @@ const Navbar = ({ className }) => {
   const pathName = usePathname();
 
   useEffect(() => {
-    if (pathName.includes('admin') || pathName.includes('package')) return
+    // Only skip fetch if admin or on a /product route
+    if (pathName.includes('admin') || pathName.startsWith('product')) return
 
     if (session?.user?.isAdmin) return
 
@@ -54,23 +55,25 @@ const Navbar = ({ className }) => {
     <header className={`${className} font-barlow print:hidden`}>
       <div className="flex items-center gap-10">
       <SidebarTrigger className="scale-110" />
-        <div className="hidden md:flex items-center gap-4">
-          <div className="flex items-center gap-4">
-            <Mail size={20} className="text-black" />
-            <Link href={"mailto:info@yatrazone.com"}>
-              <p className="text-sm font-semibold hover:underline">info@yatrazone.com</p>
-            </Link>
-          </div>
 
-          <div className="h-4 w-0.5 bg-black rounded-full"></div>
+          <div className="hidden md:flex items-center gap-4">
+            <div className="flex items-center gap-4">
+              <Mail size={20} className="text-black" />
+              <Link href={"mailto:info@yatrazone.com"}>
+                <p className="text-sm font-semibold hover:underline">info@rishikeshhandmade.com</p>
+              </Link>
+            </div>
 
-          <div className="flex items-center gap-4">
-            <Phone size={20} className="text-black" />
-            <Link href={"tel:+918006000325"}>
-              <p className="text-sm font-semibold tracking-widest hover:underline">+91 8006000325</p>
-            </Link>
+            <div className="h-4 w-0.5 bg-black rounded-full"></div>
+
+            <div className="flex items-center gap-4">
+              <Phone size={20} className="text-black" />
+              <Link href={"tel:+918006000325"}>
+                <p className="text-sm font-semibold tracking-widest hover:underline">+91 8006000325</p>
+              </Link>
+            </div>
           </div>
-        </div>
+ 
       </div>
 
       <div className="flex items-center gap-8">

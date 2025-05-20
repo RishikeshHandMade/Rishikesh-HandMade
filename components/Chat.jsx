@@ -28,7 +28,7 @@ export default function Chat({
     bookingId,
     packageId,
     isAdmin = false,
-    recipientName = "YatraZone",
+    recipientName = "RishikeshHandMade",
 }) {
     const { data: session } = useSession()
     const [messages, setMessages] = useState([])
