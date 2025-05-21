@@ -1,17 +1,65 @@
 "use client";
 import React from "react";
 import Image from "next/image";
-
+import {Heart,Share2} from "lucide-react"
 export default function ProductDetailView({ product }) {
+  console.log(product)
   const [selectedImage, setSelectedImage] = React.useState(product?.gallery?.mainImage);
   const [quantity, setQuantity] = React.useState(1);
+  const [showSizeChart, setShowSizeChart] = React.useState(false);
+  const [selectedSize, setSelectedSize] = React.useState(null);
+  const [selectedColor, setSelectedColor] = React.useState(null);
+
+  // Extract variants
+  const variants = Array.isArray(product?.quantity?.variants) ? product.quantity.variants : [];
+
+  // Get all unique sizes and colors from variants
+  const availableSizes = [...new Set(variants.map(v => v.size))];
+  const allColors = [...new Set(variants.map(v => v.color))];
+
+  // For disabling color buttons: only enable if that color exists for selectedSize
+  const colorIsEnabled = (color) => {
+    if (!selectedSize) return true;
+    return variants.some(v => v.size === selectedSize && v.color === color);
+  };
+  // For disabling size buttons: only enable if that size exists for selectedColor
+  const sizeIsEnabled = (size) => {
+    if (!selectedColor) return true;
+    return variants.some(v => v.color === selectedColor && v.size === size);
+  };
+
+  // Find the selected variant
+  const selectedVariant = variants.find(v => {
+    return (
+      (selectedSize ? v.size === selectedSize : true) &&
+      (selectedColor ? v.color === selectedColor : true)
+    );
+  });
+
+  // Set default selection on mount or when variants change
+  React.useEffect(() => {
+    if (variants.length && !selectedSize && !selectedColor) {
+      setSelectedSize(variants[0].size);
+      setSelectedColor(variants[0].color);
+    }
+  }, [variants]);
+
+  // Cap quantity to available stock
+  React.useEffect(() => {
+    if (selectedVariant && quantity > selectedVariant.qty) {
+      setQuantity(selectedVariant.qty);
+    }
+  }, [selectedVariant, quantity]);
 
   // Calculate total price
-  const price = Number(product.price) || 0;
-  const total = (price * quantity).toFixed(2);
+  const formatNumeric = (num) => {
+    return new Intl.NumberFormat("en-IN").format(num);
+  };
+  const price = selectedVariant ? formatNumeric(selectedVariant.price) : 0;
+  const total = selectedVariant ? (selectedVariant.price * quantity).toFixed(2) : 0;
 
   return (
-    <div className="flex flex-col lg:flex-row gap-10">
+    <div className="flex flex-col lg:flex-row gap-4">
       {/* LEFT: Main Image + Sub-Image Carousel */}
       <div className="flex-1 flex flex-col items-center">
         {/* Main Image */}
@@ -21,7 +69,7 @@ export default function ProductDetailView({ product }) {
               src={selectedImage || product.gallery?.mainImage || '/placeholder.png'}
               alt={product.title}
               fill
-              style={{objectFit: 'contain'}}
+              style={{ objectFit: 'contain' }}
               className="object-contain w-full h-full"
             />
           </div>
@@ -73,49 +121,110 @@ export default function ProductDetailView({ product }) {
               className="w-8 h-8 border rounded flex items-center justify-center font-bold text-lg hover:bg-gray-100"
               onClick={() => setQuantity(q => Math.max(1, q - 1))}
               aria-label="Decrease quantity"
+              disabled={quantity <= 1}
             >
               -
             </button>
             <span className="w-8 text-center font-semibold">{quantity}</span>
             <button
               className="w-8 h-8 border rounded flex items-center justify-center font-bold text-lg hover:bg-gray-100"
-              onClick={() => setQuantity(q => q + 1)}
+              onClick={() => setQuantity(q => selectedVariant ? Math.min(selectedVariant.qty, q + 1) : q + 1)}
               aria-label="Increase quantity"
+              disabled={!selectedVariant || quantity >= (selectedVariant?.qty || 1)}
             >
               +
             </button>
+            {selectedVariant && <span className="ml-2 text-xs text-gray-500">({selectedVariant.qty} in stock)</span>}
           </div>
           {/* Size */}
           <div className="flex items-center gap-2">
             <span className="font-semibold">Size:</span>
-            {['XS','S','M','L'].map((size, idx) => (
-              <button key={idx} className="px-3 py-1 border rounded-lg bg-white hover:bg-gray-100">{size}</button>
+            {availableSizes.map((size, idx) => (
+              <button
+                key={size || idx}
+                className={`px-3 py-1 border rounded-lg bg-white hover:bg-gray-100 ${selectedSize === size ? 'border-black font-semibold' : ''}`}
+                onClick={() => {
+                  setSelectedSize(size);
+                  setQuantity(1);
+                  // If current color is not available for this size, pick the first available color for this size
+                  const colorForSize = variants.find(v => v.size === size && v.color === selectedColor);
+                  if (!colorForSize) {
+                    const firstColor = variants.find(v => v.size === size)?.color;
+                    setSelectedColor(firstColor);
+                  }
+                }}
+                disabled={!allColors.some(color => variants.find(v => v.size === size && v.color === color))}
+              >
+                {size}
+              </button>
             ))}
+            {/* Size Chart Link/Button */}
+            {product?.size?.sizeChartUrl && (
+              <>
+                <span
+                  className="ml-3 underline text-blue-600 cursor-pointer hover:text-blue-800 text-sm"
+                  onClick={() => setShowSizeChart(true)}
+                >
+                  Size Chart
+                </span>
+                {/* Modal for Size Chart */}
+                {showSizeChart && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowSizeChart(false)}>
+                    <div className="bg-white rounded-lg p-4 shadow-xl max-w-md w-full relative" onClick={e => e.stopPropagation()}>
+                      <button
+                        className="absolute top-2 right-4 text-2xl font-bold text-gray-500 hover:text-black focus:outline-none"
+                        onClick={() => setShowSizeChart(false)}
+                        aria-label="Close size chart"
+                      >
+                        &times;
+                      </button>
+                      <img src={product?.size?.sizeChartUrl} alt="Size Chart" className="w-full h-auto rounded-lg" />
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
           {/* Color */}
           <div className="flex items-center gap-2">
             <span className="font-semibold">Color:</span>
-            {['#eab1b1','#e1eab1','#6ecb8c','#3b6eea','#eacb3b'].map((color, idx) => (
-              <button key={idx} className="w-7 h-7 rounded-full border-2 border-gray-300" style={{ background: color }}></button>
+            {allColors.map((color, idx) => (
+              <button
+                key={color || idx}
+                className={`w-7 h-7 rounded-full border-2 ${selectedColor === color ? 'border-black ring-2 ring-black' : 'border-gray-300'}`}
+                style={{ background: color }}
+                title={color}
+                onClick={() => {
+                  setSelectedColor(color);
+                  setQuantity(1);
+                  // If current size is not available for this color, pick first available size for this color
+                  const sizeForColor = variants.find(v => v.color === color && v.size === selectedSize);
+                  if (!sizeForColor) {
+                    const firstSize = variants.find(v => v.color === color)?.size;
+                    setSelectedSize(firstSize);
+                  }
+                }}
+                disabled={!colorIsEnabled(color)}
+              ></button>
             ))}
           </div>
         </div>
         {/* SKU, Tags, etc. */}
         <div className="mb-4">
-          <div className="text-sm mb-1"><span className="font-bold">SKU:</span> {product.sku || 'PRT584E63A'}</div>
+          {/* <div className="text-sm mb-1"><span className="font-bold">SKU:</span> {product.sku || 'PRT584E63A'}</div> */}
           <div className="text-sm mb-1"><span className="font-bold">Category:</span> Dresses, Jeans, Summer, Clothing</div>
-          <div className="text-sm"><span className="font-bold">Tags:</span> Casual, Athletic, Accessories</div>
+          <div className="text-sm"><span className="font-bold">Tags:</span> {(product?.categoryTag?.tags && product?.categoryTag?.tags.length > 0) ? product.categoryTag.tags.join(', ') : 'No tags'}</div>
         </div>
-            {/* Total Price */}
-            <div className="flex items-center justify-start gap-4 mb-3">
+        {/* Total Price */}
+        <div className="flex items-center justify-start gap-4 mb-3">
           <span className="font-bold text-xl">Total</span>
-          <span className="font-bold text-2xl">${total}</span>
+          <span className="font-bold text-2xl">₹ {total}</span>
         </div>
         {/* Action Buttons */}
-        <div className="flex gap-4 mb-6">
+        <div className="flex gap-4 mb-6 items-center">
           <button className="bg-black text-white py-3 px-8 rounded-lg font-semibold hover:bg-gray-800">ADD TO CART</button>
-          <button className="p-3 border rounded-full"><svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 0 1 6.364 0L12 7.636l1.318-1.318a4.5 4.5 0 1 1 6.364 6.364L12 21.682l-7.682-7.682a4.5 4.5 0 0 1 0-6.364z" /></svg></button>
-          <button className="p-3 border rounded-full"><svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M4 12v1a8 8 0 0 0 8 8v0a8 8 0 0 0 8-8v-1" /><polyline points="16 6 12 2 8 6" /></svg></button>
+          <Heart />
+          <Share2 />
         </div>
         {/* Info Boxes */}
         <div className="flex flex-col gap-3 mb-6">
@@ -130,12 +239,12 @@ export default function ProductDetailView({ product }) {
             <span className="font-semibold">Enjoy The Product</span>
             <span className="text-gray-500 text-xs">Lorem Ipsum is simply dummy text of the printing and typesetting</span>
           </div>
-          <div className="flex items-center gap-2 text-green-700 text-sm">
+          {/* <div className="flex items-center gap-2 text-green-700 text-sm">
             <span>✔</span>
             <span>You will save ₹504 on this order</span>
-          </div>
+          </div> */}
         </div>
-    
+
         {/* Buy Now Button */}
         <button className="border border-black py-3 rounded-lg font-semibold hover:bg-gray-100 w-full">BUY IT NOW</button>
       </div>

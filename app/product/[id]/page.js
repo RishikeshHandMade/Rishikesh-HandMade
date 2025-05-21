@@ -37,11 +37,12 @@ import FeaturedCarouselWrapper from "@/components/FeaturedCarouselWrapper";
 import ComingSoon from "@/models/ComingSoon";
 import ComingSoonEnquiryForm from "@/components/ComingSoonEnquiryForm";
 import ImportantNotice from "@/components/ImportantNotice"
-import  ResponsiveFeaturedCarousel from "@/components/ResponsiveFeaturedCarousel"
+import ResponsiveFeaturedCarousel from "@/components/ResponsiveFeaturedCarousel"
 import ProductInfoTabs from "@/components/ProductInfoTabs";
 import RelatedProductsCarousel from "@/components/RelatedProductsCarousel";
 import StickyAddToCartBar from "@/components/StickyAddToCartBar"
 import ProductDetailView from "@/components/ProductDetailView";
+import ProductTabs from "@/components/ProductTabs";
 // Fetch featured packages from the API
 // const getFeaturedPackages = async () => {
 //     try {
@@ -61,10 +62,10 @@ import ProductDetailView from "@/components/ProductDetailView";
 
 const ProductDetailPage = async ({ params }) => {
     // Get the product slug from the URL and decode it
-    let { id } = params;
+    let { id } = await params;
     const decodedSlug = decodeURIComponent(id);
     const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/product/${decodedSlug}`;
-    console.log('Fetching product with slug:', decodedSlug, 'API URL:', apiUrl);
+    // console.log('Fetching product with slug:', decodedSlug, 'API URL:', apiUrl);
     // Fetch the product by its slug using the API route
     const res = await fetch(apiUrl, { cache: 'no-store' });
     const product = await res.json();
@@ -86,14 +87,24 @@ const ProductDetailPage = async ({ params }) => {
     return (
         <SidebarInset>
             <div className="container mx-auto px-4 py-12">
-                {/* Frequently Bought Together Section */}
-                {/* --- Product Details Section (New) --- */}
                 <ProductDetailView product={product} />
-                <ResponsiveFeaturedCarousel />
-                <RelatedProductsCarousel />
-                <StickyAddToCartBar product={product} />
-                
-            </div>
+                {/* Product Tabs Section */}
+                <div className="my-2 flex items-center justify-center w-full">
+                    <ProductTabs tabsData={product.tabs || [
+                        { label: "Product Details", content: product.description || "No details available." },
+                        { label: "Additional Information", content: product.additionalInfo || "No additional info." },
+                        { label: "Shipping & Return", content: product.shippingReturn || "No shipping info." },
+                        { label: "Custom Tab", content: product.customTab || "No custom content." },
+                        { label: "Custom Review", content: product.customReview || "No reviews yet." },
+                    ]} />
+
+                    </div>
+
+                    <ResponsiveFeaturedCarousel />
+                    <RelatedProductsCarousel />
+                    <StickyAddToCartBar product={product} />
+
+                </div>
         </SidebarInset>
     )
 }

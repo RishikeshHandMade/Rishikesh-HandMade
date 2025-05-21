@@ -38,6 +38,15 @@ const RandomTourPackageSection = () => {
   const [isFbLoading, setIsFbLoading] = useState(true);
   const [artisan, setArtisan] = useState([])
   const [quickViewProduct, setQuickViewProduct] = useState(null);
+  // Prevent background scroll when Quick View is open
+  useEffect(() => {
+    if (quickViewProduct) {
+      document.body.classList.add("overflow-hidden");
+    } else {
+      document.body.classList.remove("overflow-hidden");
+    }
+    return () => document.body.classList.remove("overflow-hidden");
+  }, [quickViewProduct]);
   useEffect(() => {
     const fetchInstagramPosts = async () => {
       try {
@@ -58,7 +67,7 @@ const RandomTourPackageSection = () => {
       try {
         const res = await fetch("/api/createArtisan");
         const data = await res.json();
-        console.log(data);
+        // console.log(data);
         setArtisan(data);
       } catch (error) {
         setArtisan([]);
@@ -88,7 +97,7 @@ const RandomTourPackageSection = () => {
       try {
         const res = await fetch("/api/product");
         const data = await res.json();
-        // console.log("Product API response:", data);
+        console.log("Product API response:", data);
 
         if (data && data.length > 0) {
           setProducts(data);
@@ -278,7 +287,7 @@ const RandomTourPackageSection = () => {
                         >
                           {item?.title}
                         </Link>
-                        <span className="font-bold text-xl text-gray-900">${formatNumeric(item?.quantity?.variants[0].price)}</span>
+                        <span className="font-bold text-xl text-gray-900"> ₹{formatNumeric(item?.quantity?.variants[0].price)}</span>
                       </div>
                     </div>
                   </CarouselItem>
@@ -384,10 +393,10 @@ const RandomTourPackageSection = () => {
                       experience: item.yearsOfExperience ? `${item.yearsOfExperience} years experience` : "",
                       location: item.address ? `${item.address.city}, ${item.address.state}` : "",
                       socials: [
-                        { icon: "/insta-Tranparent.webp", url: "#" },
-                        { icon: "/fb.png", url: "#" },
-                        { icon: "/google.png", url: "#" },
-                        { icon: "/website.png", url: "#" }
+                        { icon: "/insta-Tranparent.webp", url: item.socialPlugin?.instagram || "#" },
+                        { icon: "/fb.png", url: item.socialPlugin?.facebook || "#" },
+                        { icon: "/google.png", url: item.socialPlugin?.google || "#" },
+                        { icon: "/website.png", url: item.socialPlugin?.website || "#" }
                       ],
                     }))
                     : [
@@ -401,6 +410,7 @@ const RandomTourPackageSection = () => {
                           { icon: "/insta-Tranparent.webp", url: "#" },
                           { icon: "/facebook.png", url: "#" },
                           { icon: "/google.png", url: "#" },
+                          { icon: "/website.png", url: "#" }
                         ],
                       },
                       {
@@ -413,6 +423,7 @@ const RandomTourPackageSection = () => {
                           { icon: "/insta-Tranparent.webp", url: "#" },
                           { icon: "/facebook.png", url: "#" },
                           { icon: "/google.png", url: "#" },
+                          { icon: "/website.png", url: "#" }
                         ],
                       },
                       {
@@ -425,6 +436,7 @@ const RandomTourPackageSection = () => {
                           { icon: "/insta-Tranparent.webp", url: "#" },
                           { icon: "/facebook.png", url: "#" },
                           { icon: "/google.png", url: "#" },
+                          { icon: "/website.png", url: "#" }
                         ],
                       },
                       {
@@ -437,6 +449,7 @@ const RandomTourPackageSection = () => {
                           { icon: "/insta-Tranparent.webp", url: "#" },
                           { icon: "/facebook.png", url: "#" },
                           { icon: "/google.png", url: "#" },
+                          { icon: "/website.png", url: "#" }
                         ],
                       },
                     ]
@@ -486,12 +499,12 @@ const RandomTourPackageSection = () => {
         bg-white rounded-full w-12 h-12 flex items-center justify-center shadow hover:bg-gray-100 transition
         transform translate-y-5 group-hover/arrow:translate-y-0
       `}
-      style={{
-        transitionProperty: 'transform, opacity, background-color, box-shadow',
-        transitionDuration: '0.6s',
-        transitionTimingFunction: 'cubic-bezier(0.4,0,0.2,1)',
-        transitionDelay: `${i * 60}ms`
-      }}  
+                                  style={{
+                                    transitionProperty: 'transform, opacity, background-color, box-shadow',
+                                    transitionDuration: '0.6s',
+                                    transitionTimingFunction: 'cubic-bezier(0.4,0,0.2,1)',
+                                    transitionDelay: `${i * 60}ms`
+                                  }}
                                 >
                                   <img src={s.icon} alt="social" className="w-7 h-7" />
                                 </a>
