@@ -88,7 +88,7 @@ const RandomTourPackageSection = () => {
       try {
         const res = await fetch("/api/product");
         const data = await res.json();
-        console.log("Product API response:", data);
+        // console.log("Product API response:", data);
 
         if (data && data.length > 0) {
           setProducts(data);

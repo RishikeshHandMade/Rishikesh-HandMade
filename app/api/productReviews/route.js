@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/connectDB';
 import ProductReview from '@/models/ProductReview';
-
+import Product from "@/models/Product"
 // POST: Add a new product review
 export async function POST(req) {
   await connectDB();
@@ -10,7 +10,10 @@ export async function POST(req) {
     if (!productId || !rating || !review || !createdBy) {
       return NextResponse.json({ error: 'Missing productId, rating, review, or createdBy' }, { status: 400 });
     }
+    // Create the review
     const reviewDoc = await ProductReview.create({ product: productId, rating, title, review, createdBy });
+    // Push review _id to Product's reviews array
+    await Product.findByIdAndUpdate(productId, { $push: { reviews: reviewDoc._id } });
     return NextResponse.json({ success: true, review: reviewDoc });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
@@ -37,16 +40,19 @@ export async function GET(req) {
 export async function PATCH(req) {
   await connectDB();
   try {
-    const { reviewId, rating, title, review,createdBy } = await req.json();
-    if (!reviewId) {
-      return NextResponse.json({ error: 'Missing reviewId' }, { status: 400 });
+    const { reviewId, productId, rating, title, review } = await req.json();
+    if (!reviewId || !productId) {
+      return NextResponse.json({ error: 'Missing reviewId or productId' }, { status: 400 });
     }
-    const updated = await ProductReview.findByIdAndUpdate(
+    // Update the review
+    const updatedReview = await ProductReview.findByIdAndUpdate(
       reviewId,
-      { rating, title, review,createdBy },
+      { rating, title, review },
       { new: true }
     );
-    return NextResponse.json({ review: updated });
+    // Ensure the reviewId is in the Product's reviews array (add if not present)
+    await Product.findByIdAndUpdate(productId, { $addToSet: { reviews: reviewId } });
+    return NextResponse.json({ success: true, review: updatedReview });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
@@ -63,6 +69,6 @@ export async function DELETE(req) {
     await ProductReview.findByIdAndDelete(reviewId);
     return NextResponse.json({ success: true });
   } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: err.message }, { status: 500 });  
   }
 }
