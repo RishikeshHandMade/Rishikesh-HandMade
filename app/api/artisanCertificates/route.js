@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
 import connectDB from '../../../lib/connectDB';
-import ArtisanCertificate from '../../../models/ArtisanCertificate';
+let ArtisanCertificate 
+try {
+  ArtisanCertificate = mongoose.model('ArtisanCertificate');
+} catch {
+  ArtisanCertificate = require('@/models/ArtisanCertificate');
+}
 import mongoose from 'mongoose';
-import ArtisanSchema from '../../../models/Artisan';
-const Artisan = mongoose.models.Artisan || mongoose.model('Artisan', ArtisanSchema.schema);
+const Artisan = require('@/models/Artisan');
 // GET all certificates or by artisan
 export async function GET(req) {
   await connectDB();

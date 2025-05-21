@@ -30,9 +30,17 @@ const getCategoryInfo = async (categoryId) => {
 }
 
 const CategoryPage = async ({ params }) => {
-    const { id } = await params
-    const { packages } = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/getPackages/byId/${id}`).then(res => res.json())
-    const getCategory = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/getCategoryBanner/${id}`).then(res => res.json())
+    const { id } = await params;
+    const pkgRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/getPackages/byId/${id}`);
+    let pkgData;
+    try {
+        pkgData = await pkgRes.json();
+    } catch {
+        pkgData = {};
+    }
+    const packages = Array.isArray(pkgData.packages) ? pkgData.packages : [];
+
+    const getCategory = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/getCategoryBanner/${id}`).then(res => res.json());
 
     const categoryInfo = await getCategoryInfo(getCategory)
 

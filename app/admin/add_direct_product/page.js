@@ -1,7 +1,7 @@
 import ProductProfile from "@/components/Admin/ProductProfile"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 
-export const dynamic = "force-dynamic"
+// export const dynamic = "force-dynamic"
 
 const AddDirectProductPage = async () => {
 

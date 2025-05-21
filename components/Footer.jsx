@@ -40,7 +40,7 @@ const Footer = () => {
 
 
     return (
-        <footer className={`print:hidden ${pathName.includes('product') && 'hidden'} ${pathName.includes('product') && 'hidden'} ${pathName.includes('customEnquiry') && 'hidden'} ${pathName.includes('checkout') && 'hidden'}  ${pathName.includes('category') && 'hidden'} bg-[url('/bg-custom-2.jpg')] text-black py-8`}>
+        <footer className={`print:hidden ${pathName.includes('admin') && 'hidden'} ${pathName.includes('product') && 'hidden'} ${pathName.includes('customEnquiry') && 'hidden'} ${pathName.includes('checkout') && 'hidden'}  ${pathName.includes('category') && 'hidden'} bg-[url('/bg-custom-2.jpg')] text-black py-8`}>
             <div className="w-full flex justify-center pb-5">
                 <div className="h-[1.5px] bg-gray-300 w-[80%] mx-auto px-4" />
             </div>

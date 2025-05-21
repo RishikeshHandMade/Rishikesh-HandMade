@@ -15,5 +15,4 @@ const ArtisanPluginSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
-
-export default mongoose.models.ArtisanPlugin || mongoose.model('ArtisanPlugin', ArtisanPluginSchema);
+module.exports = mongoose.models.ArtisanPlugin || mongoose.model('ArtisanPlugin', ArtisanPluginSchema);

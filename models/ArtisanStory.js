@@ -32,4 +32,4 @@ const artisanStorySchema = new mongoose.Schema({
   }
 });
 
-module.exports = mongoose.models.ArtisanStory || mongoose.model('ArtisanStory', artisanStorySchema);
+module.exports = mongoose.models.Story || mongoose.model('Story', artisanStorySchema);

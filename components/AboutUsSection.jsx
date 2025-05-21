@@ -172,7 +172,7 @@ const AboutUsSection = () => {
                             />
                           </div>
                           <div className="mt-4 text-center px-2 w-full flex justify-start">
-                            <Link href={`/category/${item._id}`} >
+                          <Link key={item._id} href={item.link}>
                               <div className="font-bold text-xl text-black hover:underline transition cursor-pointer">{item.title}</div>
                             </Link>
                           </div>

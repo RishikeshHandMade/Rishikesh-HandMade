@@ -30,10 +30,10 @@ const ManageProductsCategory = () => {
     const [editItem, setEditItem] = useState(null)
     const [bannerImage, setBannerImage] = useState(null)
     // Gallery state for product images
-    const [galleryImages, setGalleryImages] = useState([])
-    const [loadedGalleryImages, setLoadedGalleryImages] = useState([])
-    const [galleryUploading, setGalleryUploading] = useState(false)
-    const galleryFileInputRef = useRef(null);
+    // const [galleryImages, setGalleryImages] = useState([])
+    // const [loadedGalleryImages, setLoadedGalleryImages] = useState([])
+    // const [galleryUploading, setGalleryUploading] = useState(false)
+    // const galleryFileInputRef = useRef(null);
     const bannerFileInputRef = useRef(null);
 
     useEffect(() => {
@@ -44,7 +44,7 @@ const ManageProductsCategory = () => {
 
     const onSubmit = async (data) => {
         // Attach gallery images to submenu data
-        data.gallery = galleryImages;
+        // data.gallery = galleryImages;
 
         if (!selectedMenu) {
             toast.error("Please select a Menu Type", { style: { borderRadius: "10px", border: "2px solid red" } })
@@ -70,7 +70,7 @@ const ManageProductsCategory = () => {
             active: true,
             order: (menuItems.find(item => item.title === selectedMenu)?.subMenu.length || 0) + 1,
             banner: bannerImage,
-            gallery: galleryImages
+            // gallery: galleryImages
         }
 
         try {
@@ -162,7 +162,7 @@ const ManageProductsCategory = () => {
         setValue("subMenu.title", item.title)
         setValue("subMenu.order", item.order)
         setBannerImage(item.banner)
-        setGalleryImages(item.gallery || [])
+        // setGalleryImages(item.gallery || [])
     }
 
     const deleteMenuItem = async (subMenuId) => {
@@ -191,50 +191,50 @@ const ManageProductsCategory = () => {
         }
     }
 
-    const handleRemoveImage = async (key) => {
-        await deleteFileFromCloudinary(key)
-        setBannerImage(null)
-    }
+    // const handleRemoveImage = async (key) => {
+    //     await deleteFileFromCloudinary(key)
+    //     setBannerImage(null)
+    // }
 
-    const handleGalleryImageLoad = (index) => {
-        setLoadedGalleryImages((prev) => {
-            const updated = [...prev, index]
-            return updated
-        })
-    }
+    // const handleGalleryImageLoad = (index) => {
+    //     setLoadedGalleryImages((prev) => {
+    //         const updated = [...prev, index]
+    //         return updated
+    //     })
+    // }
 
-    const handleGalleryImageUpload = async (event) => {
-        const files = Array.from(event.target.files)
-        if (!files.length) return
-        setGalleryUploading(true)
-        let newFiles = []
-        try {
-            for (const file of files) {
-                const formData = new FormData()
-                formData.append('file', file)
-                const res = await fetch('/api/cloudinary', {
-                    method: 'POST',
-                    body: formData
-                })
-                if (!res.ok) throw new Error('Image upload failed')
-                const result = await res.json()
-                newFiles.push({ url: result.url, key: result.key })
-            }
-            setGalleryImages(prev => [...prev, ...newFiles])
-            toast.success('Images uploaded successfully')
-        } catch (err) {
-            toast.error('Image upload failed')
-        } finally {
-            setGalleryUploading(false)
-            if (galleryFileInputRef.current) galleryFileInputRef.current.value = ''
-        }
-    }
+    // const handleGalleryImageUpload = async (event) => {
+    //     const files = Array.from(event.target.files)
+    //     if (!files.length) return
+    //     setGalleryUploading(true)
+    //     let newFiles = []
+    //     try {
+    //         for (const file of files) {
+    //             const formData = new FormData()
+    //             formData.append('file', file)
+    //             const res = await fetch('/api/cloudinary', {
+    //                 method: 'POST',
+    //                 body: formData
+    //             })
+    //             if (!res.ok) throw new Error('Image upload failed')
+    //             const result = await res.json()
+    //             newFiles.push({ url: result.url, key: result.key })
+    //         }
+    //         setGalleryImages(prev => [...prev, ...newFiles])
+    //         toast.success('Images uploaded successfully')
+    //     } catch (err) {
+    //         toast.error('Image upload failed')
+    //     } finally {
+    //         setGalleryUploading(false)
+    //         if (galleryFileInputRef.current) galleryFileInputRef.current.value = ''
+    //     }
+    // }
 
-    const handleRemoveGalleryImage = async (key) => {
-        await deleteFileFromCloudinary(key)
-        setGalleryImages(prev => prev.filter(file => file.key !== key))
-        toast.success('Image Deleted')
-    }
+    // const handleRemoveGalleryImage = async (key) => {
+    //     await deleteFileFromCloudinary(key)
+    //     setGalleryImages(prev => prev.filter(file => file.key !== key))
+    //     toast.success('Image Deleted')
+    // }
 
     return (
         <>
@@ -314,7 +314,7 @@ const ManageProductsCategory = () => {
                     </div>
 
                     {/* Gallery Images Section */}
-                    <div className="flex flex-col gap-2 mt-4">
+                    {/* <div className="flex flex-col gap-2 mt-4">
                         <Label>Gallery Images</Label>
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 w-full gap-4">
                             {galleryImages.length > 0 ? (
@@ -366,10 +366,10 @@ const ManageProductsCategory = () => {
                         >
                             {galleryUploading ? 'Uploading...' : 'Upload Gallery Images'}
                         </button>
-                    </div>
+                    </div> */}
 
                 </div>
-                <button className="bg-blue-600 !py-6 hover:bg-blue-500 text-lg" type="submit">
+                <button className="bg-blue-600 p-2 rounded-lg hover:bg-blue-500 text-lg text-white" type="submit">
                     Add SubMenu
                 </button>
             </form>
@@ -379,7 +379,7 @@ const ManageProductsCategory = () => {
                     <Table className="w-full">
                         <TableHeader>
                             <TableRow>
-                                <TableHead className="text-center !text-black w-1/3">Add Package</TableHead>
+                                <TableHead className="text-center !text-black w-1/3">Add Product</TableHead>
                                 <TableHead className="text-center !text-black w-1/3">Sub Menu Title</TableHead>
                                 <TableHead className="text-center !text-black w-1/3">Order</TableHead>
                                 <TableHead className="w-1/3 !text-black text-center">Action</TableHead>
@@ -396,7 +396,7 @@ const ManageProductsCategory = () => {
                                                     <Link href={`/admin/manage_products_category/addSubMenuPackage/${subItem._id}`} variant="outline" className="bg-white border-2 border-blue-500 p-2 rounded-full text-blue-600 hover:text-blue-500 focus:text-blue-500 flex items-center justify-center">
                                                         <span className="xl:mr-6 mr-2 bg-blue-100 rounded py-1 px-3">{subItem?.packages?.length !== 0 ? subItem?.packages?.length : 0}</span>
                                                         <Plus className="w-4 h-4" />
-                                                        <span>Add Package</span>
+                                                        <span>Add Product</span>
                                                     </Link>
                                                 </TableCell>
                                                 <TableCell className="border font-semibold border-blue-600">{subItem?.title}</TableCell>

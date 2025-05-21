@@ -16,4 +16,4 @@ const ArtisanCertificateSchema = new mongoose.Schema({
   timestamps: true
 });
 
-export default mongoose.models.ArtisanCertificate || mongoose.model('ArtisanCertificate', ArtisanCertificateSchema);
+module.exports = mongoose.models.ArtisanCertificate || mongoose.model('ArtisanCertificate', ArtisanCertificateSchema);

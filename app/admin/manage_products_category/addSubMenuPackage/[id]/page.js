@@ -1,4 +1,4 @@
-import AddPackage from "@/components/Admin/AddPackage"
+import ProductProfile from "@/components/Admin/ProductProfile"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 
 const page = async ({ params }) => {
@@ -12,8 +12,9 @@ const page = async ({ params }) => {
                 </div>
             </header>
             <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-                <h1 className="text-4xl px-12 font-semibold">Add Package</h1>
-                <AddPackage id={id} />
+                <h1 className="text-4xl px-12 font-semibold">Add Product</h1>
+                {/* <AddPackage id={id} /> */}
+                <ProductProfile/>
             </div>
         </SidebarInset>
     )

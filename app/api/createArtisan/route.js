@@ -7,9 +7,14 @@ try {
 } catch {
   Artisan = require('@/models/Artisan');
 }
+import "@/models/Promotion";
+import "@/models/ArtisanBlog";
+import "@/models/ArtisanStory";
+import "@/models/ArtisanCertificate";
+import "@/models/ArtisanPlugin";
+import "@/models/Product";
 import { addSpecializationIfNotExists } from "@/lib/specialization";
 import { deleteFileFromCloudinary } from "@/utils/Utapi";
-
 // Helper to normalize form data
 // function normalizeFormData(body) {
 //   const normalized = {};
@@ -41,9 +46,9 @@ export async function POST(req) {
     const data = await req.json();
 
     // Validate required fields
-    if (!data.title || !data.firstName || !data.lastName || !data.fatherHusbandType || !data.fatherHusbandTitle || !data.fatherHusbandName || 
-        !data.fatherHusbandLastName || !data.shgName || !data.artisanNumber || !data.yearsOfExperience || 
-        !data.callNumber || !data.address || !data.city || !data.state) {
+    if (!data.title || !data.firstName || !data.lastName || !data.fatherHusbandType || !data.fatherHusbandTitle || !data.fatherHusbandName ||
+      !data.fatherHusbandLastName || !data.shgName || !data.artisanNumber || !data.yearsOfExperience ||
+      !data.callNumber || !data.address || !data.city || !data.state) {
       return new Response(JSON.stringify({ message: 'Missing required fields' }), { status: 400 });
     }
 
@@ -96,10 +101,18 @@ export async function POST(req) {
 export async function GET() {
   try {
     await connectDB();
-    const artisans = await Artisan.find().sort({ createdAt: -1 });
+    const artisans = await Artisan.find()
+      .populate('promotions')
+      .populate('blogs')
+      .populate('artisanStories')
+      .populate('certificates')
+      .populate('socialPlugin')
+      .populate('products')
+      .sort({ createdAt: -1 });
     return new Response(JSON.stringify(artisans), { status: 200 });
   } catch (error) {
-    return new Response(JSON.stringify({ message: 'Error fetching artisans', error: error.message }), { status: 500 });
+    console.error('Error fetching artisans:', error);
+    return new Response(JSON.stringify({ message: 'Error fetching artisans', error: error.stack }), { status: 500 });
   }
 }
 
@@ -120,7 +133,7 @@ export async function PATCH(req) {
     if (typeof updateFields.specializations === 'string') {
       try {
         updateFields.specializations = JSON.parse(updateFields.specializations);
-      } catch {}
+      } catch { }
     }
     // Ensure profileImage is always an object { url, key }
     if (!updateFields.profileImage || typeof updateFields.profileImage !== 'object') {
@@ -135,7 +148,7 @@ export async function PATCH(req) {
     }
     console.log('PATCH updateFields after processing:', updateFields); // Debug log
     // Directly replace all fields with the new data (admin full update)
-    const updatedArtisan = await Artisan.findByIdAndUpdate(id, updateFields, { new: true});
+    const updatedArtisan = await Artisan.findByIdAndUpdate(id, updateFields, { new: true });
     // Ensure profileImage is always an object if present
     if (updatedArtisan && updatedArtisan.profileImage && typeof updatedArtisan.profileImage === 'string') {
       updatedArtisan.profileImage = { url: updatedArtisan.profileImage, key: '' };

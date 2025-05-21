@@ -111,11 +111,11 @@ const artisanSchema = new mongoose.Schema({
   },
   certificates: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Certificate'
+    ref: 'ArtisanCertificate'
   }],
   socialPlugin: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'SocialPlugin',
+    ref: 'ArtisanPlugin',
     default: null
   },
   products: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }]

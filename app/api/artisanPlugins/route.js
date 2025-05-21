@@ -1,9 +1,14 @@
 import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
-import connectDB from '../../../lib/connectDB';
-import ArtisanPlugin from '../../../models/ArtisanPlugin';
-import ArtisanSchema from '../../../models/Artisan';
-const Artisan = mongoose.models.Artisan || mongoose.model('Artisan', ArtisanSchema.schema);
+import connectDB from '@/lib/connectDB';
+let ArtisanPlugin
+try {
+  ArtisanPlugin = mongoose.model('ArtisanPlugin');
+} catch {
+  ArtisanPlugin = require('@/models/ArtisanPlugin');
+}
+
+const Artisan = require('@/models/Artisan');
 
 // GET all plugins or by artisan
 export async function GET(req) {
@@ -34,18 +39,22 @@ export async function POST(req) {
     if (existing) {
       return NextResponse.json({ success: false, message: 'Plugin already exists for this artisan.' }, { status: 400 });
     }
-    const plugin = await ArtisanPlugin.create(body);
-    // Push plugin _id to artisan's socialPlugin field
-    if (plugin.artisan) {
-      await Artisan.findByIdAndUpdate(
-        plugin.artisan,
-        { $set: { socialPlugin: plugin._id } },
-        { new: true }
-      );
+    // Log the incoming body for debugging
+    console.log('Received body for SocialPlugin POST:', body);
+    try {
+      const plugin = await ArtisanPlugin.create(body);
+      // Push plugin _id to artisan's socialPlugin field
+      if (plugin.artisan) {
+        await Artisan.findByIdAndUpdate(plugin.artisan, { socialPlugin: plugin._id });
+      }
+      return NextResponse.json({ success: true, plugin });
+    } catch (pluginErr) {
+      console.error('Error creating ArtisanPlugin:', pluginErr);
+      return NextResponse.json({ success: false, message: 'Failed to create plugin', error: pluginErr.stack }, { status: 500 });
     }
-    return NextResponse.json({ success: true, plugin });
   } catch (err) {
-    return NextResponse.json({ success: false, message: 'Failed to create plugin', error: err.message }, { status: 500 });
+    console.error('Error in POST /api/artisanPlugins:', err);
+    return NextResponse.json({ success: false, message: 'Failed to process request', error: err.stack }, { status: 500 });
   }
 }
 
