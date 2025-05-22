@@ -134,7 +134,6 @@ export default function ProductDetailView({ product }) {
             >
               +
             </button>
-            {selectedVariant && <span className="ml-2 text-xs text-gray-500">({selectedVariant.qty} in stock)</span>}
           </div>
           {/* Size */}
           <div className="flex items-center gap-2">

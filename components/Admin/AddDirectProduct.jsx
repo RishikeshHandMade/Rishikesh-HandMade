@@ -11,6 +11,7 @@ import ProductDescription from './ProductDescription';
 import SizeManagement from './SizeManagement';
 import QuantityManagement from './QuantityManagement';
 import ApplyCoupon from './ApplyCoupon';
+import ApplyTax from './ApplyTax';
 
 
 
@@ -21,6 +22,7 @@ const AddDirectProduct = ({ productId }) => {
     { key: 'color', label: 'Color Management', component: (props) => <ColorManagement {...props} productData={productData} productId={productId} /> },
     { key: 'quantity', label: 'Price / Quantity', component: (props) => <QuantityManagement {...props} productData={productData} productId={productId} /> },
     { key: 'apply', label: 'Apply Coupon', component: (props) => <ApplyCoupon {...props} productData={productData} productId={productId} /> },
+    { key: 'tax', label: 'Apply Tax', component: (props) => <ApplyTax {...props} productData={productData} productId={productId} /> },
     { key: 'gallery', label: 'Product Gallery', component: (props) => <ProductGallery {...props} productData={productData} productId={productId} /> },
     { key: 'video', label: 'Video Management', component: (props) => <VideoManagement {...props} productData={productData} productId={productId} /> },
     { key: 'description', label: 'Product Description', component: (props) => <ProductDescription {...props} productData={productData} productId={productId} /> },

@@ -38,11 +38,11 @@ import ComingSoon from "@/models/ComingSoon";
 import ComingSoonEnquiryForm from "@/components/ComingSoonEnquiryForm";
 import ImportantNotice from "@/components/ImportantNotice"
 import ResponsiveFeaturedCarousel from "@/components/ResponsiveFeaturedCarousel"
-import ProductInfoTabs from "@/components/ProductInfoTabs";
+// import ProductInfoTabs from "@/components/ProductInfoTabs";
 import RelatedProductsCarousel from "@/components/RelatedProductsCarousel";
 import StickyAddToCartBar from "@/components/StickyAddToCartBar"
 import ProductDetailView from "@/components/ProductDetailView";
-import ProductTabs from "@/components/ProductTabs";
+import ProductInfoTabs from "@/components/ProductInfoTabs";
 // Fetch featured packages from the API
 // const getFeaturedPackages = async () => {
 //     try {
@@ -90,13 +90,7 @@ const ProductDetailPage = async ({ params }) => {
                 <ProductDetailView product={product} />
                 {/* Product Tabs Section */}
                 <div className="my-2 flex items-center justify-center w-full">
-                    <ProductTabs tabsData={product.tabs || [
-                        { label: "Product Details", content: product.description || "No details available." },
-                        { label: "Additional Information", content: product.additionalInfo || "No additional info." },
-                        { label: "Shipping & Return", content: product.shippingReturn || "No shipping info." },
-                        { label: "Custom Tab", content: product.customTab || "No custom content." },
-                        { label: "Custom Review", content: product.customReview || "No reviews yet." },
-                    ]} />
+                    <ProductInfoTabs product={product} />
 
                     </div>
 

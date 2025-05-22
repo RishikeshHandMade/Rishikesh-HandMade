@@ -283,7 +283,7 @@ const RandomTourPackageSection = () => {
                       <div className="flex items-center justify-between px-2 pt-4 pb-2 bg-white rounded-b-3xl mt-0">
                         <Link
                           href={`/product/${item._id}`}
-                          className="font-bold text-xl text-gray-900 leading-tight max-w-[200px] truncate cursor-pointer"
+                          className="font-bold hover:underline text-xl text-gray-900 leading-tight max-w-[200px] truncate cursor-pointer"
                         >
                           {item?.title}
                         </Link>

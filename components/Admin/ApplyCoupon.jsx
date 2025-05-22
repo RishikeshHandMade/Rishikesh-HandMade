@@ -156,7 +156,7 @@ const ApplyCoupon = ({ productData, productId }) => {
                   // Refresh table
                   const allRes = await fetch('/api/productCoupon');
                   setAllProductCoupons(await allRes.json());
-                  
+
                 } else if (res.status === 409) {
                   toast.error(data.error || 'Coupons for this product already exist.');
                   // Do not clear the form

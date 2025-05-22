@@ -13,6 +13,8 @@ export async function POST(req) {
     let infoDoc = await Info.findOne({ product: productId });
     if (!infoDoc) {
       infoDoc = await Info.create({ product: productId, info: [{ title, description }] });
+      // Link Info to Product
+      await Product.findByIdAndUpdate(productId, { info: infoDoc._id });
     } else {
       // Defensive: never overwrite the array, always append
       if (!Array.isArray(infoDoc.info)) {

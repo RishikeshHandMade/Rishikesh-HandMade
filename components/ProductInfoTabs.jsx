@@ -31,28 +31,41 @@ function TabContentWithTableWidth({ content }) {
 
 export default function ProductInfoTabs({ product }) {
     // Example: dynamic tab data from API/product object
-    const tabs = [
-        {
-            label: "Product Details",
-            content: product.description || "No product details available.",
-        },
-        {
-            label: "Additional Information",
-            content: product.additionalInfo || "No additional information.",
-        },
-        {
-            label: "Shipping & Return",
-            content: product.shippingReturn || "Shipping and return policy not provided.",
-        },
-        {
-            label: "Custom Tab",
-            content: product.customTab || "Custom tab content.",
-        },
-        {
-            label: "Custom Review",
-            content: product.customReview || "No reviews yet.",
-        },
-    ];
+    let tabs = [];
+    if (
+        product &&
+        product.info &&
+        Array.isArray(product.info.info) &&
+        product.info.info.length > 0
+    ) {
+        tabs = product.info.info.map(section => ({
+            label: section.title,
+            content: section.description
+        }));
+    } else {
+        tabs = [
+            {
+                label: "Product Details",
+                content: product?.description || "No product details available.",
+            },
+            {
+                label: "Additional Information",
+                content: product?.additionalInfo || "No additional information.",
+            },
+            {
+                label: "Shipping & Return",
+                content: product?.shippingReturn || "Shipping and return policy not provided.",
+            },
+            {
+                label: "Custom Tab",
+                content: product?.customTab || "Custom tab contenadsfasdft.",
+            },
+            {
+                label: "Custom Review",
+                content: product?.customReview || "No reviews yet.",
+            },
+        ];
+    }
     const [activeTab, setActiveTab] = useState(0);
     return (
         <div className="w-full mt-10">
