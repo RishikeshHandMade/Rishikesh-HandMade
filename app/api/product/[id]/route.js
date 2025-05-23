@@ -34,12 +34,23 @@ export async function GET(req, { params }) {
 
 export async function DELETE(req, { params }) {
   try {
-    await connectDB()
+    await connectDB();
     const { id } = await params;
-    const deleted = await Product.findByIdAndDelete(id);
-    if (!deleted) {
+    // Find the product to get the artisan reference before deleting
+    const product = await Product.findById(id);
+    if (!product) {
       return new Response(JSON.stringify({ error: 'Product not found' }), { status: 404 });
     }
+    // Remove the product reference from the artisan's products array
+    if (product.artisan) {
+      const Artisan = require('@/models/Artisan');
+      await Artisan.findByIdAndUpdate(
+        product.artisan,
+        { $pull: { products: product._id } }
+      );
+    }
+    // Now delete the product
+    await Product.findByIdAndDelete(id);
     return new Response(null, { status: 204 });
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), { status: 500 });

@@ -67,7 +67,7 @@ const RandomTourPackageSection = () => {
       try {
         const res = await fetch("/api/createArtisan");
         const data = await res.json();
-        // console.log(data);
+        console.log(data);
         setArtisan(data);
       } catch (error) {
         setArtisan([]);
@@ -97,7 +97,7 @@ const RandomTourPackageSection = () => {
       try {
         const res = await fetch("/api/product");
         const data = await res.json();
-        console.log("Product API response:", data);
+        // console.log("Product API response:", data);
 
         if (data && data.length > 0) {
           setProducts(data);
@@ -211,18 +211,18 @@ const RandomTourPackageSection = () => {
             out — elevate your experience now!
           </p>
           <Carousel
-            className={`w-full md:w-[90%]  mx-auto my-4 ${products.length > 0 ? "block" : "hidden"}`}
+            className={`w-full md:w-[95%]  mx-auto my-4 ${products.length > 0 ? "block" : "hidden"}`}
           >
-            <CarouselContent className="-ml-1 w-full gap-4">
+            <CarouselContent className="-ml-1 w-full gap-2">
               {products.length > 0 &&
                 products.map((item, index) => (
                   <CarouselItem
                     key={index}
                     className="pl-1  md:basis-1/2 lg:basis-1/4 min-w-0 snap-start"
                   >
-                    <div className="flex flex-col">
+                    <div className="flex flex-col w-[300px]">
                       {/* Image Section */}
-                      <div className="relative w-full h-96 rounded-3xl overflow-hidden flex items-center justify-center group/image">
+                      <div className="relative w-full h-96  rounded-3xl overflow-hidden flex items-center justify-center group/image">
                         {/* GET 10% OFF Tag */}
                         <div className="absolute top-6 left-6 z-10">
                           <div className="bg-white rounded-full px-5 py-2 text-sm font-bold shadow text-black tracking-tight" style={{ letterSpacing: 0 }}>
@@ -293,8 +293,8 @@ const RandomTourPackageSection = () => {
                   </CarouselItem>
                 ))}
             </CarouselContent>
-            <CarouselPrevious />
-            <CarouselNext />
+            {/* <CarouselPrevious /> */}
+            {/* <CarouselNext /> */}
           </Carousel>
 
           {/* Promotional Banner Section */}
@@ -476,9 +476,13 @@ const RandomTourPackageSection = () => {
                         {/* Card Content Overlay */}
                         <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-6 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
                           <div>
-                            <h3 className="font-bold text-2xl text-white mb-3 leading-tight drop-shadow-md">
+                            <a
+                              href={`/artisan/${artisan.id}`}
+                              className="font-bold text-2xl text-white mb-3 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
+                              title={artisan.name}
+                            >
                               {artisan.name}
-                            </h3>
+                            </a>
                           </div>
                           {/* Arrow Button with Socials on Hover */}
                           <div className="relative group/arrow">

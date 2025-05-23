@@ -54,11 +54,11 @@ export default function QuickViewProductCard({ product, onClose }) {
         <h2 className="text-2xl font-bold mb-1">{product?.title || "N/A"}</h2>
         <div className="flex items-center gap-2 mb-2">
           <span className="text-yellow-500 text-lg">★</span>
-          <span className="font-semibold">{product.rating || "4.7"} Rating</span>
-          <span className="text-sm text-gray-500">({product.reviewCount || "5"} customer reviews)</span>
+          <span className="font-semibold">{product?.rating || "4.7"} Rating</span>
+          <span className="text-sm text-gray-500">({product?.reviewCount || "5"} customer reviews)</span>
         </div>
         {/* Description */}
-        <p className="text-gray-600 mb-4">{product.description || "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has."}</p>
+        <p className="text-gray-600 mb-4">{product?.description || "No Description"}</p>
         {/* Price & Quantity */}
         <div className="flex items-center gap-4 mb-4">
           <div className="flex flex-col">
@@ -76,15 +76,20 @@ export default function QuickViewProductCard({ product, onClose }) {
           </div>
         </div>
         {/* Buttons */}
-        <div className="flex gap-2 mb-4">
-          <button className="bg-black text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-800">ADD TO CART</button>
-          <button className="border border-black px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 "><Heart />Add To Wishlist</button>
+        <div className="flex gap-2 mb-4 w-full">
+          <button className="bg-black text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-800 w-1/2">ADD TO CART</button>
+          <button className="border border-black px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 w-1/2 flex items-center gap-2"><Heart />Add To Wishlist</button>
         </div>
         {/* Divider */}
         <hr className="my-1" />
         {/* Info Rows */}
-        <div className="text-sm mb-1"><span className="font-bold">SKU:</span> {product.sku || "PRT584E63A"}</div>
-        <div className="text-sm mb-1"><span className="font-bold">Category:</span> {product.category || "Dresses, Jeans, Swimwear, Summer, Clothing"}</div>
+        {/* <div className="text-sm mb-1"><span className="font-bold">SKU:</span> {product.sku || "PRT584E63A"}</div> */}
+        {/* <div className="text-sm mb-1">
+    <span className="font-bold">Category:</span>
+    {Array.isArray(product.categoryTag?.tags) && product.categoryTag.tags.length > 0
+      ? product.categoryTag.tags.join(', ')
+      : (product.category || "Dresses, Jeans, Swimwear, Summer, Clothing")}
+  </div> */}
         <div className="text-sm mb-1">
           <span className="font-bold">Tags:</span>
           {Array.isArray(product.categoryTag?.tags) && product.categoryTag.tags.length > 0 ? (

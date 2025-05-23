@@ -33,6 +33,7 @@ const Header = () => {
         pathName.includes("category") ||
         pathName.includes("page") ||
         pathName.includes("product") ||
+        pathName.includes("artisan") ||
         pathName.includes("checkout") ||
         pathName.includes("search") ||
         pathName.includes("sign-up") ||
@@ -40,10 +41,10 @@ const Header = () => {
         pathName.includes("customEnquiry")
         ? "hidden"
         : "block"
-        } ${pathName === "/" ? `text-white backdrop-blur-md` : `bg-white text-black drop-shadow-lg`} 
+        } ${pathName === "/" ? `text-black backdrop-blur-md` : `bg-gray-100 text-black drop-shadow-lg`} 
          absolute top-0 transition-all duration-300 font-barlow tracking-wider ease-in-out left-0 right-0 z-50 mx-auto w-full py-2`}
     >
-      <div className="md:flex hidden items-center justify-between gap-8 border-b py-1 border-gray-400 md:px-8">
+      <div className="md:flex hidden items-center justify-between gap-8 border-b py-1 border-gray-400 md:px-8 ">
         <p className="text-sm">Crafted by Hand, Cherished by Heart</p>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-4">
@@ -63,7 +64,7 @@ const Header = () => {
           </div>  
         </div>
       </div>
-      <div className="lg:flex hidden items-center z-50 justify-center md:justify-between py-1 md:px-8">
+      <div className="lg:flex hidden items-center z-50 justify-center md:justify-between py-1 md:px-8 border border-black">
         <Link href={"/"}>
           <img className="w-44 drop-shadow-xl" src="/logo.png" alt="YatraZone" />
         </Link>

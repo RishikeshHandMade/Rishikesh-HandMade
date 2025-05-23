@@ -40,7 +40,10 @@ const Footer = () => {
 
 
     return (
-        <footer className={`print:hidden ${pathName.includes('admin') && 'hidden'} ${pathName.includes('product') && 'hidden'} ${pathName.includes('customEnquiry') && 'hidden'} ${pathName.includes('checkout') && 'hidden'}  ${pathName.includes('category') && 'hidden'} bg-[url('/bg-custom-2.jpg')] text-black py-8`}>
+        <footer className={`print:hidden ${pathName.includes('admin') && 'hidden'}
+         ${pathName.includes('artisan') && 'block'} 
+        
+        ${pathName.includes('product') && 'hidden'} ${pathName.includes('customEnquiry') && 'hidden'} ${pathName.includes('checkout') && 'hidden'}  ${pathName.includes('category') && 'block'} bg-[url('/bg-custom-2.jpg')] text-black py-8`}>
             <div className="w-full flex justify-center pb-5">
                 <div className="h-[1.5px] bg-gray-300 w-[80%] mx-auto px-4" />
             </div>
@@ -107,8 +110,8 @@ const Footer = () => {
                 <CardContent className="flex flex-col lg:flex-row items-start justify-between">
                     <div className="text-justify">
                         <Image src="/logo.png" width={200} height={100} alt="footer" />
-                        <p className="text-gray-500 text-sm lg:w-[40vw] xl:w-[35vw] font-barlow mt-6">By accessing, using, browsing or booking through our Web Site(s) or Directly or Indirectly through YatraZone or its representative(s), you agree that you have read, understood and agree to be bound by these terms and conditions & cancellation policy and you agree to comply with all applicable laws, rules and regulations.</p>
-                        <p className="text-gray-500 text-sm lg:w-[40vw] xl:w-[35vw] font-barlow mt-6">By accepting our booking terms & conditions, user is also agreeing to terms & conditions of the Hotels, aviation services, Airlines, and other associate service providers and vendors.</p>
+                        <p className="text-gray-500 text-sm lg:w-[40vw] xl:w-[35vw] font-barlow mt-6">Rishikesh Handmade Craft is a platform that celebrates the traditional art and culture of Rishikesh. It showcases eco-friendly, handcrafted items like wooden carvings, paintings, jewelry, and home decor made by skilled local artisans. By supporting this platform, you help preserve age-old crafts and empower local communitiess.</p>
+                        <p className="text-gray-500 text-sm lg:w-[40vw] xl:w-[35vw] font-barlow mt-6">Our website is your gateway to the heart of Rishikesh, offering rich and soulful handmade creations crafted by local artisans.</p>
                     </div>
                     <div className="font-barlow mt-10 lg:mt-0">
                         <h1 className="font-semibold text-xl ">Subscribe to our newsletter</h1>

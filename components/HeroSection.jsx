@@ -84,6 +84,7 @@ const HeroSection = () => {
       try {
         const res = await fetch("/api/getSearchPackages");
         const data = await res.json();
+        console.log(data)
         if (data.packages && data.packages.length > 0) {
           setPackages(data.packages);
         }
@@ -175,53 +176,112 @@ const HeroSection = () => {
 
   return (
     <section className="relative xl:h-screen w-full overflow-hidden z-0 group">
-      <div className="hidden xl:block w-full h-full">
-        <Carousel
-          className="h-full w-full"
-          plugins={[plugin.current]}
-          onMouseLeave={plugin.current.reset}
-          setApi={setApi}
-        >
-          <CarouselContent className="h-full">
-            {banners.map((item, index) => (
-              <CarouselItem key={index} className="h-[100vh] md:h-full">
-                <Link href={item.link || "#"} className="block h-full w-full">
-                  <div className="relative h-full w-full">
-                    <Image
-                      src={item?.image?.url}
-                      alt={item?.title || "Banner Image"}
-                      width={1280}
-                      height={720}
-                      quality={100}
-                      priority
-                      className="h-[100vh] w-full object-cover"
-                    />
-                    {item.subTitle || item.title ? (
-                      <>
-                        <div className="absolute translate-y-1/2 top-1/3 translate-x-1/2 right-1/2 z-20">
-                          <h2 className="flex items-center gap-4 text-white text-lg md:text-xl lg:text-2xl text-center">
-                            <Sparkle className="hidden md:block size-4 md:size-6" />
-                            {item.subTitle}
-                            <Sparkle className="hidden md:block size-4 md:size-6" />
-                          </h2>
-                        </div>
-                        <div className="absolute translate-y-1/2 bottom-1/2 translate-x-1/2 right-1/2 z-20 w-full">
-                          <h2 className="text-white font-bold text-3xl md:text-5xl lg:text-7xl text-center">
-                            {item.title}
-                          </h2>
-                        </div>
-                      </>
-                    ) : null}
-                  </div>
-                </Link>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
+      <div className="hidden xl:block w-full h-full mt-[10%] ">
+        <div className="flex h-full w-full items-center justify-center">
+          {/* Left Side: Details (fixed, updates on image change) */}
+          <div className="flex flex-col justify-center items-start w-1/2 h-full px-16 gap-6">
+            <div className="mb-8">
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-black leading-tight mb-2">
+                {banners[selectedIndex]?.title}
+              </h1>
+              <div className="text-2xl md:text-3xl font-bold text-black mb-4">Price</div>
+              <div className="text-3xl md:text-4xl font-extrabold text-black mb-8">{banners[selectedIndex]?.price || "$80.00"}</div>
+              <div className="flex gap-3 mb-6">
+                <button className="bg-black text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-800 transition">ADD TO CART</button>
+                <button className="border border-black px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">VIEW DETAIL</button>
+              </div>
+              <div className="flex items-center justify-between gap-8 mt-2 mb-2">
+                <div className="flex gap-2 flex-col ">
+                  <div className="text-xl font-semibold text-black">Summer Collection</div>
+                  <div className="text-lg font-light text-black">TRENDY AND CLASSIC FOR THE NEW SEASON</div>
+                </div>
+                {/* More Category Circular Button */}
+                <div>
+                  <button
+                    className="relative flex items-center justify-center w-28 h-28 group focus:outline-none"
+                    style={{ minWidth: '112px', minHeight: '112px' }}
+                    aria-label="Explore More Category"
+                  >
 
-          {/* Navigation Arrows */}
-          <CarouselPrevious className="left-4 md:left-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          <CarouselNext className="right-4 md:right-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        </Carousel>
+                    {/* Circular Text (rotating, larger font) */}
+                    <svg
+                      viewBox="0 0 100 100"
+                      width="112"
+                      height="112"
+                      className="absolute top-0 left-0 animate-spin-slow"
+                      style={{ animation: 'spin 8s linear infinite' }}
+                    >
+                      <defs>
+                        <path id="circlePath" d="M50,10 a40,40 0 1,1 -0.01,0" />
+                      </defs>
+                      <text fontSize="15" fill="#222" fontWeight="bold" letterSpacing="2">
+                        <textPath href="#circlePath" startOffset="0">
+                          MORE CATEGORY • EXPLORE •
+                        </textPath>
+                      </text>
+                    </svg>
+                    {/* Center Lucide Icon */}
+                    <span className="z-10 flex items-center justify-center w-12 h-12 bg-[#222] rounded-full text-white shadow-lg">
+                      {/* LucidePlay icon (or LucideArrowRight) */}
+                      <span className="flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                          <polygon points="6,4 20,12 6,20 6,4" fill="currentColor" />
+                        </svg>
+                      </span>
+                    </span>
+                  </button>
+
+                  {/* Add custom animation for slow spin */}
+                  <style jsx>{`
+                  @keyframes spin {
+                    100% { transform: rotate(360deg); }
+                  }
+                  .animate-spin-slow {
+                    animation: spin 8s linear infinite;
+                  }
+                `}</style>
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* Right Side: Image Carousel */}
+          <div className="flex items-center justify-center w-1/2 h-full relative">
+            <Carousel
+              className="h-full w-full"
+              plugins={[Autoplay({ delay: 4000 })]}
+              setApi={setApi}
+              // selectedIndex={selectedIndex}
+              onSelect={setSelectedIndex}
+            >
+              <CarouselContent className="h-full">
+                {banners.map((item, index) => (
+                  <CarouselItem key={index} className="h-[100vh] md:h-full flex items-center justify-center">
+                    <div className="relative w-[420px] h-[520px] flex items-center justify-center">
+                      <Image
+                        src={item?.image?.url}
+                        alt={item?.title || "Banner Image"}
+                        width={420}
+                        height={520}
+                        quality={100}
+                        priority
+                        className="object-cover w-full h-full rounded-3xl shadow-lg"
+                      />
+                      {/* Example: Discount badge */}
+                      <div className="absolute top-6 left-6 z-10">
+                        <div className="bg-white rounded-full px-5 py-2 text-sm font-bold shadow text-black tracking-tight">
+                          GET 20% OFF
+                        </div>
+                      </div>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              {/* <CarouselPrevious className="left-4 md:left-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300" /> */}
+              <CarouselNext className="absolute bg-black text-white p-10 right-[10%]" />
+            </Carousel>
+          </div>
+        </div>
+
 
         {/* Custom Pagination Dots */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex gap-2">
@@ -229,26 +289,24 @@ const HeroSection = () => {
             <button
               key={index}
               onClick={() => api?.scrollTo(index)}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${index === selectedIndex ? "bg-white w-6" : "bg-white/50"
-                }`}
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${index === selectedIndex ? "bg-black w-6" : "bg-black/30"}`}
               aria-label={`Go to slide ${index + 1}`}
             />
           ))}
         </div>
-
       </div>
 
       <div className="block xl:hidden w-full h-full px-4 mt-[20%] relative max-h-[90vh]">
-      <h2 className="text-2xl font-bold text-center mb-1">Search Where to Go</h2>
-            <p className="text-gray-600 text-center w-[80%] mx-auto mb-4">Every soul has a path—find yours. From sacred mountains to hidden shrines, your spiritual journey begins with a single search. Discover destinations that inspire, heal, and uplift. Start now—your path to peace and purpose awaits.</p>
+        <h2 className="text-2xl font-bold text-center mb-1">Search Where to Go</h2>
+        <p className="text-gray-600 text-center w-[80%] mx-auto mb-4">Every soul has a path—find yours. From sacred mountains to hidden shrines, your spiritual journey begins with a single search. Discover destinations that inspire, heal, and uplift. Start now—your path to peace and purpose awaits.</p>
         <Dialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
           <DialogTrigger asChild>
-            
+
             <div
               className="w-full border-2 border-blue-600 rounded-full px-6 py-4 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer text-left text-gray-700 flex items-center gap-2"
               onClick={() => setIsSearchOpen(true)}
             >
-            
+
               <Search className="h-6 w-6 text-gray-600" />
               <span className={query ? "text-gray-900" : "text-gray-400"}>
                 {query ? query : "Destination, Attraction"}
@@ -290,7 +348,7 @@ const HeroSection = () => {
                           <MapPin className="h-4 w-4 mr-1 mt-1 " />
                           {pkg?.basicDetails?.location}
                         </p>
-                        
+
                       </div>
                     </li>
                   ))}
