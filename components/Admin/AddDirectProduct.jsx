@@ -13,10 +13,57 @@ import QuantityManagement from './QuantityManagement';
 import ApplyCoupon from './ApplyCoupon';
 import ApplyTax from './ApplyTax';
 
-
-
 const AddDirectProduct = ({ productId }) => {
-  console.log(productId)
+
+  const [productData, setProductData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  console.log(productData)
+  useEffect(() => {
+    if (productId) {
+      setLoading(true);
+      fetch(`/api/product/${productId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        // body: JSON.stringify({
+        //   productId: productId
+        //   // Remove isDirect: true to handle both types
+        // })
+      })
+        .then(res => res.json())
+        .then(data => {
+          setProductData(data);
+          // console.log(data)
+          // Add title to the page based on product type
+          document.title = `${data.isDirect ? 'Direct' : 'Category'} Product - ${data.title}`;
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    }
+    // console.log(productId)
+    // useEffect(() => {
+    //   if (productId) {
+    //     setLoading(true);
+    //     fetch('/api/product', {
+    //       method: 'POST',
+    //       headers: {
+    //         'Content-Type': 'application/json'
+    //       },
+    //       body: JSON.stringify({
+    //         isDirect: true,
+    //         productId: productId
+    //       })
+    //     })
+    //     .then(res => res.json())
+    //     .then(data => {
+    //       setProductData(data);
+    //       setLoading(false);
+    //     })
+    //     .catch(() => setLoading(false));
+    //   }
+  }, [productId]);
+
   const sectionConfig = [
     { key: 'size', label: 'Size Management', component: (props) => <SizeManagement {...props} productData={productData} productId={productId} /> },
     { key: 'color', label: 'Color Management', component: (props) => <ColorManagement {...props} productData={productData} productId={productId} /> },
@@ -31,21 +78,7 @@ const AddDirectProduct = ({ productId }) => {
     { key: 'tag', label: 'Category Tag', component: (props) => <CategoryTag {...props} productData={productData} productId={productId} /> },
   ];
   const [activeSection, setActiveSection] = useState(sectionConfig[0].key);
-  const [productData, setProductData] = useState(null);
-  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (productId) {
-      setLoading(true);
-      fetch(`/api/product/${productId}`)
-        .then(res => res.json())
-        .then(data => {
-          setProductData(data);
-          setLoading(false);
-        })
-        .catch(() => setLoading(false));
-    }
-  }, [productId]);
 
   return (
     <div style={{ minHeight: '85vh', background: '#fff', padding: '20px' }}>

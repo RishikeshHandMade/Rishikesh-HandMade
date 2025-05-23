@@ -1,8 +1,9 @@
 import ProductProfile from "@/components/Admin/ProductProfile"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
-
+import AddProduct from "@/components/Admin/AddProduct"
 const page = async ({ params }) => {
     const { id } = await params
+    // console.log(id)
 
     return (
         <SidebarInset>
@@ -13,8 +14,8 @@ const page = async ({ params }) => {
             </header>
             <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
                 <h1 className="text-4xl px-12 font-semibold">Add Product</h1>
-                {/* <AddPackage id={id} /> */}
-                <ProductProfile/>
+                <AddProduct id={id} />
+                {/* <ProductProfile id={id}/> */}
             </div>
         </SidebarInset>
     )

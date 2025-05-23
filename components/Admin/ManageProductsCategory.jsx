@@ -22,13 +22,15 @@ import Link from "next/link"
 import Image from "next/image"
 import { deleteFileFromCloudinary } from "@/utils/Utapi"
 import { useRef } from "react"
-
+import ProductProfile from './ProductProfile';
 const ManageProductsCategory = () => {
     const { handleSubmit, register, setValue, reset } = useForm()
     const [menuItems, setMenuItems] = useState([])
     const [selectedMenu, setSelectedMenu] = useState("")
     const [editItem, setEditItem] = useState(null)
     const [bannerImage, setBannerImage] = useState(null)
+    const [showProductProfile, setShowProductProfile] = useState(false);
+    const [profileProps, setProfileProps] = useState({});
     // Gallery state for product images
     // const [galleryImages, setGalleryImages] = useState([])
     // const [loadedGalleryImages, setLoadedGalleryImages] = useState([])
@@ -312,62 +314,6 @@ const ManageProductsCategory = () => {
                             Upload Banner Image
                         </button>
                     </div>
-
-                    {/* Gallery Images Section */}
-                    {/* <div className="flex flex-col gap-2 mt-4">
-                        <Label>Gallery Images</Label>
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 w-full gap-4">
-                            {galleryImages.length > 0 ? (
-                                galleryImages.map((file, index) => (
-                                    <div
-                                        key={index}
-                                        className="relative aspect-video rounded-lg overflow-hidden border-2 border-blue-600 group"
-                                    >
-                                        {!loadedGalleryImages.includes(index) && (
-                                            <div className="absolute inset-0 animate-pulse bg-gray-300 flex items-center justify-center">
-                                                <div className="w-8 h-8 border-4 border-gray-400 border-t-gray-600 rounded-full animate-spin"></div>
-                                            </div>
-                                        )}
-                                        <Image
-                                            src={file.url || 'https://dummyimage.com/600x400'}
-                                            alt={`Preview ${index + 1}`}
-                                            fill
-                                            className={`object-cover transition-opacity duration-500 ${loadedGalleryImages.includes(index) ? 'opacity-100' : 'opacity-0'}`}
-                                            onLoad={() => handleGalleryImageLoad(index)}
-                                        />
-                                        <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                            <button
-                                                type="button"
-                                                onClick={() => handleRemoveGalleryImage(file.key)}
-                                                className="p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : (
-                                <p className="text-gray-500">No Images uploaded</p>
-                            )}
-                        </div>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            multiple
-                            ref={galleryFileInputRef}
-                            style={{ display: 'none' }}
-                            onChange={handleGalleryImageUpload}
-                        />
-                        <button
-                            type="button"
-                            className="bg-blue-600 text-white px-4 py-2 rounded mt-4"
-                            onClick={() => galleryFileInputRef.current && galleryFileInputRef.current.click()}
-                            disabled={galleryUploading}
-                        >
-                            {galleryUploading ? 'Uploading...' : 'Upload Gallery Images'}
-                        </button>
-                    </div> */}
-
                 </div>
                 <button className="bg-blue-600 p-2 rounded-lg hover:bg-blue-500 text-lg text-white" type="submit">
                     Add SubMenu
@@ -393,10 +339,10 @@ const ManageProductsCategory = () => {
                                         .flatMap(menuItem => menuItem.subMenu.sort((a, b) => a.order - b.order).map((subItem) => (
                                             <TableRow key={subItem._id}>
                                                 <TableCell className="border font-semibold border-blue-600">
-                                                    <Link href={`/admin/manage_products_category/addSubMenuPackage/${subItem._id}`} variant="outline" className="bg-white border-2 border-blue-500 p-2 rounded-full text-blue-600 hover:text-blue-500 focus:text-blue-500 flex items-center justify-center">
+                                                <Link href={`/admin/manage_products_category/addSubMenuPackage/${subItem._id}`} variant="outline" className="bg-white border-2 border-blue-500 p-2 rounded-full text-blue-600 hover:text-blue-500 focus:text-blue-500 flex items-center justify-center">
                                                         <span className="xl:mr-6 mr-2 bg-blue-100 rounded py-1 px-3">{subItem?.packages?.length !== 0 ? subItem?.packages?.length : 0}</span>
                                                         <Plus className="w-4 h-4" />
-                                                        <span>Add Product</span>
+                                                        <span>Add Package</span>
                                                     </Link>
                                                 </TableCell>
                                                 <TableCell className="border font-semibold border-blue-600">{subItem?.title}</TableCell>

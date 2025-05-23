@@ -8,7 +8,7 @@ export async function GET(req) {
     const menu = await MenuBar.find({})
         .sort({ order: 1 })
         .populate({
-            path: "subMenu.packages",
+            path: "subMenu.product",
             model: "Package",
         });
     return NextResponse.json(menu);

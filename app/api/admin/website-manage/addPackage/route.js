@@ -1,38 +1,64 @@
 import connectDB from "@/lib/connectDB";
 import { NextResponse } from "next/server";
-import Package from "@/models/Package";
+import Product from "@/models/Product";
 import MenuBar from "@/models/MenuBar";
-import { deleteFileFromCloudinary } from "@/utils/cloudinary";
+import mongoose from "mongoose";
 
 export async function POST(req) {
     await connectDB();
     const body = await req.json();
 
     try {
-        // Step 1: Create a new Package document
-        const newPackage = await Package.create({
-            link: body.packages.link,
-            order: body.packages.order,
-            active: body.packages.active,
-            packageCode: body.packages.packageCode,
-            packageName: body.packages.packageName,
-            price: body.packages.price,
-            priceUnit: body.packages.priceUnit
-        });
-
-        // Step 2: Find and update the corresponding subMenu item
-        if (body.subMenuId) {
-            await MenuBar.updateOne(
-                { "subMenu._id": body.subMenuId },  // Find the correct subMenu
-                { $push: { "subMenu.$.packages": newPackage._id } }  // Push new package _id
-            );
+        // Step 1: Check for existing product
+        let productQuery = {
+            title: body.title,
+            code: body.code,
+            artisan: body.artisan
+        };
+        // Optionally, also check for subMenu/category if you want to scope uniqueness
+        let existingProduct = await Product.findOne(productQuery);
+        if (existingProduct) {
+            // If already linked to submenu, skip push
+            if (!body.isDirect && body.subMenuId) {
+                const menuBarDoc = await MenuBar.findOne({ "subMenu._id": new mongoose.Types.ObjectId(body.subMenuId) });
+                console.log("[EXISTING PRODUCT] MenuBar doc for submenu:", JSON.stringify(menuBarDoc, null, 2));
+                const updateResult = await MenuBar.updateOne(
+                    { "subMenu._id": new mongoose.Types.ObjectId(body.subMenuId), "subMenu.products": { $ne: existingProduct._id } },
+                    { $push: { "subMenu.$.products": existingProduct._id } }
+                );
+                if (updateResult.matchedCount === 0) {
+                    console.error("No submenu matched for existing product linkage!", body.subMenuId);
+                }
+            }
+            return NextResponse.json({ message: "Product already exists!", product: existingProduct }, { status: 200 });
         }
-
-        return NextResponse.json({ message: "Package added successfully!" }, { status: 201 });
+        // Step 2: Create a new Product document
+        const newProduct = await Product.create({
+            title: body.title,
+            code: body.code,
+            artisan: body.artisan,
+            isDirect: false,
+            // Optionally store subMenuId/category info if your schema supports it
+            ...(body.subMenuId ? { categoryTag: body.subMenuId } : {})
+        });
+        // Step 3: Link new product to submenu
+        if (!body.isDirect && body.subMenuId) {
+            const menuBarDoc = await MenuBar.findOne({ "subMenu._id": new mongoose.Types.ObjectId(body.subMenuId) });
+            console.log("[NEW PRODUCT] MenuBar doc for submenu:", JSON.stringify(menuBarDoc, null, 2));
+            const updateResult = await MenuBar.updateOne(
+                { "subMenu._id": new mongoose.Types.ObjectId(body.subMenuId), "subMenu.products": { $ne: newProduct._id } },
+                { $push: { "subMenu.$.products": newProduct._id } }
+            );
+            if (updateResult.matchedCount === 0) {
+                console.error("No submenu matched for new product linkage!", body.subMenuId);
+            }
+        }
+        return NextResponse.json({ message: "Product added successfully!", product: newProduct }, { status: 201 });
     } catch (error) {
         return NextResponse.json({ message: error.message }, { status: 500 });
     }
 }
+
 
 export async function PUT(req) {
     await connectDB();

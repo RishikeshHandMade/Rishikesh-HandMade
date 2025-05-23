@@ -17,13 +17,29 @@ export async function POST(req) {
   try {
     await connectDB();
     const body = await req.json();
-    // Accept ProductProfile fields (require price as well)
-    const { title, code, artisan } = body;
+    // Accept all relevant fields
+    const { title, code, artisan, isDirect, categoryTag, ...rest } = body;
     if (!title || !code || !artisan) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400 });
     }
-    // Create product
-    const product = await Product.create({ title, code, artisan });
+    // If explicitly direct, ignore categoryTag
+    let productData = {
+      title,
+      code,
+      artisan,
+      isDirect: true,
+      ...rest
+    };
+    // If not direct, require categoryTag
+    if (!isDirect) {
+      if (!categoryTag) {
+        return new Response(JSON.stringify({ error: 'categoryTag required for category products' }), { status: 400 });
+      }
+      productData.isDirect = false;
+      productData.categoryTag = categoryTag;
+    }
+    // Create product with proper linkage
+    const product = await Product.create(productData);
     // Add product ref to artisan
     await Artisan.findByIdAndUpdate(
       artisan,
@@ -41,6 +57,8 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
     const name = searchParams.get('name');
+    // Support direct products filter for ProductProfile page
+    const isDirectParam = searchParams.get('isDirect');
     if (id) {
       // Find by MongoDB _id
       const product = await Product.findById(id)
@@ -80,7 +98,11 @@ export async function GET(req) {
       }
       return new Response(JSON.stringify(product), { status: 200 });
     } else {
-      const products = await Product.find({})
+      // Filter by isDirect if requested
+      let filter = {};
+      if (isDirectParam === 'true') filter.isDirect = true;
+      if (isDirectParam === 'false') filter.isDirect = false;
+      const products = await Product.find(filter)
         .populate('artisan')
         .populate('size')
         .populate('color')

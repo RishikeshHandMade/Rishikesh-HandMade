@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const ProductSchema = new mongoose.Schema({
   title: { type: String, required: true },
   code: { type: String, required: true },
+  category: { type: mongoose.Schema.Types.ObjectId, ref: 'MenuBar' }, // or ref: 'SubMenu' if you have such a model
   artisan: { type: mongoose.Schema.Types.ObjectId, ref: 'Artisan' },
   isDirect: { type: Boolean, default: false },
   size: { type: mongoose.Schema.Types.ObjectId, ref: 'Size' },
@@ -13,7 +14,7 @@ const ProductSchema = new mongoose.Schema({
   description: { type: mongoose.Schema.Types.ObjectId, ref: 'Description' },
   info: { type: mongoose.Schema.Types.ObjectId, ref: 'Info' },
   categoryTag: { type: mongoose.Schema.Types.ObjectId, ref: 'CategoryTag' },
-  taxes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ProductTax', default: [] }],
+  taxes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ProductTax' }],
   review: { type: mongoose.Schema.Types.ObjectId, ref: 'ProductReview' },
   quantity: { type: mongoose.Schema.Types.ObjectId, ref: 'Quantity' },
   coupons: { type: mongoose.Schema.Types.ObjectId, ref: 'ProductCoupons' },
