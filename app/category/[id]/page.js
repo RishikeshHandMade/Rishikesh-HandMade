@@ -23,7 +23,7 @@ export async function generateMetadata({ params }) {
 const getCategoryInfo = async (categoryId) => {
     return (
         {
-            title: `${(categoryId?.title)} Tours`,
+            title: `${(categoryId?.title)} Products`,
             bannerImage: `${(categoryId?.banner?.url) || `${process.env.NEXT_PUBLIC_BASE_URL}/categoryBanner.jpg`}`,
         }
     )
@@ -31,21 +31,18 @@ const getCategoryInfo = async (categoryId) => {
 
 const CategoryPage = async ({ params }) => {
     const { id } = await params;
-    const pkgRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/getPackages/byId/${id}`);
-    let pkgData;
+    const categoryRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/getCategoryBanner/${id}`);
+    let categoryData;
     try {
-        pkgData = await pkgRes.json();
+        categoryData = await categoryRes.json();
     } catch {
-        pkgData = {};
+        categoryData = {};
     }
-    const packages = Array.isArray(pkgData.packages) ? pkgData.packages : [];
-
-    const getCategory = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/getCategoryBanner/${id}`).then(res => res.json());
-
-    const categoryInfo = await getCategoryInfo(getCategory)
-
-    // Only show packages that are active
-    const visiblePackages = packages.filter(pkg => pkg.active);
+    // products is now an array of full product objects
+    const products = Array.isArray(categoryData.products) ? categoryData.products : [];
+    const visibleProducts = products.filter(prod => prod.active !== false);
+    console.log(visibleProducts)
+    const categoryInfo = await getCategoryInfo(categoryData);
 
     return (
         <SidebarInset>
@@ -53,24 +50,52 @@ const CategoryPage = async ({ params }) => {
                 {/* Fixed Banner Section */}
                 <CategoryBanner title={categoryInfo.title} bannerImage={categoryInfo.bannerImage} />
 
-                {/* <div className="container mx-auto px-1 md:px-4 py-4">
-                    <h2 className="text-2xl xl:text-4xl font-semibold text-black">{categoryInfo.title}</h2>
-                </div> */}
-
-                {/* Packages Section */}
-                <div className="container mx-auto px-1 md:px-4 py-5 md:py-12">
-
-                    {visiblePackages.length === 0 ? (
+                {/* Products Section */}
+                <div className="container w-full px-1 md:px-4 py-5">
+                    {visibleProducts.length === 0 ? (
                         <div className="text-center py-8">
-                            <h3 className="text-xl font-medium text-gray-600">No packages found for this category</h3>
+                            <h3 className="text-xl font-medium text-gray-600">No products found for this category</h3>
                             <p className="mt-2 text-gray-500">Please try another category</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                        <div className="grid grid-cols-2 md:grid-cols-5 xl:grid-cols-5 gap-1 justify-items-center items-center">
                             <Suspense fallback={<PackageCardSkeleton count={3} />}>
-                                {visiblePackages.map((pkg) => (
-                                    <PackageCard key={pkg._id} pkg={pkg} />
-                                ))}
+                                {visibleProducts.map((prod, idx) => {
+                                    const imageUrl = prod.gallery?.mainImage || '';
+                                    return (
+                                        <div
+                                            key={prod._id || idx}
+                                            className="flex flex-col items-center justify-center w-60 bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300 p-4 mb-2 group cursor-pointer border border-gray-200 text-center"
+                                            style={{ minHeight: '340px' }}
+                                        >
+                                            <div className="w-full aspect-[4/5] rounded-xl overflow-hidden mb-4 bg-gray-100 group-hover:scale-105 transition-transform duration-300 flex items-center justify-center">
+                                                {imageUrl ? (
+                                                    <img
+                                                        src={imageUrl}
+                                                        alt={prod.title}
+                                                        className="object-cover w-full h-full rounded-xl group-hover:scale-105 transition-transform duration-300"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
+                                                )}
+                                            </div>
+                                            <a
+                                                href={`/product/${prod._id}`}
+                                                className="block w-full text-center font-semibold text-lg text-gray-800 hover:text-blue-600 transition-colors duration-200 mb-2 truncate"
+                                                style={{ letterSpacing: '.02em' }}
+                                                title={prod.title}
+                                            >
+                                                {prod.title}
+                                            </a>
+                                            <a
+                                                href={`/product/${prod._id}`}
+                                                className="inline-block mt-2 px-4 py-2 rounded-lg bg-blue-600 text-white font-medium text-sm shadow hover:bg-blue-700 transition-colors duration-200"
+                                            >
+                                                View Details
+                                            </a>
+                                        </div>
+                                    );
+                                })}
                             </Suspense>
                         </div>
                     )}
@@ -105,3 +130,4 @@ const PackageCardSkeleton = ({ count = 3 }) => {
 }
 
 export default CategoryPage
+

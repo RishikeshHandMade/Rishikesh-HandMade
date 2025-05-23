@@ -50,7 +50,9 @@ const PackageCard = async ({ pkg }) => {
         </div>
         <div className="h-px bg-gray-200 my-1" />
         <div className="flex flex-col gap-2 flex-1">
-          <div className="text-gray-700 text-sm mb-2 h-16 overflow-y-auto line-clamp-2"><span dangerouslySetInnerHTML={{ __html: pkg?.basicDetails?.smallDesc }} /></div>
+          <div className="text-gray-700 text-sm mb-2 h-16 overflow-y-auto line-clamp-2">
+  <span dangerouslySetInnerHTML={{ __html: pkg?.basicDetails?.smallDesc || "" }} />
+</div>
         </div>
         <div className="flex items-center justify-between gap-2 mt-auto">
           <div className="flex items-center">

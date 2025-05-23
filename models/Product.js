@@ -14,7 +14,7 @@ const ProductSchema = new mongoose.Schema({
   description: { type: mongoose.Schema.Types.ObjectId, ref: 'Description' },
   info: { type: mongoose.Schema.Types.ObjectId, ref: 'Info' },
   categoryTag: { type: mongoose.Schema.Types.ObjectId, ref: 'CategoryTag' },
-  taxes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ProductTax' }],
+  taxes: { type: mongoose.Schema.Types.ObjectId, ref: 'ProductTax' },
   review: { type: mongoose.Schema.Types.ObjectId, ref: 'ProductReview' },
   quantity: { type: mongoose.Schema.Types.ObjectId, ref: 'Quantity' },
   coupons: { type: mongoose.Schema.Types.ObjectId, ref: 'ProductCoupons' },

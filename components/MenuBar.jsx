@@ -20,6 +20,7 @@ const MenuBar = (props) => {
             fetch("/api/getAllMenuItems")
                 .then(res => res.json())
                 .then(data => {
+                    console.log(data)
                     let arr = Array.isArray(data) ? data : (Array.isArray(data.packages) ? data.packages : []);
                     setMenuItems(arr.filter(item => item.active));
                 });
@@ -34,7 +35,7 @@ const MenuBar = (props) => {
             fetch("/api/subMenuFixed")
                 .then(res => res.json())
                 .then(data => {
-                    let arr = Array.isArray(data) ? data : (Array.isArray(data.packages) ? data.packages : []);
+                        let arr = Array.isArray(data) ? data : (Array.isArray(data.packages) ? data.packages : []);
                     setFixedMenuItems(arr.filter(item => item.active));
                 });
         } else {
