@@ -17,7 +17,6 @@ import Autoplay from "embla-carousel-autoplay";
 import QuickViewProductCard from "./QuickViewProductCard";
 import { useCart } from "../context/CartContext";
 import { toast } from "react-hot-toast"
-import { useCart } from "../context/CartContext";
 function slugify(text) {
   return text
     .toString()

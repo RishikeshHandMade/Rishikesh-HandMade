@@ -95,7 +95,7 @@ const AboutUsSection = () => {
 
     if (isLoading) {
         return (
-            <section className="py-14 md:py-36 xl:py-20">
+            <section className="bg-[#fcf7f1] py-14 md:py-36 xl:py-20">
                 <div className="relative">
                     <img className="absolute -top-32 left-0 -z-10 lg:scale-[2]" src="/bg-shape.png" alt="background gradient shape" />
                 </div>
@@ -134,55 +134,55 @@ const AboutUsSection = () => {
     return (
         <section className="bg-[#fcf7f1] relative py-1 w-full px-10 md:px-8 lg:px-16 overflow-hidden max-w-screen overflow-x-hidden">
             <div className="w-full">
-                <h2 className="font-bold text-2xl md:text-4xl text-center mt-7">Crafted by Hand, Cherished by Heart.  
-            
+                <h2 className="font-bold text-2xl md:text-4xl text-center mt-7">Crafted by Hand, Cherished by Heart.
+
                 </h2>
-                    <p className=" text-xl font-lg md:text-xl text-center mt-2">
-                      emphasizes uniqueness, tradition, artistry, and authenticity  
-                    </p>
-              
+                <p className=" text-xl font-lg md:text-xl text-center mt-2">
+                    emphasizes uniqueness, tradition, artistry, and authenticity
+                </p>
+
                 <p className="text-gray-600 py-8 text-center font-barlow  w-[90%] mx-auto">
-                Welcome to Rishikesh Handmade — your gateway to the soulful artistry of the Himalayan foothills. Rooted in the spiritual heart of India, our collection brings together timeless handicrafts handcrafted by local artisans of Rishikesh. Every item is a reflection of our rich cultural heritage, made with love, care, and generations of tradition. From eco-friendly décor and handwoven textiles to sacred spiritual items and unique wooden carvings, each piece tells a story of craftsmanship and connection. By supporting Rishikesh Handmade, you’re not just buying a product — you’re preserving tradition, empowering local artisans, and bringing home a piece of authentic India.    
+                    Welcome to Rishikesh Handmade — your gateway to the soulful artistry of the Himalayan foothills. Rooted in the spiritual heart of India, our collection brings together timeless handicrafts handcrafted by local artisans of Rishikesh. Every item is a reflection of our rich cultural heritage, made with love, care, and generations of tradition. From eco-friendly décor and handwoven textiles to sacred spiritual items and unique wooden carvings, each piece tells a story of craftsmanship and connection. By supporting Rishikesh Handmade, you’re not just buying a product — you’re preserving tradition, empowering local artisans, and bringing home a piece of authentic India.
                 </p>
                 <p className="flex items-center text-gray-600 font-barlow font-bold text-sm md:text-lg xl:text-xl mb-4">
 
                 </p>
                 <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4">
                     {loading ? (
-                      // Loading skeletons
-                      Array.from({ length: 5 }).map((_, idx) => (
-                        <div
-                          key={idx}
-                          className="flex flex-col items-center w-56 rounded-3xl animate-pulse"
-                          style={{ padding: "1.5rem 0 0.5rem 0" }}
-                        >
-                          <div className="w-full aspect-[4/5] rounded-2xl overflow-hidden flex items-end justify-center bg-gray-200" />
-                          <div className="mt-4 text-center px-2 w-full flex justify-start">
-                            <span className="block h-6 w-32 rounded bg-gray-200" />
-                          </div>
-                        </div>
-                      ))
+                        // Loading skeletons
+                        Array.from({ length: 5 }).map((_, idx) => (
+                            <div
+                                key={idx}
+                                className="flex flex-col items-center w-56 rounded-3xl animate-pulse"
+                                style={{ padding: "1.5rem 0 0.5rem 0" }}
+                            >
+                                <div className="w-full aspect-[4/5] rounded-2xl overflow-hidden flex items-end justify-center bg-gray-200" />
+                                <div className="mt-4 text-center px-2 w-full flex justify-start">
+                                    <span className="block h-6 w-32 rounded bg-gray-200" />
+                                </div>
+                            </div>
+                        ))
                     ) : (
-                      featuredPackages.map((item) => (
-  <div
-    key={item._id}
-    className="flex flex-col items-center w-56 rounded-3xl group"
-    style={{ padding: "1.5rem 0 0.5rem 0"}}
-  >
-    <div className="w-full aspect-[4/5] rounded-2xl border overflow-hidden flex items-end justify-center">
-      <img
-        src={item.image.url}
-        alt={item.title}
-        className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
-      />
-    </div>
-    <div className="mt-4 text-center px-2 w-full flex justify-start">
-      <Link key={item._id} href={item.link}>
-        <div className="font-bold text-xl text-black hover:underline transition cursor-pointer">{item.title}</div>
-      </Link>
-    </div>
-  </div>
-))
+                        featuredPackages.map((item) => (
+                            <div
+                                key={item._id}
+                                className="flex flex-col items-center w-56 rounded-3xl group"
+                                style={{ padding: "1.5rem 0 0.5rem 0" }}
+                            >
+                                <div className="w-full aspect-[4/5] rounded-2xl border overflow-hidden flex items-end justify-center">
+                                    <img
+                                        src={item.image.url}
+                                        alt={item.title}
+                                        className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+                                    />
+                                </div>
+                                <div className="mt-4 text-center px-2 w-full flex justify-start">
+                                    <Link key={item._id} href={item.link}>
+                                        <div className="font-bold text-xl text-black hover:underline transition cursor-pointer">{item.title}</div>
+                                    </Link>
+                                </div>
+                            </div>
+                        ))
                     )}
                 </div>
             </div>

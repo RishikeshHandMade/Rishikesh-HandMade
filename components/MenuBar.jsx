@@ -6,14 +6,54 @@ import Link from "next/link";
 import { ArrowDown, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import clsx from "clsx";
-
+const staticMenuItems = [
+    {
+        catTitle: "About Us",
+        subCat: [
+            {
+                subCatPackage: [
+                    { title: "About Us", url: "/about-us", active: true }
+                ],
+                active: true,
+            }
+        ],
+        active: true,
+    },
+    {
+        catTitle: "Our Policy",
+        subCat: [
+            {
+                subCatPackage: [
+                    { title: "Privacy Policy", url: "/privacy-policy", active: true },
+                    { title: "Refund & Cancellation", url: "/refund-cancellation", active: true },
+                    { title: "Shipping Policy", url: "/shipping-policy", active: true },
+                    { title: "Terms & Conditions", url: "/terms-condition", active: true }
+                ],
+                active: true,
+            }
+        ],
+        active: true,
+    },
+    {
+        catTitle: "Contact Us",
+        subCat: [
+            {
+                subCatPackage: [
+                    { title: "Contact Us", url: "/contact-us", active: true }
+                ],
+                active: true,
+            }
+        ],
+        active: true,
+    }
+];
 const MenuBar = (props) => {
     const [isOpen, setIsOpen] = useState(false);
     const [openMenu, setOpenMenu] = useState(null);
     const [openFixedMenu, setOpenFixedMenu] = useState(null);
     const [menuItems, setMenuItems] = useState(props.menuItems || []);
     const [fixedMenuItems, setFixedMenuItems] = useState(props.fixedMenuItems || []);
-
+    const allMenuItems = [...fixedMenuItems, ...staticMenuItems];
     useEffect(() => {
         // Only fetch if menuItems not provided as prop
         if (!props.menuItems) {
@@ -35,7 +75,7 @@ const MenuBar = (props) => {
             fetch("/api/subMenuFixed")
                 .then(res => res.json())
                 .then(data => {
-                        let arr = Array.isArray(data) ? data : (Array.isArray(data.packages) ? data.packages : []);
+                    let arr = Array.isArray(data) ? data : (Array.isArray(data.packages) ? data.packages : []);
                     setFixedMenuItems(arr.filter(item => item.active));
                 });
         } else {
@@ -112,20 +152,20 @@ const MenuBar = (props) => {
                     </div>
                 ))}
 
-                {fixedMenuItems.map((item, index) => (
+                {allMenuItems.length > 0 && allMenuItems.map((cat, index) => (
                     <div key={index} className="border-b">
                         <button
                             onClick={() => toggleFixedMenu(index)}
                             className="w-full text-left p-3 text-sm font-medium  hover:bg-gray-100"
                         >
-                            {item.catTitle}
+                            {cat.catTitle}
                         </button>
                         <div className={clsx(
                             "transition-all duration-300 overflow-y-auto",
                             openFixedMenu === index ? "max-h-[300px]" : "max-h-0"
                         )}>
                             <ul className="pl-4 pb-2">
-                                {item.subCat
+                                {cat.subCat
                                     .filter(subCat => subCat.active)
                                     .map((category, idx) => (
                                         <React.Fragment key={idx}>
@@ -134,9 +174,9 @@ const MenuBar = (props) => {
                                             </li>
                                             {category.subCatPackage
                                                 .filter(pkg => pkg.active)
-                                                .map((subItem, subIndex) => (
-                                                    <Link key={subIndex} href={`${subItem.url}`} className="flex flex-col gap-4 py-2 pl-4 text-sm text-gray-700 hover:text-blue-600">
-                                                        - {subItem.title}
+                                                .map((pkg, pkgIdx) => (
+                                                    <Link key={pkgIdx} href={`${pkg.url}`} className="flex flex-col gap-4 py-2 pl-4 text-sm text-gray-700 hover:text-blue-600">
+                                                        - {pkg.title}
                                                     </Link>
                                                 ))}
                                         </React.Fragment>
@@ -163,7 +203,7 @@ const MenuBar = (props) => {
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, y: -10 }}
                                             transition={{ duration: 0.2, ease: "easeInOut" }}
-                                            className="absolute top-full mt-2 -translate-x-1/2 bg-white text-black shadow-lg rounded-md w-52"
+                                            className="absolute top-full mt-2 -translate-x-1/2 bg-white text-black shadow-lg rounded-md w-48"
                                         >
                                             <ul className="grid gap-2 p-2 text-sm">
                                                 {item.subMenu
@@ -188,7 +228,7 @@ const MenuBar = (props) => {
                             </AnimatePresence>
                         </NavigationMenu.Item>
                     ))}
-                    {fixedMenuItems.length > 0 && fixedMenuItems.map((cat, index) => (
+                    {allMenuItems.length > 0 && allMenuItems.map((cat, index) => (
                         <NavigationMenu.Item key={index} className="relative flex justify-center">
                             <NavigationMenu.Trigger className="flex items-center px-4 py-2 text-sm font-semibold hover:bg-blue-500 data-[state=open]:bg-blue-300 data-[state=open]:text-black rounded-md">
                                 {cat.catTitle} <ArrowDown className="ml-2" size={12} />
@@ -204,23 +244,23 @@ const MenuBar = (props) => {
                                                 animate={{ opacity: 1, y: 0 }}
                                                 exit={{ opacity: 0, y: -10 }}
                                                 transition={{ duration: 0.2, ease: "easeInOut" }}
-                                                className={`absolute top-full mt-2 -translate-x-1/2 bg-white text-black shadow-lg rounded-md ${singleCategory ? 'w-52' : 'w-[400px] lg:w-[600px]'}`}
+                                                className={`absolute top-full mt-2 -translate-x-1/2 bg-white text-black shadow-lg rounded-md ${singleCategory ? 'w-40' : 'w-[400px] lg:w-[600px]'}`}
                                             >
                                                 <div className={
                                                     singleCategory
-                                                        ? "grid gap-4  px-4 py-3 grid-cols-2 lg:grid-cols-1"
+                                                        ? "grid gap-4 px-3 py-3 grid-cols-2 lg:grid-cols-1"
                                                         : "grid gap-4 p-6 grid-cols-2 lg:grid-cols-3"
                                                 }>
                                                     {activeSubCats.map((category, idx) => (
                                                         <div key={idx} className={singleCategory ? "flex flex-col items-center w-full" : "flex flex-col"}>
                                                             <h3 className={singleCategory ? "font-medium text-gray-700 mb-2 text-start w-full px-2" : "font-medium text-gray-700 mb-2"}>{category.title}</h3>
-                                                            <ul className={singleCategory ? "space-y-1 flex flex-col items-start w-full px-2" : "space-y-2"}>
+                                                            <ul className={singleCategory ? "space-y-1 flex flex-col items-start w-full px-2 " : "space-y-2"}>
                                                                 {category.subCatPackage
                                                                     .filter(pkg => pkg.active)
-                                                                    .map((item, itemIdx) => (
-                                                                        <li key={itemIdx} className={singleCategory ? "w-full" : undefined}>
-                                                                            <Link href={item.url} className={singleCategory ? "text-gray-600 hover:text-blue-600 text-sm text-center w-full block py-1" : "text-gray-600 hover:text-blue-600 text-sm"}>
-                                                                                {item.title}
+                                                                    .map((pkg, pkgIdx) => (
+                                                                        <li key={pkgIdx} className={singleCategory ? "w-full" : undefined}>
+                                                                            <Link href={pkg.url} className={singleCategory ? "text-gray-900 hover:text-blue-600 text-sm  text-start w-full block py-1" : "text-gray-600 hover:text-blue-600 text-sm"}>
+                                                                                {pkg.title}
                                                                             </Link>
                                                                         </li>
                                                                     ))}

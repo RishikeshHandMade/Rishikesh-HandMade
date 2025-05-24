@@ -39,9 +39,15 @@ const Footer = () => {
 
 
     return (
-        <footer className={`print:hidden ${pathName.includes('admin') && 'hidden'}
+        <footer className={`print:hidden 
+        ${pathName.includes('admin') && 'hidden'}
          ${pathName.includes('product') && 'block'} 
          ${pathName.includes('artisan') && 'hidden'} 
+         ${pathName.includes('about-us') && 'hidden'} 
+         ${pathName.includes('privacy-policy') && 'hidden'} 
+         ${pathName.includes('refund-cancellation') && 'hidden'} 
+         ${pathName.includes('terms-condition') && 'hidden'} 
+         ${pathName.includes('shipping-policy') && 'hidden'}        
          ${pathName.includes('customEnquiry') && 'block'}
          ${pathName.includes('checkout') && 'block'}  
          ${pathName.includes('category') && 'block'} 

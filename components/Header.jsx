@@ -59,6 +59,11 @@ const Header = () => {
       className={`print:hidden ${pathName.includes("admin") ||
         pathName.includes("category") ||
         pathName.includes("page") ||
+        pathName.includes("about-us") ||
+        pathName.includes("privacy-policy") ||
+        pathName.includes("refund-cancellation") ||
+        pathName.includes("terms-condition") ||
+        pathName.includes("shipping-policy") ||
         pathName.includes("product") ||
         pathName.includes("artisan") ||
         pathName.includes("cartDetails") ||
