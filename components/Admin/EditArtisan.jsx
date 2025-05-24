@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "react-hot-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import Link from "next/link";
 
 
 
@@ -90,6 +91,7 @@ export default function EditArtisan({ artisan }) {
                   <TableCell className="px-4 py-3">{artisan.firstName} {artisan.lastName}</TableCell>
                   <TableCell className="px-4 py-3">{artisan.artisanNumber}</TableCell>
                   <TableCell className="px-4 py-3">
+                    
                     <Button
                       size="sm"
                       variant="default"
@@ -105,8 +107,10 @@ export default function EditArtisan({ artisan }) {
                     </Button>
                   </TableCell>
                   <TableCell className="px-4 py-3 space-x-2">
-                    <Button size="sm" variant="outline" onClick={() => router.push(`/admin/artisan_dashboard/${artisan._id}`)}>View</Button>
-                    <Button size="sm" variant="secondary" onClick={() => onEdit && onEdit(artisan)}>Edit</Button>
+                    <Link href={`/admin/artisan_dashboard/${artisan._id}`}>
+                    <Button size="sm" variant="outline">View</Button>
+                    </Link>
+                    {/* <Button size="sm" variant="secondary" onClick={() => onEdit && onEdit(artisan)}>Edit</Button> */}
                     <Button size="sm" variant="destructive" onClick={() => handleDeleteClick(artisan)}>Delete</Button>
                   </TableCell>
                 </TableRow>

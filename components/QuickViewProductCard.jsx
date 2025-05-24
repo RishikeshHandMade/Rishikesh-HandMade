@@ -1,10 +1,13 @@
+"use client"
 import React from "react";
 import Image from "next/image";
 import { useState } from "react"
 import { Heart } from "lucide-react"
+import { useCart } from "../context/CartContext";
+
 export default function QuickViewProductCard({ product, onClose }) {
   if (!product) return null;
-  console.log(product)
+  const { addToCart, addToWishlist } = useCart();
   const [quantity, setQuantity] = useState(1);
 
   // Prepare images array for gallery, using mainImage and subImages
@@ -77,8 +80,25 @@ export default function QuickViewProductCard({ product, onClose }) {
         </div>
         {/* Buttons */}
         <div className="flex gap-2 mb-4 w-full">
-          <button className="bg-black text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-800 w-1/2">ADD TO CART</button>
-          <button className="border border-black px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 w-1/2 flex items-center gap-2"><Heart />Add To Wishlist</button>
+          <button
+            className="bg-black text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-800 w-1/2"
+            onClick={() => addToCart({
+              id: product._id,
+              name: product.title,
+              image: product?.gallery?.mainImage || "/placeholder.png",
+              price: product?.quantity?.variants[0].price,
+            }, quantity)}
+          >ADD TO CART</button>
+          <button
+            className="border border-black px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 w-1/2 flex items-center gap-2"
+            onClick={() => addToWishlist({
+              id: product._id,
+              name: product.title,
+              image: product?.gallery?.mainImage || "/placeholder.png",
+              price: product?.quantity?.variants[0].price,
+              qty: quantity
+            })}
+          ><Heart />Add To Wishlist</button>
         </div>
         {/* Divider */}
         <hr className="my-1" />

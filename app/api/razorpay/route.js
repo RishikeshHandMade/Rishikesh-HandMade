@@ -14,8 +14,7 @@ const razorpay = new Razorpay({
 export async function POST(request) {
     await connectDB();
     try {
-        const { totalPersons, instructions, travelDate, departureLocation, userId, packageId, totalAmount, amount, currency, receipt, name, email, phone, address, city, extraAddressInfo, state, pincode, heliFormData } =
-            await request.json();
+        const { amount, currency, receipt, products, customer } = await request.json();
 
         // Create Razorpay order
         const razorpayOrder = await razorpay.orders.create({
@@ -28,27 +27,15 @@ export async function POST(request) {
             throw new Error("Failed to create Razorpay order");
         }
 
-        // Create an Order document in MongoDB
+        // Save order in MongoDB
         const newOrder = new Order({
             orderId: razorpayOrder.id, // Razorpay order ID
-            packageId,
-            userId,
-            name,
-            email,
-            phone,
-            address,
-            extraAddressInfo,
-            totalPerson: totalPersons,
-            instructions,
-            travelDate,
-            departureLocation,
-            city,
-            state,
-            pincode,
+            products,                  // Array of products
+            customer,                  // Customer details object
             amount,
-            totalAmount,
-            status: "Pending", // Initial status
-            heliFormData
+            currency,
+            receipt,
+            status: "Pending"
         });
 
         await newOrder.save();

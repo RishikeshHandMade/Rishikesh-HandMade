@@ -43,6 +43,8 @@ export const metadata = {
   },
 };
 
+import { CartProvider } from "../context/CartContext";
+
 export default function RootLayout({ children }) {
   const isPaid = process.env.NEXT_PUBLIC_IS_PAID === "true";
 
@@ -50,7 +52,7 @@ export default function RootLayout({ children }) {
     <html lang="en" suppressHydrationWarning>
       <body className={`font-gilda`}>
         {isPaid ? (
-          <>
+          <CartProvider>
             <NextTopLoader color="#006eff" height={3} showSpinner={false} zIndex={1600} />
             <Toaster position="top-center" reverseOrder={false} toastOptions={{ duration: 3000 , style: { fontFamily: "var(--font-GildaDisplay)" } }} />
             <SessionWrapper>
@@ -64,7 +66,7 @@ export default function RootLayout({ children }) {
                 <Footer />
               </SearchProvider>
             </SessionWrapper>
-          </>
+          </CartProvider>
         ) : (
           <div className="flex items-center justify-center h-screen">
             <h1 className="text-2xl font-bold text-black text-center">

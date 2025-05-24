@@ -15,6 +15,7 @@ import Image from "next/image";
 import { Skeleton } from "./ui/skeleton";
 import Autoplay from "embla-carousel-autoplay";
 import QuickViewProductCard from "./QuickViewProductCard";
+import { useCart } from "../context/CartContext";
 
 function slugify(text) {
   return text
@@ -27,6 +28,7 @@ function slugify(text) {
 }
 
 const RandomTourPackageSection = () => {
+  const { addToCart, addToWishlist } = useCart();
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [blogs, setBlogs] = useState([]);
@@ -235,6 +237,13 @@ const RandomTourPackageSection = () => {
                             variant="ghost"
                             size="icon"
                             className="rounded-full bg-[#b3a7a3]/80 hover:bg-[#b3a7a3] transition-colors duration-300 h-12 w-12 shadow-none"
+                            onClick={() => addToWishlist({
+                              id: item._id,
+                              name: item.title,
+                              image: item?.gallery?.mainImage || "/RandomTourPackageImages/u1.jpg",
+                              price: item?.quantity?.variants[0].price,
+                              qty: 1
+                            })}
                           >
                             <Heart size={28} className="text-white" />
                           </Button>
@@ -242,6 +251,12 @@ const RandomTourPackageSection = () => {
                             variant="ghost"
                             size="icon"
                             className="rounded-full bg-[#b3a7a3]/80 hover:bg-[#b3a7a3] transition-colors duration-300 h-12 w-12 shadow-none"
+                            onClick={() => addToCart({
+                              id: item._id,
+                              name: item.title,
+                              image: item?.gallery?.mainImage || "/RandomTourPackageImages/u1.jpg",
+                              price: item?.quantity?.variants[0].price,
+                            }, 1)}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -794,6 +809,7 @@ const RandomTourPackageSection = () => {
               </div>
             </div>
           )}
+          
         </div>
       </div>
     </section>
