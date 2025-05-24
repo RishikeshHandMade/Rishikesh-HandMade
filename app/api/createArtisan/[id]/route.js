@@ -9,7 +9,7 @@ try {
 
 export async function GET(req, { params }) {
   await connectDB();
-  const { id } = params;
+  const { id } =await params;
   const artisan = await Artisan.findById(id)
     .populate('promotions')
     .populate('blogs')

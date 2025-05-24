@@ -16,7 +16,8 @@ import { Skeleton } from "./ui/skeleton";
 import Autoplay from "embla-carousel-autoplay";
 import QuickViewProductCard from "./QuickViewProductCard";
 import { useCart } from "../context/CartContext";
-
+import { toast } from "react-hot-toast"
+import { useCart } from "../context/CartContext";
 function slugify(text) {
   return text
     .toString()
@@ -28,7 +29,18 @@ function slugify(text) {
 }
 
 const RandomTourPackageSection = () => {
-  const { addToCart, addToWishlist } = useCart();
+  const { addToCart, addToWishlist, removeFromWishlist, wishlist } = useCart();
+
+  const handleAddToCart = (item) => {
+    addToCart({
+      id: item._id,
+      name: item.title,
+      image: item?.gallery?.mainImage || "/RandomTourPackageImages/u1.jpg",
+      price: item?.quantity?.variants[0].price,
+    }, 1);
+    toast.success("Added to cart!");
+  };
+
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [blogs, setBlogs] = useState([]);
@@ -200,7 +212,7 @@ const RandomTourPackageSection = () => {
     allPosts.length <= 3 ? `basis-1/${allPosts.length}` : "md:basis-1/5";
 
   return (
-    <section className=" md:mt-19 w-full px-4 overflow-hidden max-w-screen overflow-x-hidden">
+    <section className="bg-[#fcf7f1] md:mt-19 w-full px-4 overflow-hidden max-w-screen overflow-x-hidden">
       <div className=" w-full h-full overflow-hidden max-w-screen ">
         <div className="w-full py-9 px-1 ">
           <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mt-10">
@@ -222,41 +234,44 @@ const RandomTourPackageSection = () => {
                     key={index}
                     className="pl-1  md:basis-1/2 lg:basis-1/4 min-w-0 snap-start"
                   >
-                    <div className="flex flex-col w-[300px]">
+                    <div className="flex flex-col w-[290px]">
                       {/* Image Section */}
                       <div className="relative w-full h-96  rounded-3xl overflow-hidden flex items-center justify-center group/image">
                         {/* GET 10% OFF Tag */}
-                        <div className="absolute top-6 left-6 z-10">
-                          <div className="bg-white rounded-full px-5 py-2 text-sm font-bold shadow text-black tracking-tight" style={{ letterSpacing: 0 }}>
+                        <div className="absolute top-6 left-4 z-10">
+                          <div className="bg-white rounded-full px-4 py-1 text-sm font-bold shadow text-black tracking-tight" style={{ letterSpacing: 0 }}>
                             GET 10% OFF
                           </div>
                         </div>
                         {/* Heart/Wishlist & Cart Buttons - Top Right */}
                         <div className="absolute top-6 right-6 z-10 flex flex-col gap-4 items-end">
                           <Button
-                            variant="ghost"
-                            size="icon"
-                            className="rounded-full bg-[#b3a7a3]/80 hover:bg-[#b3a7a3] transition-colors duration-300 h-12 w-12 shadow-none"
-                            onClick={() => addToWishlist({
-                              id: item._id,
-                              name: item.title,
-                              image: item?.gallery?.mainImage || "/RandomTourPackageImages/u1.jpg",
-                              price: item?.quantity?.variants[0].price,
-                              qty: 1
-                            })}
-                          >
-                            <Heart size={28} className="text-white" />
-                          </Button>
+  variant="ghost"
+  size="icon"
+  className={`rounded-full transition-colors duration-300 h-12 w-12 shadow-none ${wishlist.some(i => i.id === item._id) ? "bg-pink-600 hover:bg-pink-700" : "bg-white hover:bg-[#b3a7a3]"}`}
+  onClick={() => {
+    if (wishlist.some(i => i.id === item._id)) {
+      removeFromWishlist(item._id);
+      toast.success("Removed from wishlist!");
+    } else {
+      addToWishlist({
+        id: item._id,
+        name: item.title,
+        image: item?.gallery?.mainImage || "/RandomTourPackageImages/u1.jpg",
+        price: item?.quantity?.variants[0].price,
+        qty: 1
+      });
+      toast.success("Added to wishlist!");
+    }
+  }}
+>
+  <Heart size={28} className={wishlist.some(i => i.id === item._id) ? "text-white" : "text-pink-600"} />
+</Button>
                           <Button
                             variant="ghost"
                             size="icon"
                             className="rounded-full bg-[#b3a7a3]/80 hover:bg-[#b3a7a3] transition-colors duration-300 h-12 w-12 shadow-none"
-                            onClick={() => addToCart({
-                              id: item._id,
-                              name: item.title,
-                              image: item?.gallery?.mainImage || "/RandomTourPackageImages/u1.jpg",
-                              price: item?.quantity?.variants[0].price,
-                            }, 1)}
+                            onClick={() => handleAddToCart(item)}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -285,9 +300,9 @@ const RandomTourPackageSection = () => {
                           className="object-cover w-full h-full rounded-3xl transition-transform duration-300 group-hover/image:scale-105"
                         />
                         {/* Quick View Button - Slide Up from Bottom on Hover (image only) */}
-                        <div className="absolute left-0 right-0 bottom-0 flex items-center justify-center translate-y-12 opacity-0 group-hover/image:translate-y-0 group-hover/image:opacity-100 transition-all duration-300 py-4">
+                        <div className="absolute left-0 right-0 bottom-0 flex items-center justify-center translate-y-10 opacity-0 group-hover/image:translate-y-0 group-hover/image:opacity-100 transition-all duration-300 py-4 ">
                           <Button
-                            className="bg-black text-white hover:bg-gray-800 transition-colors duration-300 uppercase text-sm font-bold px-8 py-3 rounded-full shadow-lg"
+                            className="bg-black text-white hover:bg-gray-800 transition-colors duration-300 uppercase text-sm font-bold px-8 py-3 rounded-full shadow-lg border border-2 border-white"
                             onClick={() => setQuickViewProduct(item)}
                           >
                             QUICK VIEW
@@ -295,7 +310,7 @@ const RandomTourPackageSection = () => {
                         </div>
                       </div>
                       {/* Name and Price Section */}
-                      <div className="flex items-center justify-between px-2 pt-4 pb-2 bg-white rounded-b-3xl mt-0">
+                      <div className="flex items-center justify-between px-2 pt-4 pb-2  mt-0">
                         <Link
                           href={`/product/${item._id}`}
                           className="font-bold hover:underline text-xl text-gray-900 leading-tight max-w-[200px] truncate cursor-pointer"
@@ -809,7 +824,7 @@ const RandomTourPackageSection = () => {
               </div>
             </div>
           )}
-          
+
         </div>
       </div>
     </section>

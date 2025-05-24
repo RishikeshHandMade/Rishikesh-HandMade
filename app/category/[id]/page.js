@@ -4,12 +4,19 @@ import CategoryBanner from "@/components/Category/category-banner"
 import PackageCard from "@/components/Category/package-card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import Image from "next/image";
 
+import { Heart } from "lucide-react";
 const formatCategoryId = (categoryId) => {
     return categoryId
         .split('_')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize each word
         .join(' '); // Join words with space
+};
+const formatNumeric = (num) => {
+    return new Intl.NumberFormat("en-IN").format(num);
 };
 
 export async function generateMetadata({ params }) {
@@ -46,56 +53,29 @@ const CategoryPage = async ({ params }) => {
 
     return (
         <SidebarInset>
-            <div className="min-h-screen p-2">
+            <div className="min-h-screen p-2 bg-[#fcf7f1]">
                 {/* Fixed Banner Section */}
                 <CategoryBanner title={categoryInfo.title} bannerImage={categoryInfo.bannerImage} />
 
                 {/* Products Section */}
-                <div className="container w-full px-1 md:px-4 py-5">
+                <div className="container w-full px-10 md:px-4 py-5">
                     {visibleProducts.length === 0 ? (
                         <div className="text-center py-8">
                             <h3 className="text-xl font-medium text-gray-600">No products found for this category</h3>
                             <p className="mt-2 text-gray-500">Please try another category</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-2 md:grid-cols-5 xl:grid-cols-5 gap-1 justify-items-center items-center">
+                        <div className="grid grid-cols-2 md:grid-cols-5 xl:grid-cols-5 gap-10 justify-center items-center ">
                             <Suspense fallback={<PackageCardSkeleton count={3} />}>
-                                {visibleProducts.map((prod, idx) => {
-                                    const imageUrl = prod.gallery?.mainImage || '';
-                                    return (
-                                        <div
-                                            key={prod._id || idx}
-                                            className="flex flex-col items-center justify-center w-60 bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300 p-4 mb-2 group cursor-pointer border border-gray-200 text-center"
-                                            style={{ minHeight: '340px' }}
-                                        >
-                                            <div className="w-full aspect-[4/5] rounded-xl overflow-hidden mb-4 bg-gray-100 group-hover:scale-105 transition-transform duration-300 flex items-center justify-center">
-                                                {imageUrl ? (
-                                                    <img
-                                                        src={imageUrl}
-                                                        alt={prod.title}
-                                                        className="object-cover w-full h-full rounded-xl group-hover:scale-105 transition-transform duration-300"
-                                                    />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
-                                                )}
-                                            </div>
-                                            <a
-                                                href={`/product/${prod._id}`}
-                                                className="block w-full text-center font-semibold text-lg text-gray-800 hover:text-blue-600 transition-colors duration-200 mb-2 truncate"
-                                                style={{ letterSpacing: '.02em' }}
-                                                title={prod.title}
-                                            >
-                                                {prod.title}
-                                            </a>
-                                            <a
-                                                href={`/product/${prod._id}`}
-                                                className="inline-block mt-2 px-4 py-2 rounded-lg bg-blue-600 text-white font-medium text-sm shadow hover:bg-blue-700 transition-colors duration-200"
-                                            >
-                                                View Details
-                                            </a>
-                                        </div>
-                                    );
-                                })}
+                                {visibleProducts.map((item, index) => (
+                                    <PackageCard
+                                        key={item._id || index}
+                                        pkg={item}
+                                        // addToWishlist={addToWishlist}
+                                        // addToCart={addToCart}
+                                        // setQuickViewProduct={setQuickViewProduct}
+                                    />
+                                ))}
                             </Suspense>
                         </div>
                     )}

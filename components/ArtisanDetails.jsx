@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
@@ -213,48 +213,52 @@ const ArtisanDetails = ({ artisan }) => {
       </div>
 
       {/* Reviews Section */}
-      <div className="w-full max-w-7xl mb-10">
-        <h3 className="text-2xl font-bold mb-4 text-gray-800">Reviews</h3>
-        <Carousel className="w-full md:w-[100%] mx-auto my-4">
-          <CarouselContent className="-ml-1 w-full gap-4">
+      <div className="w-full max-w-4xl mx-auto mb-10">
+        <Carousel className="w-full">
+          <CarouselContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {(artisan.promotions && artisan.promotions.length > 0 ? artisan.promotions : [
               {
                 _id: 1,
                 rating: 3,
-                title: 'JOHN DOE',
-                shortDescription: "This podcast is amazing! The storytelling and production quality are top-notch. I can't wait for the next episode!",
+                title: 'Kenneth Fong',
+                subtitle: 'Postgraduate Student',
+                shortDescription: "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English.",
+                image: '/placeholder-user.jpg',
               },
             ]).map((review, idx) => (
               <CarouselItem
                 key={review._id}
-                className="pl-1 md:basis-1/3 min-w-0 snap-start"
+                className="min-w-0 snap-center w-full md:w-1/2"
               >
-                <div className="bg-white border rounded-xl shadow px-4 py-2 flex flex-col items-center text-center max-w-2xl mx-auto relative">
-                  {/* Avatar and Name Row */}
-                  <div className="flex items-center justify-start w-full mb-2 mt-2 gap-3">
-                    <div className="relative">
+                <div className="bg-white rounded-3xl shadow-xl border border-[#f7eedd] p-8 flex flex-col justify-between h-full min-h-[320px] relative overflow-visible">
+                  {/* Review text */}
+                  <div className="text-lg md:text-xl text-gray-800 font-medium leading-relaxed mb-8 text-left">
+                    {review.shortDescription || 'No review text.'}
+                  </div>
+                  {/* Bottom row: avatar, name, subtitle, nav buttons */}
+                  <div className="flex items-center justify-between w-full mt-auto pt-2">
+                    {/* Avatar, Name, Subtitle */}
+                    <div className="flex items-center">
                       <img
                         src={review.image || "/placeholder-user.jpg"}
                         alt={review.createdBy || review.title || 'Anonymous'}
-                        className="w-24 h-24 rounded-full border-4 border-white shadow"
+                        className="w-16 h-16 rounded-full border-4 border-white shadow object-cover"
                       />
+                      <div className="ml-4 text-left">
+                        <div className="font-bold text-xl text-black">{review.createdBy || review.title || 'Anonymous'}</div>
+                        <div className="text-gray-400 text-base font-medium mt-1">{review.subtitle || 'Postgraduate Student'}</div>
+                      </div>
                     </div>
-                    <div className="font-bold text-xl text-black text-left">{review.createdBy || review.title || 'Anonymous'}</div>
+                    {/* Carousel navigation (absolute, styled like screenshot) */}
+                    {/* <div className="flex items-center gap-4">
+                      <CarouselPrevious className="!static !relative !shadow-none !bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center hover:!bg-[#f3e3c6] transition" />
+                      <CarouselNext className="!static !relative !shadow-none !bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center hover:!bg-[#f3e3c6] transition" />
+                    </div> */}
                   </div>
-                  {/* Stars */}
-                  <div className="flex justify-center mb-2">
-                    {[...Array(5)].map((_, i) => (
-                      <svg key={i} className={`w-6 h-6 mx-0.5 ${i < (review.rating || 0) ? 'text-yellow-400' : 'text-gray-300'}`} fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 0 0 .95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 0 0-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.454a1 1 0 0 0-1.176 0l-3.38 2.454c-.785.57-1.84-.196-1.54-1.118l1.287-3.966a1 1 0 0 0-.364-1.118L2.049 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 0 0 .95-.69l1.286-3.967z" /></svg>
-                    ))}
-                  </div>
-                  {/* Review text (Description Row) */}
-                  <div className="text-start px-2 italic text-lg text-gray-700 mb-2 whitespace-pre-line w-full mt-2 max-h-24 overflow-y-auto">{review.shortDescription || 'No review text.'}</div>
                 </div>
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious />
-          <CarouselNext />
         </Carousel>
       </div>
 

@@ -359,7 +359,7 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
         </div>
         {/* Image Upload Section (Certificate style) */}
         <div className="mb-4">
-          <label className="block font-semibold mb-1">Promotional Image</label>
+          <label className="block font-semibold mb-1">Thumb Image</label>
           <div className="border rounded p-4 text-center">
             {uploadedImageUrl ? (
               <div className="relative inline-block mb-3">

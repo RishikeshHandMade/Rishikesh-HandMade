@@ -1,70 +1,111 @@
+"use client"
+
+import { useState, useEffect } from 'react'
 import Image from "next/image"
 import Link from "next/link"
-import { MapPin, Calendar, Star, Loader2 } from "lucide-react"
+import { MapPin, Calendar, Star, Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getReviewsById } from "@/actions/GetReviewsById"
+import { useCart } from "@/context/CartContext"
 
-const PackageCard = async ({ pkg }) => {
+const PackageCard = ({ pkg }) => {
+  const { addToWishlist, addToCart } = useCart()
+  const [reviews, setReviews] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [averageRating, setAverageRating] = useState(0)
+  const [totalReviews, setTotalReviews] = useState(0)
+
+
+
+
+
   const formatNumber = (number) => {
     return new Intl.NumberFormat('en-IN').format(number)
   }
 
-  const reviews = await getReviewsById(pkg?._id)
-// console.log(reviews)
-  const rating = reviews.filter(review => review.approved).reduce((acc, review) => acc + review.rating, 0);
-  const averageRating = rating / reviews.length;
-
-  const totalReviews = reviews.filter(review => review.approved).length
+  if (loading) {
+    return (
+      <div className="w-[300px] h-[500px] bg-gray-100 rounded-3xl animate-pulse" />
+    )
+  }
 
   return (
-    <div className="bg-white shadow-xl border-2 rounded-xl transition-transform duration-300 hover:shadow-lg hover:-translate-y-1 font-barlow flex flex-col h-full justify-between p-4 relative overflow-hidden group">
-      <div className="relative w-full h-48 md:h-42 mb-3  rounded-lg overflow-hidden">
-        {pkg?.basicDetails?.thumbnail?.url ? (
-          <Image
-            src={pkg?.basicDetails?.thumbnail?.url}
-            alt={pkg?.packageName}
-            width={800}
-            height={600}
-            quality={50}
-            priority
-            className="object-cover w-full h-full rounded-lg"
-          />
-        ) : (
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <Loader2 className="h-8 w-8 text-primary animate-spin" />
+    <div className="flex flex-col max-w-[300px]  rounded-3xl mb-2 group cursor-pointer ">
+      {/* Image Section */}
+      <div className="relative w-full h-[50%] rounded-3xl overflow-hidden flex items-center justify-center group/image">
+        {/* GET 10% OFF Tag */}
+        <div className="absolute top-6 left-6 z-10">
+          <div className="bg-white rounded-full px-5 py-2 text-sm font-bold shadow text-black tracking-tight" style={{ letterSpacing: 0 }}>
+            GET 10% OFF
           </div>
-        )}
-        <div className="absolute top-3 left-3 bg-blue-100 border-2 border-blue-600 text-black px-3 py-1 rounded-full font-semibold z-10">
-          ₹<span className="font-bold text-lg">{formatNumber(pkg?.price)}*</span>
         </div>
+
+        {/* Heart/Wishlist & Cart Buttons - Top Right */}
+        <div className="absolute top-6 right-6 z-10 flex flex-col gap-4 items-end">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full bg-[#b3a7a3]/80 hover:bg-[#b3a7a3] transition-colors duration-300 h-12 w-12 shadow-none"
+            onClick={() => addToWishlist({
+              id: pkg._id,
+              name: pkg.title,
+              image: (pkg?.gallery?.mainImage ? pkg.gallery.mainImage : "/RandomTourPackageImages/u1.jpg"),
+              price: pkg?.quantity?.variants[0].price,
+              qty: 1
+            })}
+          >
+            <Heart size={28} className="text-white" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full bg-[#b3a7a3]/80 hover:bg-[#b3a7a3] transition-colors duration-300 h-12 w-12 shadow-none"
+            onClick={() => addToCart({
+              id: pkg._id,
+              name: pkg.title,
+              image: (pkg?.gallery?.mainImage ? pkg.gallery.mainImage : "/RandomTourPackageImages/u1.jpg"),
+              price: pkg?.quantity?.variants[0].price,
+            }, 1)}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="white"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-white"
+            >
+              <circle cx="8" cy="21" r="1" />
+              <circle cx="19" cy="21" r="1" />
+              <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
+            </svg>
+          </Button>
+        </div>
+
+        <Image
+          src={(pkg?.gallery?.mainImage ? pkg.gallery.mainImage : "/RandomTourPackageImages/u1.jpg")}
+          alt={pkg?.title || "Tour package image"}
+          width={400}
+          height={500}
+          quality={60}
+          className="object-cover w-full h-full rounded-3xl transition-transform duration-300 group-hover/image:scale-105"
+        />
       </div>
-      <div className="p-2 flex flex-col gap-2 flex-1">
-        <h3 className="font-bold md:text-lg text-xl line-clamp-2 font-gilda mb-1">{pkg?.packageName}</h3>
-        <div className="flex xl:flex-row flex-col xl:items-center justify-between gap-2 font-barlow mb-2">
-          <p className="flex items-center gap-2 text-blue-600 text-sm font-semibold">
-            <MapPin size={20} /> {pkg?.basicDetails?.location}
-          </p>
-          <p className="flex items-center gap-2 text-blue-600 text-sm font-semibold">
-            <Calendar size={20} /> {pkg?.basicDetails?.duration} Days {pkg?.basicDetails?.duration - 1} Nights
-          </p>
-        </div>
-        <div className="h-px bg-gray-200 my-1" />
-        <div className="flex flex-col gap-2 flex-1">
-          <div className="text-gray-700 text-sm mb-2 h-16 overflow-y-auto line-clamp-2">
-  <span dangerouslySetInnerHTML={{ __html: pkg?.basicDetails?.smallDesc || "" }} />
-</div>
-        </div>
-        <div className="flex items-center justify-between gap-2 mt-auto">
-          <div className="flex items-center">
-            <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
-            <span className="ml-1 text-base font-medium">{averageRating || 0}</span>
-            <span className="ml-1 text-sm font-medium text-blue-600">({totalReviews || 0} reviews)</span>
-          </div>
-          <Link href={`/package/${pkg?._id}`}>
-            <Button size="lg" className="bg-blue-600 text-lg uppercase hover:bg-blue-500 rounded-sm">Learn More</Button>
-          </Link>
-        </div>
+
+      {/* Name and Price Section */}
+      <div className="flex items-center justify-between px-6 pt-4 pb-2">
+        <h3 className="font-bold text-lg text-gray-900 truncate max-w-[180px]">
+          {pkg?.title}
+        </h3>
+        <span className="font-bold text-lg text-gray-900">
+          ₹{formatNumber((pkg?.quantity?.variants && pkg.quantity.variants.length > 0 ? pkg.quantity.variants[0].price : 0) || 0)}
+        </span>
       </div>
+
     </div>
   )
 }

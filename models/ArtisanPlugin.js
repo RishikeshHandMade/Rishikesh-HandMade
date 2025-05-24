@@ -11,6 +11,7 @@ const ArtisanPluginSchema = new mongoose.Schema({
   facebook: { type: String, default: '' },
   google: { type: String, default: '' },
   instagram: { type: String, default: '' },
+  youtube: { type: String, default: '' },
   website: { type: String, default: '' },
 }, {
   timestamps: true

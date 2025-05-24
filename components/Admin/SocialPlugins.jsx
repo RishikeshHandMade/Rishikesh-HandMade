@@ -14,6 +14,7 @@ const SocialPlugins = ({ artisanId, artisanDetails = null }) => {
     facebook: '',
     google: '',
     instagram: '',
+    youtube: '',
     website: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -24,7 +25,7 @@ const SocialPlugins = ({ artisanId, artisanDetails = null }) => {
   const [showPluginsModal, setShowPluginsModal] = useState(false);
   const [selectedArtisanPlugins, setSelectedArtisanPlugins] = useState([]);
   const [selectedArtisanInfo, setSelectedArtisanInfo] = useState(null);
-const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Fetch all plugins
   const fetchPlugins = async () => {
@@ -32,6 +33,7 @@ const [loading, setLoading] = useState(false);
     try {
       const res = await fetch('/api/artisanPlugins');
       const data = await res.json();
+      console.log(data)
       if (data.success) setPlugins(data.plugins);
       else toast.error(data.message || 'Failed to fetch plugins');
     } catch {
@@ -86,7 +88,7 @@ const [loading, setLoading] = useState(false);
       }
       setEditMode(false);
       setEditPluginData(null);
-      setFormData({ facebook: '', google: '', instagram: '', website: '' });
+      setFormData({ facebook: '', google: '', instagram: '',youtube:'', website: '' });
       setSelectedArtisan('');
       fetchPlugins();
     } catch {
@@ -117,14 +119,14 @@ const [loading, setLoading] = useState(false);
     } finally {
       setShowDeleteModal(false);
       setDeleteTarget(null);
-      
+
     }
   };
 
   const cancelDelete = () => {
     setShowDeleteModal(false);
     setDeleteTarget(null);
-    
+
   };
 
   // GROUP PLUGINS BY ARTISAN
@@ -164,27 +166,32 @@ const [loading, setLoading] = useState(false);
             {/* Facebook */}
             <div className="mb-3">
               <label className="block mb-1">Facebook</label>
-              <input name="facebook" type="url" className="w-full border rounded px-3 py-2" placeholder="URL :" value={formData.facebook} onChange={handleChange} />
+              <input name="facebook" type="url" className="w-full border rounded px-3 py-2" placeholder=" Facebook URL :" value={formData.facebook} onChange={handleChange} />
             </div>
             {/* Google */}
             <div className="mb-3">
               <label className="block mb-1">Google</label>
-              <input name="google" type="url" className="w-full border rounded px-3 py-2" placeholder="URL :" value={formData.google} onChange={handleChange} />
+              <input name="google" type="url" className="w-full border rounded px-3 py-2" placeholder="Google URL :" value={formData.google} onChange={handleChange} />
             </div>
             {/* Instagram */}
             <div className="mb-3">
               <label className="block mb-1">Instagram</label>
-              <input name="instagram" type="url" className="w-full border rounded px-3 py-2" placeholder="URL :" value={formData.instagram} onChange={handleChange} />
+              <input name="instagram" type="url" className="w-full border rounded px-3 py-2" placeholder="Instagram URL :" value={formData.instagram} onChange={handleChange} />
+            </div>
+            {/* Youtube */}
+            <div className="mb-3">
+              <label className="block mb-1">Youtube</label>
+              <input name="youtube" type="url" className="w-full border rounded px-3 py-2" placeholder="Youtube URL :" value={formData.youtube} onChange={handleChange} />
             </div>
             {/* Website */}
             <div className="mb-3">
               <label className="block mb-1">Website</label>
-              <input name="website" type="url" className="w-full border rounded px-3 py-2" placeholder="URL :" value={formData.website} onChange={handleChange} />
+              <input name="website" type="url" className="w-full border rounded px-3 py-2" placeholder="Website URL :" value={formData.website} onChange={handleChange} />
             </div>
             <div className="text-center">
               <button type="submit" className="bg-blue-600 text-white px-5 py-2 rounded" disabled={isSubmitting}>{isSubmitting ? 'Saving...' : 'Data Save'}</button>
               {editMode && (
-                <button type="button" className="bg-gray-400 text-white px-5 py-2 rounded ml-2" onClick={() => { setEditMode(false); setSelectedArtisan(''); setFormData({ facebook: '', google: '', instagram: '', website: '' }); }}>Cancel</button>
+                <button type="button" className="bg-gray-400 text-white px-5 py-2 rounded ml-2" onClick={() => { setEditMode(false); setSelectedArtisan(''); setFormData({ facebook: '', google: '', instagram: '', youtube:'', website: '' }); }}>Cancel</button>
               )}
             </div>
           </form>
@@ -231,6 +238,7 @@ const [loading, setLoading] = useState(false);
                             facebook: plugin.facebook || '',
                             google: plugin.google || '',
                             instagram: plugin.instagram || '',
+                            youtube: plugin.youtube || '',
                             website: plugin.website || '',
                           });
                           window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -242,7 +250,7 @@ const [loading, setLoading] = useState(false);
                           const plugin = group.plugins[0];
                           setDeleteTarget(plugin._id);
                           setShowDeleteModal(true);
-                          
+
                         }}>
                           Delete
                         </Button>
@@ -263,21 +271,27 @@ const [loading, setLoading] = useState(false);
                 {selectedArtisanPlugins.map((plugin, idx) => (
                   <div key={plugin._id || idx} className="border rounded p-4">
                     <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
-                        <div className="font-semibold text-gray-800">Facebook</div>
-                        <div className="text-gray-600">{plugin.facebook ? <a href={plugin.facebook} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">{plugin.facebook}</a> : <span className="text-gray-400">N/A</span>}</div>
-                      </div>
+                      <div className="font-semibold text-gray-800">Facebook</div>
+                      <div className="text-gray-600">{plugin.facebook ? <a href={plugin.facebook} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">{plugin.facebook}</a> : <span className="text-gray-400">N/A</span>}</div>
+                    </div>
                     <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
-                        <div className="font-semibold text-gray-800">Google</div>
-                        <div className="text-gray-600">{plugin.google ? <a href={plugin.google} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">{plugin.google}</a> : <span className="text-gray-400">N/A</span>}</div>
-                      </div>
+                      <div className="font-semibold text-gray-800">Google</div>
+                      <div className="text-gray-600">{plugin.google ? <a href={plugin.google} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">{plugin.google}</a> : <span className="text-gray-400">N/A</span>}</div>
+                    </div>
                     <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
-                        <div className="font-semibold text-gray-800">Instagram</div>
-                        <div className="text-gray-600">{plugin.instagram ? <a href={plugin.instagram} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">{plugin.instagram}</a> : <span className="text-gray-400">N/A</span>}</div>
-                      </div>
+                      <div className="font-semibold text-gray-800">Instagram</div>
+                      <div className="text-gray-600">{plugin.instagram ? <a href={plugin.instagram} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">{plugin.instagram}</a> : <span className="text-gray-400">N/A</span>}</div>
+                    </div>
+
                     <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
-                        <div className="font-semibold text-gray-800">Website</div>
-                        <div className="text-gray-600">{plugin.website ? <a href={plugin.website} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">{plugin.website}</a> : <span className="text-gray-400">N/A</span>}</div>
-                      </div>
+                      <div className="font-semibold text-gray-800">Youtube</div>
+                      <div className="text-gray-600">{plugin.youtube ? <a href={plugin.youtube} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">{plugin.youtube}</a> : <span className="text-gray-400">N/A</span>}</div>
+                    </div>
+
+                    <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
+                      <div className="font-semibold text-gray-800">Website</div>
+                      <div className="text-gray-600">{plugin.website ? <a href={plugin.website} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">{plugin.website}</a> : <span className="text-gray-400">N/A</span>}</div>
+                    </div>
                   </div>
                 ))}
               </div>

@@ -21,7 +21,7 @@ const sectionConfig = [
   },
   {
     key: 'artisanBlogs',
-    label: 'Artisan Blogs',
+    label: 'Artisan Blogs / Experience',
     component: ManageArtisanBlogs,
   },
   {
@@ -87,7 +87,7 @@ const EditInfo = () => {
                 key={section.key}
                 value={section.key}
                 className={
-                  `text-base px-6 py-3 text-left rounded-lg transition-all font-medium
+                  `text-base px-3 py-3 text-left rounded-lg transition-all font-medium
                   data-[state=active]:bg-blue-600 data-[state=active]:text-white
                   data-[state=inactive]:bg-blue-100 data-[state=inactive]:text-gray-900
                   hover:bg-blue-400 focus:outline-none w-full`

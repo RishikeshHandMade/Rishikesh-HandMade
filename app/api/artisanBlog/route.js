@@ -16,12 +16,18 @@ export async function POST(req) {
     if (!data.title || !data.artisan) {
       return new Response(JSON.stringify({ message: 'Missing required fields' }), { status: 400 });
     }
+    // Ensure only one of youtubeUrl or images is set
+    const isYoutube = data.youtubeUrl && data.youtubeUrl.trim() !== '';
+    const isImages = Array.isArray(data.images) && data.images.length > 0;
+    const youtubeUrl = isYoutube ? data.youtubeUrl : '';
+    const images = isImages && !isYoutube ? data.images : [];
+
     const blog = new ArtisanBlog({
       title: data.title,
-      youtubeUrl: data.youtubeUrl || '',
+      youtubeUrl,
       shortDescription: data.shortDescription || '',
       longDescription: data.longDescription || '',
-      images: data.images || [],
+      images,
       artisan: data.artisan
     });
     await blog.save();

@@ -175,7 +175,7 @@ const HeroSection = () => {
   }
 
   return (
-    <section className="relative xl:h-screen w-full overflow-hidden z-0 group">
+    <section className="bg-[#fcf7f1] relative xl:h-screen w-full overflow-hidden z-0 group">
       <div className="hidden xl:block w-full h-full mt-[10%] ">
         <div className="flex h-full w-full items-center justify-center">
           {/* Left Side: Details (fixed, updates on image change) */}

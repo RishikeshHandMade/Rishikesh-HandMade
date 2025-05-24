@@ -37,9 +37,14 @@ const data = {
 }
 
 export function AppSidebar({ className, menuItems, fixedMenuItems, policy }) {
-  const { open } = useSidebar()
+  const { open, setOpen } = useSidebar ? useSidebar() : { open: false, setOpen: () => {} };
   return (
-    <Sidebar collapsible="icon" className={`${className}`}>
+    <div
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+      style={{ height: '100%' }}
+    >
+      <Sidebar collapsible="icon" className={`${className}`}>
       <SidebarHeader className="pt-3 h-16 flex items-center justify-start">
         <Link href="/">
           {/* Desktop (md and up) */}
@@ -66,5 +71,6 @@ export function AppSidebar({ className, menuItems, fixedMenuItems, policy }) {
       </SidebarContent>
       <SidebarRail />
     </Sidebar>
+    </div>
   )
 }

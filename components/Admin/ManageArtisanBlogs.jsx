@@ -15,9 +15,9 @@ const TiptapEditor = ({ value, onChange }) => (
 const ManageArtisanBlogs = ({ artisanId, artisanDetails = null }) => {
   // All the state and logic from your provided code, adapted for Next.js and UI kit usage
   const [selectedImages, setSelectedImages] = useState([]);
-const [imageUploading, setImageUploading] = useState(false);
-const [uploadProgress, setUploadProgress] = useState(0);
-const fileInputRef = useRef();
+  const [imageUploading, setImageUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const fileInputRef = useRef();
   const [artisans, setArtisans] = useState([]);
   const [selectedArtisan, setSelectedArtisan] = useState(artisanId || '');
   const [title, setTitle] = useState('');
@@ -58,49 +58,49 @@ const fileInputRef = useRef();
   };
 
   // Handler for file input change
-const handleImageChange = async (e) => {
-  const files = Array.from(e.target.files);
-  if (!files.length) return;
-  if (selectedImages.length + files.length > 10) {
-    toast.error('You can only upload up to 10 images.');
-    return;
-  }
-  setImageUploading(true);
-  setUploadProgress(0);
-  try {
-    let newImages = [];
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const formData = new FormData();
-      formData.append('file', file);
-      // Progress not natively supported by fetch; for demo, just set 100% after upload
-      const res = await fetch('/api/cloudinary', {
-        method: 'POST',
-        body: formData
-      });
-      if (!res.ok) throw new Error('Image upload failed');
-      const result = await res.json();
-      newImages.push({ url: result.url, key: result.key });
-      setUploadProgress(Math.round(((i + 1) / files.length) * 100));
+  const handleImageChange = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    if (selectedImages.length + files.length > 10) {
+      toast.error('You can only upload up to 10 images.');
+      return;
     }
-    setSelectedImages(prev => [...prev, ...newImages].slice(0, 10));
-    toast.success(`${newImages.length} image${newImages.length > 1 ? 's' : ''} uploaded!`);
-  } catch (err) {
-    toast.error('Image upload failed');
-  } finally {
-    setImageUploading(false);
+    setImageUploading(true);
     setUploadProgress(0);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  }
-};
+    try {
+      let newImages = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const formData = new FormData();
+        formData.append('file', file);
+        // Progress not natively supported by fetch; for demo, just set 100% after upload
+        const res = await fetch('/api/cloudinary', {
+          method: 'POST',
+          body: formData
+        });
+        if (!res.ok) throw new Error('Image upload failed');
+        const result = await res.json();
+        newImages.push({ url: result.url, key: result.key });
+        setUploadProgress(Math.round(((i + 1) / files.length) * 100));
+      }
+      setSelectedImages(prev => [...prev, ...newImages].slice(0, 10));
+      toast.success(`${newImages.length} image${newImages.length > 1 ? 's' : ''} uploaded!`);
+    } catch (err) {
+      toast.error('Image upload failed');
+    } finally {
+      setImageUploading(false);
+      setUploadProgress(0);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
-const handleBrowseClick = () => {
-  if (selectedImages.length >= 10) {
-    toast.error('Maximum 10 images allowed.');
-    return;
-  }
-  fileInputRef.current?.click();
-};
+  const handleBrowseClick = () => {
+    if (selectedImages.length >= 10) {
+      toast.error('Maximum 10 images allowed.');
+      return;
+    }
+    fileInputRef.current?.click();
+  };
 
   const removeImage = (index) => {
     setSelectedImages(prevImages => {
@@ -287,17 +287,26 @@ const handleBrowseClick = () => {
     setSelectedArtisan('');
     setSelectedImages([]);
   };
+const [mediaTab, setMediaTab] = useState('image'); // 'image' or 'youtube'
 
+const handleTabChange = (tab) => {
+  setMediaTab(tab);
+  if (tab === 'image') {
+    setYoutubeUrl('');
+  } else {
+    setSelectedImages([]);
+  }
+};
   // GROUP BLOGS BY ARTISAN
-  const groupedBlogs = blogs.reduce((acc, blog) => {
-    const artisanId = blog.artisan?._id;
-    if (!artisanId) return acc;
-    if (!acc[artisanId]) {
-      acc[artisanId] = { artisan: blog.artisan, blogs: [] };
-    }
-    acc[artisanId].blogs.push(blog);
-    return acc;
-  }, {});
+  // const groupedBlogs = blogs.reduce((acc, blog) => {
+  //   const artisanId = blog.artisan?._id;
+  //   if (!artisanId) return acc;
+  //   if (!acc[artisanId]) {
+  //     acc[artisanId] = { artisan: blog.artisan, blogs: [] };
+  //   }
+  //   acc[artisanId].blogs.push(blog);
+  //   return acc;
+  // }, {});
 
   return (
     <div className="page-content">
@@ -332,79 +341,101 @@ const handleBrowseClick = () => {
                     />
                   </div>
                 </div>
-                <div className="mb-4">
-                  <label className="block font-semibold mb-1">Youtube URL</label>
-                  <input
-                    type="text"
-                    placeholder="You Tube URL:"
-                    value={youtubeUrl}
-                    onChange={e => setYoutubeUrl(e.target.value)}
-                    className="w-full border rounded px-3 py-2"
-                  />
-                </div>
-                <div className="mb-4">
-                  <label className="block font-semibold mb-1">Artisan Images</label>
-                  <div className="border rounded p-4 mt-2">
-                    <div className="text-center mb-3">
-                      {selectedImages.length === 0 ? (
-                        <div className="text-gray-400">No images uploaded yet.</div>
-                      ) : (
-                        <div className="flex flex-wrap gap-3 justify-center">
-                          {selectedImages.map((image, index) => (
-                            <div key={image.key || image.url || index} className="relative w-40 h-36">
-                              <img
-                                src={image.url}
-                                alt={`Preview ${index + 1}`}
-                                className="w-full h-full object-cover rounded"
-                              />
-                              <button
-                                type="button"
-                                className="absolute top-2 right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center"
-                                onClick={() => removeImage(index)}
-                              >
-                                ×
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <div className="text-center mt-2">
-                      <div className="mt-2">
-                        <small className={selectedImages.length === 10 ? 'text-red-600' : 'text-gray-500'}>
-                          {selectedImages.length}/10 images selected
-                        </small>
-                      </div>
-                    </div>
-                    <input
-  type="file"
-  accept="image/*"
-  multiple
-  style={{ display: 'none' }}
-  ref={fileInputRef}
-  onChange={handleImageChange}
-/>
-<Button
-  type="button"
-  className="bg-blue-600 text-white px-4 py-2 rounded mt-2"
-  onClick={handleBrowseClick}
-  disabled={imageUploading || selectedImages.length >= 10}
->
-  {imageUploading ? 'Uploading...' : 'Browse Image(s)'}
-</Button>
-{imageUploading && (
-  <div className="w-full mt-2">
-    <div className="bg-gray-200 rounded h-2 overflow-hidden">
-      <div
-        className="bg-blue-500 h-2 rounded"
-        style={{ width: `${uploadProgress}%`, transition: 'width 0.3s' }}
+                {/* Media Tab Section */}
+<div className="mb-4">
+  <div className="flex gap-2 mb-2">
+    <button
+      type="button"
+      className={`px-4 py-2 rounded-t ${mediaTab === 'image' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+      onClick={() => handleTabChange('image')}
+    >
+      Image
+    </button>
+    <button
+      type="button"
+      className={`px-4 py-2 rounded-t ${mediaTab === 'youtube' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+      onClick={() => handleTabChange('youtube')}
+    >
+      YouTube URL
+    </button>
+  </div>
+  {mediaTab === 'youtube' ? (
+    <div>
+      <label className="block font-semibold mb-1">YouTube URL</label>
+      <input
+        type="text"
+        placeholder="YouTube URL:"
+        value={youtubeUrl}
+        onChange={e => setYoutubeUrl(e.target.value)}
+        className="w-full border rounded px-3 py-2"
       />
     </div>
-    <div className="text-sm text-gray-600 mt-1">Uploading... {uploadProgress}%</div>
-  </div>
-)}
-                  </div>
+  ) : (
+    <div>
+      <label className="block font-semibold mb-1">Artisan Images</label>
+      <div className="border rounded p-4 mt-2">
+        <div className="text-center mb-3">
+          {selectedImages.length === 0 ? (
+            <div className="text-gray-400">No images uploaded yet.</div>
+          ) : (
+            <div className="flex flex-wrap gap-3 justify-center">
+              {selectedImages.map((image, index) => (
+                <div key={image.key || image.url || index} className="relative w-40 h-36">
+                  <img
+                    src={image.url}
+                    alt={`Preview ${index + 1}`}
+                    className="w-full h-full object-cover rounded"
+                  />
+                  <button
+                    type="button"
+                    className="absolute top-2 right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center"
+                    onClick={() => removeImage(index)}
+                  >
+                    ×
+                  </button>
                 </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="text-center mt-2">
+          <div className="mt-2">
+            <small className={selectedImages.length === 10 ? 'text-red-600' : 'text-gray-500'}>
+              {selectedImages.length}/10 images selected
+            </small>
+          </div>
+        </div>
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          style={{ display: 'none' }}
+          ref={fileInputRef}
+          onChange={handleImageChange}
+        />
+        <Button
+          type="button"
+          className="bg-blue-600 text-white px-4 py-2 rounded mt-2"
+          onClick={handleBrowseClick}
+          disabled={imageUploading || selectedImages.length >= 10}
+        >
+          {imageUploading ? 'Uploading...' : 'Browse Image(s)'}
+        </Button>
+        {imageUploading && (
+          <div className="w-full mt-2">
+            <div className="bg-gray-200 rounded h-2 overflow-hidden">
+              <div
+                className="bg-blue-500 h-2 rounded"
+                style={{ width: `${uploadProgress}%`, transition: 'width 0.3s' }}
+              />
+            </div>
+            <div className="text-sm text-gray-600 mt-1">Uploading... {uploadProgress}%</div>
+          </div>
+        )}
+      </div>
+    </div>
+  )}
+</div>
                 <div className="mb-4">
                   <label className="block font-semibold mb-1">Short Description</label>
                   <input

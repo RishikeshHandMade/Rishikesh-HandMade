@@ -40,7 +40,7 @@ export async function POST(req) {
       return NextResponse.json({ success: false, message: 'Plugin already exists for this artisan.' }, { status: 400 });
     }
     // Log the incoming body for debugging
-    console.log('Received body for SocialPlugin POST:', body);
+    // console.log('Received body for SocialPlugin POST:', body);
     try {
       const plugin = await ArtisanPlugin.create(body);
       // Push plugin _id to artisan's socialPlugin field
