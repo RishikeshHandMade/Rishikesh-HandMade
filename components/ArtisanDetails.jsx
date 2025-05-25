@@ -374,7 +374,7 @@ const ArtisanDetails = ({ artisan }) => {
         </h2>
         <div className="mb-4 text-lg font-medium">
           {/* <span className="font-bold">( Short Description )</span> */}
-          <span className="">{artisan.artisanStories.shortDescription || 'No short description available.'}</span>
+          <span className="">{artisan.artisanStories?.shortDescription || 'No short description available.'}</span>
         </div>
         {/* <div className="mb-4 text-base font-mono text-gray-700">
           {artisan.artisanStories.storyIntro || 'Maecenas ac est sit amet augue pharetra convallis nec danos dui. Cras suscipit quam et turpis ele.'}
@@ -383,7 +383,7 @@ const ArtisanDetails = ({ artisan }) => {
           {/* Left: Image */}
           <div className="flex-shrink-0 w-full md:w-[320px] flex justify-center items-center">
             <img
-              src={artisan.artisanStories.image || 'https://randomuser.me/api/portraits/men/32.jpg'}
+              src={artisan.artisanStories?.image || 'https://randomuser.me/api/portraits/men/32.jpg'}
               alt="Artisan"
               className="rounded-2xl object-cover w-[350px] h-[350px] shadow-md"
             />
@@ -393,16 +393,16 @@ const ArtisanDetails = ({ artisan }) => {
             <div>
               <h3 className="text-2xl font-bold mb-2 underline">Detail Description</h3>
               <div className="text-xl font-sans mb-5">
-                {artisan.artisanStories.title || (
+                {artisan.artisanStories?.title || (
                   <>
-                    {artisan.artisanStories.title || "Story title"}
+                    {artisan.artisanStories?.title || "Story title"}
                   </>
                 )}
               </div>
               <div className="text-lg font-sans mb-8">
-                {artisan.artisanStories.longDescription || (
+                {artisan.artisanStories?.longDescription || (
                   <>
-                    {artisan.artisanStories.longDescription || "Long description"}
+                    {artisan.artisanStories?.longDescription || "Long description"}
                   </>
                 )}
               </div>
@@ -524,10 +524,10 @@ const ArtisanDetails = ({ artisan }) => {
             Blogs
           </span></h3>
         <div className="flex flex-col gap-6">
-          {blogs.length === 0 && (
+          {artisan.artisanBlogs.length === 0 && (
             <div className="text-gray-500 text-center">No blogs available.</div>
           )}
-          {blogs && blogs.length > 0 && blogs.reduce((rows, blog, idx) => {
+          {artisan.artisanBlogs && artisan.artisanBlogs?.length > 0 && artisan.artisanBlogs.reduce((rows, blog, idx) => {
             if (idx % 2 === 0) rows.push([blog]);
             else rows[rows.length - 1].push(blog);
             return rows;
@@ -551,7 +551,7 @@ const ArtisanDetails = ({ artisan }) => {
                       {(() => {
                         // Prefer image if present, else youtubeUrl
                         let mediaUrl = undefined;
-                        if (Array.isArray(blog.images) && blog.images.length > 0) {
+                        if (Array.isArray(blog.images) && blog.images?.length > 0) {
                           mediaUrl = blog.images[0].url || blog.images[0];
                         } else if (blog.youtubeUrl) {
                           mediaUrl = blog.youtubeUrl;
@@ -647,7 +647,7 @@ const ArtisanDetails = ({ artisan }) => {
             plugins={[Autoplay({ delay: 4000 })]}>
 
             <CarouselContent className="w-full">
-              {(artisan.promotions && artisan.promotions.length > 0 ? artisan.promotions : [
+              {(artisan.promotions && artisan.promotions?.length > 0 ? artisan.promotions : [
                 {
                   _id: 1,
                   rating: 3,

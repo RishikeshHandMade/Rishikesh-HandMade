@@ -151,7 +151,7 @@ const RandomTourPackageSection = () => {
 
   if (isLoading) {
     return (
-      <section className="md:mt-19 w-full px-2 md:px-8 lg:px-16 overflow-hidden max-w-screen overflow-x-hidden">
+      <section className="bg-[#fcf7f1] md:mt-19 w-full px-2 md:px-8 lg:px-16 overflow-hidden max-w-screen overflow-x-hidden">
         <div className=" w-full h-full overflow-hidden max-w-screen overflow-x-hidden">
           <div className="w-full py-10">
             <h2 className="flex items-center text-sm md:text-md lg:text-lg uppercase font-barlow font-semibold"></h2>

@@ -34,7 +34,7 @@ export async function POST(req) {
     // Push blog._id to artisan's blogs array
     await Artisan.findByIdAndUpdate(
       data.artisan,
-      { $push: { blogs: blog._id } },
+      { $push: { artisanBlogs: blog._id } },
       { new: true }
     );
     return new Response(JSON.stringify({ message: 'Blog created successfully', blog }), { status: 201 });
@@ -93,7 +93,7 @@ export async function DELETE(req) {
       const Artisan = require('@/models/Artisan');
       await Artisan.findByIdAndUpdate(
         blog.artisan,
-        { $pull: { blogs: blog._id } },
+        { $pull: { artisanBlogs: blog._id } },
         { new: true }
       );
     }

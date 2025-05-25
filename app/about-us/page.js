@@ -1,6 +1,6 @@
-import AboutUs from "@/components/About-Us";
+import AboutMe from "@/components/AboutMe";
 
 export default function AboutUsPage() {
-  return <AboutUs />;
+  return <AboutMe />;
 }
 

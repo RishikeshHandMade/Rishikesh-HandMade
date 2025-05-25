@@ -12,7 +12,7 @@ export async function GET(req, { params }) {
   const { id } =await params;
   const artisan = await Artisan.findById(id)
     .populate('promotions')
-    .populate('blogs')
+    .populate('artisanBlogs')
     .populate('artisanStories')
     .populate('certificates')
     .populate('socialPlugin')

@@ -109,7 +109,7 @@ export async function GET(req) {
     const query = excludeId ? { _id: { $ne: excludeId } } : {};
     const artisans = await Artisan.find(query)
       .populate('promotions')
-      .populate('blogs')
+      .populate('artisanBlogs')
       .populate('artisanStories')
       .populate('certificates')
       .populate('socialPlugin')

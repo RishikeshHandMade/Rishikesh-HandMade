@@ -176,7 +176,7 @@ const HeroSection = () => {
 
   return (
     <section className="bg-[#fcf7f1] relative xl:h-screen w-full overflow-hidden z-0 group">
-      <div className="hidden xl:block w-full h-full mt-[10%] ">
+      <div className="hidden xl:block w-full h-full ">
         <div className="flex h-full w-full items-center justify-center">
           {/* Left Side: Details (fixed, updates on image change) */}
           <div className="flex flex-col justify-center items-start w-1/2 h-full px-16 gap-6">
@@ -185,7 +185,7 @@ const HeroSection = () => {
                 {banners[selectedIndex]?.title}
               </h1>
               <div className="text-2xl md:text-3xl font-bold text-black mb-4">Price</div>
-              <div className="text-3xl md:text-4xl font-extrabold text-black mb-8">{banners[selectedIndex]?.price || "$80.00"}</div>
+              <div className="text-3xl md:text-4xl font-extrabold text-black mb-8">{banners[selectedIndex]?.price || "$0.00"}</div>
               <div className="flex gap-3 mb-6">
                 <button className="bg-black text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-800 transition">ADD TO CART</button>
                 <button className="border border-black px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">VIEW DETAIL</button>

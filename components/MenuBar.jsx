@@ -12,7 +12,10 @@ const staticMenuItems = [
         subCat: [
             {
                 subCatPackage: [
-                    { title: "About Us", url: "/about-us", active: true }
+                    { title: "About Us", url: "/about-us", active: true },
+                    { title: "Vision & Mission", url: "/vision-mission", active: true },
+                    { title: "Team", url: "/team", active: true },
+                    { title: "What We Do ", url: "/what-we-do", active: true }
                 ],
                 active: true,
             }
@@ -142,7 +145,7 @@ const MenuBar = (props) => {
                                     .sort((a, b) => a.order - b.order)
                                     .map((subItem, subIndex) => (
                                         <li key={subIndex} className="py-1">
-                                            <Link href={`/category/${subItem.url}`} className="text-sm text-gray-700 hover:text-blue-600">
+                                            <Link href={`/category/${subItem.url}`} className="text-sm text-gray-700 ">
                                                 {subItem.title}
                                             </Link>
                                         </li>
@@ -200,7 +203,7 @@ const MenuBar = (props) => {
                 <NavigationMenu.List className="flex space-x-4">
                     {menuItems.map((item, index) => (
                         <NavigationMenu.Item key={index} className="relative flex justify-center">
-                            <NavigationMenu.Trigger className="flex items-center px-4 py-2 text-sm font-semibold hover:bg-blue-500 data-[state=open]:bg-blue-300 data-[state=open]:text-black rounded-md">
+                            <NavigationMenu.Trigger className="flex items-center px-4 py-2 text-sm font-semibold  data-[state=open]:text-black rounded-md">
                                 {item.title} <ArrowDown className="ml-2" size={12} />
                             </NavigationMenu.Trigger>
                             <AnimatePresence>
@@ -221,7 +224,7 @@ const MenuBar = (props) => {
                                                         <li key={subIndex}>
                                                             <NavigationMenu.Link asChild>
                                                                 <Link
-                                                                    className="block px-4 py-2 hover:bg-blue-100 rounded-md"
+                                                                    className="block px-4 py-2 rounded-md"
                                                                     href={`/category/${subItem.url}`}
                                                                 >
                                                                     {subItem.title}

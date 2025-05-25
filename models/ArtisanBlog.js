@@ -12,4 +12,4 @@ const ArtisanBlogSchema = new Schema({
   updatedAt: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.models.Blog || mongoose.model('Blog', ArtisanBlogSchema);
+module.exports = mongoose.models.ArtisanBlog || mongoose.model('ArtisanBlog', ArtisanBlogSchema);

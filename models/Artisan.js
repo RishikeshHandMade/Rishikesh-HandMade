@@ -100,9 +100,9 @@ const artisanSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Promotion'
   }],
-  blogs: [{
+  artisanBlogs: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Blog'
+    ref: 'ArtisanBlog'
   }],
   artisanStories: {
     type: mongoose.Schema.Types.ObjectId,
