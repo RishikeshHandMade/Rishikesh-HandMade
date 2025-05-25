@@ -2,8 +2,64 @@ import React from 'react'
 
 const TermsConditions = () => {
   return (
-    <div>TermsConditions</div>
-  )
+    <section className="bg-[#fffaf3] py-10 px-4 md:px-12 w-full mx-auto rounded-lg shadow-sm">
+      <h2 className="text-3xl font-bold mb-6 text-center">Terms &amp; Conditions Policy</h2>
+      <p className="mb-4">
+        <span className="font-semibold">www.rishikeshhandmade.com (Website)</span> (“we”, “our”, “us”)  Please read the following terms and conditions very carefully as your use of service is subject to your acceptance of and compliance with the following terms and conditions ("Terms"). By subscribing to or using any of our services you agree that you have read, understood and are bound by the Terms, regardless of how you subscribe to or use the services. If you do not want to be bound by the Terms, you must not subscribe to or use our services. These Terms and various other policies are binding as per the provisions of the Information Technology (Intermediaries guidelines) Rules, 2011 formulated under the Information Technology Act of 2000 in India.
+        In these Terms, references to "you", "User" shall mean the end user accessing the Website, its contents and using the Services offered through the Website, "Service Providers" mean independent third party service providers, and "we", "us" and "our" shall mean www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) and its affiliates.
+      </p>
+      <div className="space-y-5">
+        <div>
+          <p className="text-justify mt-1">
+            These Terms and Conditions along with the Privacy Policy, the Return Policy, Shipping Policy, Cancellation Policy or any other Policy or Statement or Information that may be placed on this website (hereinafter referred to as "Site" or www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) or "we" or "our "or “Company”), as modified or amended from time to time, are a binding contract between www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) and you (hereinafter referred to as "Terms and Conditions" or "T&C" or "Terms" or "Agreement"). If you visit, use, or shop at the site or any future site operated by the company, you accept these Terms and Conditions. In addition, when you use any current or future services of the company or visit or purchase from any business affiliated with the company or third party vendors, whether or not included in the site, you also will be subject to the guidelines and conditions applicable to such service or merchant. If these conditions are inconsistent with such guidelines and conditions, such guidelines and conditions will control. 
+            <br /><br />
+            You ("you" or "End User" or "your" or "Buyer" or "Customer") by subscribing to or using any of our products or services, you agree that you have read, understood and are bound by the Terms and Conditions, regardless of how you subscribe to or use our products or services. If you do not want to be bound by the terms, you must not subscribe to or use our services.
+            <br /><br />
+            This T&C is effective upon your subscription and governs the relationship between you and www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) including the sale and supply of any Products on the site. If this T&C conflicts with any other document, the T&C will prevail for the purposes of usage of the Site. If you do not agree to be bound by this T&C and the Privacy Policy, you may not use the Site in any way.
+            <br /><br />
+            The Company reserves the right at all times to discontinue or modify any of our T&C as we deem necessary or desirable without prior notification to you. Such changes may include, among other things, the adding of certain fees or charges. We suggest to you, therefore, that you re-read this important notice containing our T&C from time to time in order that you stay informed as to any such changes. If we make changes to our T&C and you continue to use the Site, you are impliedly agreeing to the T&C expressed therein. Any such deletions or modifications shall be effective immediately upon the Company's posting thereof. Any use of the Site by User after such notice shall be deemed to constitute acceptance by the User of such modifications.
+            <br /><br />
+            The Service is not available to minors under the age of 18 or to any users suspended or removed from the system by www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) for any reason. Users may not have more than one account. Maintaining more than one account by a user shall amount to fraudulent act on part of the user and attract actions against such users. Additionally, users are prohibited from selling, trading, or otherwise transferring your www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) account to another party. If you do not qualify, you may not use the service or the Site.
+            <br /><br />
+            The Company owns no responsibility in any manner over any dispute arising out of transactions by any third party using your account/e-mail provided by you to the company or payments made by your credit card by any third party.
+            <br /><br />
+            In consideration of your use of the Site, you represent that you are of legal age to form a binding contract and are not a person barred from receiving services under the laws as applicable in India. You also agree to provide true, accurate, current and complete information about yourself as prompted by the Site's registration form. If you provide any information that is untrue, inaccurate, not current or incomplete (or becomes untrue, inaccurate, not current or incomplete), or www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) has reasonable grounds to suspect that such information is untrue, inaccurate, not current or incomplete, www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) has the right to suspend or terminate your account and refuse any and all current or future use of the Site (or any portion thereof). If you use the Site, you are responsible for maintaining the confidentiality of your account and password including cases when it is being used by any of your family members, friends or relatives, whether a minor or an adult. You further agree to accept responsibility for all transactions made from your account and any dispute arising out of any misuse of your account, whether by any family member, friend, relative, any third party or otherwise shall not be entertained by the Company. Because of this, we strongly recommend that you exit from your account at the end of each session. You agree to notify www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) immediately of any unauthorized use of your account or any other breach of security. www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) reserves the right to refuse service, terminate accounts, or remove or edit content in its sole discretion.
+          </p>
+        </div>
+        <div>
+          <strong>2. Limited User :-</strong>
+          <p className="text-justify mt-1">
+            The User agrees and undertakes not to modify, copy, distribute, transmit, display, perform, reproduce, publish, license, create derivative works from, transfer, or sell any information obtained from the Website. Limited reproduction and copying of the content of the Website is permitted provided that prior written permission of www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) is sought. For the removal of doubt, it is clarified that unlimited or wholesale reproduction, copying of the content for commercial or non-commercial purposes and unwarranted modification of data and information within the content of the website is not permitted.
+          </p>
+        </div>
+        <div>
+          <strong>3. User Conduct and Rules :-</strong>
+          <p className="text-justify mt-1">
+            You agree and undertake to use the Website and the Service only to post and upload messages and material that are proper. By way of example, and not as a limitation, you agree and undertake that when using a Service, you will not: <br /><br />
+            defame, abuse, harass, stalk, threaten or otherwise violate the legal rights of others.<br />
+            publish, post, upload, distribute or disseminate any inappropriate, profane, defamatory, infringing, obscene, indecent or unlawful topic, name, material or information<br />
+            conduct or forward surveys, contests, pyramid schemes or chain letters<br />
+            download any file posted by another user of a Service that you know, or reasonably should know, cannot be legally distributed in such manner<br />
+            violate any code of conduct or other guidelines, which may be applicable for or to any particular Service<br />
+            violate any applicable laws or regulations for the time being in force in or outside India; and<br />
+            violate, abuse, unethically manipulate or exploit, any of the terms and conditions of this Agreement or any other terms and conditions for the use of the Website contained elsewhere.
+          </p>
+        </div>
+        <div>
+          <strong>4. User Warranty and Representation :-</strong>
+          <p className="text-justify mt-1">
+            The user guarantees, warrants, and certifies that you are the owner of the content which you submit or otherwise authorised to use the content and that the content does not infringe upon the property rights, intellectual property rights or other rights of others. You further warrant that to your knowledge, no action, suit, proceeding, or investigation has been instituted or threatened relating to any content, including trademark, trade name service mark, and copyright formerly or currently used by you in connection with the services rendered by www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.)
+          </p>
+        </div>
+        <div>
+          <strong>5. Exactness Not Guaranteed :-</strong>
+          <p className="text-justify mt-1">
+            www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) hereby disclaims any guarantees of exactness as to the finish and appearance of the final Product as ordered by the user. The quality of any products, Services, information, or other material purchased or obtained by you through the Website might actually depend on the size you ordered for. Also the colour of the end product may vary as those compared to the one on the website, which could only be because of the screen settings on your website.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 export default TermsConditions

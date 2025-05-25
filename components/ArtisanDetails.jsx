@@ -12,12 +12,8 @@ import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext
 //       >
 //         <span>{title}</span>
 //         <span className="ml-2 text-xl">{open ? '-' : '+'}</span>
-//       </button>
-//       <div className={`px-6 pb-4 text-gray-700 transition-all duration-300 ${open ? 'block' : 'hidden'}`}>{children}</div>
-//     </div>
-//   );
-// };
 import QuickViewProductCard from "./QuickViewProductCard";
+
 const ArtisanDetails = ({ artisan }) => {
   console.log(artisan)
   const [quickViewProduct, setQuickViewProduct] = useState(null);
@@ -41,79 +37,52 @@ const ArtisanDetails = ({ artisan }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-white flex flex-col items-center py-12 px-2 md:px-0">
+    <div className=" relative min-h-screen bg-gradient-to-br from-amber-50 to-white flex flex-col items-center px-2 md:px-0">
       {/* Top section: Image left, details right */}
-      <div className="w-full max-w-7xl bg-white rounded-3xl shadow-xl flex flex-col md:flex-row overflow-hidden mb-10">
-        {/* Left: Full-height, full-width image container */}
-        <div className="md:w-1/3 w-full flex items-center justify-center bg-gradient-to-br from-amber-100 to-orange-100 p-0 md:p-0" style={{ minHeight: '340px' }}>
-          <div className="w-full h-full flex items-center justify-center">
-            <img
-              src={artisan.image || artisan.profileImage?.url || 'https://via.placeholder.com/400x500'}
-              alt={artisan.firstName + ' ' + artisan.lastName}
-              className="w-full h-full object-cover rounded-3xl border-8 border-white shadow-2xl"
-              style={{ maxHeight: 400, maxWidth: 320 }}
-            />
-          </div>
-        </div>
-        {/* Right: Name and accordion */}
-        <div className="md:w-2/3 w-full flex flex-col justify-center px-6 py-8">
-          {/* Small container for name, number, status */}
-          <div className="mb-6 bg-gray-50 rounded-xl p-4 shadow ">
-            <div className="flex items-center gap-2 justify-between">
-              <h2 className="text-3xl font-bold text-gray-900 mb-1">{artisan.firstName} {artisan.lastName}</h2>
-              <p className="text-lg text-gray-600 mb-1">Artisan Number: <span className="font-semibold">{artisan.artisanNumber}</span></p>
-            </div>
-            {/* <p className="text-md text-gray-500">Active: <span className={artisan.active ? 'text-green-600' : 'text-red-600'}>{artisan.active ? 'Yes' : 'No'}</span></p> */}
-            {/* Social Links */}
-            <div className="flex space-x-4 mt-2">
-              {artisan.instagram && (
-                <a href={artisan.instagram} target="_blank" rel="noopener noreferrer" title="Instagram">
-                  <svg className="w-6 h-6 text-pink-500 hover:text-pink-700" fill="currentColor" viewBox="0 0 24 24"><path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2zm0 1.5A4.25 4.25 0 0 0 3.5 7.75v8.5A4.25 4.25 0 0 0 7.75 20.5h8.5A4.25 4.25 0 0 0 20.5 16.25v-8.5A4.25 4.25 0 0 0 16.25 3.5h-8.5zm4.25 3.25a5.25 5.25 0 1 1 0 10.5 5.25 5.25 0 0 1 0-10.5zm0 1.5a3.75 3.75 0 1 0 0 7.5 3.75 3.75 0 0 0 0-7.5zm5.13.62a1.13 1.13 0 1 1-2.26 0 1.13 1.13 0 0 1 2.26 0z" /></svg>
-                </a>
-              )}
-              {artisan.facebook && (
-                <a href={artisan.facebook} target="_blank" rel="noopener noreferrer" title="Facebook">
-                  <svg className="w-6 h-6 text-blue-600 hover:text-blue-800" fill="currentColor" viewBox="0 0 24 24"><path d="M17.525 8.998h-2.025v-1.3c0-.474.312-.585.532-.585h1.455V5.081l-2.004-.008c-2.226 0-2.728 1.667-2.728 2.735v1.19H9v2.51h1.755V21h3.13v-9.492h2.025l.275-2.51z" /></svg>
-                </a>
-              )}
-              {artisan.website && (
-                <a href={artisan.website} target="_blank" rel="noopener noreferrer" title="Website">
-                  <svg className="w-6 h-6 text-gray-700 hover:text-black" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M2 12h20M12 2a15.3 15.3 0 0 1 0 20M12 2a15.3 15.3 0 0 0 0 20" /></svg>
-                </a>
-              )}
-              {artisan.google && (
-                <a href={artisan.google} target="_blank" rel="noopener noreferrer" title="Google">
-                  <svg className="w-6 h-6 text-red-500 hover:text-red-700" fill="currentColor" viewBox="0 0 24 24"><path d="M21.35 11.1h-9.18v2.92h5.5c-.24 1.38-1.65 4.06-5.5 4.06-3.3 0-6-2.73-6-6.09s2.7-6.09 6-6.09c1.88 0 3.15.8 3.87 1.5l2.64-2.58C17.27 3.59 15.36 2.5 12.99 2.5 7.73 2.5 3.5 6.73 3.5 12s4.23 9.5 9.49 9.5c5.48 0 9.01-3.85 9.01-9.28 0-.62-.07-1.09-.15-1.62z" /></svg>
-                </a>
-              )}
-            </div>
-          </div>
-          {/* Details section (no accordion) */}
-          <div className="rounded-xl border bg-white overflow-hidden mb-2 p-4 flex flex-col gap-3">
-            <div>
-              <span className="font-semibold text-gray-700">Contact Information:</span>
-              <div className="ml-2">
-                <div className="mb-1">Phone: <a href={`tel:${artisan.contact?.callNumber}`} className="text-blue-600 hover:underline">{artisan.contact?.callNumber || 'N/A'}</a></div>
-                <div className="mb-1">WhatsApp: <a href={`https://wa.me/${artisan.contact?.whatsappNumber}`} className="text-green-600 hover:underline">{artisan.contact?.whatsappNumber || 'N/A'}</a></div>
-                <div>Email: <a href={`mailto:${artisan.contact?.email}`} className="text-blue-600 hover:underline">{artisan.contact?.email || 'N/A'}</a></div>
-              </div>
-            </div>
-            <div>
-              <span className="font-semibold text-gray-700">Address:</span>
-              <div className="ml-2">{artisan.address?.fullAddress || 'N/A'}</div>
-              <div className="ml-2">{artisan.address?.city}, {artisan.address?.state}</div>
-            </div>
-            <div>
-              <span className="font-semibold text-gray-700">Family:</span>
-              <div className="ml-2">{artisan.fatherHusbandTitle} {artisan.fatherHusbandName} {artisan.fatherHusbandLastName} ({artisan.fatherHusbandType})</div>
-            </div>
-            {/* <div>
-              <span className="font-semibold text-gray-700">Certificates:</span>
-              <div className="ml-2">{artisan.certificates && artisan.certificates.length > 0 ? artisan.certificates.join(', ') : 'No certificates'}</div>
-            </div> */}
-          </div>
-        </div>
+      <div className="relative w-full overflow-visible shadow-xl mb-10 bg-[#f9f6f1]">
+  {/* Banner Background Image */}
+  <div className="inset-0 h-[300px] w-full object-cover object-center grayscale-[0.8] brightness-100 z-0 overflow-hidden">
+    <img src="https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?auto=format&fit=crop&w=1200&q=80" className="w-full h-full object-cover grayscale-[0.8] brightness-100 " alt="Office" />
+  </div>
+  {/* Overlay Content */}
+  <div className="relative  flex flex-row items-start pt-0 px-0 pb-8 ">
+    {/* Profile Image: Overlapping Banner */}
+    <div className="absoute 0 flex-shrink-0 -mt-32 ml-12 mr-10">
+      <div className="bg-white rounded-lg shadow-xl border-4 border-white overflow-hidden w-72 h-[350px] flex items-center justify-center">
+        <img src={artisan.image || artisan.profileImage?.url || 'https://randomuser.me/api/portraits/men/32.jpg'} alt={artisan.firstName + ' ' + artisan.lastName} className="object-cover w-full h-full" />
       </div>
+    </div>
+    {/* Details Card */}
+    <div className="flex-1 flex flex-col gap-2 mt-8 md:mt-8 md:ml-0 bg-transparent">
+      <div className="flex flex-col gap-2">
+        <div className="text-3xl font-bold leading-tight flex items-center">Name: <span className="font-bold text-2xl md:text-3xl text-gray-800 align-middle"> {artisan.firstName} {artisan.lastName}</span></div>
+        <div className="font-bold text-2xl mt-1 mb-1 text-xl flex items-center">SHG : <span className="font-normal text-md ">{artisan.shgName || 'No SHG Name Avaiable'}</span></div>
+        <div  className="font-bold text-2xl mt-1 mb-1 text-xl flex items-center"> Artisan Number: <span className="font-normal text-md">{artisan.artisanNumber || 'Artisan Number Not Available'}</span></div>
+      </div>
+      <div className="mt-2 text-xl md:text-2xl font-bold text-black">{artisan.experience || '10'} Years of Experience</div>
+      <div className="font-bold text-lg mt-2">Specializations</div>
+      <div className="flex gap-3 flex-wrap mb-2">
+        {(artisan.specializations || ['Jute Fiber', 'Bhimal Fiber', 'Jute Handbag']).map((spec, i) => (
+          <span key={i} className="bg-gray-200 rounded-full px-5 py-1 text-base font-semibold tracking-tight border border-gray-300">{spec}</span>
+        ))}
+      </div>
+      <div className="font-bold mt-2">Address: <span className="font-normal">{artisan.address?.fullAddress || 'Yamkeshwar, Mohan Chatti, Bairagarh, Uttarakhand'}</span></div>
+      {/* Social Icons Row */}
+      <div className="flex items-center gap-2 mt-2 mb-2">
+        {artisan.facebook && <a href={artisan.facebook} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-blue-600"><i className="fab fa-facebook-f"></i></a>}
+        {artisan.instagram && <a href={artisan.instagram} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-pink-500"><i className="fab fa-instagram"></i></a>}
+        {artisan.twitter && <a href={artisan.twitter} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-blue-400"><i className="fab fa-twitter"></i></a>}
+        {artisan.youtube && <a href={artisan.youtube} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-red-600"><i className="fab fa-youtube"></i></a>}
+        {artisan.google && <a href={artisan.google} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-red-500"><i className="fab fa-google"></i></a>}
+        {artisan.linkedin && <a href={artisan.linkedin} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-blue-700"><i className="fab fa-linkedin-in"></i></a>}
+      </div>
+      <div className="flex flex-row items-center justify-between mt-2">
+        <div></div>
+        <button className="bg-black text-white font-bold px-8 py-2 rounded-full shadow hover:bg-gray-900 transition-all text-base">Ask An Expert</button>
+      </div>
+    </div>
+  </div>
+</div>
 
       {/* Products Carousel */}
       <div className="w-full max-w-7xl mb-10">

@@ -44,6 +44,7 @@ const Footer = () => {
          ${pathName.includes('product') && 'block'} 
          ${pathName.includes('artisan') && 'hidden'} 
          ${pathName.includes('about-us') && 'hidden'} 
+         ${pathName.includes('contact-us') && 'hidden'} 
          ${pathName.includes('privacy-policy') && 'hidden'} 
          ${pathName.includes('refund-cancellation') && 'hidden'} 
          ${pathName.includes('terms-condition') && 'hidden'} 

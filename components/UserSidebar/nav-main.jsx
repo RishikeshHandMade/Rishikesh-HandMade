@@ -18,10 +18,51 @@ import {
     SidebarMenuSubItem,
     useSidebar,
 } from "@/components/ui/sidebar"
-
-export function   NavMain({
+const staticMenuItems = [
+    {
+        catTitle: "About Us",
+        subCat: [
+            {
+                subCatPackage: [
+                    { title: "About Us", url: "/about-us", active: true }
+                ],
+                active: true,
+            }
+        ],
+        active: true,
+    },
+    {
+        catTitle: "Our Policy",
+        subCat: [
+            {
+                subCatPackage: [
+                    { title: "Privacy Policy", url: "/privacy-policy", active: true },
+                    { title: "Refund & Cancellation", url: "/refund-cancellation", active: true },
+                    { title: "Shipping Policy", url: "/shipping-policy", active: true },
+                    { title: "Terms & Conditions", url: "/terms-condition", active: true }
+                ],
+                active: true,
+            }
+        ],
+        active: true,
+    },
+    {
+        catTitle: "Contact Us",
+        subCat: [
+            {
+                subCatPackage: [
+                    { title: "Contact Us", url: "/contact-us", active: true }
+                ],
+                active: true,
+            }
+        ],
+        active: true,
+    }
+];
+export function  NavMain({
     items,
-    fixedItems
+    fixedItems,
+    // const allMenuItems = [...fixedMenuItems, ...staticMenuItems];
 }) {
     const { open } = useSidebar()
     return (

@@ -39,7 +39,7 @@ const staticMenuItems = [
         subCat: [
             {
                 subCatPackage: [
-                    { title: "Contact Us", url: "/contact-us", active: true }
+                    { title: "", url: "", active: true }
                 ],
                 active: true,
             }
@@ -154,35 +154,43 @@ const MenuBar = (props) => {
 
                 {allMenuItems.length > 0 && allMenuItems.map((cat, index) => (
                     <div key={index} className="border-b">
-                        <button
-                            onClick={() => toggleFixedMenu(index)}
-                            className="w-full text-left p-3 text-sm font-medium  hover:bg-gray-100"
-                        >
-                            {cat.catTitle}
-                        </button>
-                        <div className={clsx(
-                            "transition-all duration-300 overflow-y-auto",
-                            openFixedMenu === index ? "max-h-[300px]" : "max-h-0"
-                        )}>
-                            <ul className="pl-4 pb-2">
-                                {cat.subCat
-                                    .filter(subCat => subCat.active)
-                                    .map((category, idx) => (
-                                        <React.Fragment key={idx}>
-                                            <li className="py-1">
-                                                {category.title}
-                                            </li>
-                                            {category.subCatPackage
-                                                .filter(pkg => pkg.active)
-                                                .map((pkg, pkgIdx) => (
-                                                    <Link key={pkgIdx} href={`${pkg.url}`} className="flex flex-col gap-4 py-2 pl-4 text-sm text-gray-700 hover:text-blue-600">
-                                                        - {pkg.title}
-                                                    </Link>
-                                                ))}
-                                        </React.Fragment>
-                                    ))}
-                            </ul>
-                        </div>
+                        {cat.catTitle === "Contact Us" ? (
+                            <Link href="/contact-us" className="w-full block p-3 text-sm font-medium hover:bg-gray-100">
+                                {cat.catTitle}
+                            </Link>
+                        ) : (
+                            <>
+                                <button
+                                    onClick={() => toggleFixedMenu(index)}
+                                    className="w-full text-left p-3 text-sm font-medium  hover:bg-gray-100"
+                                >
+                                    {cat.catTitle}
+                                </button>
+                                <div className={clsx(
+                                    "transition-all duration-300 overflow-y-auto",
+                                    openFixedMenu === index ? "max-h-[300px]" : "max-h-0"
+                                )}>
+                                    <ul className="pl-4 pb-2">
+                                        {cat.subCat
+                                            .filter(subCat => subCat.active)
+                                            .map((category, idx) => (
+                                                <React.Fragment key={idx}>
+                                                    <li className="py-1">
+                                                        {category.title}
+                                                    </li>
+                                                    {category.subCatPackage
+                                                        .filter(pkg => pkg.active)
+                                                        .map((pkg, pkgIdx) => (
+                                                            <Link key={pkgIdx} href={`${pkg.url}`} className="flex flex-col gap-4 py-2 pl-4 text-sm text-gray-700 hover:text-blue-600">
+                                                                - {pkg.title}
+                                                            </Link>
+                                                        ))}
+                                                </React.Fragment>
+                                            ))}
+                                    </ul>
+                                </div>
+                            </>
+                        )}
                     </div>
                 ))}
             </div>
@@ -230,49 +238,59 @@ const MenuBar = (props) => {
                     ))}
                     {allMenuItems.length > 0 && allMenuItems.map((cat, index) => (
                         <NavigationMenu.Item key={index} className="relative flex justify-center">
-                            <NavigationMenu.Trigger className="flex items-center px-4 py-2 text-sm font-semibold hover:bg-blue-500 data-[state=open]:bg-blue-300 data-[state=open]:text-black rounded-md">
-                                {cat.catTitle} <ArrowDown className="ml-2" size={12} />
-                            </NavigationMenu.Trigger>
-                            <AnimatePresence>
-                                <NavigationMenu.Content asChild>
-                                    {(() => {
-                                        const activeSubCats = cat.subCat.filter(subCat => subCat.active);
-                                        const singleCategory = activeSubCats.length === 1;
-                                        return (
-                                            <motion.div
-                                                initial={{ opacity: 0, y: -10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: -10 }}
-                                                transition={{ duration: 0.2, ease: "easeInOut" }}
-                                                className={`absolute top-full mt-2 -translate-x-1/2 bg-white text-black shadow-lg rounded-md ${singleCategory ? 'w-40' : 'w-[400px] lg:w-[600px]'}`}
-                                            >
-                                                <div className={
-                                                    singleCategory
-                                                        ? "grid gap-4 px-3 py-3 grid-cols-2 lg:grid-cols-1"
-                                                        : "grid gap-4 p-6 grid-cols-2 lg:grid-cols-3"
-                                                }>
-                                                    {activeSubCats.map((category, idx) => (
-                                                        <div key={idx} className={singleCategory ? "flex flex-col items-center w-full" : "flex flex-col"}>
-                                                            <h3 className={singleCategory ? "font-medium text-gray-700 mb-2 text-start w-full px-2" : "font-medium text-gray-700 mb-2"}>{category.title}</h3>
-                                                            <ul className={singleCategory ? "space-y-1 flex flex-col items-start w-full px-2 " : "space-y-2"}>
-                                                                {category.subCatPackage
-                                                                    .filter(pkg => pkg.active)
-                                                                    .map((pkg, pkgIdx) => (
-                                                                        <li key={pkgIdx} className={singleCategory ? "w-full" : undefined}>
-                                                                            <Link href={pkg.url} className={singleCategory ? "text-gray-900 hover:text-blue-600 text-sm  text-start w-full block py-1" : "text-gray-600 hover:text-blue-600 text-sm"}>
-                                                                                {pkg.title}
-                                                                            </Link>
-                                                                        </li>
-                                                                    ))}
-                                                            </ul>
+                            {cat.catTitle === "Contact Us" ? (
+                                <Link href="/contact-us" className="flex items-center px-4 py-2 text-sm font-semibold hover:bg-blue-500 data-[state=open]:bg-blue-300 data-[state=open]:text-black rounded-md">
+                                    {cat.catTitle}
+                                </Link>
+                            ) : (
+                                <>
+                                    <NavigationMenu.Trigger className="flex items-center px-4 py-2 text-sm font-semibold hover:bg-blue-500 data-[state=open]:bg-blue-300 data-[state=open]:text-black rounded-md">
+                                        {cat.catTitle} <ArrowDown className="ml-2" size={12} />
+                                    </NavigationMenu.Trigger>
+                                    <AnimatePresence>
+                                        <NavigationMenu.Content asChild>
+                                            {(() => {
+                                                const activeSubCats = cat.subCat.filter(subCat => subCat.active);
+                                                const singleCategory = activeSubCats.length === 1;
+                                                return (
+                                                    <motion.div
+                                                        initial={{ opacity: 0, y: -10 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        exit={{ opacity: 0, y: -10 }}
+                                                        transition={{ duration: 0.2, ease: "easeInOut" }}
+                                                        className={`absolute top-full mt-2 -translate-x-1/2 bg-white text-black shadow-lg rounded-md ${singleCategory ? 'w-40' : 'w-[400px] lg:w-[600px]'}`}
+                                                    >
+                                                        <div className={
+                                                            singleCategory
+                                                                ? "grid gap-4 px-3 py-3 grid-cols-2 lg:grid-cols-1"
+                                                                : "grid gap-4 p-6 grid-cols-2 lg:grid-cols-3"
+                                                        }>
+                                                            {activeSubCats.map((category, idx) => (
+                                                                Array.isArray(category.subCatPackage) && category.subCatPackage.length > 0 ? (
+                                                                    <div key={idx} className={singleCategory ? "flex flex-col items-center w-full" : "flex flex-col"}>
+                                                                        <h3 className={singleCategory ? "font-medium text-gray-700 mb-2 text-start w-full px-2" : "font-medium text-gray-700 mb-2"}>{category.title}</h3>
+                                                                        <ul className={singleCategory ? "space-y-1 flex flex-col items-start w-full px-2 " : "space-y-2"}>
+                                                                            {category.subCatPackage
+                                                                                .filter(pkg => pkg.active)
+                                                                                .map((pkg, pkgIdx) => (
+                                                                                    <li key={pkgIdx} className={singleCategory ? "w-full" : undefined}>
+                                                                                        <Link href={pkg.url} className={singleCategory ? "text-gray-900 hover:text-blue-600 text-sm  text-start w-full block py-1" : "text-gray-600 hover:text-blue-600 text-sm"}>
+                                                                                            {pkg.title}
+                                                                                        </Link>
+                                                                                    </li>
+                                                                                ))}
+                                                                        </ul>
+                                                                    </div>
+                                                                ) : null
+                                                            ))}
                                                         </div>
-                                                    ))}
-                                                </div>
-                                            </motion.div>
-                                        );
-                                    })()}
-                                </NavigationMenu.Content>
-                            </AnimatePresence>
+                                                    </motion.div>
+                                                );
+                                            })()}
+                                        </NavigationMenu.Content>
+                                    </AnimatePresence>
+                                </>
+                            )}
                         </NavigationMenu.Item>
                     ))}
                 </NavigationMenu.List>

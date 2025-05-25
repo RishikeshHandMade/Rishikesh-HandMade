@@ -1,10 +1,10 @@
-import Contact from "@/components/Contact"
+import ContactUs from "@/components/ContactUs"
 
 
 const page = () => {
     return (
         <>
-            <Contact />
+            <ContactUs />
         </>
     )
 }
