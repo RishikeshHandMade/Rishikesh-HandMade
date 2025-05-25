@@ -1,22 +1,43 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import toast from 'react-hot-toast';
+import { Mail, Phone, Share2, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
-// const AccordionItem = ({ title, children }) => {
-//   const [open, setOpen] = React.useState(false);
-//   return (
-//     <div className="border-b">
-//       <button
-//         className="w-full flex justify-between items-center py-4 px-6 text-lg font-medium focus:outline-none hover:bg-gray-50 transition"
-//         onClick={() => setOpen(o => !o)}
-//       >
-//         <span>{title}</span>
-//         <span className="ml-2 text-xl">{open ? '-' : '+'}</span>
 import QuickViewProductCard from "./QuickViewProductCard";
 
 const ArtisanDetails = ({ artisan }) => {
   console.log(artisan)
   const [quickViewProduct, setQuickViewProduct] = useState(null);
+  const [showShareBox, setShowShareBox] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const shareBoxRef = useRef(null);
+
+  // Handle closing share box on outside click or Escape
+  useEffect(() => {
+    if (!showShareBox) return;
+    function handleClick(e) {
+      if (shareBoxRef.current && !shareBoxRef.current.contains(e.target)) {
+        setShowShareBox(false);
+      }
+    }
+    function handleEsc(e) {
+      if (e.key === 'Escape') setShowShareBox(false);
+    }
+    document.addEventListener('mousedown', handleClick);
+    document.addEventListener('keydown', handleEsc);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('keydown', handleEsc);
+    };
+  }, [showShareBox]);
+
+  // Copy URL handler
+  const handleCopy = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1200);
+  };
   // Prevent background scroll when Quick View is open
   useEffect(() => {
     if (quickViewProduct) {
@@ -36,56 +57,381 @@ const ArtisanDetails = ({ artisan }) => {
     { _id: 1, title: 'No Blogs Available', content: '' },
   ];
 
+  const [showExpertModal, setShowExpertModal] = useState(false);
+
+  // Form state
+  const [expertForm, setExpertForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    need: 'Pricing',
+    question: '',
+    contactMethod: 'Phone',
+  });
+
+  const handleExpertInputChange = (e) => {
+    const { name, value, type } = e.target;
+    setExpertForm((prev) => ({
+      ...prev,
+      [name]: type === 'radio' ? value : value,
+    }));
+  };
+
+  const handleExpertSubmit = (e) => {
+    e.preventDefault();
+    setShowExpertModal(false);
+    setExpertForm({
+      name: '',
+      email: '',
+      phone: '',
+      need: 'Pricing',
+      question: '',
+      contactMethod: 'Phone',
+    });
+    toast.success('Your question has been submitted!');
+  };
+
   return (
     <div className=" relative min-h-screen bg-gradient-to-br from-amber-50 to-white flex flex-col items-center px-2 md:px-0">
       {/* Top section: Image left, details right */}
-      <div className="relative w-full overflow-visible shadow-xl mb-10 bg-[#f9f6f1]">
-  {/* Banner Background Image */}
-  <div className="inset-0 h-[300px] w-full object-cover object-center grayscale-[0.8] brightness-100 z-0 overflow-hidden">
-    <img src="https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?auto=format&fit=crop&w=1200&q=80" className="w-full h-full object-cover grayscale-[0.8] brightness-100 " alt="Office" />
-  </div>
-  {/* Overlay Content */}
-  <div className="relative  flex flex-row items-start pt-0 px-0 pb-8 ">
-    {/* Profile Image: Overlapping Banner */}
-    <div className="absoute 0 flex-shrink-0 -mt-32 ml-12 mr-10">
-      <div className="bg-white rounded-lg shadow-xl border-4 border-white overflow-hidden w-72 h-[350px] flex items-center justify-center">
-        <img src={artisan.image || artisan.profileImage?.url || 'https://randomuser.me/api/portraits/men/32.jpg'} alt={artisan.firstName + ' ' + artisan.lastName} className="object-cover w-full h-full" />
+      <div className="relative w-full overflow-visible  mb-10 bg-[#f9f6f1]">
+        {/* Banner Background Image */}
+        <div className="inset-0 h-[300px] w-full object-cover object-center grayscale-[0.8] brightness-100 z-0 overflow-hidden">
+          <img src="https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?auto=format&fit=crop&w=1200&q=80" className="w-full h-full object-cover grayscale-[0.8] brightness-100 " alt="Office" />
+        </div>
+        {/* Overlay Content */}
+        <div className="relative  flex flex-row items-start pt-0 px-0 pb-8 ">
+          {/* Profile Image: Overlapping Banner */}
+          <div className="absoute 0 flex-shrink-0 -mt-32 ml-12 mr-10">
+            <div className="bg-white rounded-lg shadow-xl border-4 border-white overflow-hidden w-72 h-[350px] flex items-center justify-center">
+              <img src={artisan.image || artisan.profileImage?.url || 'https://randomuser.me/api/portraits/men/32.jpg'} alt={artisan.firstName + ' ' + artisan.lastName} className="object-cover w-full h-full" />
+            </div>
+          </div>
+          {/* Details Card */}
+          <div className="flex-1 flex flex-col gap-2 mt-8 md:mt-8 md:ml-0 bg-transparent">
+            <div className="flex flex-col gap-2">
+              <div className="text-3xl font-bold leading-tight flex items-center">Name: <span className="font-bold text-2xl md:text-3xl text-gray-800 align-middle"> {artisan.firstName} {artisan.lastName}</span></div>
+              <div className="font-bold text-2xl mt-1 mb-1 text-xl flex items-center">SHG : <span className="font-normal text-md ">{artisan.shgName || 'No SHG Name Avaiable'}</span></div>
+              <div className="font-bold text-2xl mt-1 mb-1 text-xl flex items-center"> Artisan Number: <span className="font-normal text-md">{artisan.artisanNumber || 'Artisan Number Not Available'}</span></div>
+            </div>
+            <div className="mt-2 text-xl md:text-xl font-bold text-black">{artisan.yearsOfExperience || '0'} Years of Experience</div>
+            <div className="font-bold text-xl mt-2">Specializations</div>
+            <div className="flex gap-3 flex-wrap mb-2">
+              {(artisan.specializations || ['No Specializations']).map((spec, i) => (
+                <span key={i} className="bg-gray-200 rounded-full px-5 py-1 text-base font-semibold tracking-tight border border-gray-300">{spec}</span>
+              ))}
+            </div>
+            <div className="font-bold mt-2 text-2xl">Address: <span className="font-normal text-md">{artisan.address?.fullAddress || 'Yamkeshwar, Mohan Chatti, Bairagarh, Uttarakhand'}</span></div>
+            <div className="flex items-center gap-5 mt-2 mb-2">
+              <div className='flex items-center gap-2 mt-2 mb-2 px-4 border-r-4 border-black'>
+                {/* Email icon */}
+                {artisan.contact.email && (
+                  <a href={`mailto:${artisan.contact.email}`} className="text-gray-700 hover:text-emerald-600" title="Email">
+                    <Mail size={20} />
+                  </a>
+                )}
+                {/* Phone icon */}
+                {artisan.contact.callNumber && (
+                  <a href={`tel:${artisan.contact.callNumber}`} className="text-gray-700 hover:text-lime-600" title="Call">
+                    <Phone size={20} />
+                  </a>
+                )}
+                {artisan.contact.whatsappNumber && (
+                  <a
+                    href={`https://wa.me/${artisan.contact.whatsappNumber}`}
+                    className="text-gray-700 hover:text-lime-600 flex items-center "
+                    title="WhatsApp"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <img src="/whatapp.png" alt="WhatsApp" width={35} height={35} style={{ display: 'inline', verticalAlign: 'middle' }} />
+                  </a>
+                )}
+                {/* Share icon */}
+                <button
+                  type="button"
+                  className="text-gray-700 hover:text-orange-600 focus:outline-none relative"
+                  title="Share profile"
+                  onClick={() => setShowShareBox((prev) => !prev)}
+                >
+                  <Share2 size={20} />
+                </button>
+                {/* Share box */}
+                {showShareBox && (
+                  <div ref={shareBoxRef} className="absolute left-0 mt-10 z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-4 flex items-center gap-2 animate-fade-in" style={{ minWidth: 260 }}>
+                    <input
+                      type="text"
+                      readOnly
+                      value={typeof window !== 'undefined' ? window.location.href : ''}
+                      className="border px-2 py-1 rounded flex-1 text-gray-800 bg-gray-100 text-xs"
+                      style={{ minWidth: 120 }}
+                    />
+                    <button
+                      onClick={handleCopy}
+                      className={`ml-2 p-1 rounded hover:bg-gray-200 transition ${copied ? 'bg-green-100' : ''}`}
+                      title={copied ? 'Copied!' : 'Copy URL'}
+                    >
+                      <Copy size={18} className={copied ? 'text-green-600' : 'text-gray-700'} />
+                    </button>
+                    {copied && <span className="ml-2 text-green-600 text-xs font-semibold">Copied!</span>}
+                  </div>
+                )}
+              </div>
+
+              {/* Social Icons Row */}
+              <div className="flex items-center gap-2 mt-2 mb-2">
+                {artisan.socialPlugin.facebook && (
+                  <a href={artisan.socialPlugin.facebook} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition" title="Facebook">
+                    <img src="/fb.png" alt="Facebook" width={30} height={30} style={{ display: 'inline', verticalAlign: 'middle' }} />
+                  </a>
+                )}
+                {artisan.socialPlugin.instagram && (
+                  <a href={artisan.socialPlugin.instagram} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition" title="Instagram">
+                    <img src="/insta.png" className="" alt="Instagram" width={35} height={35} style={{ display: 'inline', verticalAlign: 'middle' }} />
+                  </a>
+                )}
+                {artisan.socialPlugin.youtube && (
+                  <a href={artisan.socialPlugin.youtube} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition" title="YouTube">
+                    <img src="/youtube.webp" className="h-12 w-12" alt="YouTube" width={30} height={30} style={{ display: 'inline', verticalAlign: 'middle' }} />
+                  </a>
+                )}
+                {artisan.socialPlugin.google && (
+                  <a href={artisan.socialPlugin.google} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition" title="Google">
+                    <img src="/google.png" className="hover:scale-110 transition" alt="Google" width={35} height={35} style={{ display: 'inline', verticalAlign: 'middle' }} />
+                  </a>
+                )}
+                {artisan.socialPlugin.website && (
+                  <a href={artisan.socialPlugin.website} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition" title="Website">
+                    <img src="/website.png" alt="Website" width={30} height={30} style={{ display: 'inline', verticalAlign: 'middle' }} />
+                  </a>
+                )}
+              </div>
+              <div className="flex flex-row items-center justify-between mt-2 w-[20%]">
+                <button
+                  className="bg-black text-white font-bold w-full px-10 py-2 rounded-md shadow hover:bg-gray-900 transition-all text-base"
+                  onClick={() => setShowExpertModal(true)}
+                >
+                  Ask An Expert
+                </button>
+              </div>
+
+              {/* Modal for Ask An Expert */}
+              {showExpertModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                  <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative animate-fade-in">
+                    <button
+                      className="absolute top-2 right-2 text-gray-500 hover:text-black text-2xl font-bold"
+                      onClick={() => setShowExpertModal(false)}
+                      aria-label="Close"
+                    >
+                      ×
+                    </button>
+                    <h2 className="text-xl font-bold mb-2">Ask An Expert</h2>
+                    <form onSubmit={handleExpertSubmit} className="flex flex-col gap-4">
+                      <div className="text-center text-gray-500 text-sm mb-2">We will follow up with you via email within 24–36 hours</div>
+                      <hr className="" />
+                      <div className="text-center text-base mb-2">Please answer the following questionnaire</div>
+                      <input
+                        type="text"
+                        name="name"
+                        value={expertForm.name}
+                        onChange={handleExpertInputChange}
+                        placeholder="Your Name"
+                        className="border rounded px-3 py-2"
+                        required
+                      />
+                      <input
+                        type="email"
+                        name="email"
+                        value={expertForm.email}
+                        onChange={handleExpertInputChange}
+                        placeholder="Email Address"
+                        className="border rounded px-3 py-2"
+                        required
+                      />
+                      <input
+                        type="text"
+                        name="phone"
+                        value={expertForm.phone}
+                        onChange={handleExpertInputChange}
+                        placeholder="Phone Number"
+                        className="border rounded px-3 py-2"
+                        required
+                      />
+                      <div className="flex flex-row gap-6 items-center mt-2">
+                        <span className="text-sm">Do You Need</span>
+                        <label className="flex items-center gap-1 text-sm">
+                          <input
+                            type="radio"
+                            name="need"
+                            value="Pricing"
+                            checked={expertForm.need === 'Pricing'}
+                            onChange={handleExpertInputChange}
+                          /> Pricing
+                        </label>
+                        <label className="flex items-center gap-1 text-sm">
+                          <input
+                            type="radio"
+                            name="need"
+                            value="Answers"
+                            checked={expertForm.need === 'Answers'}
+                            onChange={handleExpertInputChange}
+                          /> Answers
+                        </label>
+                        <label className="flex items-center gap-1 text-sm">
+                          <input
+                            type="radio"
+                            name="need"
+                            value="Both"
+                            checked={expertForm.need === 'Both'}
+                            onChange={handleExpertInputChange}
+                          /> Both
+                        </label>
+                      </div>
+                      <div>
+                        <label className="block text-sm mb-1">What Can I Help You With Today?</label>
+                        <textarea
+                          name="question"
+                          value={expertForm.question}
+                          onChange={handleExpertInputChange}
+                          placeholder="Describe your question or issue"
+                          className="border rounded px-3 py-2 w-full h-24 "
+                          rows={4}
+                          required
+                        />
+                      </div>
+                      <div className="mt-2">
+                        <span className="block text-sm mb-1">How Would You Like Me To Contact You?</span>
+                        <div className="flex flex-row gap-6">
+                          <label className="flex items-center gap-1 text-sm">
+                            <input
+                              type="radio"
+                              name="contactMethod"
+                              value="Phone"
+                              checked={expertForm.contactMethod === 'Phone'}
+                              onChange={handleExpertInputChange}
+                            /> Phone
+                          </label>
+                          <label className="flex items-center gap-1 text-sm">
+                            <input
+                              type="radio"
+                              name="contactMethod"
+                              value="Email"
+                              checked={expertForm.contactMethod === 'Email'}
+                              onChange={handleExpertInputChange}
+                            /> Email
+                          </label>
+                          <label className="flex items-center gap-1 text-sm">
+                            <input
+                              type="radio"
+                              name="contactMethod"
+                              value="Both"
+                              checked={expertForm.contactMethod === 'Both'}
+                              onChange={handleExpertInputChange}
+                            /> Both
+                          </label>
+                        </div>
+                      </div>
+                      <button
+                        type="submit"
+                        className="bg-black text-white rounded px-6 py-2 font-bold hover:bg-gray-900 transition mt-2"
+                      >
+                        SEND QUESTION
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+
+        </div>
       </div>
-    </div>
-    {/* Details Card */}
-    <div className="flex-1 flex flex-col gap-2 mt-8 md:mt-8 md:ml-0 bg-transparent">
-      <div className="flex flex-col gap-2">
-        <div className="text-3xl font-bold leading-tight flex items-center">Name: <span className="font-bold text-2xl md:text-3xl text-gray-800 align-middle"> {artisan.firstName} {artisan.lastName}</span></div>
-        <div className="font-bold text-2xl mt-1 mb-1 text-xl flex items-center">SHG : <span className="font-normal text-md ">{artisan.shgName || 'No SHG Name Avaiable'}</span></div>
-        <div  className="font-bold text-2xl mt-1 mb-1 text-xl flex items-center"> Artisan Number: <span className="font-normal text-md">{artisan.artisanNumber || 'Artisan Number Not Available'}</span></div>
+
+      {/* My Story Section */}
+      <div className="w-full max-w-7xl my-5 px-2 md:px-0">
+        <h2 className="text-3xl font-bold mb-4 border-b-2 border-black w-fit ">My Story</h2>
+        <div className="mb-4 text-lg font-mono">
+          {/* <span className="font-bold">( Short Description )</span> */}
+          <span className="">{artisan.artisanStories.shortDescription || 'No short description available.'}</span>
+        </div>
+        {/* <div className="mb-4 text-base font-mono text-gray-700">
+          {artisan.artisanStories.storyIntro || 'Maecenas ac est sit amet augue pharetra convallis nec danos dui. Cras suscipit quam et turpis ele.'}
+        </div> */}
+        <div className="flex flex-col md:flex-row gap-8 items-start bg-[#fffaf4] p-6  shadow">
+          {/* Left: Image */}
+          <div className="flex-shrink-0 w-full md:w-[320px] flex justify-center items-center">
+            <img
+              src={artisan.artisanStories.image || 'https://randomuser.me/api/portraits/men/32.jpg'}
+              alt="Artisan"
+              className="rounded-2xl object-cover w-[350px] h-[350px] shadow-md"
+            />
+          </div>
+          {/* Right: Detail Description */}
+          <div className="flex-1 flex flex-col h-full justify-between w-full">
+            <div>
+              <h3 className="text-2xl font-bold mb-2 underline">Detail Description</h3>
+              <div className="text-xl font-sans mb-5">
+                {artisan.artisanStories.title || (
+                  <>
+                    {artisan.artisanStories.title || "Story title"}
+                  </>
+                )}
+              </div>
+              <div className="text-lg font-sans mb-8">
+                {artisan.artisanStories.longDescription || (
+                  <>
+                    {artisan.artisanStories.longDescription || "Long description"}
+                  </>
+                )}
+              </div>
+            </div>
+            {/* Share Row */}
+            <div className="flex flex-row items-center gap-6 border-t pt-4 mt-auto justify-end">
+              <span className="text-xl font-bold">Share</span>
+
+              {/* Instagram Share */}
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.href);
+
+                  window.open('https://www.instagram.com/', '_blank', 'noopener,noreferrer');
+                }}
+                title="Share on Instagram"
+                className="hover:scale-110 transition p-1"
+              >
+                <img src="/insta.png" alt="Instagram" width={26} height={26} style={{ display: 'inline', verticalAlign: 'middle' }} />
+              </button>
+              {/* Facebook Share */}
+              <button
+                onClick={() => {
+                  const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`;
+                  window.open(shareUrl, '_blank', 'noopener,noreferrer');
+                }}
+                title="Share on Facebook"
+                className="hover:scale-110 transition p-1"
+              >
+                <img src="/fb.png" alt="Facebook" width={26} height={26} style={{ display: 'inline', verticalAlign: 'middle' }} />
+              </button>
+              {/* Share Link */}
+              <button
+                className="hover:scale-110 transition p-1"
+                title="Copy profile link"
+                onClick={() => {
+                  navigator.clipboard.writeText(typeof window !== 'undefined' ? window.location.href : '');
+                  toast.success('Profile link copied!');
+                }}
+              >
+                <svg width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-share-2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="M8.59 13.51l6.83 3.98"></path><path d="M15.41 6.51l-6.82 3.98"></path></svg>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-      <div className="mt-2 text-xl md:text-2xl font-bold text-black">{artisan.experience || '10'} Years of Experience</div>
-      <div className="font-bold text-lg mt-2">Specializations</div>
-      <div className="flex gap-3 flex-wrap mb-2">
-        {(artisan.specializations || ['Jute Fiber', 'Bhimal Fiber', 'Jute Handbag']).map((spec, i) => (
-          <span key={i} className="bg-gray-200 rounded-full px-5 py-1 text-base font-semibold tracking-tight border border-gray-300">{spec}</span>
-        ))}
-      </div>
-      <div className="font-bold mt-2">Address: <span className="font-normal">{artisan.address?.fullAddress || 'Yamkeshwar, Mohan Chatti, Bairagarh, Uttarakhand'}</span></div>
-      {/* Social Icons Row */}
-      <div className="flex items-center gap-2 mt-2 mb-2">
-        {artisan.facebook && <a href={artisan.facebook} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-blue-600"><i className="fab fa-facebook-f"></i></a>}
-        {artisan.instagram && <a href={artisan.instagram} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-pink-500"><i className="fab fa-instagram"></i></a>}
-        {artisan.twitter && <a href={artisan.twitter} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-blue-400"><i className="fab fa-twitter"></i></a>}
-        {artisan.youtube && <a href={artisan.youtube} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-red-600"><i className="fab fa-youtube"></i></a>}
-        {artisan.google && <a href={artisan.google} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-red-500"><i className="fab fa-google"></i></a>}
-        {artisan.linkedin && <a href={artisan.linkedin} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-blue-700"><i className="fab fa-linkedin-in"></i></a>}
-      </div>
-      <div className="flex flex-row items-center justify-between mt-2">
-        <div></div>
-        <button className="bg-black text-white font-bold px-8 py-2 rounded-full shadow hover:bg-gray-900 transition-all text-base">Ask An Expert</button>
-      </div>
-    </div>
-  </div>
-</div>
 
       {/* Products Carousel */}
-      <div className="w-full max-w-7xl mb-10">
+      <div className="w-full max-w-7xl my-5">
         <h3 className="text-2xl font-bold mb-4 text-gray-800">Products</h3>
         <Carousel className="w-full md:w-[100%] mx-auto my-4">
           <CarouselContent className="-ml-1 w-full gap-2">
@@ -232,22 +578,24 @@ const ArtisanDetails = ({ artisan }) => {
       </div>
 
       {/* Quick View Modal */}
-      {quickViewProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setQuickViewProduct(null)}>
-          <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full relative overflow-y-auto max-h-[90vh]" onClick={e => e.stopPropagation()}>
-            {/* Close Button */}
-            <button
-              className="absolute top-4 right-4 text-2xl font-bold text-gray-500 hover:text-black focus:outline-none"
-              onClick={() => setQuickViewProduct(null)}
-              aria-label="Close quick view"
-            >
-              &times;
-            </button>
-            <QuickViewProductCard product={quickViewProduct} onClose={() => setQuickViewProduct(null)} />
+      {
+        quickViewProduct && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setQuickViewProduct(null)}>
+            <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full relative overflow-y-auto max-h-[90vh]" onClick={e => e.stopPropagation()}>
+              {/* Close Button */}
+              <button
+                className="absolute top-4 right-4 text-2xl font-bold text-gray-500 hover:text-black focus:outline-none"
+                onClick={() => setQuickViewProduct(null)}
+                aria-label="Close quick view"
+              >
+                &times;
+              </button>
+              <QuickViewProductCard product={quickViewProduct} onClose={() => setQuickViewProduct(null)} />
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 };
 

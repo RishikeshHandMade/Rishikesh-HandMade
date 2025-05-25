@@ -239,7 +239,7 @@ const MenuBar = (props) => {
                     {allMenuItems.length > 0 && allMenuItems.map((cat, index) => (
                         <NavigationMenu.Item key={index} className="relative flex justify-center">
                             {cat.catTitle === "Contact Us" ? (
-                                <Link href="/contact-us" className="flex items-center px-4 py-2 text-sm font-semibold hover:bg-blue-500 data-[state=open]:bg-blue-300 data-[state=open]:text-black rounded-md">
+                                <Link href="/contact" className="flex items-center px-4 py-2 text-sm font-semibold hover:bg-blue-500 data-[state=open]:bg-blue-300 data-[state=open]:text-black rounded-md">
                                     {cat.catTitle}
                                 </Link>
                             ) : (

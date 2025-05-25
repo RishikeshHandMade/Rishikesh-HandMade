@@ -170,28 +170,10 @@ export async function DELETE(req) {
 
     try {
         // Find the package to delete
-        const packageToDelete = await Package.findById(id);
+        const packageToDelete = await Product.findById(id);
         if (!packageToDelete) {
-            return NextResponse.json({ message: "Package not found!" }, { status: 404 });
+            return NextResponse.json({ message: "Product not found!" }, { status: 404 });
         }
-
-        // Delete thumbnail and banner images
-        if (packageToDelete.basicDetails.thumbnail?.key) {
-            await deleteFileFromCloudinary(packageToDelete.basicDetails.thumbnail.key);
-        }
-        if (packageToDelete.basicDetails.imageBanner?.key) {
-            await deleteFileFromCloudinary(packageToDelete.basicDetails.imageBanner.key);
-        }
-
-        // Delete all images from the gallery
-        if (packageToDelete.gallery?.length > 0) {
-            for (const image of packageToDelete.gallery) {
-                if (image.key) {
-                    await deleteFileFromCloudinary(image.key);
-                }
-            }
-        }
-
         // Delete the package from the database
         const deletedProduct = await Product.findByIdAndDelete(id);
         // Remove product reference from artisan's products array if applicable
@@ -204,11 +186,11 @@ export async function DELETE(req) {
 
         // Remove package references from MenuBar
         await MenuBar.updateMany(
-            { "subMenu.packages": id },
-            { $pull: { "subMenu.$[].packages": id } }
+            { "subMenu.products": id },
+            { $pull: { "subMenu.$[].products": id } }
         );
 
-        return NextResponse.json({ message: "Package deleted successfully!" }, { status: 200 });
+        return NextResponse.json({ message: "Product deleted successfully!" }, { status: 200 });
     } catch (error) {
         return NextResponse.json({ message: error.message }, { status: 500 });
     }

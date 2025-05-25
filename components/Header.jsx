@@ -60,7 +60,7 @@ const Header = () => {
         pathName.includes("category") ||
         pathName.includes("page") ||
         pathName.includes("about-us") ||
-        pathName.includes("contact-us") ||
+        pathName.includes("contact") ||
         pathName.includes("privacy-policy") ||
         pathName.includes("refund-cancellation") ||
         pathName.includes("terms-condition") ||

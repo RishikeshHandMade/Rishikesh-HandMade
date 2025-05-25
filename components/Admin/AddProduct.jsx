@@ -75,7 +75,27 @@ const AddProduct = ({ id }) => {
         };
         fetchProducts();
     }, [subMenuId]);
-
+    const deletePackage = async (id) => {
+        setIsLoading(true);
+        try {
+            const response = await fetch('/api/admin/website-manage/addPackage', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id }),
+            });
+            const result = await response.json();
+            if (response.ok) {
+                setProducts((prev) => prev.filter((prod) => prod._id !== id));
+                toast.success('Product deleted successfully!');
+            } else {
+                toast.error(result.message || 'Failed to delete product.');
+            }
+        } catch (error) {
+            toast.error('Failed to delete product.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
     const onSubmit = async () => {
         setIsLoading(true);
         try {
