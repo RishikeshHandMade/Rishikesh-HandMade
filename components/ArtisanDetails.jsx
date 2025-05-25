@@ -5,14 +5,29 @@ import { Mail, Phone, Share2, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import QuickViewProductCard from "./QuickViewProductCard";
-
+import Autoplay from "embla-carousel-autoplay";
 const ArtisanDetails = ({ artisan }) => {
+  // ...existing state
+  const [otherArtisans, setOtherArtisans] = useState([]);
+
+  // Helper for safe social links
+  const getSocialLink = (plugin, key) => (plugin && plugin[key]) ? plugin[key] : '';
+
+
+  // Fetch other artisans (excluding current one)
+  useEffect(() => {
+    if (!artisan._id) return;
+    fetch(`/api/createArtisan?exclude=${artisan._id}`)
+      .then(res => res.json())
+      .then(data => setOtherArtisans(data))
+      .catch(err => setOtherArtisans([]));
+  }, [artisan._id]);
   console.log(artisan)
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const [showShareBox, setShowShareBox] = useState(false);
   const [copied, setCopied] = useState(false);
   const shareBoxRef = useRef(null);
-
+  const plugin = useRef(Autoplay({ delay: 5000, stopOnInteraction: false }));
   // Handle closing share box on outside click or Escape
   useEffect(() => {
     if (!showShareBox) return;
@@ -158,7 +173,7 @@ const ArtisanDetails = ({ artisan }) => {
                 </button>
                 {/* Share box */}
                 {showShareBox && (
-                  <div ref={shareBoxRef} className="absolute left-0 mt-10 z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-4 flex items-center gap-2 animate-fade-in" style={{ minWidth: 260 }}>
+                  <div ref={shareBoxRef} className="absolute left-50 bottom-[100px] z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-4 flex items-center gap-2 animate-fade-in" style={{ minWidth: 260 }}>
                     <input
                       type="text"
                       readOnly
@@ -180,28 +195,28 @@ const ArtisanDetails = ({ artisan }) => {
 
               {/* Social Icons Row */}
               <div className="flex items-center gap-2 mt-2 mb-2">
-                {artisan.socialPlugin.facebook && (
-                  <a href={artisan.socialPlugin.facebook} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition" title="Facebook">
+                {getSocialLink(artisan.socialPlugin, 'facebook') && (
+                  <a href={getSocialLink(artisan.socialPlugin, 'facebook')} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition" title="Facebook">
                     <img src="/fb.png" alt="Facebook" width={30} height={30} style={{ display: 'inline', verticalAlign: 'middle' }} />
                   </a>
                 )}
-                {artisan.socialPlugin.instagram && (
-                  <a href={artisan.socialPlugin.instagram} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition" title="Instagram">
+                {getSocialLink(artisan.socialPlugin, 'instagram') && (
+                  <a href={getSocialLink(artisan.socialPlugin, 'instagram')} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition" title="Instagram">
                     <img src="/insta.png" className="" alt="Instagram" width={35} height={35} style={{ display: 'inline', verticalAlign: 'middle' }} />
                   </a>
                 )}
-                {artisan.socialPlugin.youtube && (
-                  <a href={artisan.socialPlugin.youtube} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition" title="YouTube">
+                {getSocialLink(artisan.socialPlugin, 'youtube') && (
+                  <a href={getSocialLink(artisan.socialPlugin, 'youtube')} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition" title="YouTube">
                     <img src="/youtube.webp" className="h-12 w-12" alt="YouTube" width={30} height={30} style={{ display: 'inline', verticalAlign: 'middle' }} />
                   </a>
                 )}
-                {artisan.socialPlugin.google && (
-                  <a href={artisan.socialPlugin.google} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition" title="Google">
+                {getSocialLink(artisan.socialPlugin, 'google') && (
+                  <a href={getSocialLink(artisan.socialPlugin, 'google')} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition" title="Google">
                     <img src="/google.png" className="hover:scale-110 transition" alt="Google" width={35} height={35} style={{ display: 'inline', verticalAlign: 'middle' }} />
                   </a>
                 )}
-                {artisan.socialPlugin.website && (
-                  <a href={artisan.socialPlugin.website} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition" title="Website">
+                {getSocialLink(artisan.socialPlugin, 'website') && (
+                  <a href={getSocialLink(artisan.socialPlugin, 'website')} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition" title="Website">
                     <img src="/website.png" alt="Website" width={30} height={30} style={{ display: 'inline', verticalAlign: 'middle' }} />
                   </a>
                 )}
@@ -351,7 +366,11 @@ const ArtisanDetails = ({ artisan }) => {
 
       {/* My Story Section */}
       <div className="w-full max-w-7xl my-5 px-2 md:px-0">
-        <h2 className="text-3xl font-bold mb-4 border-b-2 border-black w-fit ">My Story</h2>
+        <h2 className="text-3xl font-bold mb-4 w-fit ">
+          <span className='border-t-4 border-black'>
+            My Story
+          </span>
+        </h2>
         <div className="mb-4 text-lg font-medium">
           {/* <span className="font-bold">( Short Description )</span> */}
           <span className="">{artisan.artisanStories.shortDescription || 'No short description available.'}</span>
@@ -432,7 +451,10 @@ const ArtisanDetails = ({ artisan }) => {
 
       {/* Products Carousel */}
       <div className="w-full max-w-7xl my-5">
-        <h3 className="text-2xl font-bold mb-4 text-gray-800">Products</h3>
+        <h3 className="text-3xl font-bold mb-4 text-gray-800">
+          <span className='border-t-4 border-black'>
+            Product We Develop
+          </span></h3>
         <Carousel className="w-full md:w-[100%] mx-auto my-4">
           <CarouselContent className="-ml-1 w-full gap-2">
             {products.map((product) => (
@@ -475,8 +497,8 @@ const ArtisanDetails = ({ artisan }) => {
                     </div>
                   </div>
                   {/* Name and Price Section (plain, separate box) */}
-                  <div className="w-full flex flex-col items-start px-5 py-4 mt-0 bg-transparent">
-                    <span className="font-semibold text-base leading-tight max-w-[180px] truncate cursor-pointer mb-1" style={{ color: 'inherit' }}>
+                  <div className="w-full flex flex-col items-start px-4 hover:underline py-4 mt-0 bg-transparent">
+                    <span className="font-semibold text-xl leading-tight max-w-[180px] truncate cursor-pointer mb-1" style={{ color: 'inherit' }}>
                       {product.title}
                     </span>
                     {product.quantity?.variants?.[0]?.price && (
@@ -496,85 +518,420 @@ const ArtisanDetails = ({ artisan }) => {
 
       {/* Blogs Section */}
       <div className="w-full max-w-7xl mb-10">
-        <h3 className="text-3xl font-bold mb-4 text-gray-800 ">Blogs</h3>
-        <Carousel className="w-full md:w-[100%] mx-auto my-4 ">
-          <CarouselContent className="-ml-1 w-full gap-4 m-1">
-            {blogs.map((blog) => {
-              const firstImage = Array.isArray(blog.images) && blog.images.length > 0 ? blog.images[0].url || blog.images[0] : undefined;
-              return (
-                <CarouselItem
-                  key={blog._id}
-                  className="pl-1 md:basis-1/4 min-w-0 snap-start"
-                >
-                  <div className="bg-white rounded-2xl shadow-lg p-4 flex flex-col min-h-[300px] max-w-md mx-auto transition hover:shadow-xl ">
-                    {firstImage && (
-                      <img src={firstImage} alt={blog.title} className="w-full rounded-t-2xl object-cover" />
-                    )}
-                    <div className="flex flex-col flex-1 p-4">
-                      <div className="font-bold text-lg text-black uppercase tracking-wider line-clamp-2 mb-2">{blog.title || 'No title available.'}</div>
-                      <div className="text-gray-500 text-base mt-2 line-clamp-2 max-h-16 overflow-y-auto mb-2">{blog.shortDescription || 'No description available.'}</div>
-                      <div className="flex gap-3 mt-auto">
-                        <a href={`/blogs/${blog._id}`} className="text-gray-600 hover:underline rounded-lg font-semibold text-base transition flex items-center">READ MORE <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" /></svg></a>
+        <h3 className="text-3xl font-bold mb-4 text-gray-800">
+          <span className='border-t-4 border-black'>
+            Blogs
+          </span></h3>
+        <div className="flex flex-col gap-6">
+          {blogs.length === 0 && (
+            <div className="text-gray-500 text-center">No blogs available.</div>
+          )}
+          {blogs && blogs.length > 0 && blogs.reduce((rows, blog, idx) => {
+            if (idx % 2 === 0) rows.push([blog]);
+            else rows[rows.length - 1].push(blog);
+            return rows;
+          }, []).map((row, rowIdx) => (
+            <div key={rowIdx} className="flex flex-col md:flex-row gap-6">
+              {row.map((blog, colIdx) => {
+                const firstImage = Array.isArray(blog.images) && blog.images.length > 0 ? blog.images[0].url || blog.images[0] : undefined;
+                // Format date (assuming blog.date is ISO or similar)
+                let blogDate = '';
+                if (blog.date) {
+                  const d = new Date(blog.date);
+                  blogDate = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                }
+                return (
+                  <div
+                    key={blog._id}
+                    className="flex flex-row bg-[#FFF3C9] rounded-3xl shadow-md min-h-[220px] w-full md:w-1/2 overflow-hidden"
+                  >
+                    {/* Image section */}
+                    <div className="flex-shrink-0 w-1/2 md:w-2/5 flex items-center justify-center bg-[#E8A57B]">
+                      {(() => {
+                        // Prefer image if present, else youtubeUrl
+                        let mediaUrl = undefined;
+                        if (Array.isArray(blog.images) && blog.images.length > 0) {
+                          mediaUrl = blog.images[0].url || blog.images[0];
+                        } else if (blog.youtubeUrl) {
+                          mediaUrl = blog.youtubeUrl;
+                        }
+
+                        if (mediaUrl) {
+                          // Check if it's a YouTube URL
+                          if (/^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//.test(mediaUrl)) {
+                            // Convert to embed URL
+                            let embedUrl = mediaUrl;
+                            if (embedUrl.includes('youtube.com/watch?v=')) {
+                              const videoId = embedUrl.split('v=')[1].split('&')[0];
+                              embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                            } else if (embedUrl.includes('youtu.be/')) {
+                              const videoId = embedUrl.split('youtu.be/')[1].split(/[?&]/)[0];
+                              embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                            }
+                            return (
+                              <div className="w-full h-full aspect-video rounded-l-3xl overflow-hidden flex items-center justify-center">
+                                <iframe
+                                  src={embedUrl}
+                                  title={blog.title}
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                  allowFullScreen
+                                  className="w-full h-full min-h-[160px] max-h-[220px] border-0"
+                                />
+                              </div>
+                            );
+                          } else {
+                            // Regular image
+                            return (
+                              <img
+                                src={mediaUrl}
+                                alt={blog.title}
+                                className="object-cover w-full h-full max-h-[220px] rounded-l-3xl"
+                              />
+                            );
+                          }
+                        } else {
+                          // No image or video
+                          return (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-l-3xl text-gray-400">
+                              No Image
+                            </div>
+                          );
+                        }
+                      })()}
+                    </div>
+                    {/* Content section */}
+                    <div className="flex flex-col justify-between p-6 flex-1">
+                      <div>
+                        {blogDate && (
+                          <div className="text-xs font-semibold bg-black text-white inline-block px-3 py-1 rounded mb-2">{blogDate}</div>
+                        )}
+                        <div className="font-bold text-lg md:text-xl text-black mb-2 leading-snug">{blog.title || 'No title available.'}</div>
+                        <div className="text-gray-800 text-base mb-4 line-clamp-3 min-h-[48px]">{blog.shortDescription || 'No description available.'}</div>
+                      </div>
+                      <div className="flex items-center mt-auto">
+                        <a href={`/blogs/${blog._id}`} className="text-gray-700 font-semibold hover:underline flex items-center group transition">
+                          Read More
+                          <span className="ml-2 ">&gt;</span>
+                        </a>
                       </div>
                     </div>
                   </div>
-                </CarouselItem>
-              );
-            })}
-          </CarouselContent>
-          <CarouselPrevious />
-          <CarouselNext />
-        </Carousel>
+                );
+              })}
+              {/* If odd number of blogs, fill the row with an empty div for alignment */}
+              {row.length === 1 && <div className="hidden md:block w-1/2"></div>}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Reviews Section */}
-      <div className="w-full max-w-4xl mx-auto mb-10">
-        <Carousel className="w-full">
-          <CarouselContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {(artisan.promotions && artisan.promotions.length > 0 ? artisan.promotions : [
-              {
-                _id: 1,
-                rating: 3,
-                title: 'Kenneth Fong',
-                subtitle: 'Postgraduate Student',
-                shortDescription: "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English.",
-                image: '/placeholder-user.jpg',
-              },
-            ]).map((review, idx) => (
-              <CarouselItem
-                key={review._id}
-                className="min-w-0 snap-center w-full md:w-1/2"
-              >
-                <div className="bg-white rounded-3xl shadow-xl border border-[#f7eedd] p-8 flex flex-col justify-between h-full min-h-[320px] relative overflow-visible">
-                  {/* Review text */}
-                  <div className="text-lg md:text-xl text-gray-800 font-medium leading-relaxed mb-8 text-left">
-                    {review.shortDescription || 'No review text.'}
+      <div className="w-full mx-auto mb-10 relative min-h-[500px] flex items-center justify-end relative">
+        {/* Background Image */}
+        <div className="absolute inset-0 w-full h-full z-0">
+          <img
+            src="https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?auto=format&fit=crop&w=1200&q=80"
+            alt="Happy client"
+            className="w-full h-full object-cover bg-[#FCEED5]"
+            style={{ objectPosition: 'top' }}
+          />
+        </div>
+
+        {/* Review Card Overlay */}
+        <div className="absolute right-1 top-10 z-10 flex flex-col justify-start w-full md:w-1/2 items-end pr-1">
+          <div className='w-[75%] mb-2'>
+            <h2 className='text-start text-5xl font-bold'>What Our Client Say About Us</h2>
+          </div>
+          <Carousel className="w-full md:w-[600px]"
+            plugins={[Autoplay({ delay: 4000 })]}>
+
+            <CarouselContent className="w-full">
+              {(artisan.promotions && artisan.promotions.length > 0 ? artisan.promotions : [
+                {
+                  _id: 1,
+                  rating: 3,
+                  title: 'Joe Do',
+                  subtitle: 'Undergraduate Student',
+                  shortDescription: "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum i here', making it look like readable English.",
+                  image: '/placeholder-user.jpg',
+                },
+              ]).map((review, idx) => (
+                <CarouselItem
+                  key={review._id}
+                  className="min-w-0 snap-center w-full"
+                >
+                  <div className="bg-white rounded-3xl px-8 py-5 flex flex-col justify-between h-full min-h-[320px] relative overflow-visible">
+                    {/* Review text */}
+                    <div className="text-md md:text-md text-gray-800 font-medium leading-relaxed mb-2 text-left">
+                      {review.shortDescription || 'No review text.'}
+                    </div>
+                    {/* Bottom row: avatar, name, subtitle, nav buttons */}
+                    <div className="flex items-center justify-between w-full mt-auto pt-2">
+                      {/* Avatar, Name, Subtitle */}
+                      <div className="flex items-center">
+                        <img
+                          src={review.image || "/placeholder-user.jpg"}
+                          alt={review.createdBy || review.title || 'Anonymous'}
+                          className="w-14 h-14 rounded-full border-4 border-white shadow object-cover"
+                        />
+                        <div className="ml-4 text-left">
+                          <div className="font-bold text-xl text-black">{review.createdBy || review.title || 'Anonymous'}</div>
+                        </div>
+                      </div>
+
+                    </div>
                   </div>
-                  {/* Bottom row: avatar, name, subtitle, nav buttons */}
-                  <div className="flex items-center justify-between w-full mt-auto pt-2">
-                    {/* Avatar, Name, Subtitle */}
-                    <div className="flex items-center">
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            {/* Carousel navigation styled as in screenshot */}
+            <div className="flex items-center gap-3">
+              <CarouselPrevious className="absolute top-[85%] left-[65%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
+              <CarouselNext className="absolute top-[85%] left-[80%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
+            </div>
+          </Carousel>
+        </div>
+      </div>
+
+      {/* Certificate And Awards Section */}
+      <div className="w-full max-w-7xl mx-auto mb-10 mt-10">
+        <div className="flex flex-col md:flex-row items-start gap-8">
+          {/* Left: Heading and description */}
+          <div className="flex-1">
+            <div className="border-t-4 border-black w-1/2 mb-2"></div>
+            <h2 className="text-4xl md:text-5xl font-bold mb-2">Certificate And Awards</h2>
+            <div className="text-lg md:text-xl font-mono text-gray-700 mb-6">
+              {/* (<span className="font-bold"> Short Description </span>) Praesent vestibulum congue tellus at fringilla. Curabitur vitae semper sem, eu convallis est. Cras felis nunc commodo eu convallis vitae interdum non nisl. */}
+            </div>
+          </div>
+        </div>
+        {/* Carousel for certificates */}
+        <div className="w-full mt-4 flex flex-col items-center">
+          <Carousel className="w-full md:w-[80%]" 
+          plugins={[Autoplay({ delay: 2000 })]}>
+            <CarouselContent className="w-full">
+              {(artisan.certificates && artisan.certificates.length > 0 ? artisan.certificates : [
+                {
+                  _id: 1,
+                  title: 'Gold Glitter Award',
+                  year: '2021',
+                  specialization: 'Craft Excellence',
+                  image: 'https://img.freepik.com/free-vector/black-gold-glitter-background_52683-65222.jpg',
+                },
+                {
+                  _id: 2,
+                  title: 'Silver Handicraft Medal',
+                  year: '2020',
+                  specialization: 'Traditional Art',
+                  image: 'https://img.freepik.com/free-vector/black-gold-glitter-background_52683-65222.jpg',
+                },
+              ]).map((cert, idx) => (
+                <CarouselItem key={cert._id} className="min-w-0 snap-center w-full">
+                  <div className="flex flex-col md:flex-row items-center justify-between rounded-3xl px-4 py-4 md:py-10 min-h-[220px]">
+                    {/* Left: Certificate details */}
+                    <div className="flex-1 flex flex-col items-start justify-center text-left gap-4">
+                      <div className="text-2xl md:text-3xl font-bold mb-2">{cert.title}</div>
+                      <div className="text-base md:text-lg text-gray-600 mb-1"><span className="font-semibold">Issue Date:</span> {cert.issueDate}</div>
+                      <div className="text-base md:text-lg text-gray-600 mb-1"><span className="font-semibold">Issued By:</span> {cert.issuedBy}</div>
+                      <div className="text-base md:text-lg text-gray-600"><span className="font-semibold">Specialization:</span> {cert.description}</div>
+                    </div>
+                    {/* Right: Certificate image */}
+                    <div className="w-full md:w-1/3 flex justify-end mt-6 md:mt-0">
                       <img
-                        src={review.image || "/placeholder-user.jpg"}
-                        alt={review.createdBy || review.title || 'Anonymous'}
-                        className="w-16 h-16 rounded-full border-4 border-white shadow object-cover"
+                        src={cert.imageUrl}
+                        alt={cert.title}
+                        className="w-[200px] h-[200px] object-contain rounded-2xl "
                       />
-                      <div className="ml-4 text-left">
-                        <div className="font-bold text-xl text-black">{review.createdBy || review.title || 'Anonymous'}</div>
-                        <div className="text-gray-400 text-base font-medium mt-1">{review.subtitle || 'Postgraduate Student'}</div>
+                    </div>
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <div className="flex items-center gap-3 mt-4 justify-center">
+              <CarouselPrevious className="bg-[#f7eedd] !rounded-full !w-10 !h-10 !flex !items-center !justify-center transition" />
+              <CarouselNext className="bg-[#f7eedd] !rounded-full !w-10 !h-10 !flex !items-center !justify-center transition" />
+            </div>
+          </Carousel>
+        </div>
+      </div>
+
+      {/* Meet Other Artisans Section */}
+      <div className="w-full max-w-7xl mx-auto mb-16 mt-16">
+        <div className="flex flex-col md:flex-row items-start gap-10 ">
+          {/* Left: Heading and description */}
+          <div className="flex-1 flex flex-col justify-center md:pr-8">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">Meet our team of creators, designers, and world-class problem solvers</h2>
+            <div className="text-lg md:text-xl text-gray-700 mb-6">
+              There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words.
+            </div>
+            <button className="bg-black text-white py-3 px-6 rounded-lg font-semibold text-lg w-fit mb-6">Join Our Team</button>
+          </div>
+          {/* Right: Top 2 artisan cards in new style */}
+          <div className="flex flex-row gap-6 flex-1 justify-end">
+            {(otherArtisans && otherArtisans.slice(0,2).map((item, idx) => {
+              const card = {
+                id: item._id || idx,
+                name: `${item.title ? item.title + " " : ""}${item.firstName || ''} ${item.lastName || ''}`.trim() || "Unknown Artisan",
+                date: item.createdAt ? new Date(item.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase() : "N/A",
+                image: item.profileImage?.url || item.image || "/bg-custom-1.jpg",
+                title: item.specializations && item.specializations.length > 0 ? item.specializations.join(", ") : "Artisan",
+                subtitle: item.shgName || "",
+                experience: item.yearsOfExperience ? `${item.yearsOfExperience} years experience` : "",
+                location: item.address ? `${item.address.city}, ${item.address.state}` : "",
+                socials: [
+                  { icon: "/insta-Tranparent.webp", url: item.socialPlugin?.instagram || "#" },
+                  { icon: "/fb.png", url: item.socialPlugin?.facebook || "#" },
+                  { icon: "/google.png", url: item.socialPlugin?.google || "#" },
+                  { icon: "/website.png", url: item.socialPlugin?.website || "#" }
+                ],
+              };
+              return (
+                <div key={card.id} className="relative rounded-2xl overflow-hidden shadow-md group transition-all h-full flex flex-col bg-[#fbeff2] w-[300px] h-[420px] min-w-[220px]">
+                  {/* Date Badge */}
+                  <div className="absolute top-5 left-5 z-20 flex items-center gap-2">
+                    <span className="bg-white rounded px-3 py-1 text-xs font-bold shadow text-gray-800">{card.date}</span>
+                  </div>
+                  {/* Card Image */}
+                  <div className="relative w-full h-full">
+                    <img
+                      src={card.image}
+                      alt={card.name}
+                      className="object-cover w-full h-full rounded-t-2xl"
+                      style={{ objectFit: 'cover' }}
+                    />
+                  </div>
+                  {/* Card Content Overlay */}
+                  <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-6 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
+                    <div>
+                      <div className="font-bold text-xl text-white mb-2 leading-tight drop-shadow-md">{card.name}</div>
+                      <div className="text-xs text-white drop-shadow-md">{card.title}</div>
+                    </div>
+                    {/* Arrow Button with Socials on Hover */}
+                    <div className="relative group/arrow">
+                      <button className="bg-white text-black rounded-full w-12 h-12 flex items-center justify-center shadow transition group-hover/arrow:bg-[#e84393] group-hover/arrow:text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                      {/* Social Icons: show on arrow hover */}
+                      <div className="absolute bottom-12 right-0 flex flex-col gap-4 opacity-0 group-hover/arrow:opacity-100 transition-opacity duration-300 z-30 items-center">
+                        {card.socials.slice(0, 5).map((s, i) => (
+                          <a
+                            key={i}
+                            href={s.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`
+                              bg-white rounded-full w-12 h-12 flex items-center justify-center shadow hover:bg-gray-100 transition
+                              transform translate-y-5 group-hover/arrow:translate-y-0
+                            `}
+                            style={{
+                              transitionProperty: 'transform, opacity, background-color, box-shadow',
+                              transitionDuration: '0.6s',
+                              transitionTimingFunction: 'cubic-bezier(0.4,0,0.2,1)',
+                              transitionDelay: `${i * 60}ms`
+                            }}
+                          >
+                            <img src={s.icon} alt="social" className="w-7 h-7 object-contain" />
+                          </a>
+                        ))}
                       </div>
                     </div>
-                    {/* Carousel navigation (absolute, styled like screenshot) */}
-                    {/* <div className="flex items-center gap-4">
-                      <CarouselPrevious className="!static !relative !shadow-none !bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center hover:!bg-[#f3e3c6] transition" />
-                      <CarouselNext className="!static !relative !shadow-none !bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center hover:!bg-[#f3e3c6] transition" />
-                    </div> */}
                   </div>
                 </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-        </Carousel>
+              );
+            }))}
+          </div>
+        </div>
+        {/* Carousel for remaining artisans in new style */}
+        {otherArtisans && otherArtisans.length > 2 && (
+          <div className="mt-10">
+            <Carousel className="w-full">
+              <CarouselContent className="flex gap-6">
+                {otherArtisans.slice(2).map((item, idx) => {
+                  const card = {
+                    id: item._id || idx,
+                    name: `${item.title ? item.title + " " : ""}${item.firstName || ''} ${item.lastName || ''}`.trim() || "Unknown Artisan",
+                    date: item.createdAt ? new Date(item.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase() : "N/A",
+                    image: item.profileImage?.url || item.image || "/bg-custom-1.jpg",
+                    title: item.specializations && item.specializations.length > 0 ? item.specializations.join(", ") : "Artisan",
+                    subtitle: item.shgName || "",
+                    experience: item.yearsOfExperience ? `${item.yearsOfExperience} years experience` : "",
+                    location: item.address ? `${item.address.city}, ${item.address.state}` : "",
+                    socials: [
+                      { icon: "/insta-Tranparent.webp", url: item.socialPlugin?.instagram || "#" },
+                      { icon: "/fb.png", url: item.socialPlugin?.facebook || "#" },
+                      { icon: "/google.png", url: item.socialPlugin?.google || "#" },
+                      { icon: "/website.png", url: item.socialPlugin?.website || "#" }
+                    ],
+                  };
+                  return (
+                    <CarouselItem key={card.id} className="snap-center w-[270px] min-w-[220px]">
+                      <div className="relative rounded-2xl overflow-hidden shadow-md group transition-all h-full flex flex-col bg-[#fbeff2]">
+                        {/* Date Badge */}
+                        <div className="absolute top-5 left-5 z-20 flex items-center gap-2">
+                          <span className="w-4 h-4 bg-white border-2 border-[#e84393] rounded-full flex items-center justify-center"><span className="w-2 h-2 bg-black rounded-full"></span></span>
+                          <span className="bg-white rounded px-3 py-1 text-xs font-bold shadow text-gray-800">{card.date}</span>
+                        </div>
+                        {/* Card Image */}
+                        <div className="relative w-full h-60">
+                          <img
+                            src={card.image}
+                            alt={card.name}
+                            className="object-cover w-full h-full rounded-t-2xl"
+                            style={{ objectFit: 'cover' }}
+                          />
+                        </div>
+                        {/* Card Content Overlay */}
+                        <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-6 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
+                          <div>
+                            <div className="font-bold text-xl text-white mb-2 leading-tight drop-shadow-md">{card.name}</div>
+                            <div className="text-xs text-white drop-shadow-md">{card.title}</div>
+                          </div>
+                          {/* Arrow Button with Socials on Hover */}
+                          <div className="relative group/arrow">
+                            <button className="bg-white text-black rounded-full w-12 h-12 flex items-center justify-center shadow transition group-hover/arrow:bg-[#e84393] group-hover/arrow:text-white">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                              </svg>
+                            </button>
+                            {/* Social Icons: show on arrow hover */}
+                            <div className="absolute bottom-14 right-0 flex flex-col gap-4 opacity-0 group-hover/arrow:opacity-100 transition-opacity duration-300 z-30 items-center">
+                              {card.socials.slice(0, 5).map((s, i) => (
+                                <a
+                                  key={i}
+                                  href={s.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={`
+                                    bg-white rounded-full w-12 h-12 flex items-center justify-center shadow hover:bg-gray-100 transition
+                                    transform translate-y-5 group-hover/arrow:translate-y-0
+                                  `}
+                                  style={{
+                                    transitionProperty: 'transform, opacity, background-color, box-shadow',
+                                    transitionDuration: '0.6s',
+                                    transitionTimingFunction: 'cubic-bezier(0.4,0,0.2,1)',
+                                    transitionDelay: `${i * 60}ms`
+                                  }}
+                                >
+                                  <img src={s.icon} alt="social" className="w-7 h-7" />
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CarouselItem>
+                  );
+                })}
+              </CarouselContent>
+              <div className="flex items-center gap-3 mt-4 justify-center">
+                <CarouselPrevious className="bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
+                <CarouselNext className="bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
+              </div>
+            </Carousel>
+          </div>
+        )}
       </div>
 
       {/* Quick View Modal */}

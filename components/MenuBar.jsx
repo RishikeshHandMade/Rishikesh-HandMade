@@ -258,7 +258,7 @@ const MenuBar = (props) => {
                                                         animate={{ opacity: 1, y: 0 }}
                                                         exit={{ opacity: 0, y: -10 }}
                                                         transition={{ duration: 0.2, ease: "easeInOut" }}
-                                                        className={`absolute top-full mt-2 -translate-x-1/2 bg-white text-black shadow-lg rounded-md ${singleCategory ? 'w-40' : 'w-[400px] lg:w-[600px]'}`}
+                                                        className={`absolute top-full mt-2 -translate-x-1/2 bg-white text-black shadow-lg rounded-md ${singleCategory ? 'w-48' : 'w-[400px] lg:w-[600px]'}`}
                                                     >
                                                         <div className={
                                                             singleCategory

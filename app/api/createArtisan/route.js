@@ -98,10 +98,16 @@ export async function POST(req) {
   }
 }
 
-export async function GET() {
+export async function GET(req) {
   try {
     await connectDB();
-    const artisans = await Artisan.find()
+    // Support ?exclude=<id> to filter out current artisan
+    let excludeId = null;
+    if (req && req.nextUrl && req.nextUrl.searchParams) {
+      excludeId = req.nextUrl.searchParams.get('exclude');
+    }
+    const query = excludeId ? { _id: { $ne: excludeId } } : {};
+    const artisans = await Artisan.find(query)
       .populate('promotions')
       .populate('blogs')
       .populate('artisanStories')
