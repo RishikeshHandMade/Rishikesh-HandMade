@@ -56,6 +56,63 @@ const ShippingPolicy = () => {
             2)- Legal restrictions, if any, in shipping particular products to your location
           </p>
         </div>
+        
+        {/* Additional Shipping Policy Points 7-11 */}
+        <div className="space-y-5">
+          <div>
+            <p className="text-justify" style={{ textAlign: 'justify' }}><b>7. Why is the CoD option not offered in my location? :-</b>
+              Availability of CoD depends on the ability of our courier partner servicing your location to accept cash as payment at the time of delivery.<br />
+              Our courier partners have limits on the cash amount payable on delivery depending on the destination and your order value might have exceeded this limit.  Please enter your pin code on the product page to check if COD is available in your location.
+            </p>
+          </div>
+          <div>
+            <p className="text-justify" style={{ textAlign: 'justify' }}><b>8. I need to return an item, how do I arrange for a pick-up? :- </b>
+              Returns are easy. Contact Us to initiate a return. You will receive a call explaining the process, once you have initiated a return.<br />
+              Wherever possible www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) delivery partner's Logistics will facilitate the pick-up of the item. In case, the pick-up cannot be arranged through www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.)-delivery partner's, you can return the item through a third-party courier service. Return fees are borne by the Seller.
+            </p>
+          </div>
+          <div>
+            <p className="text-justify" style={{ textAlign: 'justify' }}><b>9. I did not receive my order but got a delivery confirmation SMS/Email. :- </b>
+              In case the product was not delivered and you received a delivery confirmation email/SMS, report the issue within 7 days from the date of delivery confirmation for the seller to investigate.
+            </p>
+          </div>
+          <div>
+            <p className="text-justify" style={{ textAlign: 'justify' }}><b>10. What do the different tags like "In Stock", "Available" mean? :- </b><br />
+              <strong>'In Stock' </strong>
+              For items listed as "In Stock", Sellers will mention the delivery time based on your location pincode (usually 2-3 business days, 4-5 business days or 4-6 business days in areas where standard courier service is available). For other areas, orders will be sent by Registered Post through the Indian Postal Service which may take 1-2 weeks depending on the location.<br />
+              <strong>'Available'</strong>
+              The Seller might not have the item in stock but can procure it when an order is placed for the item. The delivery time will depend on the estimated procurement time and the estimated shipping time to your location.<br />
+              <strong>'Preorder' or 'Forthcoming'</strong>
+              Such items are expected to be released soon and can be pre-booked for you. The item will be shipped to you on the day of it's official release launch and will reach you in 2 to 7 business days. The Preorder duration varies from item to item. Once known, release time and date is mentioned. (Eg. 5th May, August 3rd week)<br />
+              <strong>'Out of Stock'</strong>
+              Currently, the item is not available for sale. Use the 'Notify Me' feature to know once it is available for purchase.<br />
+              <strong>'Imported'</strong>
+              Sometimes, items have to be sourced by Sellers from outside India. These items are mentioned as 'Imported' on the product page and can take at least 10 days or more to be delivered to you.<br />
+              <strong>'Back In Stock Soon'</strong>
+              The item is popular and is sold out. You can however 'book' an order for the product and it will be shipped according to the timelines mentioned by the Seller.<br />
+              <strong>'Temporarily Unavailable'</strong>
+              The product is currently out of stock and is not available for purchase. The product could to be in stock soon. Use the 'Notify Me' feature to know when it is available for purchase.<br />
+              <strong>'Permanently Discontinued' </strong>
+              This product is no longer available because it is obsolete and/or its production has been discontinued.<br />
+              <strong>'Out of Print'</strong>
+              This product is not available because it is no longer being published and has been permanently discontinued. 
+            </p>
+          </div>
+          <div>
+            <p className="text-justify" style={{ textAlign: 'justify' }}><b>11. I did not receive my order but got a delivery confirmation SMS/Email. :- </b>
+              Our mission is to curate beautifully handcrafted products from across the globe. We preserve the traditional art of India handed down to us by our ancestors, helping our talented artisans gain global recognition through the products that can be used on a daily basis in the urban market. Our vision is to be an International Brand synonym to craft. We are well on our way with a solemn goal to provide economic upliftment of the rural artisans that are involved in preserving the heritage of the handicrafts industry in India. <br />
+              www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) ("Website : www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.)") is an Internet based content and e-commerce portal, a company incorporated under the laws of India. Use of the Website is offered to you conditioned on acceptance without modification of all the terms, conditions and notices contained in these Terms, as may be posted on the Website from time to time. www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) at its sole discretion reserves the right not to accept a User from registering on the Website without assigning any reason thereof. provides a number of Internet-based services through the Web Site (all such services, collectively, the "Service"). The products can be purchased through the Website through various methods of payments offered. The purchase of products shall be additionally governed by specific policies of sale, like cancellation policy, return policy, etc. and all of which are incorporated here by reference. In addition, these terms and policies may be further supplemented by www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) product specific conditions, which may be displayed on the webpage of that product.<br /> <br />
+              “www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) ” is a registered trade mark.<br />
+              PAN Number :-  <br />
+              GST Registration Number :-  05AAKCR5588H1ZW  <br />
+              Phone Number :          +91 7351009107 <br />
+              Working Hours :           9:30 - 18:30 pm<br />
+              Email Id:                         info@rishikeshhandmade.com<br />
+              Address:                     Upper Road Dhalwala (Rishikesh)
+              Tehri Garhwal, Uttrakhand 249201
+            </p>
+          </div>
+        </div>
       </div>
     </section>
   );

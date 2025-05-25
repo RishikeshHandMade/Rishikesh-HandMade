@@ -10,7 +10,10 @@ import { Input } from "../ui/input"
 import { Button } from "../ui/button"
 import toast from "react-hot-toast"
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "../ui/accordion"
-const Footer = () => {
+import { useSidebar } from "@/components/ui/sidebar";
+
+const Footer = ({ className = "" }) => {
+    const { open, isMobile } = useSidebar ? useSidebar() : { open: false, isMobile: false };
     const pathName = usePathname()
     const [pages, setPages] = useState([])
 
@@ -39,22 +42,31 @@ const Footer = () => {
 
 
     return (
-        <footer className={`print:hidden 
-        ${pathName.includes('admin') && 'hidden'}
-         ${pathName.includes('product') && 'block'} 
-         ${pathName.includes('artisan') && 'hidden'} 
-         ${pathName.includes('about-us') && 'hidden'} 
-         ${pathName.includes('contact-us') && 'hidden'} 
-         ${pathName.includes('privacy-policy') && 'hidden'} 
-         ${pathName.includes('refund-cancellation') && 'hidden'} 
-         ${pathName.includes('terms-condition') && 'hidden'} 
-         ${pathName.includes('shipping-policy') && 'hidden'}        
-         ${pathName.includes('customEnquiry') && 'block'}
-         ${pathName.includes('checkout') && 'block'}  
-         ${pathName.includes('category') && 'block'} 
-         ${pathName.includes('sign-up') && 'hidden'} 
-         ${pathName.includes('sign-in') && 'hidden'}  
-         bg-[url('/bg-custom-2.jpg')] text-black py-5  border-t border-gray-300`}>
+        <footer
+            className={`print:hidden
+                ${pathName.includes('admin') && 'hidden'}
+                ${pathName.includes('product') && 'block'}
+                ${pathName.includes('artisan') && 'hidden'}
+                ${pathName.includes('about-us') && 'hidden'}
+                ${pathName.includes('contact-us') && 'hidden'}
+                ${pathName.includes('privacy-policy') && 'hidden'}
+                ${pathName.includes('refund-cancellation') && 'hidden'}
+                ${pathName.includes('terms-condition') && 'hidden'}
+                ${pathName.includes('shipping-policy') && 'hidden'}
+                ${pathName.includes('customEnquiry') && 'block'}
+                ${pathName.includes('checkout') && 'block'}
+                ${pathName.includes('category') && 'block'}
+                ${pathName.includes('sign-up') && 'hidden'}
+                ${pathName.includes('sign-in') && 'hidden'}
+                bg-[url('/bg-custom-2.jpg')] text-black py-5 border-t border-gray-300
+                ${isMobile === false
+                    ? open
+                        ? "w-[calc(100%-var(--sidebar-width))] ml-[var(--sidebar-width)]"
+                        : "w-[calc(100%-var(--sidebar-width-icon))] ml-[var(--sidebar-width-icon)]"
+                    : "w-full ml-0"}
+                ${className}
+            `}
+        >
             <div className="flex flex-wrap lg:justify-between justify-evenly md:gap-20 lg:gap-0 gap-12 max-w-[22rem] md:max-w-[45rem] lg:max-w-[60rem] xl:max-w-6xl mx-auto">
                 <div className="flex flex-col gap-2">
                     <h1 className="font-semibold text-xl my-4">Main Menu</h1>

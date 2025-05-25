@@ -117,13 +117,34 @@ const RefundCancellation = () => {
         <div>
           <strong>15. As per the Cash on Delivery policy :-</strong>
           <ul className="list-disc pl-6 mt-1">
-            <li>To avail C-O-D Service, all items in the cart should be applicable for C-O-D.</li>
-            <li>C-O-D is applicable on a minimum sale value of Rs. 0 and maximum of Rs. 5,000 only.</li>
-            <li>Pin code provided for Cash on Delivery should be in the serviceable area. If not, any online payment mode needs to be used.</li>
-            <li>You cannot open the box without making the payment at the time of delivery.</li>
-            <li>If the product is open, do not accept the order.</li>
-            <li>No credit/debit cards are accepted in Cash on Delivery.</li>
-          </ul>
+            <li>1) To avail C-O-D Service, all items in the cart should be applicable for C-O-D.</li>
+            <li>2) C-O-D is applicable on a minimum sale value of Rs. 0 and maximum of Rs. 5,000 only.</li>
+            <li>3) Pin code provided for Cash on Delivery should be in the serviceable area. If not, any online payment mode needs to be used.</li>
+            <li>4) You cannot open the box without making the payment at the time of delivery.</li>
+            <li>5) If the product is open, do not accept the order.</li>
+            <li>6) No credit/debit cards are accepted in Cash on Delivery.</li>
+              <li>7) Cash back Promo Code may not be applicable for all the products on the website.</li>
+              <li>8) Special coupons should be redeemed within the limited period, and validity once expired, cannot be extended later.</li>
+              <li>9) Two offers cannot be clubbed together using the Promo Code.</li>
+              <li>10) www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) reserves the right to cancel any promotional 'Promo Code' and the transactions in which they are used. (This is not applicable on Cash back Promo Codes) Cash back and Promo Code Coupon cannot be clubbed together to avail an offer at www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) This means, if Promo Code is used in an offer, Cash back cannot be generated.</li>
+              <li>11) Cash back amount is subject to change at the sole discretion www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.)</li>
+              <li>12) Images &amp; Representations of Products/Services Product Images are indicative in nature Actual Product may differ from the image. Please refer the product specification for the product For Queries/Comments Send us your questions or comments to <a href="mailto:info@rishikeshhandmade.com"><strong><u> info@rishikeshhandmade.com </u></strong> </a></li>
+            </ul>
+          
+        </div>
+        <div>
+          <strong>16. Contact Information for Refund and cancellation Related Queries   :- </strong>
+          <p className="text-justify mt-1" style={{ textAlign: 'justify' }}>
+            “www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) ” is a registered trade mark.<br />
+            PAN Number :-  <br />
+            GST Registration Number :-  05AAKCR5588H1ZW  <br />
+            <br />
+            Phone Number :          +91 7351009107 <br />
+            Working Hours :           9:30 - 18:30 pm<br />
+            Email Id:                         info@rishikeshhandmade.com<br />
+            Address:                     Upper Road Dhalwala (Rishikesh)<br />
+            Tehri Garhwal, Uttrakhand 249201
+          </p>
         </div>
       </div>
     </section>

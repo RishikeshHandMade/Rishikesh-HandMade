@@ -57,6 +57,78 @@ const TermsConditions = () => {
             www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) hereby disclaims any guarantees of exactness as to the finish and appearance of the final Product as ordered by the user. The quality of any products, Services, information, or other material purchased or obtained by you through the Website might actually depend on the size you ordered for. Also the colour of the end product may vary as those compared to the one on the website, which could only be because of the screen settings on your website.
           </p>
         </div>
+
+        
+        {/* Terms & Conditions Points 6-16 */}
+        <div className="space-y-5">
+          <div>
+            <p className="text-justify" style={{ textAlign: 'justify' }}><b>6. Intellectual Property Rights :- </b>
+              Unless otherwise indicated or anything contained to the contrary or any proprietary material owned by a third party and so expressly mentioned, www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) owns all Intellectual Property Rights to and into the Website. You acknowledge and agree that you shall not use, reproduce or distribute any content from the Website belonging to www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) without obtaining authorization from www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.).
+            </p>
+          </div>
+          <div>
+            <p className="text-justify" style={{ textAlign: 'justify' }}><b>7. Links to Third Party Sites :- </b>
+              The Website may contain links to other websites ("Linked Sites"). The Linked Sites are not under the control of www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) or the Website and www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) is not responsible for the contents of any Linked Site. www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) is providing these links to you only as a convenience, and the inclusion of any link does not imply endorsement by www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) or the Website of the Linked Sites or any association with its operators or owners including the legal heirs or assigns thereof. The users are requested to verify the accuracy of all information on their own before undertaking any reliance on such information.
+            </p>
+          </div>
+          <div>
+            <p className="text-justify" style={{ textAlign: 'justify' }}><b>8. Disclaimer of Warranties/Limitation of Liability :- </b>
+              www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) has endeavored to ensure that all the information on the Website is correct, but www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) neither warrants nor makes any representations regarding the quality, accuracy or completeness of any data, information, product or Service. In no event shall www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) be liable for any direct, indirect, punitive, incidental, special, consequential damages or any other damages resulting there from. <br />
+              Neither shall www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) be responsible for the delay or inability to use the Website or related services, the provision of or failure to provide Services. Further, www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) shall not be held responsible for non-availability of the Website during periodic maintenance operations or any unplanned suspension of access to the website that may occur due to technical reasons or for any reason beyond www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) control.<br />
+              The user understands and agrees that any material and/or data downloaded or otherwise obtained through the Website is done entirely at their own discretion and risk and they will be solely responsible for any damage to their computer systems or loss of data that results from the download of such material and/or data.
+            </p>
+          </div>
+          <div>
+            <p className="text-justify" style={{ textAlign: 'justify' }}><b>9. Indemnification :- </b>
+              You agree to indemnify, defend and hold harmless www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.)  from and against any and all losses, liabilities, claims, damages, costs and expenses (including legal fees and disbursements in connection therewith and interest chargeable thereon) asserted against or incurred by www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.)  that arise out of, result from, or may be payable by virtue of, any breach or non-performance of any representation, warranty, covenant or agreement made or obligation to be performed by you pursuant to these Terms.
+            </p>
+          </div>
+          <div>
+            <p className="text-justify" style={{ textAlign: 'justify' }}><b>10. Pricing :- </b>
+              Prices for products are described on our Website and are incorporated into these Terms by reference. All prices are in Indian rupees. Prices, products and Services may change at www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.)  discretion.
+            </p>
+          </div>
+          <div>
+            <p className="text-justify" style={{ textAlign: 'justify' }}><b>11. Shipping :- </b>
+              Title and risk of loss for all products ordered by you shall pass on to you upon www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.)   shipment to the shipping carrier. For international orders, shipping charges may differ according to location of deliver and weight of the item/s to be shipped.
+            </p>
+          </div>
+          <div>
+            <p className="text-justify" style={{ textAlign: 'justify' }}><b>12. Termination :- </b>
+              www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.)   may suspend or terminate your use of the Website or any Service if it believes, in its sole and absolute discretion that you have breached, violated, abused, or unethically manipulated or exploited any term of these Terms or anyway otherwise acted unethically.<br />
+              If you or www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.)   terminates your use of the Website or any Service, Okhai.com may delete any content or other materials relating to your use of the Service and Okhai.com will have no liability to you or any third party for doing so. You shall be liable to pay for any Service or product that you have already ordered till the time of Termination by either party whatsoever.
+            </p>
+          </div>
+          <div>
+            <p className="text-justify" style={{ textAlign: 'justify' }}><b>13. Governing Law :- </b>
+              These terms shall be governed by and constructed in accordance with the laws of India without reference to conflict of laws principles and disputes arising in relation here to shall be subject to the exclusive jurisdiction of the courts at Uttarakhand only.
+            </p>
+          </div>
+          <div>
+            <p className="text-justify" style={{ textAlign: 'justify' }}><b>14. Severability :- </b>
+              If any provision of the Terms is determined to be invalid or unenforceable in whole or in part, such invalidity or unenforceability shall attach only to such provision or part of such provision and the remaining part of such provision and all other provisions of these Terms shall continue to be in full force and effect.
+            </p>
+          </div>
+          <div>
+            <p className="text-justify" style={{ textAlign: 'justify' }}><b>15. Report Abuse :- </b>
+              As per these Terms, users are solely responsible for every content posted on the Website. Users can be held legally liable for their contents and may be held legally accountable if their contents or material include, for example, defamatory comments or material protected by copyright, trademark, etc. If you come across any abuse or violation of these Terms, please report to <a href="mailto:info@rishikeshhandmade.com"><strong><u> info@rishikeshhandmade.com </u></strong> </a>
+            </p>
+          </div>
+          <div>
+            <p className="text-justify" style={{ textAlign: 'justify' }}><b>16. Introduction to www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) :- </b>
+              Our mission is to curate beautifully handcrafted products from across the globe. We preserve the traditional art of India handed down to us by our ancestors, helping our talented artisans gain global recognition through the products that can be used on a daily basis in the urban market. Our vision is to be an International Brand synonym to craft. We are well on our way with a solemn goal to provide economic upliftment of the rural artisans that are involved in preserving the heritage of the handicrafts industry in India. <br />
+              www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) is an Internet based content and e-commerce portal, a company incorporated under the laws of India. Use of the Website is offered to you conditioned on acceptance without modification of all the terms, conditions and notices contained in these Terms, as may be posted on the Website from time to time. www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) at its sole discretion reserves the right not to accept a User from registering on the Website without assigning any reason thereof. provides a number of Internet-based services through the Web Site (all such services, collectively, the "Service"). The products can be purchased through the Website through various methods of payments offered. The purchase of products shall be additionally governed by specific policies of sale, like cancellation policy, return policy, etc. and all of which are incorporated here by reference. In addition, these terms and policies may be further supplemented by www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) product specific conditions, which may be displayed on the webpage of that product.<br /> <br />
+              “www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) ” is a registered trade mark.<br />
+              PAN Number :-  <br />
+              GST Registration Number :-  05AAKCR5588H1ZW  <br />
+              Phone Number :          +91 7351009107 <br />
+              Working Hours :           9:30 - 18:30 pm<br />
+              Email Id:                         info@rishikeshhandmade.com<br />
+              Address:                     Upper Road Dhalwala (Rishikesh)
+              Tehri Garhwal, Uttrakhand 249201
+            </p>
+          </div>
+        </div>
       </div>
     </section>
   );

@@ -352,7 +352,7 @@ const ArtisanDetails = ({ artisan }) => {
       {/* My Story Section */}
       <div className="w-full max-w-7xl my-5 px-2 md:px-0">
         <h2 className="text-3xl font-bold mb-4 border-b-2 border-black w-fit ">My Story</h2>
-        <div className="mb-4 text-lg font-mono">
+        <div className="mb-4 text-lg font-medium">
           {/* <span className="font-bold">( Short Description )</span> */}
           <span className="">{artisan.artisanStories.shortDescription || 'No short description available.'}</span>
         </div>

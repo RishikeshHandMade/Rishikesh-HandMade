@@ -54,7 +54,7 @@ const Navbar = ({ className }) => {
   return (
     <header className={`${className} font-barlow print:hidden`}>
       <div className="flex items-center gap-10">
-      {/* <SidebarTrigger className="scale-110" /> */}
+      <SidebarTrigger className="scale-110" />
 
           <div className="hidden md:flex items-center gap-4">
             <div className="flex items-center gap-4">

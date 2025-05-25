@@ -33,6 +33,57 @@ const PrivacyPolicy = () => {
             Please note that we may share your personal details with fraud prevention or credit reference agency for conducting anti-fraud checks. Please note that in this process no credit check is performed and your credit rating remains unaffected.
           </p>
         </div>
+        
+        {/* Additional Privacy Policy Points 5-9 */}
+        <div className="space-y-5">
+          <div>
+            <p className="text-justify" style={{ textAlign: 'justify' }}><b>5. Disclosures of your information :- </b>  <br />
+              We may share your personal information with our other corporate entities to:<br />
+              1)- Correlate related or multiple accounts to prevent abuse of our services. facilitate joint or co-branded services that you request where such services are provided by more than one corporate entity. should such a transaction occur, that other business entity (or the new combined entity) will be required to follow this privacy policy with respect to your personal information.<br />
+              2)- We identify and use your IP address to help diagnose problems with our server, and to administer our website. Your IP address is also used to help identify you and to gather broad demographic information. <br />
+              3)- As we use third-party service providers to serve ads on our behalf across the Internet, they may collect anonymous information about your visits to our website, and your interaction with our products and services to target advertisements for goods and services. No personally identifiable information is collected or used in this process.
+            </p>
+          </div>
+          <div>
+            <p className="text-justify" style={{ textAlign: 'justify' }}><b>6. Usage of Demographic and Profile Data We use your personal information to :- </b>  <br />
+              1)- Provide the services you request<br />
+              2)- To resolve disputes &amp; troubleshoot problems<br />
+              3)- Promote a safe service<br />
+              4)- Measure consumer interest in our products and services<br />
+              5)- Inform you about online and offline offers, products, services, and updates<br />
+              6)- Request optional online surveys<br />
+              7)- Please note that we will provide you the ability to opt out of such uses.
+            </p>
+          </div>
+          <div>
+            <p className="text-justify" style={{ textAlign: 'justify' }}><b>7. Third Party Sites :-</b>
+              You may be linked to our website by our advertisers, network partners, or any other third party. We hereby declare that we hold no liability or responsibility for the ‘Privacy Policies’ and ‘Terms &amp; Conditions’ of these websites. Please read their policies carefully before sharing any of your details. <br />
+              As you access and use our services, we collect information such as, but not limited to - phone number, email address, device make-details, and IP address. We may disclose to third-party services like Get Simple certain information to ensure fraud prevention and a Pay Later check out experience. Please refer to the third-party privacy policy for more details.
+            </p>
+          </div>
+          <div>
+            <p className="text-justify" style={{ textAlign: 'justify' }}><b>8. Changes to Privacy Policy :- </b> 
+              We may change this Privacy Policy at any time. The revised Privacy Policy is effective immediately when posted on the Website. Hence, it is the responsibility of each user to review the website and the Privacy Policy periodically to learn of any revisions to this Privacy Policy.
+              For any queries or support, you may get in touch with our customer support team or mail us at <a href="mailto:info@rishikeshhandmade.com"><strong><u> info@rishikeshhandmade.com </u></strong> </a>.
+            </p>
+          </div>
+          <div>
+            <p className="text-justify" style={{ textAlign: 'justify' }}><b>9. Introduction to www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.)  :- </b>  
+              established in 2025, is a pioneer in research &amp; development and is focused on natural Handicraft products. Rishikesh Handmade Craft is a platform that celebrates the traditional art and culture of Rishikesh. It showcases eco-friendly, handcrafted items like wooden carvings, paintings, jewelry, and home decor made by skilled local artisans. By supporting this platform, you help preserve age-old crafts and empower local communitiess. Our website is your gateway to the heart of Rishikesh, offering rich and soulful handmade creations crafted by local artisans.<br /><br />
+              Our team is highly talented with many years of valuable experience, and our innovative approach has given rise to creating unique products in concept and design. We provide effective products that can find on our collection brings together timeless handicrafts handcrafted by local artisans of Rishikesh. Every item is a reflection of our rich cultural heritage, made with love, care, and generations of tradition. From eco-friendly décor and handwoven textiles to sacred spiritual items and unique wooden carvings, each piece tells a story of craftsmanship and connection. <br /><br />
+              www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.)  has constantly been striving to offer effective solutions to day-to-day challenges in Handicraft Industry. Extensive market research and state-of-the-art R&amp;D are the tools we employ to bring out innovative and effective solutions for these challenges. We offer the products for domestic, as well as for International market. We have manufacturing facilities also, our manufacturing unit is located in Rishikesh, Uttarakhand, India. Our manufacturing facility uses the most advanced technology to produce the products. We have all the advanced facilities for manufacturing, testing, and packing the products.<br /><br />
+              www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.)  is an Internet based content and e-commerce portal, a company incorporated under the laws of India. Use of the Website is offered to you conditioned on acceptance without modification of all the terms, conditions and notices contained in these Terms, as may be posted on the Website from time to time. www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.)  at its sole discretion reserves the right not to accept a User from registering on the Website without assigning any reason thereof. provides a number of Internet-based services through the Web Site (all such services, collectively, the "service"). The products can be purchased through the website through various methods of payments offered. The purchase of products shall be additionally governed by specific policies of sale, like cancellation policy, return policy, etc. and all of which are incorporated here by reference. In addition, these terms and policies may be further supplemented by www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.)  product specific conditions, which may be displayed on the webpage of that product.<br /> <br />
+              “www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) ” is a registered trade mark.<br />
+              PAN Number :-  <br />
+              GST Registration Number :-  05AAKCR5588H1ZW  <br />
+              Phone Number :          +91 7351009107 <br />
+              Working Hours :           9:30 - 18:30 pm<br />
+              Email Id:                         info@rishikeshhandmade.com<br />
+              Address:                     Upper Road Dhalwala (Rishikesh)
+              Tehri Garhwal, Uttrakhand 249201
+            </p>
+          </div>
+        </div>
       </div>
     </section>
   );
