@@ -57,25 +57,25 @@ const Header = () => {
   return (
     <header
       className={`print:hidden ${pathName.includes("admin") ||
-        pathName.includes("category") ||
+        // pathName.includes("category") ||
         pathName.includes("page") ||
-        pathName.includes("about-us") ||
-        pathName.includes("contact") ||
-        pathName.includes("privacy-policy") ||
-        pathName.includes("refund-cancellation") ||
-        pathName.includes("terms-condition") ||
-        pathName.includes("shipping-policy") ||
-        pathName.includes("product") ||
-        pathName.includes("artisan") ||
-        pathName.includes("cartDetails") ||
-        pathName.includes("checkout") ||
-        pathName.includes("search") ||
+        // pathName.includes("about-us") ||
+        // pathName.includes("contact") ||
+        // pathName.includes("privacy-policy") ||
+        // pathName.includes("refund-cancellation") ||
+        // pathName.includes("terms-condition") ||
+        // pathName.includes("shipping-policy") ||
+        // pathName.includes("product") ||
+        // pathName.includes("artisan") ||
+        // pathName.includes("cartDetails") ||
+        // pathName.includes("checkout") ||
+        // pathName.includes("search") ||
         pathName.includes("sign-up") ||
         pathName.includes("sign-in") ||
         pathName.includes("customEnquiry")
         ? "hidden"
         : "block"
-        } bg-[#fcf7f1] text-black border-b fixed top-0 left-0 right-0 transition-all duration-300 font-barlow tracking-wider ease-in-out z-50 mx-auto w-full py-2
+        } bg-[#fcf7f1] text-black border-b sticky top-0 left-0 right-0 transition-all duration-300 font-barlow tracking-wider ease-in-out z-50 mx-auto w-full py-2
          ${showHeader ? "translate-y-0" : "-translate-y-full"}`}
     >
       <div className="md:flex hidden items-center justify-between gap-8 border-b py-1 border-gray-400 md:px-8 ">

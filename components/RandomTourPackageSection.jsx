@@ -245,27 +245,27 @@ const RandomTourPackageSection = () => {
                         {/* Heart/Wishlist & Cart Buttons - Top Right */}
                         <div className="absolute top-6 right-6 z-10 flex flex-col gap-4 items-end">
                           <Button
-  variant="ghost"
-  size="icon"
-  className={`rounded-full transition-colors duration-300 h-12 w-12 shadow-none ${wishlist.some(i => i.id === item._id) ? "bg-pink-600 hover:bg-pink-700" : "bg-white hover:bg-[#b3a7a3]"}`}
-  onClick={() => {
-    if (wishlist.some(i => i.id === item._id)) {
-      removeFromWishlist(item._id);
-      toast.success("Removed from wishlist!");
-    } else {
-      addToWishlist({
-        id: item._id,
-        name: item.title,
-        image: item?.gallery?.mainImage || "/RandomTourPackageImages/u1.jpg",
-        price: item?.quantity?.variants[0].price,
-        qty: 1
-      });
-      toast.success("Added to wishlist!");
-    }
-  }}
->
-  <Heart size={28} className={wishlist.some(i => i.id === item._id) ? "text-white" : "text-pink-600"} />
-</Button>
+                            variant="ghost"
+                            size="icon"
+                            className={`rounded-full transition-colors duration-300 h-12 w-12 shadow-none ${wishlist.some(i => i.id === item._id) ? "bg-pink-600 hover:bg-pink-700" : "bg-white hover:bg-[#b3a7a3]"}`}
+                            onClick={() => {
+                              if (wishlist.some(i => i.id === item._id)) {
+                                removeFromWishlist(item._id);
+                                toast.success("Removed from wishlist!");
+                              } else {
+                                addToWishlist({
+                                  id: item._id,
+                                  name: item.title,
+                                  image: item?.gallery?.mainImage || "/RandomTourPackageImages/u1.jpg",
+                                  price: item?.quantity?.variants[0].price,
+                                  qty: 1
+                                });
+                                toast.success("Added to wishlist!");
+                              }
+                            }}
+                          >
+                            <Heart size={28} className={wishlist.some(i => i.id === item._id) ? "text-white" : "text-pink-600"} />
+                          </Button>
                           <Button
                             variant="ghost"
                             size="icon"
@@ -422,8 +422,9 @@ const RandomTourPackageSection = () => {
                       experience: item.yearsOfExperience ? `${item.yearsOfExperience} years experience` : "",
                       location: item.address ? `${item.address.city}, ${item.address.state}` : "",
                       socials: [
-                        { icon: "/insta-Tranparent.webp", url: item.socialPlugin?.instagram || "#" },
                         { icon: "/fb.png", url: item.socialPlugin?.facebook || "#" },
+                        { icon: "/insta-Tranparent.webp", url: item.socialPlugin?.instagram || "#" },
+                        { icon: "/youtube.webp", url: item.socialPlugin?.youtube || "#" },
                         { icon: "/google.png", url: item.socialPlugin?.google || "#" },
                         { icon: "/website.png", url: item.socialPlugin?.website || "#" }
                       ],
@@ -490,8 +491,7 @@ const RandomTourPackageSection = () => {
                       <div className="relative rounded-2xl overflow-hidden shadow-md group transition-all h-full flex flex-col bg-[#fbeff2]">
                         {/* Date Badge */}
                         <div className="absolute top-5 left-5 z-20 flex items-center gap-2">
-                          <span className="w-4 h-4 bg-white border-2 border-[#e84393] rounded-full flex items-center justify-center"><span className="w-2 h-2 bg-black rounded-full"></span></span>
-                          <span className="bg-white rounded px-3 py-1 text-xs font-bold shadow text-gray-800">{artisan.date}</span>
+                          <span className="bg-white rounded px-3 py-1 text-md font-bold shadow text-gray-800">{artisan.subtitle}</span>
                         </div>
                         {/* Card Image */}
                         <div className="relative w-full h-96">
@@ -504,15 +504,19 @@ const RandomTourPackageSection = () => {
                         </div>
                         {/* Card Content Overlay */}
                         <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-6 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
-                          <div>
-                            <a
-                              href={`/artisan/${artisan.id}`}
-                              className="font-bold text-2xl text-white mb-3 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
-                              title={artisan.name}
-                            >
-                              {artisan.name}
-                            </a>
+                          <div className="flex flex-col gap-2">
+                            <div>
+                              <a
+                                href={`/artisan/${artisan.id}`}
+                                className="font-bold text-2xl text-white mb-3 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
+                                title={artisan.name}
+                              >
+                                {artisan.name}
+                              </a>
+                            </div>
+                            <div className="text-md text-white drop-shadow-md">{artisan.title}</div>
                           </div>
+
                           {/* Arrow Button with Socials on Hover */}
                           <div className="relative group/arrow">
                             <button className="bg-white text-black rounded-full w-12 h-12 flex items-center justify-center shadow transition group-hover/arrow:bg-[#e84393] group-hover/arrow:text-white">
@@ -521,8 +525,8 @@ const RandomTourPackageSection = () => {
                               </svg>
                             </button>
                             {/* Social Icons: show on arrow hover */}
-                            <div className="absolute bottom-14 right-0 flex flex-col gap-4 opacity-0 group-hover/arrow:opacity-100 transition-opacity duration-300 z-30 items-center">
-                              {artisan.socials.slice(0, 5).map((s, i) => (
+                            <div className="absolute bottom-14 right-0 flex flex-col gap-3 opacity-0 group-hover/arrow:opacity-100 transition-opacity duration-300 z-30 items-center">
+                              {artisan.socials.slice(0, 6).map((s, i) => (
                                 <a
                                   key={i}
                                   href={s.url}

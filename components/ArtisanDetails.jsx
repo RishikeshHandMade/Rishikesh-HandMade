@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import QuickViewProductCard from "./QuickViewProductCard";
 import Autoplay from "embla-carousel-autoplay";
+import Link from "next/link"
 const ArtisanDetails = ({ artisan }) => {
   // ...existing state
   const [otherArtisans, setOtherArtisans] = useState([]);
-
+  console.log(otherArtisans)
   // Helper for safe social links
   const getSocialLink = (plugin, key) => (plugin && plugin[key]) ? plugin[key] : '';
 
@@ -22,7 +23,7 @@ const ArtisanDetails = ({ artisan }) => {
       .then(data => setOtherArtisans(data))
       .catch(err => setOtherArtisans([]));
   }, [artisan._id]);
-  console.log(artisan)
+  // console.log(artisan)
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const [showShareBox, setShowShareBox] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -107,7 +108,7 @@ const ArtisanDetails = ({ artisan }) => {
   };
 
   return (
-    <div className=" relative min-h-screen bg-gradient-to-br from-amber-50 to-white flex flex-col items-center px-2 md:px-0">
+    <div className="relative min-h-screen  bg-gradient-to-br from-amber-50 to-white flex flex-col items-center px-2 md:px-0">
       {/* Top section: Image left, details right */}
       <div className="relative w-full overflow-visible  mb-10 bg-[#f9f6f1]">
         {/* Banner Background Image */}
@@ -698,8 +699,11 @@ const ArtisanDetails = ({ artisan }) => {
         <div className="flex flex-col md:flex-row items-start gap-8">
           {/* Left: Heading and description */}
           <div className="flex-1">
-            <div className="border-t-4 border-black w-1/2 mb-2"></div>
-            <h2 className="text-4xl md:text-5xl font-bold mb-2">Certificate And Awards</h2>
+            <h2 className="text-4xl md:text-5xl font-bold mb-2">
+              <span className="border-t-4 border-black">
+              Certificate And Awards  
+              </span>
+              </h2>
             <div className="text-lg md:text-xl font-mono text-gray-700 mb-6">
               {/* (<span className="font-bold"> Short Description </span>) Praesent vestibulum congue tellus at fringilla. Curabitur vitae semper sem, eu convallis est. Cras felis nunc commodo eu convallis vitae interdum non nisl. */}
             </div>
@@ -707,8 +711,8 @@ const ArtisanDetails = ({ artisan }) => {
         </div>
         {/* Carousel for certificates */}
         <div className="w-full mt-4 flex flex-col items-center">
-          <Carousel className="w-full md:w-[80%]" 
-          plugins={[Autoplay({ delay: 2000 })]}>
+          <Carousel className="w-full md:w-[80%]"
+            plugins={[Autoplay({ delay: 2000 })]}>
             <CarouselContent className="w-full">
               {(artisan.certificates && artisan.certificates.length > 0 ? artisan.certificates : [
                 {
@@ -756,8 +760,8 @@ const ArtisanDetails = ({ artisan }) => {
       </div>
 
       {/* Meet Other Artisans Section */}
-      <div className="w-full max-w-7xl mx-auto mb-16 mt-16">
-        <div className="flex flex-col md:flex-row items-start gap-10 ">
+      <div className="w-full max-w-[90%] mx-auto mb-16 mt-16">
+        <div className="flex flex-col md:flex-row items-start gap-5 ">
           {/* Left: Heading and description */}
           <div className="flex-1 flex flex-col justify-center md:pr-8">
             <h2 className="text-4xl md:text-5xl font-bold mb-4">Meet our team of creators, designers, and world-class problem solvers</h2>
@@ -767,8 +771,8 @@ const ArtisanDetails = ({ artisan }) => {
             <button className="bg-black text-white py-3 px-6 rounded-lg font-semibold text-lg w-fit mb-6">Join Our Team</button>
           </div>
           {/* Right: Top 2 artisan cards in new style */}
-          <div className="flex flex-row gap-6 flex-1 justify-end">
-            {(otherArtisans && otherArtisans.slice(0,2).map((item, idx) => {
+          <div className="flex flex-row  gap-4 justify-end">
+            {(otherArtisans && otherArtisans.slice(0, 2).map((item, idx) => {
               const card = {
                 id: item._id || idx,
                 name: `${item.title ? item.title + " " : ""}${item.firstName || ''} ${item.lastName || ''}`.trim() || "Unknown Artisan",
@@ -779,32 +783,39 @@ const ArtisanDetails = ({ artisan }) => {
                 experience: item.yearsOfExperience ? `${item.yearsOfExperience} years experience` : "",
                 location: item.address ? `${item.address.city}, ${item.address.state}` : "",
                 socials: [
-                  { icon: "/insta-Tranparent.webp", url: item.socialPlugin?.instagram || "#" },
                   { icon: "/fb.png", url: item.socialPlugin?.facebook || "#" },
+                  { icon: "/insta-Tranparent.webp", url: item.socialPlugin?.instagram || "#" },
+                  { icon: "/youtube.webp", url: item.socialPlugin?.youtube || "#" },
                   { icon: "/google.png", url: item.socialPlugin?.google || "#" },
                   { icon: "/website.png", url: item.socialPlugin?.website || "#" }
                 ],
               };
               return (
-                <div key={card.id} className="relative rounded-2xl overflow-hidden shadow-md group transition-all h-full flex flex-col bg-[#fbeff2] w-[300px] h-[420px] min-w-[220px]">
+                <div key={card.id} className="relative rounded-2xl overflow-hidden shadow-md group transition-all h-full max-w-5xl  flex flex-col bg-[#fbeff2] ">
                   {/* Date Badge */}
                   <div className="absolute top-5 left-5 z-20 flex items-center gap-2">
-                    <span className="bg-white rounded px-3 py-1 text-xs font-bold shadow text-gray-800">{card.date}</span>
+                    <span className="bg-white rounded px-3 py-1 text-md font-bold shadow text-gray-800">{card.subtitle}</span>
                   </div>
                   {/* Card Image */}
-                  <div className="relative w-full h-full">
+                  <div className="relative w-full h-96">
                     <img
                       src={card.image}
                       alt={card.name}
-                      className="object-cover w-full h-full rounded-t-2xl"
+                      className="object-cover w-full h-full "
                       style={{ objectFit: 'cover' }}
                     />
                   </div>
                   {/* Card Content Overlay */}
                   <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-6 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
                     <div>
-                      <div className="font-bold text-xl text-white mb-2 leading-tight drop-shadow-md">{card.name}</div>
-                      <div className="text-xs text-white drop-shadow-md">{card.title}</div>
+                      <Link
+                        href={`/artisan/${card.id}`}
+                        className="font-bold text-2xl text-white mb-3 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
+                        title={card.name}
+                      >
+                        {card.name}
+                      </Link>
+                      <div className="text-md text-white drop-shadow-md">{card.title}</div>
                     </div>
                     {/* Arrow Button with Socials on Hover */}
                     <div className="relative group/arrow">
@@ -815,7 +826,7 @@ const ArtisanDetails = ({ artisan }) => {
                       </button>
                       {/* Social Icons: show on arrow hover */}
                       <div className="absolute bottom-12 right-0 flex flex-col gap-4 opacity-0 group-hover/arrow:opacity-100 transition-opacity duration-300 z-30 items-center">
-                        {card.socials.slice(0, 5).map((s, i) => (
+                        {card.socials.slice(0, 6).map((s, i) => (
                           <a
                             key={i}
                             href={s.url}
@@ -859,34 +870,34 @@ const ArtisanDetails = ({ artisan }) => {
                     experience: item.yearsOfExperience ? `${item.yearsOfExperience} years experience` : "",
                     location: item.address ? `${item.address.city}, ${item.address.state}` : "",
                     socials: [
-                      { icon: "/insta-Tranparent.webp", url: item.socialPlugin?.instagram || "#" },
                       { icon: "/fb.png", url: item.socialPlugin?.facebook || "#" },
+                      { icon: "/insta-Tranparent.webp", url: item.socialPlugin?.instagram || "#" },
+                      { icon: "/youtube.webp", url: item.socialPlugin?.youtube || "#" },
                       { icon: "/google.png", url: item.socialPlugin?.google || "#" },
                       { icon: "/website.png", url: item.socialPlugin?.website || "#" }
                     ],
                   };
                   return (
-                    <CarouselItem key={card.id} className="snap-center w-[270px] min-w-[220px]">
+                    <CarouselItem key={card.id} className="pl-5 md:basis-1/2 lg:basis-1/4 min-w-0 snap-start">
                       <div className="relative rounded-2xl overflow-hidden shadow-md group transition-all h-full flex flex-col bg-[#fbeff2]">
                         {/* Date Badge */}
                         <div className="absolute top-5 left-5 z-20 flex items-center gap-2">
-                          <span className="w-4 h-4 bg-white border-2 border-[#e84393] rounded-full flex items-center justify-center"><span className="w-2 h-2 bg-black rounded-full"></span></span>
-                          <span className="bg-white rounded px-3 py-1 text-xs font-bold shadow text-gray-800">{card.date}</span>
+                          <span className="bg-white rounded px-3 py-1 text-md font-bold shadow text-gray-800">{card.subtitle}</span>
                         </div>
                         {/* Card Image */}
-                        <div className="relative w-full h-60">
+                        <div className="relative w-full h-96">
                           <img
                             src={card.image}
                             alt={card.name}
-                            className="object-cover w-full h-full rounded-t-2xl"
+                            className="object-cover w-full h-full"
                             style={{ objectFit: 'cover' }}
                           />
                         </div>
                         {/* Card Content Overlay */}
                         <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-6 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
                           <div>
-                            <div className="font-bold text-xl text-white mb-2 leading-tight drop-shadow-md">{card.name}</div>
-                            <div className="text-xs text-white drop-shadow-md">{card.title}</div>
+                            <div className="font-bold text-2xl text-white mb-2 leading-tight drop-shadow-md">{card.name}</div>
+                            <div className="text-md text-white drop-shadow-md">{card.title}</div>
                           </div>
                           {/* Arrow Button with Socials on Hover */}
                           <div className="relative group/arrow">
@@ -897,7 +908,7 @@ const ArtisanDetails = ({ artisan }) => {
                             </button>
                             {/* Social Icons: show on arrow hover */}
                             <div className="absolute bottom-14 right-0 flex flex-col gap-4 opacity-0 group-hover/arrow:opacity-100 transition-opacity duration-300 z-30 items-center">
-                              {card.socials.slice(0, 5).map((s, i) => (
+                              {card.socials.slice(0, 6).map((s, i) => (
                                 <a
                                   key={i}
                                   href={s.url}
