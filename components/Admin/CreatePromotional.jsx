@@ -11,7 +11,7 @@ import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/compon
 import { Switch } from '@/components/ui/switch';
 // Placeholder for TiptapEditor, replace with your actual implementation
 const TiptapEditor = ({ value, onChange }) => (
-  <textarea className="w-full border rounded p-2" value={value} onChange={e => onChange(e.target.value)} placeholder="Rich text editor coming soon..." />
+  <textarea className="w-full border rounded p-2" value={value} onChange={e => onChange(e.target.value)} placeholder="Review Description (Min 50 words)" />
 );
 // Helper to format date as 'DD-MM-YYYY'
 function formatDateDDMMYYYY(date) {
@@ -33,8 +33,6 @@ function dateToInputValue(date) {
   const day = String(d.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
-
-
 import { useRef } from 'react';
 
 const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
@@ -215,33 +213,6 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
     fetchArtisansAndPromotions();
   }, [artisanId, artisanDetails]);
 
-  // --- Image Upload State ---
-  const [uploading, setUploading] = useState(false);
-
-  // Handle image upload (using uploadthing endpoint)
-  const handleImageUpload = async (file) => {
-    setUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const res = await fetch('/api/uploadthing', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-      if (data && data.url) {
-        setUploadedImageUrl(data.url);
-        toast.success('Image uploaded!');
-      } else {
-        toast.error('Image upload failed');
-      }
-    } catch (err) {
-      toast.error('Image upload error');
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedArtisan) {
@@ -299,7 +270,7 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
             <label className="block font-semibold mb-1">Title</label>
-            <Input type="text" value={title} onChange={e => setTitle(e.target.value)} required />
+            <Input type="text" value={title} placeholder="Review Title" onChange={e => setTitle(e.target.value)} required />
           </div>
           <div>
             <label className="block font-semibold mb-1">Artisan User</label>
@@ -342,7 +313,7 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
             <label className="block font-semibold mb-1">Name</label>
-            <Input type="text" value={createdBy} onChange={e => setCreatedBy(e.target.value)} required />
+            <Input type="text" value={createdBy} placeholder="Review Name" onChange={e => setCreatedBy(e.target.value)} required />
           </div>
           <div>
             <label className="block font-semibold mb-1">Date</label>
@@ -351,11 +322,18 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
         </div>
         <div className="mb-4">
           <label className="block font-semibold mb-1">Short Text</label>
-          <Input type="text" value={shortText} onChange={e => setShortText(e.target.value)} required />
+          <Input type="text" value={shortText} placeholder="Short Text" onChange={e => setShortText(e.target.value)} required />
         </div>
         <div className="mb-4">
-          <label className="block font-semibold mb-1">Short Description</label>
-          <TiptapEditor value={shortDescription} onChange={setShortDescription} />
+          <label className="block font-semibold mb-1"> Description</label>
+          <TiptapEditor value={shortDescription} onChange={value => {
+            const wordCount = value.trim().split(/\s+/).filter(Boolean).length;
+            if (wordCount > 50) {
+              toast.error('Word limit exceeded! Maximum 50 words allowed.');
+              return;
+            }
+            setShortDescription(value);
+          }} />
         </div>
         {/* Image Upload Section (Certificate style) */}
         <div className="mb-4">
@@ -472,23 +450,6 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
                         setSelectedPromotion(review);
                         setShowDeleteModal(true);
                       }}>Delete</Button>
-                      <Switch
-                        checked={!!review.active}
-                        onCheckedChange={async () => {
-                          try {
-                            const res = await fetch(`/api/promotion/${review._id}`, {
-                              method: 'PATCH',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ active: !review.active }),
-                            });
-                            if (!res.ok) throw new Error('Failed to update status');
-                            setReviews(reviews.map(r => r._id === review._id ? { ...r, active: !review.active } : r));
-                          } catch {
-                            toast.error('Failed to update status');
-                          }
-                        }}
-                        className={`rounded-full transition-colors ${review.active ? '!bg-green-500' : '!bg-red-500'}`}
-                      />
                     </div>
                   </TableCell>
                 </TableRow>
@@ -511,32 +472,32 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
                 <DialogTitle>Promotion Details</DialogTitle>
               </DialogHeader>
               <div className="space-y-2">
-  <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
-    <div className="font-semibold text-gray-800">Title</div>
-    <div className="text-gray-600">{selectedPromotion.title}</div>
-  </div>
-  <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
-    <div className="font-semibold text-gray-800">Rating</div>
-    <div className="text-gray-600">{selectedPromotion.rating}</div>
-  </div>
-  <div className="flex gap-2">
-    <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 w-1/2">
-      <div className="font-semibold text-gray-800">Created By</div>
-      <div className="text-gray-600">{selectedPromotion.createdBy}</div>
-    </div>
-    <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 w-1/2">
-      <div className="font-semibold text-gray-800">Date</div>
-      <div className="text-gray-600">{formatDateDDMMYYYY(selectedPromotion.date)}</div>
-    </div>
-  </div>
-  <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
-    <div className="font-semibold text-gray-800">Short Text</div>
-    <div className="text-gray-600">{selectedPromotion.shortText}</div>
-  </div>
-  <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 max-h-28 overflow-y-auto">
-    <div className="font-semibold text-gray-800">Short Description</div>
-    <div className="text-gray-600">{selectedPromotion.shortDescription}</div>
-  </div>
+                <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
+                  <div className="font-semibold text-gray-800">Title</div>
+                  <div className="text-gray-600">{selectedPromotion.title}</div>
+                </div>
+                <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
+                  <div className="font-semibold text-gray-800">Rating</div>
+                  <div className="text-gray-600">{selectedPromotion.rating}</div>
+                </div>
+                <div className="flex gap-2">
+                  <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 w-1/2">
+                    <div className="font-semibold text-gray-800">Created By</div>
+                    <div className="text-gray-600">{selectedPromotion.createdBy}</div>
+                  </div>
+                  <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 w-1/2">
+                    <div className="font-semibold text-gray-800">Date</div>
+                    <div className="text-gray-600">{formatDateDDMMYYYY(selectedPromotion.date)}</div>
+                  </div>
+                </div>
+                <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
+                  <div className="font-semibold text-gray-800">Short Text</div>
+                  <div className="text-gray-600">{selectedPromotion.shortText}</div>
+                </div>
+                <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 max-h-28 overflow-y-auto">
+                  <div className="font-semibold text-gray-800">Short Description</div>
+                  <div className="text-gray-600">{selectedPromotion.shortDescription}</div>
+                </div>
                 {(selectedPromotion.imageUrl || selectedPromotion.image) && (
                   <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
                     <div className="font-semibold text-gray-800">Image</div>

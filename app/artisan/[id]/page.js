@@ -13,6 +13,6 @@ export default async function Page({ params }) {
     return <div className="text-center py-20 text-2xl text-red-500">Artisan not found.</div>;
   }
   const artisan = await res.json();
-  console.log(artisan)
+  // console.log(artisan)
   return <ArtisanDetails artisan={artisan} />;
 }

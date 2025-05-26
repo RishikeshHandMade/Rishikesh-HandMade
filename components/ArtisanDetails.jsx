@@ -7,10 +7,154 @@ import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext
 import QuickViewProductCard from "./QuickViewProductCard";
 import Autoplay from "embla-carousel-autoplay";
 import Link from "next/link"
+import BlogQuickViewModal from "./BlogQuickViewModal";
+import CertificateQuickViewModal from "./CertificateQuickViewModal";
+const CertificateSectionGrid = ({ certificates, onImageClick }) => {
+  if (!certificates || certificates.length === 0) return <div className="text-gray-500 text-center">No certificates available.</div>;
+  // Layout logic
+  let grid;
+  if (certificates.length === 1) {
+    grid = (
+      <div className="flex flex-row gap-8 w-full items-stretch">
+        <div className="flex-1  flex flex-col justify-center">
+          <CertificateDetails cert={certificates[0]} />
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <CertificateImage
+            cert={certificates[0]}
+            onClick={() => { onImageClick(certificates[0]); }}
+          />
+        </div>
+      </div>
+    );
+  } else if (certificates.length === 2) {
+    grid = (
+      <div className="flex flex-row gap-8 w-full items-stretch">
+        <div className="flex-1 flex flex-col justify-center">
+          <CertificateDetails cert={certificates[0]} />
+        </div>
+        <div className="flex-1 grid grid-rows-2 gap-4">
+          {certificates.map((cert, idx) => (
+            <CertificateImage
+              key={cert._id}
+              cert={cert}
+              className="w-full h-full object-contain rounded-2xl cursor-pointer"
+              onClick={() => { onImageClick(cert); }}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  } else if (certificates.length === 3) {
+    grid = (
+      <div className="flex flex-row gap-8 w-full items-stretch">
+        <div className="flex-1 flex flex-col justify-center">
+          <CertificateDetails cert={certificates[0]} />
+        </div>
+        <div className="flex-1 grid grid-rows-2 gap-4">
+          <div className="grid grid-cols-2 gap-4">
+            {certificates.slice(1, 3).map((cert, idx) => (
+              <CertificateImage
+                key={cert._id}
+                cert={cert}
+                className="w-full h-full object-contain rounded-2xl cursor-pointer"
+                onClick={() => { onImageClick(cert); }}
+              />
+            ))}
+          </div>
+          <CertificateImage
+            cert={certificates[0]}
+            className="w-full h-full object-contain rounded-2xl cursor-pointer"
+            onClick={() => { setModalCertificate(certificates[0]); setShowCertificateModal(true); }}
+          />
+        </div>
+      </div>
+    );
+  } else if (certificates.length === 4) {
+    grid = (
+      <div className="flex flex-row gap-8 w-full items-stretch">
+        <div className="flex-1 flex flex-col justify-center">
+          <CertificateDetails cert={certificates[0]} />
+        </div>
+        <div className="flex-1 grid grid-rows-2 grid-cols-2 gap-4">
+          {certificates.slice(0, 4).map((cert, idx) => (
+            <CertificateImage
+              key={cert._id}
+              cert={cert}
+              className="w-full h-full object-contain rounded-2xl cursor-pointer"
+              onClick={() => { onImageClick(cert); }}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  } else {
+    // For more than 4, show first 4 as above, or you can expand logic as needed
+    grid = (
+      <div className="flex flex-row gap-8 w-full items-stretch">
+        <div className="flex-1 flex flex-col justify-center">
+          <CertificateDetails cert={certificates[0]} />
+        </div>
+        <div className="flex-1 grid grid-rows-2 grid-cols-2 gap-4">
+          {certificates.slice(0, 4).map((cert, idx) => (
+            <CertificateImage
+              key={cert._id}
+              cert={cert}
+              className="w-full h-full object-contain rounded-2xl cursor-pointer"
+              onClick={() => { onImageClick(cert); }}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="py-8 px-2 md:px-8">
+      {grid}
+    </div>
+  );
+};
+
+const CertificateDetails = ({ cert }) => (
+  <div className="mb-6">
+    <p className='text-xl'>
+    Lorem ipsum dolor sit amet consectetur adipisicing elit. Aliquam aut ipsa corrupti, laudantium eos assumenda sed qui vitae ut. Aut mollitia obcaecati rerum optio repellendus reiciendis, accusamus, dignissimos impedit quisquam in molestias, voluptates voluptatem expedita. Nisi eligendi excepturi, optio ipsam, porro dolore perspiciatis corrupti atque anim
+    </p>
+  </div>
+);
+
+const CertificateImage = ({ cert, className = '', onClick }) => {
+  const [hovered, setHovered] = React.useState(false);
+  return (
+    <div
+      className={`relative group ${className}`}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={onClick}
+      style={{ cursor: 'pointer', minHeight: 100, maxWidth: 200, maxHeight: 200 }}
+    >
+      <img
+        src={cert.imageUrl || cert.image}
+        alt={cert.title}
+        className={`object-contain w-full h-full rounded-2xl transition-transform duration-200 ${hovered ? 'scale-105 brightness-90' : ''}`}
+        style={{ maxWidth: 500, maxHeight: 500 }}
+      />
+      <div
+        className={`absolute inset-0 flex items-center justify-center bg-black bg-opacity-60 rounded-2xl transition-opacity duration-200 ${hovered ? 'opacity-100' : 'opacity-0'}`}
+      >
+        <span className="text-white text-lg font-bold px-4 text-center">{cert.title}</span>
+      </div>
+    </div>
+  );
+};
+
 const ArtisanDetails = ({ artisan }) => {
   // ...existing state
   const [otherArtisans, setOtherArtisans] = useState([]);
-  console.log(otherArtisans)
+  const [showBlogModal, setShowBlogModal] = useState(false);
+  const [modalBlog, setModalBlog] = useState(null);
+  const [showCertificateModal, setShowCertificateModal] = useState(false);
+  const [modalCertificate, setModalCertificate] = useState(null);
   // Helper for safe social links
   const getSocialLink = (plugin, key) => (plugin && plugin[key]) ? plugin[key] : '';
 
@@ -69,9 +213,6 @@ const ArtisanDetails = ({ artisan }) => {
     { _id: 2, title: 'Sample Product 2', image: 'https://via.placeholder.com/120x120?text=Product+2' },
     { _id: 3, title: 'Sample Product 3', image: 'https://via.placeholder.com/120x120?text=Product+3' },
   ];
-  const blogs = artisan.blogs && artisan.blogs.length > 0 ? artisan.blogs : [
-    { _id: 1, title: 'No Blogs Available', content: '' },
-  ];
 
   const [showExpertModal, setShowExpertModal] = useState(false);
 
@@ -116,7 +257,7 @@ const ArtisanDetails = ({ artisan }) => {
           <img src="https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?auto=format&fit=crop&w=1200&q=80" className="w-full h-full object-cover grayscale-[0.8] brightness-100 " alt="Office" />
         </div>
         {/* Overlay Content */}
-        <div className="relative  flex flex-row items-start pt-0 px-0 pb-8 ">
+        <div className="relative w-[80%] mx-auto flex flex-row items-start pt-0 px-0 pb-8">
           {/* Profile Image: Overlapping Banner */}
           <div className="absoute 0 flex-shrink-0 -mt-32 ml-12 mr-10">
             <div className="bg-white rounded-lg shadow-xl border-4 border-white overflow-hidden w-72 h-[350px] flex items-center justify-center">
@@ -126,11 +267,13 @@ const ArtisanDetails = ({ artisan }) => {
           {/* Details Card */}
           <div className="flex-1 flex flex-col gap-2 mt-8 md:mt-8 md:ml-0 bg-transparent">
             <div className="flex flex-col gap-2">
-              <div className="text-3xl font-bold leading-tight flex items-center">Name: <span className="font-bold text-2xl md:text-3xl text-gray-800 align-middle"> {artisan.firstName} {artisan.lastName}</span></div>
-              <div className="font-bold text-2xl mt-1 mb-1 text-xl flex items-center">SHG : <span className="font-normal text-md ">{artisan.shgName || 'No SHG Name Avaiable'}</span></div>
-              <div className="font-bold text-2xl mt-1 mb-1 text-xl flex items-center"> Artisan Number: <span className="font-normal text-md">{artisan.artisanNumber || 'Artisan Number Not Available'}</span></div>
+              <div className="text-2xl md:text-3xl font-bold leading-tight flex items-center">Name: <span className="font-bold text-2xl md:text-3xl text-gray-800 align-middle"> {artisan.title}{artisan.firstName} {artisan.lastName}</span></div>
+              <div className="flex gap-3">
+                <div className="font-bold text-2xl mt-1 mb-1 text-xl flex items-center pr-2 border-r-4 border-black">SHG : <span className="font-normal text-md ">{artisan.shgName || 'No SHG Name Avaiable'}</span></div>
+                <div className="font-bold text-2xl mt-1 mb-1 text-xl flex items-center"> Artisan Number: <span className="font-normal text-md">{artisan.artisanNumber || 'Artisan Number Not Available'}</span></div>
+              </div>
             </div>
-            <div className="mt-2 text-xl md:text-xl font-bold text-black">{artisan.yearsOfExperience || '0'} Years of Experience</div>
+            <div className="mt-2 text-xl md:text-2xl font-bold text-black">{artisan.yearsOfExperience || '0'} Years of Experience</div>
             <div className="font-bold text-xl mt-2">Specializations</div>
             <div className="flex gap-3 flex-wrap mb-2">
               {(artisan.specializations || ['No Specializations']).map((spec, i) => (
@@ -143,13 +286,13 @@ const ArtisanDetails = ({ artisan }) => {
                 {/* Email icon */}
                 {artisan.contact.email && (
                   <a href={`mailto:${artisan.contact.email}`} className="text-gray-700 hover:text-emerald-600" title="Email">
-                    <Mail size={20} />
+                    <Mail size={25} />
                   </a>
                 )}
                 {/* Phone icon */}
                 {artisan.contact.callNumber && (
                   <a href={`tel:${artisan.contact.callNumber}`} className="text-gray-700 hover:text-lime-600" title="Call">
-                    <Phone size={20} />
+                    <Phone size={25} />
                   </a>
                 )}
                 {artisan.contact.whatsappNumber && (
@@ -170,7 +313,7 @@ const ArtisanDetails = ({ artisan }) => {
                   title="Share profile"
                   onClick={() => setShowShareBox((prev) => !prev)}
                 >
-                  <Share2 size={20} />
+                  <Share2 size={25} />
                 </button>
                 {/* Share box */}
                 {showShareBox && (
@@ -222,7 +365,7 @@ const ArtisanDetails = ({ artisan }) => {
                   </a>
                 )}
               </div>
-              <div className="flex flex-row items-center justify-between mt-2 w-[20%]">
+              <div className="flex flex-row items-center justify-between mt-2 w-[25%]">
                 <button
                   className="bg-black text-white font-bold w-full px-10 py-2 rounded-md shadow hover:bg-gray-900 transition-all text-base"
                   onClick={() => setShowExpertModal(true)}
@@ -236,13 +379,13 @@ const ArtisanDetails = ({ artisan }) => {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
                   <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative animate-fade-in">
                     <button
-                      className="absolute top-2 right-2 text-gray-500 hover:text-black text-2xl font-bold"
+                      className="absolute top-2 right-2 text-gray-500 hover:text-black text-4xl font-bold"
                       onClick={() => setShowExpertModal(false)}
                       aria-label="Close"
                     >
                       ×
                     </button>
-                    <h2 className="text-xl font-bold mb-2">Ask An Expert</h2>
+                    <h2 className="text-xl font-bold mb-2 text-center">Ask An Expert</h2>
                     <form onSubmit={handleExpertSubmit} className="flex flex-col gap-4">
                       <div className="text-center text-gray-500 text-sm mb-2">We will follow up with you via email within 24–36 hours</div>
                       <hr className="" />
@@ -280,28 +423,30 @@ const ArtisanDetails = ({ artisan }) => {
                           <input
                             type="radio"
                             name="need"
-                            value="Pricing"
-                            checked={expertForm.need === 'Pricing'}
+                            value="Appointment"
+                            checked={expertForm.need === 'Appointment'}
                             onChange={handleExpertInputChange}
-                          /> Pricing
+                            required
+                          /> Appointment
                         </label>
                         <label className="flex items-center gap-1 text-sm">
                           <input
                             type="radio"
                             name="need"
-                            value="Answers"
-                            checked={expertForm.need === 'Answers'}
+                            value="Business"
+                            checked={expertForm.need === 'Business'}
                             onChange={handleExpertInputChange}
-                          /> Answers
+                            required
+                          /> Business
                         </label>
                         <label className="flex items-center gap-1 text-sm">
                           <input
                             type="radio"
                             name="need"
-                            value="Both"
-                            checked={expertForm.need === 'Both'}
+                            value="Personal"
+                            checked={expertForm.need === 'Personal'}
                             onChange={handleExpertInputChange}
-                          /> Both
+                          /> Personal
                         </label>
                       </div>
                       <div>
@@ -383,7 +528,7 @@ const ArtisanDetails = ({ artisan }) => {
           {/* Left: Image */}
           <div className="flex-shrink-0 w-full md:w-[320px] flex justify-center items-center">
             <img
-              src={artisan.artisanStories?.image || 'https://randomuser.me/api/portraits/men/32.jpg'}
+              src={artisan.artisanStories?.image || '/placeholder.jpeg'}
               alt="Artisan"
               className="rounded-2xl object-cover w-[350px] h-[350px] shadow-md"
             />
@@ -410,30 +555,6 @@ const ArtisanDetails = ({ artisan }) => {
             {/* Share Row */}
             <div className="flex flex-row items-center gap-6 border-t pt-4 mt-auto justify-end">
               <span className="text-xl font-bold">Share</span>
-
-              {/* Instagram Share */}
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(window.location.href);
-
-                  window.open('https://www.instagram.com/', '_blank', 'noopener,noreferrer');
-                }}
-                title="Share on Instagram"
-                className="hover:scale-110 transition p-1"
-              >
-                <img src="/insta.png" alt="Instagram" width={26} height={26} style={{ display: 'inline', verticalAlign: 'middle' }} />
-              </button>
-              {/* Facebook Share */}
-              <button
-                onClick={() => {
-                  const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`;
-                  window.open(shareUrl, '_blank', 'noopener,noreferrer');
-                }}
-                title="Share on Facebook"
-                className="hover:scale-110 transition p-1"
-              >
-                <img src="/fb.png" alt="Facebook" width={26} height={26} style={{ display: 'inline', verticalAlign: 'middle' }} />
-              </button>
               {/* Share Link */}
               <button
                 className="hover:scale-110 transition p-1"
@@ -610,10 +731,13 @@ const ArtisanDetails = ({ artisan }) => {
                         <div className="text-gray-800 text-base mb-4 line-clamp-3 min-h-[48px]">{blog.shortDescription || 'No description available.'}</div>
                       </div>
                       <div className="flex items-center mt-auto">
-                        <a href={`/blogs/${blog._id}`} className="text-gray-700 font-semibold hover:underline flex items-center group transition">
+                        <button
+                          onClick={() => { setModalBlog(blog); setShowBlogModal(true); }}
+                          className="text-gray-700 font-semibold hover:underline flex items-center group transition focus:outline-none"
+                        >
                           Read More
-                          <span className="ml-2 ">&gt;</span>
-                        </a>
+                          <span className="ml-2">&gt;</span>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -627,11 +751,11 @@ const ArtisanDetails = ({ artisan }) => {
       </div>
 
       {/* Reviews Section */}
-      <div className="w-full mx-auto mb-10 relative min-h-[500px] flex items-center justify-end relative">
+      <div className="w-full mx-auto mb-10 relative min-h-[600px] flex items-center justify-end relative">
         {/* Background Image */}
         <div className="absolute inset-0 w-full h-full z-0">
           <img
-            src="https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?auto=format&fit=crop&w=1200&q=80"
+            src="/blogs.jpg"
             alt="Happy client"
             className="w-full h-full object-cover bg-[#FCEED5]"
             style={{ objectPosition: 'top' }}
@@ -639,10 +763,7 @@ const ArtisanDetails = ({ artisan }) => {
         </div>
 
         {/* Review Card Overlay */}
-        <div className="absolute right-1 top-10 z-10 flex flex-col justify-start w-full md:w-1/2 items-end pr-1">
-          <div className='w-[75%] mb-2'>
-            <h2 className='text-start text-5xl font-bold'>What Our Client Say About Us</h2>
-          </div>
+        <div className="absolute right-1 top-[40%] z-10 flex flex-col justify-start w-full md:w-1/2 items-end pr-1">
           <Carousel className="w-full md:w-[600px]"
             plugins={[Autoplay({ delay: 4000 })]}>
 
@@ -651,23 +772,24 @@ const ArtisanDetails = ({ artisan }) => {
                 {
                   _id: 1,
                   rating: 3,
-                  title: 'Joe Do',
+                  title: 'Joe Doe',
                   subtitle: 'Undergraduate Student',
-                  shortDescription: "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum i here', making it look like readable English.",
-                  image: '/placeholder-user.jpg',
+                  shortDescription: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Aliquam aut ipsa corrupti, laudantium eos assumenda sed qui vitae ut. Aut mollitia obcaecati rerum optio repellendus reiciendis, accusamus, dignissimos impedit quisquam in molestias, voluptates voluptatem expedita. Nisi eligendi excepturi, optio ipsam, porro dolore perspiciatis corrupti atque animi ipsa architecto eum laboriosam.architecto eum laboriosam.architecto eum laboriosam.",
+                  image: '/placeholder.jpeg',
                 },
+
               ]).map((review, idx) => (
                 <CarouselItem
                   key={review._id}
                   className="min-w-0 snap-center w-full"
                 >
-                  <div className="bg-white rounded-3xl px-8 py-5 flex flex-col justify-between h-full min-h-[320px] relative overflow-visible">
+                  <div className="bg-white rounded-3xl px-8 py-5 flex flex-col justify-between h-full min-h-[300px] relative overflow-visible">
                     {/* Review text */}
                     <div className="text-md md:text-md text-gray-800 font-medium leading-relaxed mb-2 text-left">
                       {review.shortDescription || 'No review text.'}
                     </div>
                     {/* Bottom row: avatar, name, subtitle, nav buttons */}
-                    <div className="flex items-center justify-between w-full mt-auto pt-2">
+                    <div className="flex items-center justify-between w-full mt-auto">
                       {/* Avatar, Name, Subtitle */}
                       <div className="flex items-center">
                         <img
@@ -701,62 +823,34 @@ const ArtisanDetails = ({ artisan }) => {
           <div className="flex-1">
             <h2 className="text-4xl md:text-5xl font-bold mb-2">
               <span className="border-t-4 border-black">
-              Certificate And Awards  
+                Certificate And Awards
               </span>
-              </h2>
+            </h2>
             <div className="text-lg md:text-xl font-mono text-gray-700 mb-6">
               {/* (<span className="font-bold"> Short Description </span>) Praesent vestibulum congue tellus at fringilla. Curabitur vitae semper sem, eu convallis est. Cras felis nunc commodo eu convallis vitae interdum non nisl. */}
             </div>
           </div>
         </div>
-        {/* Carousel for certificates */}
-        <div className="w-full mt-4 flex flex-col items-center">
-          <Carousel className="w-full md:w-[80%]"
-            plugins={[Autoplay({ delay: 2000 })]}>
-            <CarouselContent className="w-full">
-              {(artisan.certificates && artisan.certificates.length > 0 ? artisan.certificates : [
-                {
-                  _id: 1,
-                  title: 'Gold Glitter Award',
-                  year: '2021',
-                  specialization: 'Craft Excellence',
-                  image: 'https://img.freepik.com/free-vector/black-gold-glitter-background_52683-65222.jpg',
-                },
-                {
-                  _id: 2,
-                  title: 'Silver Handicraft Medal',
-                  year: '2020',
-                  specialization: 'Traditional Art',
-                  image: 'https://img.freepik.com/free-vector/black-gold-glitter-background_52683-65222.jpg',
-                },
-              ]).map((cert, idx) => (
-                <CarouselItem key={cert._id} className="min-w-0 snap-center w-full">
-                  <div className="flex flex-col md:flex-row items-center justify-between rounded-3xl px-4 py-4 md:py-10 min-h-[220px]">
-                    {/* Left: Certificate details */}
-                    <div className="flex-1 flex flex-col items-start justify-center text-left gap-4">
-                      <div className="text-2xl md:text-3xl font-bold mb-2">{cert.title}</div>
-                      <div className="text-base md:text-lg text-gray-600 mb-1"><span className="font-semibold">Issue Date:</span> {cert.issueDate}</div>
-                      <div className="text-base md:text-lg text-gray-600 mb-1"><span className="font-semibold">Issued By:</span> {cert.issuedBy}</div>
-                      <div className="text-base md:text-lg text-gray-600"><span className="font-semibold">Specialization:</span> {cert.description}</div>
-                    </div>
-                    {/* Right: Certificate image */}
-                    <div className="w-full md:w-1/3 flex justify-end mt-6 md:mt-0">
-                      <img
-                        src={cert.imageUrl}
-                        alt={cert.title}
-                        className="w-[200px] h-[200px] object-contain rounded-2xl "
-                      />
-                    </div>
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <div className="flex items-center gap-3 mt-4 justify-center">
-              <CarouselPrevious className="bg-[#f7eedd] !rounded-full !w-10 !h-10 !flex !items-center !justify-center transition" />
-              <CarouselNext className="bg-[#f7eedd] !rounded-full !w-10 !h-10 !flex !items-center !justify-center transition" />
-            </div>
-          </Carousel>
-        </div>
+        {/* Responsive Certificate Grid */}
+      <CertificateSectionGrid
+        certificates={artisan.certificates && artisan.certificates.length > 0 ? artisan.certificates : [
+          {
+            _id: 1,
+            title: 'Gold Glitter Award',
+            year: '2021',
+            specialization: 'Craft Excellence',
+            image: 'https://img.freepik.com/free-vector/black-gold-glitter-background_52683-65222.jpg',
+          },
+          {
+            _id: 2,
+            title: 'Silver Handicraft Medal',
+            year: '2020',
+            specialization: 'Traditional Art',
+            image: 'https://img.freepik.com/free-vector/black-gold-glitter-background_52683-65222.jpg',
+          },
+        ]}
+        onImageClick={(cert) => { setModalCertificate(cert); setShowCertificateModal(true); }}
+      />
       </div>
 
       {/* Meet Other Artisans Section */}
@@ -963,6 +1057,18 @@ const ArtisanDetails = ({ artisan }) => {
           </div>
         )
       }
+      {/* Certificate Quick View Modal */}
+      <CertificateQuickViewModal
+        open={showCertificateModal}
+        certificate={modalCertificate}
+        onClose={() => { setShowCertificateModal(false); setModalCertificate(null); }}
+      />
+      {/* Blog Quick View Modal */}
+      <BlogQuickViewModal
+        open={showBlogModal}
+        blog={modalBlog}
+        onClose={() => { setShowBlogModal(false); setModalBlog(null); }}
+      />
     </div >
   );
 };

@@ -72,7 +72,9 @@ export async function POST(req) {
         city: data.city,
         state: data.state
       },
-      profileImage: (typeof profileImage === 'object' && profileImage !== null && profileImage.url) ? profileImage.url : (typeof profileImage === 'string' ? profileImage : '')
+      profileImage: (typeof profileImage === 'object' && profileImage !== null && profileImage.url && profileImage.key)
+        ? { url: profileImage.url, key: profileImage.key }
+        : { url: '', key: '' }
     });
     await artisan.save();
     if (Array.isArray(data.specializations)) {
@@ -90,10 +92,16 @@ export async function POST(req) {
   }
 }
 
-export async function GET() {
+export async function GET(req) {
   try {
     await connectDB();
-    const artisans = await Artisan.find({ active: true }).sort({ createdAt: -1 });
+    const url = new URL(req.url, `http://${req.headers.get('host') || 'localhost'}`);
+    const excludeId = url.searchParams.get('exclude');
+    const query = { active: true };
+    if (excludeId) {
+      query._id = { $ne: excludeId };
+    }
+    const artisans = await Artisan.find(query).sort({ createdAt: -1 });
     return new Response(JSON.stringify(artisans), { status: 200 });
   } catch (error) {
     return new Response(JSON.stringify({ message: 'Error fetching artisans', error: error.message }), { status: 500 });

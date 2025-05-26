@@ -284,9 +284,11 @@ const ManageArtisanBlogs = ({ artisanId, artisanDetails = null }) => {
     setYoutubeUrl('');
     setShortDescription('');
     setLongDescription('');
-    setSelectedArtisan('');
+    // Only reset selectedArtisan if artisanId is not present
+    if (!artisanId) setSelectedArtisan('');
     setSelectedImages([]);
   };
+
 const [mediaTab, setMediaTab] = useState('image'); // 'image' or 'youtube'
 
 const handleTabChange = (tab) => {

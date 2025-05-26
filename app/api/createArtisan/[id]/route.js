@@ -17,7 +17,7 @@ try {
 export async function GET(req, { params }) {
   await connectDB();
   const { id } = await params;
-  console.log('Requested artisan id:', id);
+  // console.log('Requested artisan id:', id);
   const artisan = await Artisan.findById(id)
     .populate('promotions')
     .populate('artisanBlogs')
@@ -41,7 +41,7 @@ export async function GET(req, { params }) {
       ]
     })
   if (!artisan || artisan.active !== true) {
-    console.log('Artisan not found for id:', id, 'Result:', artisan);
+    // console.log('Artisan not found for id:', id, 'Result:', artisan);
     return new Response(JSON.stringify({ message: 'Artisan not found', debug: { id, artisan } }), { status: 404 });
   }
   return new Response(JSON.stringify(artisan), { status: 200 });

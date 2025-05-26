@@ -186,7 +186,7 @@ const Certificate = ({ artisanId, artisanDetails = null }) => {
       setCertificateIssueFrom('');
       setSelectedSpec('');
       setSelectedImage(null);
-      setSelectedArtisan('');
+      if (!artisanId && !artisanDetails) setSelectedArtisan('');
       setIsEditMode(false);
       setId(null);
       fetchCertificates();
