@@ -62,14 +62,14 @@ const relatedProducts = [
   },
 ];
 
-function RelatedProductsCarousel() {
+function RelatedProductsCarousel({ products=[] }) {
   return (
     <div className="w-full py-12">
       <h2 className="text-xl font-bold mb-8 text-center">Related Products</h2>
       <div className="relative">
         {/* Carousel content */}
         <div className="flex gap-6 overflow-x-auto scrollbar-hide px-4">
-          {relatedProducts.map((p, idx) => (
+          {products.map((p, idx) => (
             <div
               key={p.id}
               className="bg-white border rounded-lg shadow-sm flex flex-col items-center w-72 min-w-[270px] p-4 relative"

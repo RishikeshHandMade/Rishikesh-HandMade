@@ -3,7 +3,8 @@ import React from 'react'
 const TermsConditions = () => {
   return (
     <section className="bg-[#fffaf3] py-10 px-4 md:px-12 w-full mx-auto rounded-lg shadow-sm">
-      <h2 className="text-3xl font-bold mb-6 text-center">Terms &amp; Conditions Policy</h2>
+       <div className="border border-black p-4 rounded-xl shadow-sm">
+      <h2 className="text-3xl font-bold mb-6 text-start">Terms &amp; Conditions Policy</h2>
       <p className="mb-4">
         <span className="font-semibold">www.rishikeshhandmade.com (Website)</span> (“we”, “our”, “us”)  Please read the following terms and conditions very carefully as your use of service is subject to your acceptance of and compliance with the following terms and conditions ("Terms"). By subscribing to or using any of our services you agree that you have read, understood and are bound by the Terms, regardless of how you subscribe to or use the services. If you do not want to be bound by the Terms, you must not subscribe to or use our services. These Terms and various other policies are binding as per the provisions of the Information Technology (Intermediaries guidelines) Rules, 2011 formulated under the Information Technology Act of 2000 in India.
         In these Terms, references to "you", "User" shall mean the end user accessing the Website, its contents and using the Services offered through the Website, "Service Providers" mean independent third party service providers, and "we", "us" and "our" shall mean www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) and its affiliates.
@@ -129,6 +130,7 @@ const TermsConditions = () => {
             </p>
           </div>
         </div>
+      </div>
       </div>
     </section>
   );

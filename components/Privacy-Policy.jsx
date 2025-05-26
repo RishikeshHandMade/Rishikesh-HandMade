@@ -2,8 +2,9 @@ import React from 'react'
 
 const PrivacyPolicy = () => {
   return (
-    <section className="bg-[#fffaf3] py-10 px-4 md:px-12 w-full mx-auto rounded-lg shadow-sm">
-      <h2 className="text-3xl font-bold mb-6 text-center">Our Privacy Policy</h2>
+    <section className="bg-[#fffaf3]  py-10 px-4 md:px-12 w-full mx-auto rounded-lg shadow-sm">
+      <div className="border border-black p-4 rounded-xl shadow-sm">
+      <h2 className="text-3xl font-bold mb-6">Our Privacy Policy</h2>
       <p className="mb-4">
         <span className="font-semibold">www.rishikeshhandmade.com (Website)</span> (“we”, “our”, “us”) Privacy Policy aims at safe-guarding the confidentiality of our customers and site visitors (“you”, “your”, “yours”). We hereby declare that your details will not be disclosed to any third party unless it is required to provide a service to you. Please go through the below mentioned Privacy Policy points carefully. By accessing our website, you acknowledge reading and understanding the policies, and hence agree to be bound by the terms stated below.
       </p>
@@ -84,6 +85,7 @@ const PrivacyPolicy = () => {
             </p>
           </div>
         </div>
+      </div>
       </div>
     </section>
   );

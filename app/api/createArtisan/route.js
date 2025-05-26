@@ -1,4 +1,3 @@
-'use server';
 import connectDB from "@/lib/connectDB";
 import mongoose from 'mongoose';
 let Artisan;
@@ -7,37 +6,32 @@ try {
 } catch {
   Artisan = require('@/models/Artisan');
 }
-import "@/models/Promotion";
-import "@/models/ArtisanBlog";
-import "@/models/ArtisanStory";
-import "@/models/ArtisanCertificate";
-import "@/models/ArtisanPlugin";
-import "@/models/Product";
 import { addSpecializationIfNotExists } from "@/lib/specialization";
-import { deleteFileFromCloudinary } from "@/utils/Utapi";
+import { deleteFileFromUploadthing } from "@/utils/Utapi";
+
 // Helper to normalize form data
-// function normalizeFormData(body) {
-//   const normalized = {};
-//   for (const key in body) {
-//     if (Array.isArray(body[key])) {
-//       normalized[key] = body[key][0];
-//     } else {
-//       normalized[key] = body[key];
-//     }
-//   }
-//   if (normalized.yearsOfExperience) {
-//     normalized.yearsOfExperience = Number(normalized.yearsOfExperience);
-//   }
-//   if (typeof normalized.specializations === 'string') {
-//     try {
-//       normalized.specializations = JSON.parse(normalized.specializations);
-//     } catch {}
-//   }
-//   if (!Array.isArray(normalized.specializations)) {
-//     normalized.specializations = normalized.specializations ? [normalized.specializations] : [];
-//   }
-//   return normalized;
-// }
+function normalizeFormData(body) {
+  const normalized = {};
+  for (const key in body) {
+    if (Array.isArray(body[key])) {
+      normalized[key] = body[key][0];
+    } else {
+      normalized[key] = body[key];
+    }
+  }
+  if (normalized.yearsOfExperience) {
+    normalized.yearsOfExperience = Number(normalized.yearsOfExperience);
+  }
+  if (typeof normalized.specializations === 'string') {
+    try {
+      normalized.specializations = JSON.parse(normalized.specializations);
+    } catch {}
+  }
+  if (!Array.isArray(normalized.specializations)) {
+    normalized.specializations = normalized.specializations ? [normalized.specializations] : [];
+  }
+  return normalized;
+}
 
 export async function POST(req) {
   try {
@@ -46,9 +40,9 @@ export async function POST(req) {
     const data = await req.json();
 
     // Validate required fields
-    if (!data.title || !data.firstName || !data.lastName || !data.fatherHusbandType || !data.fatherHusbandTitle || !data.fatherHusbandName ||
-      !data.fatherHusbandLastName || !data.shgName || !data.artisanNumber || !data.yearsOfExperience ||
-      !data.callNumber || !data.address || !data.city || !data.state) {
+    if (!data.title || !data.firstName || !data.lastName || !data.fatherHusbandType || !data.fatherHusbandTitle || !data.fatherHusbandName || 
+        !data.fatherHusbandLastName || !data.shgName || !data.artisanNumber || !data.yearsOfExperience || 
+        !data.callNumber || !data.address || !data.city || !data.state) {
       return new Response(JSON.stringify({ message: 'Missing required fields' }), { status: 400 });
     }
 
@@ -77,10 +71,7 @@ export async function POST(req) {
         city: data.city,
         state: data.state
       },
-      profileImage: (data.profileImage && typeof data.profileImage === 'object')
-        ? data.profileImage
-        : { url: '', key: '' },
-      active: true
+      profileImage: (typeof profileImage === 'object' && profileImage !== null && profileImage.url) ? profileImage.url : (typeof profileImage === 'string' ? profileImage : '')
     });
     await artisan.save();
     if (Array.isArray(data.specializations)) {
@@ -98,27 +89,13 @@ export async function POST(req) {
   }
 }
 
-export async function GET(req) {
+export async function GET() {
   try {
     await connectDB();
-    // Support ?exclude=<id> to filter out current artisan
-    let excludeId = null;
-    if (req && req.nextUrl && req.nextUrl.searchParams) {
-      excludeId = req.nextUrl.searchParams.get('exclude');
-    }
-    const query = excludeId ? { _id: { $ne: excludeId } } : {};
-    const artisans = await Artisan.find(query)
-      .populate('promotions')
-      .populate('artisanBlogs')
-      .populate('artisanStories')
-      .populate('certificates')
-      .populate('socialPlugin')
-      .populate('products')
-      .sort({ createdAt: -1 });
+    const artisans = await Artisan.find({ active: true }).sort({ createdAt: -1 });
     return new Response(JSON.stringify(artisans), { status: 200 });
   } catch (error) {
-    console.error('Error fetching artisans:', error);
-    return new Response(JSON.stringify({ message: 'Error fetching artisans', error: error.stack }), { status: 500 });
+    return new Response(JSON.stringify({ message: 'Error fetching artisans', error: error.message }), { status: 500 });
   }
 }
 
@@ -127,23 +104,24 @@ export async function PATCH(req) {
   try {
     await connectDB();
     const data = await req.json();
-    console.log('PATCH incoming data:', data); // Debug log
     const { id, ...updateFields } = data;
     if (!id) {
-      console.log('PATCH error: Missing artisan ID');
       return new Response(JSON.stringify({ message: 'Missing artisan ID' }), { status: 400 });
     }
-    // Remove undefined fields from updateFields
-    Object.keys(updateFields).forEach(key => updateFields[key] === undefined && delete updateFields[key]);
+    // Remove undefined fields and skip empty arrays from updateFields
+    Object.keys(updateFields).forEach(key => {
+      if (
+        updateFields[key] === undefined ||
+        (Array.isArray(updateFields[key]) && updateFields[key].length === 0)
+      ) {
+        delete updateFields[key];
+      }
+    });
     // If specializations is a string, parse it
     if (typeof updateFields.specializations === 'string') {
       try {
         updateFields.specializations = JSON.parse(updateFields.specializations);
-      } catch { }
-    }
-    // Ensure profileImage is always an object { url, key }
-    if (!updateFields.profileImage || typeof updateFields.profileImage !== 'object') {
-      updateFields.profileImage = { url: '', key: '' };
+      } catch {}
     }
     if (!Array.isArray(updateFields.specializations)) {
       updateFields.specializations = updateFields.specializations ? [updateFields.specializations] : [];
@@ -152,21 +130,14 @@ export async function PATCH(req) {
     if (typeof updateFields.active !== 'undefined') {
       updateFields.active = !!updateFields.active;
     }
-    console.log('PATCH updateFields after processing:', updateFields); // Debug log
+    console.log('PATCH updateFields:', updateFields); // Debug log
     // Directly replace all fields with the new data (admin full update)
-    const updatedArtisan = await Artisan.findByIdAndUpdate(id, updateFields, { new: true });
-    // Ensure profileImage is always an object if present
-    if (updatedArtisan && updatedArtisan.profileImage && typeof updatedArtisan.profileImage === 'string') {
-      updatedArtisan.profileImage = { url: updatedArtisan.profileImage, key: '' };
-    }
+    const updatedArtisan = await Artisan.findByIdAndUpdate(id, updateFields, { new: true, overwrite: false });
     if (!updatedArtisan) {
-      console.log('PATCH error: Artisan not found for id', id);
       return new Response(JSON.stringify({ message: 'Artisan not found' }), { status: 404 });
     }
-    console.log('PATCH update successful:', updatedArtisan);
     return new Response(JSON.stringify({ message: 'Artisan profile updated successfully', artisan: updatedArtisan }), { status: 200 });
   } catch (error) {
-    console.error('PATCH error:', error);
     if (error.code === 11000 && error.keyPattern && error.keyPattern.artisanNumber) {
       return new Response(JSON.stringify({ message: 'Artisan number already exists', code: 11000 }), { status: 400 });
     }
@@ -175,18 +146,56 @@ export async function PATCH(req) {
 }
 
 
+// export async function DELETE(req) {
+//   try {
+//     await connectDB();
+//     const { id } = await req.json();
+//     const artisan = await Artisan.findById(id);
+//     if (!artisan) {
+//       return new Response(JSON.stringify({ message: 'Artisan not found' }), { status: 404 });
+//     }
+//     // Delete the image from Uploadthing if key exists
+//     if (artisan.profileImage?.key) {
+//       try {
+//         await deleteFileFromUploadthing(artisan.profileImage.key);
+//       } catch (err) {
+//         console.error('Uploadthing deletion failed:', err.message);
+//       }
+//     }
+//     await Artisan.findByIdAndDelete(id);
+//     return new Response(JSON.stringify({ message: 'Artisan profile deleted successfully' }), { status: 200 });
+//   } catch (error) {
+//     return new Response(JSON.stringify({ error: error.message || "Internal Server Error" }), { status: 500 });
+//   }
+
+
+//     const updatedArtisan = await Artisan.findByIdAndUpdate(id, { $set: updateFields }, { new: true });
+//     // Ensure profileImage is always an object if present
+//     if (updatedArtisan && updatedArtisan.profileImage && typeof updatedArtisan.profileImage === 'string') {
+//       updatedArtisan.profileImage = { url: updatedArtisan.profileImage, key: '' };
+//     }
+//     if (!updatedArtisan) {
+//       // console.log('PATCH error: Artisan not found for id', id);
+//       return new Response(JSON.stringify({ message: 'Artisan not found' }), { status: 404 });
+//     }
+//     // console.log('PATCH update successful:', updatedArtisan);
+//     return new Response(JSON.stringify({ message: 'Artisan profile updated successfully', artisan: updatedArtisan }), { status: 200 });
+// }
+
+
 export async function DELETE(req) {
   try {
-    await connectDB();
+    await connectDB();  
     const { id } = await req.json();
     const artisan = await Artisan.findById(id);
     if (!artisan) {
       return new Response(JSON.stringify({ message: 'Artisan not found' }), { status: 404 });
     }
-    // Delete the image from Cloudinary if key exists
-    if (artisan.profileImage?.key) {
+    // Delete the image from Cloudinary if key exists (from request or document)
+    const imageKey = req.body?.imageKey || artisan.profileImage?.key;
+    if (imageKey) {
       try {
-        await deleteFileFromCloudinary(artisan.profileImage.key);
+        await deleteFileFromCloudinary(imageKey);
       } catch (err) {
         console.error('Cloudinary deletion failed:', err.message);
       }

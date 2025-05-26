@@ -3,6 +3,7 @@ import React from 'react'
 const ShippingPolicy = () => {
   return (
     <section className="bg-[#fffaf3] py-10 px-4 md:px-12 w-full mx-auto rounded-lg shadow-sm">
+      <div className="border border-black p-4 rounded-xl shadow-sm">
       <h2 className="text-3xl font-bold mb-6 text-center">Our Shipping Policy</h2>
       <p className="mb-4">
         <span className="font-semibold">www.rishikeshhandmade.com (Website)</span> (“we”, “our”, “us”) To ensure ease of selling and the best possible customer experience, we mandate delivery to all customers via our logistics partners and deduct the shipping cost from the selling price before making a payment to you. Shipping fee is calculated on actual weight or volumetric weight, whichever is higher. This is to account for items which are lightweight but occupy a lot of shipping space.
@@ -52,8 +53,8 @@ const ShippingPolicy = () => {
           <p className="text-justify mt-1">
             Please enter your pincode on the product page (you don't have to enter it every single time) to know whether the product can be delivered to your location.  If you haven't provided your pincode until the checkout stage, the pincode in your shipping address will be used to check for serviceability.<br />
             Whether your location can be serviced or not depends on:<br />
-            1)- Whether the Seller ships to your location<br />
-            2)- Legal restrictions, if any, in shipping particular products to your location
+            1 )- Whether the Seller ships to your location<br />
+            2 )- Legal restrictions, if any, in shipping particular products to your location
           </p>
         </div>
         
@@ -113,6 +114,7 @@ const ShippingPolicy = () => {
             </p>
           </div>
         </div>
+      </div>
       </div>
     </section>
   );

@@ -11,8 +11,11 @@ import { Button } from "../ui/button"
 import toast from "react-hot-toast"
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "../ui/accordion"
 import { useSidebar } from "@/components/ui/sidebar";
+import CurrentYear from "@/components/CurrentYear";
 
 const Footer = ({ className = "" }) => {
+    const [isHydrated, setIsHydrated] = useState(false);
+    useEffect(() => { setIsHydrated(true); }, []);
     const { open, isMobile } = useSidebar ? useSidebar() : { open: false, isMobile: false };
     const pathName = usePathname()
     const [pages, setPages] = useState([])
@@ -29,6 +32,8 @@ const Footer = ({ className = "" }) => {
         }
         fetchPages()
     }, [])
+
+    if (!isHydrated) return null;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -154,7 +159,7 @@ const Footer = ({ className = "" }) => {
             </Card>
             <div className="flex flex-col lg:flex-row items-center justify-center max-w-[25rem] md:max-w-[60rem] xl:max-w-6xl mx-auto font-barlow">
                 <p className="text-gray-900 text-center my-4">
-                    &copy; {new Date().getFullYear()} <Link href={'/'} className="hover:text-blue-600 font-bold">Rishikesh HandMade</Link>. All rights reserved
+                    &copy; <CurrentYear /> <Link href={'/'} className="hover:text-blue-600 font-bold">Rishikesh HandMade</Link>. All rights reserved
                 </p>
             </div>
         </footer >

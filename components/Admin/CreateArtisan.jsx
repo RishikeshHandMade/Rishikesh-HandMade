@@ -139,7 +139,19 @@ const CreateArtisan = () => {
     }
   };
 
-  const { register, handleSubmit, setValue, reset, watch } = useForm({
+  const [selectedSpecs, setSelectedSpecs] = useState(
+    Array.isArray(editForm?.specializations) ? editForm.specializations : []
+  );
+  
+  // If you want to sync with form reset/edit, add an effect:
+  useEffect(() => {
+    if (Array.isArray(editForm?.specializations)) {
+      setSelectedSpecs(editForm.specializations);
+      setValue("specializations", editForm.specializations, { shouldValidate: true });
+    }
+  }, [editForm.specializations]);
+
+  const { register, handleSubmit, setValue, reset, watch, formState: { errors } } = useForm({
     defaultValues: {
       title: "Mr.",
       fatherHusbandType: "Father",
@@ -152,7 +164,7 @@ const CreateArtisan = () => {
     try {
       const res = await fetch("/api/specialization");
       const data = await res.json();
-      console.log("Specialization API response:", data);
+      // console.log("Specialization API response:", data);
       if (Array.isArray(data) && data.length > 0 && data[0].name) {
         setAllSpecializations(data.map((s) => s.name));
       } else if (Array.isArray(data) && data.length === 0) {
@@ -169,36 +181,11 @@ const CreateArtisan = () => {
   };
 
   const onSubmit = async (data) => {
-    // If image is uploading, prevent submit
     if (imageUploading) {
       toast.error("Please wait for the image to finish uploading.");
       return;
     }
-    // Gather missing required fields for client-side validation
-    const requiredFields = [
-      { key: "title", label: "Title" },
-      { key: "firstName", label: "First Name" },
-      { key: "lastName", label: "Last Name" },
-      { key: "fatherHusbandType", label: "Father/Husband Type" },
-      { key: "fatherHusbandTitle", label: "Father/Husband Title" },
-      { key: "fatherHusbandName", label: "Father/Husband Name" },
-      { key: "fatherHusbandLastName", label: "Father/Husband Last Name" },
-      { key: "shgName", label: "SHG Name" },
-      { key: "artisanNumber", label: "Artisan Number" },
-      { key: "yearsOfExperience", label: "Year's Of Experience" },
-      { key: "callNumber", label: "Call Number" },
-      { key: "address", label: "Address" },
-      { key: "city", label: "City" },
-      { key: "state", label: "State" },
-    ];
-    const missing = requiredFields.filter(
-      (f) => !data[f.key] || data[f.key].toString().trim() === ""
-    );
-    if (missing.length > 0) {
-      toast.error("Missing fields: " + missing.map((f) => f.label).join(", "));
-      return;
-    }
-    // Proceed as before
+    // Always use selectedSpecs for specializations
     const payload = {
       title: data.title,
       firstName: data.firstName,
@@ -210,7 +197,7 @@ const CreateArtisan = () => {
       shgName: data.shgName,
       artisanNumber: data.artisanNumber,
       yearsOfExperience: data.yearsOfExperience,
-      specializations: data.specialization ? [data.specialization] : [],
+      specializations: selectedSpecs,
       callNumber: data.callNumber,
       whatsappNumber: data.whatsappNumber,
       email: data.email,
@@ -243,11 +230,16 @@ const CreateArtisan = () => {
         }
       }
       await fetchUsers();
+      toast.success("Artisan created successfully!");
       // Reset form and clear image state after successful creation
       reset();
       setUploadedImage(null);
       setSelectedImage(null);
-      setFatherHusbandType("Father"); // If you want to reset this too
+      setFatherHusbandType("Father");
+      setSelectedSpecs([]);
+      setEditForm({});
+      setEditingUser(null);
+      setShowEditModal(false);
       // Add any other state resets as needed
     } catch (e) {
       toast.error(
@@ -257,6 +249,12 @@ const CreateArtisan = () => {
       setLoading(false);
     }
   };
+
+  // Helper to show error messages for each field
+  const renderError = (field) => errors[field] && (
+    <span style={{ color: 'red', fontSize: '0.9em' }}>{errors[field].message || 'This field is required'}</span>
+  );
+
   const handleAddSpecialization = async () => {
     if (!newSpecialization.trim()) return;
     try {
@@ -288,11 +286,11 @@ const CreateArtisan = () => {
           a._id === artisan._id ? { ...a, active: !a.active } : a
         )
       );
+      toast.success(`Artisan ${!artisan.active ? 'activated' : 'deactivated'} successfully!`);
     } catch (err) {
       toast.error("Failed to update status");
     }
   };
-
 
   // View artisan modal
   const handleTableView = (artisan) => {
@@ -359,67 +357,65 @@ const CreateArtisan = () => {
     setUploadProgress(0);
   };
 
+  const clearEditState = () => {
+    setEditForm({});
+    setEditingUser(null);
+    setShowEditModal(false);
+    setUploadedImage(null);
+    setSelectedImage(null);
+    setSelectedSpecs([]);
+    setUploadProgress(0);
+    reset();
+  };
+
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     if (!editingUser) return;
+    // Get all current form values using watch()
+    const formData = watch();
+    const payload = {
+      id: editingUser._id,
+      title: formData.title,
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      fatherHusbandType: formData.fatherHusbandType,
+      fatherHusbandTitle: formData.fatherHusbandTitle,
+      fatherHusbandName: formData.fatherHusbandName,
+      fatherHusbandLastName: formData.fatherHusbandLastName,
+      shgName: formData.shgName,
+      artisanNumber: formData.artisanNumber,
+      yearsOfExperience: formData.yearsOfExperience,
+      specializations: selectedSpecs,
+      contact: {
+        callNumber: formData.callNumber || "",
+        whatsappNumber: formData.whatsappNumber || "",
+        email: formData.email || "",
+      },
+      address: {
+        fullAddress: formData.address || "",
+        city: formData.city || "",
+        state: formData.state || "",
+      },
+      ...(uploadedImage && uploadedImage.url && uploadedImage.key
+        ? { profileImage: uploadedImage }
+        : {})
+    };
     try {
-      // Get all current form values using watch()
-      const formData = watch();
-
-      // Build PATCH payload with current form values
-      const payload = {
-        id: editingUser._id,
-        title: formData.title,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        fatherHusbandType: formData.fatherHusbandType,
-        fatherHusbandTitle: formData.fatherHusbandTitle,
-        fatherHusbandName: formData.fatherHusbandName,
-        fatherHusbandLastName: formData.fatherHusbandLastName,
-        shgName: formData.shgName,
-        artisanNumber: formData.artisanNumber,
-        yearsOfExperience: formData.yearsOfExperience,
-        specializations: formData.specialization
-          ? [formData.specialization]
-          : [],
-        contact: {
-          callNumber: formData.callNumber || "",
-          whatsappNumber: formData.whatsappNumber || "",
-          email: formData.email || "",
-        },
-        address: {
-          fullAddress: formData.address || "",
-          city: formData.city || "",
-          state: formData.state || "",
-        },
-        profileImage:
-          uploadedImage && uploadedImage.url && uploadedImage.key
-            ? uploadedImage
-            : typeof editForm.profileImage === "object" &&
-              editForm.profileImage !== null
-              ? editForm.profileImage
-              : { url: editForm.profileImage || "", key: "" },
-      };
-
-      console.log("PATCH payload being sent:", payload);
       const res = await fetch("/api/createArtisan", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error("Failed to update artisan");
-      const data = await res.json();
-      setUsers((prev) =>
-        prev.map((a) => (a._id === editingUser._id ? data.artisan : a))
-      );
-      toast.success("Artisan updated successfully");
-      setEditingUser(null);
-      setEditForm({});
-      setSelectedImage(data.artisan.profileImage?.url || "");
-      setUploadedImage(data.artisan.profileImage || null);
-      reset();
-    } catch (err) {
-      toast.error("Failed to update artisan");
+      if (!res.ok) {
+        const err = await res.json();
+        toast.error(err.message || "Failed to update artisan");
+        return;
+      }
+      await fetchUsers();
+      clearEditState();
+      toast.success("Artisan updated successfully!");
+    } catch (e) {
+      toast.error("Failed to update artisan. Please try again.");
     }
   };
 
@@ -496,12 +492,14 @@ const CreateArtisan = () => {
               </Select>
               <Input
                 placeholder="First Name"
-                {...register("firstName", { required: true })}
+                {...register("firstName", { required: "First Name is required" })}
               />
+              {renderError("firstName")}
               <Input
                 placeholder="Last Name"
-                {...register("lastName", { required: true })}
+                {...register("lastName", { required: "Last Name is required" })}
               />
+              {renderError("lastName")}
             </div>
             <div className="font-semibold mb-1">Father/Husband Details</div>
             {/* Father/Husband Row */}
@@ -544,16 +542,18 @@ const CreateArtisan = () => {
                     ? "Husband First Name"
                     : "Father First Name"
                 }
-                {...register("fatherHusbandName", { required: true })}
+                {...register("fatherHusbandName", { required: "Father/Husband Name is required" })}
               />
+              {renderError("fatherHusbandName")}
               <Input
                 placeholder={
                   fatherHusbandType === "Husband"
                     ? "Husband Last Name"
                     : "Father Last Name"
                 }
-                {...register("fatherHusbandLastName", { required: true })}
+                {...register("fatherHusbandLastName", { required: "Father/Husband Last Name is required" })}
               />
+              {renderError("fatherHusbandLastName")}
             </div>
           </div>
           {/* Artisan Detail */}
@@ -562,52 +562,76 @@ const CreateArtisan = () => {
             <div className="flex gap-2 mb-2">
               <Input
                 placeholder="SHG Name"
-                {...register("shgName", { required: true })}
+                {...register("shgName", { required: "SHG Name is required" })}
               />
+              {renderError("shgName")}
               <Input
                 placeholder="Artisan Number"
-                {...register("artisanNumber", { required: true })}
+                {...register("artisanNumber", { required: "Artisan Number is required" })}
               />
+              {renderError("artisanNumber")}
             </div>
             <div className="flex gap-2">
               <Input
                 placeholder="Year's Of Experience"
                 type="number"
-                {...register("yearsOfExperience", { required: true })}
+                {...register("yearsOfExperience", { required: "Year's Of Experience is required" })}
               />
-              <div className="flex gap-2 w-full">
-                <Select
-                  value={
-                    watch("specialization") ||
-                    (Array.isArray(editForm.specializations)
-                      ? editForm.specializations[0]
-                      : editForm.specializations || "")
-                  }
-                  onValueChange={(val) =>
-                    setValue("specialization", val, { shouldValidate: true })
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Specialized In" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {allSpecializations.map((spec, i) => (
-                        <SelectItem key={i} value={spec}>
-                          {spec}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setShowModal(true)}
-                >
-                  <Plus />
-                </Button>
+              {renderError("yearsOfExperience")}
+              {/* Multi-specialization select and chips */}
+              <div className="flex flex-col gap-2 w-full">
+                <div className="flex gap-2 w-full">
+                  <Select
+                    value=""
+                    onValueChange={(val) => {
+                      if (!selectedSpecs.includes(val)) {
+                        const updated = [...selectedSpecs, val];
+                        setSelectedSpecs(updated);
+                        setValue("specializations", updated, { shouldValidate: true });
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Specialized In" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {allSpecializations.filter((spec) => !selectedSpecs.includes(spec)).map((spec, i) => (
+                          <SelectItem key={i} value={spec}>
+                            {spec}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setShowModal(true)}
+                  >
+                    <Plus />
+                  </Button>
+                </div>
+                {/* Chips for selected specializations */}
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {selectedSpecs.map((spec) => (
+                    <span key={spec} className="flex items-center bg-amber-100 px-3 py-1 rounded-full text-sm font-medium">
+                      {spec}
+                      <button
+                        type="button"
+                        className="ml-2 text-red-500 hover:text-red-700"
+                        onClick={() => {
+                          const updated = selectedSpecs.filter((s) => s !== spec);
+                          setSelectedSpecs(updated);
+                          setValue("specializations", updated, { shouldValidate: true });
+                        }}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -629,9 +653,10 @@ const CreateArtisan = () => {
                   maxLength={10}
                   inputMode="numeric"
                   pattern="[0-9]*"
-                  {...register("callNumber", { required: true })}
+                  {...register("callNumber", { required: "Call Number is required" })}
                   className="rounded-l-none w-full"
                 />
+                {renderError("callNumber")}
               </div>
               <div className="flex items-center w-1/2">
                 <input
@@ -667,13 +692,15 @@ const CreateArtisan = () => {
             <div className="font-semibold mb-1">Address</div>
             <Textarea
               placeholder="Full Address"
-              {...register("address", { required: true })}
+              {...register("address", { required: "Address is required" })}
             />
+            {renderError("address")}
             <div className="flex gap-2 mt-2">
               <Input
                 placeholder="City"
-                {...register("city", { required: true })}
+                {...register("city", { required: "City is required" })}
               />
+              {renderError("city")}
               <Select
                 value={watch("state") || ""}
                 onValueChange={(val) =>
@@ -693,7 +720,6 @@ const CreateArtisan = () => {
               </Select>
             </div>
           </div>
-
           {editingUser ? (
             <div className="flex gap-4 mt-4">
               <Button
@@ -749,11 +775,10 @@ const CreateArtisan = () => {
                 />
               </div>
             ) : (
-              <div className="w-48 h-48 border-2 border-dashed rounded-lg flex items-center justify-center bg-gray-50">
+              <div className="w-48 h-48 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
                 <span className="text-gray-500">Image Preview</span>
               </div>
             )}
-
             <Button
               type="button"
               variant={selectedImage ? "destructive" : "outline"}
@@ -778,7 +803,6 @@ const CreateArtisan = () => {
               )}
             </Button>
           </div>
-
           {imageUploading && (
             <div className="mt-4 w-full max-w-xs">
               <div className="w-full bg-gray-200 rounded-full h-2.5">

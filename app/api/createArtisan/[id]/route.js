@@ -32,7 +32,7 @@ export async function GET(req, { params }) {
         { path: 'coupons' }
       ]
     })
-  if (!artisan) {
+  if (!artisan || artisan.active !== true) {
     return new Response(JSON.stringify({ message: 'Artisan not found' }), { status: 404 });
   }
   return new Response(JSON.stringify(artisan), { status: 200 });

@@ -10,7 +10,7 @@ import { Input } from "./ui/input"
 import { Button } from "./ui/button"
 import toast from "react-hot-toast"
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "./ui/accordion"
-
+import CurrentYear from './CurrentYear';
 const Footer = () => {
     const pathName = usePathname()
     const [pages, setPages] = useState([])
@@ -43,26 +43,28 @@ const Footer = () => {
         <footer className={`print:hidden ${pathName.includes('admin') && 'hidden'}
          ${pathName.includes('artisan') && 'block'} 
         
-        ${pathName.includes('product') && 'hidden'} ${pathName.includes('customEnquiry') && 'hidden'} ${pathName.includes('checkout') && 'hidden'}  ${pathName.includes('category') && 'block'} bg-[url('/bg-custom-2.jpg')] text-black py-8`}>
-            <div className="w-full flex justify-center pb-5">
-                <div className="h-[1.5px] bg-gray-300 w-[80%] mx-auto px-4" />
+        ${pathName.includes('product') && 'hidden'} ${pathName.includes('customEnquiry') && 'hidden'} ${pathName.includes('checkout') && 'hidden'}  ${pathName.includes('category') && 'block'} 
+        bg-[#2563eb]
+        text-white py-4`}>
+            <div className="w-full flex justify-center pb-8">
+                <div className="h-[1.5px] bg-gray-300 w-full mx-auto px-4" />
             </div>
 
             <div className="flex flex-wrap lg:justify-between justify-evenly md:gap-20 lg:gap-0 gap-12 max-w-[22rem] md:max-w-[45rem] lg:max-w-[60rem] xl:max-w-6xl mx-auto">
                 <div className="flex flex-col gap-2">
                     <h1 className="font-semibold text-xl my-4">Main Menu</h1>
                     {pages.filter(page => !page?.link?.includes('policy')).map(page => (
-                        <Link key={page._id} href={page.url} className="block text-gray-900 font-barlow hover:text-blue-500">
+                        <Link key={page._id} href={page.url} className="block text-white font-barlow hover:text-blue-500">
                             {page.title}
                         </Link>
                     ))}
-                    <Link href={'/contact'} className="block text-gray-900 font-barlow hover:text-blue-500">Contact</Link>
+                    <Link href={'/contact'} className="block text-white font-barlow hover:text-blue-500">Contact</Link>
                 </div>
 
                 <div className="flex flex-col gap-2">
                     <h1 className="font-semibold text-xl my-4">Our Policy</h1>
                     {pages.filter(page => page?.link?.includes('policy')).map(page => (
-                        <Link key={page._id} href={page.url} className="block text-gray-900 font-barlow hover:text-blue-500">
+                        <Link key={page._id} href={page.url} className="block text-white font-barlow hover:text-blue-500">
                             {page.title}
                         </Link>
                     ))}
@@ -71,13 +73,13 @@ const Footer = () => {
                 <div className="flex flex-col gap-8">
                     <div>
                         <h1 className="font-semibold text-xl flex items-center gap-2"><Phone className="text-blue-600" /> More Inquiry</h1>
-                        <Link href={'tel:+918006000325'} className="my-2 block rounded-full px-2 py-1 font-barlow text-gray-900  hover:text-blue-500">
+                        <Link href={'tel:+918006000325'} className="my-2 block rounded-full px-2 py-1 font-barlow text-white  hover:text-blue-500">
                             +91 8006000325
                         </Link>
                     </div>
                     <div>
                         <h1 className="font-semibold text-xl flex items-center gap-2"><Send className="text-blue-600" /> Send Mail</h1>
-                        <Link href={'mailto:info@rishikeshhandmade.com'} className="my-2 block rounded-full px-2 py-1 font-barlow text-gray-900  hover:text-blue-500">
+                        <Link href={'mailto:info@rishikeshhandmade.com'} className="my-2 block rounded-full px-2 py-1 font-barlow text-white  hover:text-blue-500">
                         Info@rishikeshhandmade.com
                         </Link>
                     </div>
@@ -127,16 +129,16 @@ const Footer = () => {
                 <div className="w-full h-[1px] bg-gray-400" />
                     <div className="flex items-center justify-between font-barlow">
                         <div className="flex flex-col md:flex-row items-start  md:items-center gap-2">
-                            <Link href={'/'} className="hover:text-blue-600 !text-sm font-semibold">Terms of Use</Link>
+                            <Link href={'/terms-condition'} className="hover:text-blue-600 !text-sm font-semibold">Terms of Use</Link>
                             <p className="text-gray-900 md:block hidden">|</p>
-                            <Link href={'/'} className="hover:text-blue-600 !text-sm font-semibold">Privacy and Cookies Policy</Link>
+                            <Link href={'/privacy-policy'} className="hover:text-blue-600 !text-sm font-semibold">Privacy and Cookies Policy</Link>
                         </div>
                     </div>
                 </CardFooter>
             </Card>
             <div className="flex flex-col lg:flex-row items-center justify-center max-w-[25rem] md:max-w-[60rem] xl:max-w-6xl mx-auto font-barlow">
                 <p className="text-gray-900 text-center my-4">
-                    &copy; {new Date().getFullYear()} <Link href={'/'} className="hover:text-blue-600 font-bold">Rishikesh Handmade</Link>. All rights reserved
+                    &copy; <CurrentYear /> <Link href={'/'} className="hover:text-blue-600 font-bold">Rishikesh Handmade</Link>. All rights reserved
                 </p>
             </div>
         </footer >

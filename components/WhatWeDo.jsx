@@ -2,6 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import React from 'react'
 
 const accordionData = [
   {
@@ -28,7 +29,7 @@ const accordionData = [
 
 
 const WhatWeDo = () => {
-  const [openIdx, setOpenIdx] = useState(0);
+  const [openIndex, setOpenIndex] = useState(0);
   return (
     <div className="w-full min-h-screen bg-[#fcf7f1]">
       {/* Banner */}
@@ -66,41 +67,49 @@ const WhatWeDo = () => {
                 </p>
 
                 {/* Accordion */}
-                <div className="mt-6">
-                  {accordionData.map((item, idx) => (
-                    <div key={idx} className="mb-2 border border-gray-200 rounded-lg bg-[#fcf7f1]">
-                      <button
-                        className={`w-full flex items-center justify-between px-4 py-3 font-semibold text-left text-gray-800 focus:outline-none transition ${openIdx === idx ? 'bg-amber-100' : ''}`}
-                        onClick={() => setOpenIdx(openIdx === idx ? -1 : idx)}
-                        aria-expanded={openIdx === idx}
-                      >
-                        <span>{item.title}</span>
-                        <span className="ml-2">{openIdx === idx ? '-' : '+'}</span>
-                      </button>
-                      {openIdx === idx && (
-                        <div className="px-4 pb-3 text-gray-700 animate-fade-in">
-                          {item.content}
+                <div className="w-full max-w-2xl mx-auto mb-8">
+                  {accordionData.map((item, idx) => {
+                    // Create a ref for each accordion item
+                    const contentRef = React.useRef(null);
+                    // Calculate maxHeight for transition
+                    const isOpen = openIndex === idx;
+                    const [height, setHeight] = React.useState(0);
+
+                    React.useEffect(() => {
+                      if (isOpen && contentRef.current) {
+                        setHeight(contentRef.current.scrollHeight);
+                      } else {
+                        setHeight(0);
+                      }
+                    }, [isOpen]);
+
+                    return (
+                      <div key={idx} className="mb-2 border border-gray-200 rounded-lg bg-white shadow-sm">
+                        <button
+                          className={`w-full flex justify-between items-center px-4 py-3 text-left font-semibold text-lg transition focus:outline-none ${isOpen ? 'text-amber-700' : 'text-gray-800'}`}
+                          onClick={() => setOpenIndex(isOpen ? -1 : idx)}
+                          aria-expanded={isOpen}
+                        >
+                          <span>{item.title}</span>
+                          <span className="text-3xl">{isOpen ? '-' : '+'}</span>
+                        </button>
+                        <div
+                          ref={contentRef}
+                          style={{
+                            maxHeight: isOpen ? height : 0,
+                            opacity: isOpen ? 1 : 0,
+                            overflow: 'hidden',
+                            transition: 'max-height 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.3s',
+                          }}
+                          className="px-6 py-2"
+                        >
+                          <p className="text-gray-700 text-base whitespace-pre-line">{item.content}</p>
                         </div>
-                      )}
-                    </div>
-                  ))}
+                      </div>
+                    );
+                  })}
                 </div>
 
-                {/* Stats */}
-                <div className="grid grid-cols-3 gap-4 text-center mt-8">
-                  <div>
-                    <h2 className="text-3xl font-bold text-amber-700">40k+</h2>
-                    <span className="block text-gray-700">Happy Customer</span>
-                  </div>
-                  <div>
-                    <h2 className="text-3xl font-bold text-amber-700">35+</h2>
-                    <span className="block text-gray-700">Years in Business</span>
-                  </div>
-                  <div>
-                    <h2 className="text-3xl font-bold text-amber-700">98%</h2>
-                    <span className="block text-gray-700">Return Clients</span>
-                  </div>
-                </div>
               </div>
             </div>
             {/* Right Side - keep width fixed and separated */}
@@ -113,7 +122,7 @@ const WhatWeDo = () => {
         </div>
       </section>
       {/* Get in Touch Section */}
-      <section className="get-in-touch bg-black py-10 flex flex-col md:flex-row items-center justify-between px-4 md:px-24">
+      <section className="get-in-touch bg-black py-10 flex flex-col md:flex-row items-center justify-between px-4 md:px-24 mb-2">
         <div className="mb-4 md:mb-0">
           <h3 className="text-2xl font-bold text-white mb-2">Questions ? <span className="block text-lg font-normal">Our experts will help find the gear that’s right for you</span></h3>
         </div>

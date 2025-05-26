@@ -44,8 +44,8 @@ const Team = () => {
           <div className="flex flex-col lg:flex-row gap-8 mb-10 items-start">
             {/* Left: Heading and Paragraph */}
             <div className="w-full lg:w-[57%]">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-800 leading-tight">Behind Rishikesh Handmade Craft is a dedicated team of experienced professionals and industry veterans who share a deep passion for traditional Indian craftsmanship.</h2>
-              <p className="text-base text-gray-700 mb-4">
+              <h2 className="text-3xl md:text-5xl font-semibold mb-4 text-gray-800 leading-tight">Behind Rishikesh Handmade Craft is a dedicated team of experienced professionals and industry veterans who share a deep passion for traditional Indian craftsmanship.</h2>
+              <p className="text-xl text-gray-700 mb-4">
                 Our core team includes expert artisans, designers, curators, and community leaders — many of whom have over 20 years of hands-on experience in the handicraft and cottage industry.
               </p>
             </div>
@@ -53,7 +53,7 @@ const Team = () => {
             <div className="w-full lg:w-[43%] flex flex-row gap-8 items-start justify-center">
               {/* First Team Member */}
               <div className="flex flex-col items-center">
-                <div className="relative w-56 h-56 rounded-2xl overflow-hidden shadow-lg bg-[#f6e9da] flex items-center justify-center">
+                <div className="relative w-72 h-72 rounded-2xl overflow-hidden shadow-lg bg-[#f6e9da] flex items-center justify-center">
                   <Image src="/pic1_1.jpg" alt="John Doe" width={224} height={224} className="object-cover w-full h-full" />
                   {/* Social Icons Overlay */}
                     {/* <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-4 bg-white/80 px-4 py-2 rounded-full shadow">
@@ -70,7 +70,7 @@ const Team = () => {
               </div>
               {/* Second Team Member */}
               <div className="flex flex-col items-center">
-                <div className="w-56 h-56 rounded-2xl overflow-hidden shadow-lg bg-[#d6f0fa] flex items-center justify-center">
+                <div className="w-72 h-72 rounded-2xl overflow-hidden shadow-lg bg-[#d6f0fa] flex items-center justify-center">
                   <Image src="/pic1_1.jpg" alt="Ivan Mathews" width={224} height={224} className="object-cover w-full h-full" />
                 </div>
                 <div className="mt-3 text-center">
@@ -86,7 +86,7 @@ const Team = () => {
             {teamMembers.slice(2).map((member, idx) => (
               <div key={idx} className="flex flex-col items-center">
                 <div className="flex flex-col items-center">
-                <div className="w-56 h-56 rounded-2xl overflow-hidden shadow-lg bg-[#d6f0fa] flex items-center justify-center">
+                <div className="w-72 h-72 rounded-2xl overflow-hidden shadow-lg bg-[#d6f0fa] flex items-center justify-center">
                   <Image src="/pic1_1.jpg" alt="Ivan Mathews" width={224} height={224} className="object-cover w-full h-full" />
                 </div>
                 <div className="mt-3 text-center">
@@ -103,7 +103,7 @@ const Team = () => {
           </div>
 
           {/* Contributions Section */}
-          <div className="bg-white rounded-xl shadow p-8 border border-gray-200">
+          <div className="rounded-xl p-8 border border-gray-400">
             <h2 className="text-3xl font-bold mb-4 text-gray-800">Our Team’s Contributions Include:</h2>
             <ul className="list-decimal pl-6 text-base text-gray-700 space-y-2">
               <li><span className="font-bold">Mentoring and Training:</span> Providing skill development and mentorship to hundreds of young and emerging artisans in and around Rishikesh.</li>

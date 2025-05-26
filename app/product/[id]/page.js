@@ -1,42 +1,6 @@
-import Image from "next/image"
-import {
-    MapPin,
-    Calendar,
-    Clock,
-    Tag,
-    Star,
-    Check,
-    X,
-    AlertTriangle,
-    Calculator,
-    MessageSquare,
-    ShoppingCart,
-    PhoneCall,
-    MessageCircle,
-    CalendarClock,
-} from "lucide-react"
-
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import ReviewForm from "@/components/Category/review-form"
-import PackageGallery from "@/components/Category/package-gallery"
-import PackageMap from "@/components/Category/package-map"
 import Link from "next/link"
 import { SidebarInset } from "@/components/ui/sidebar"
-import User from "@/models/User"
-import { getReviewsById } from "@/actions/GetReviewsById"
-import { Card, CardContent } from "@/components/ui/card"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"
-import { DismissableInfoBox } from "@/components/Package/NoticeBox"
-import connectDB from "@/lib/connectDB"
-import Package from "@/models/Package"
-import PackageCarouselWrapper from "@/components/PackageCarouselWrapper";
-import FeaturedCarouselWrapper from "@/components/FeaturedCarouselWrapper";
-import ComingSoon from "@/models/ComingSoon";
-import ComingSoonEnquiryForm from "@/components/ComingSoonEnquiryForm";
-import ImportantNotice from "@/components/ImportantNotice"
 import ResponsiveFeaturedCarousel from "@/components/ResponsiveFeaturedCarousel"
 // import ProductInfoTabs from "@/components/ProductInfoTabs";
 import RelatedProductsCarousel from "@/components/RelatedProductsCarousel";
@@ -58,8 +22,6 @@ import ProductInfoTabs from "@/components/ProductInfoTabs";
 //     }
 // };
 
-
-
 const ProductDetailPage = async ({ params }) => {
     // Get the product slug from the URL and decode it
     let { id } = await params;
@@ -70,6 +32,13 @@ const ProductDetailPage = async ({ params }) => {
     const res = await fetch(apiUrl, { cache: 'no-store' });
     const product = await res.json();
     console.log('Fetched product:', product);
+
+    const relatedRes = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/product/relatedProducts?id=${id}&category=${product.category}`,
+        { cache: 'no-store' }   
+      );
+      const relatedProducts = await relatedRes.json();
+      console.log('Fetched related products:', relatedProducts);
     // If product not found, show not found message
     if (!product || product.error) {
         return (
@@ -91,11 +60,9 @@ const ProductDetailPage = async ({ params }) => {
                 {/* Product Tabs Section */}
                 <div className="my-2 flex items-center justify-center w-full">
                     <ProductInfoTabs product={product} />
-
                     </div>
-
                     <ResponsiveFeaturedCarousel />
-                    <RelatedProductsCarousel />
+                    <RelatedProductsCarousel products={relatedProducts} />
                     <StickyAddToCartBar product={product} />
 
                 </div>
