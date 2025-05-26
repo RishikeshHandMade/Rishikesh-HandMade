@@ -506,13 +506,13 @@ const RandomTourPackageSection = () => {
                         <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-6 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
                           <div className="flex flex-col gap-2">
                             <div>
-                              <a
+                              <Link
                                 href={`/artisan/${artisan.id}`}
                                 className="font-bold text-2xl text-white mb-3 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
                                 title={artisan.name}
                               >
                                 {artisan.name}
-                              </a>
+                              </Link>
                             </div>
                             <div className="text-md text-white drop-shadow-md">{artisan.title}</div>
                           </div>

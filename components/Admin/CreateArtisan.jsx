@@ -93,6 +93,34 @@ const CreateArtisan = () => {
     "Puducherry",
   ];
   const fileInputRef = useRef(null);
+  // Remove image from Cloudinary and UI state
+  const handleRemoveImage = async () => {
+    // Remove from UI immediately
+    setUploadedImage(null);
+    setSelectedImage(null);
+    // Delete from Cloudinary in the background
+    if (uploadedImage && uploadedImage.key) {
+      try {
+        const res = await fetch('/api/cloudinary', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ publicId: uploadedImage.key }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          toast.error('Cloudinary error: ' + (data.error || 'Failed to delete image from Cloudinary'));
+          // console.error('Cloudinary deletion error:', data.error);
+        }
+      } catch (err) {
+        toast.error('Failed to delete image from Cloudinary (network or server error)');
+        // console.error('Cloudinary deletion network/server error:', err);
+      }
+    } else {
+      // console.error('No Cloudinary key found for image:', uploadedImage);
+    }
+  };
+
+
   // Backend image upload handler for file input
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
@@ -132,7 +160,7 @@ const CreateArtisan = () => {
       const data = await res.json();
       setUsers(data);
     } catch (err) {
-      console.error("Error in fetchUsers:", err);
+      //  console.error("Error in fetchUsers:", err);
       toast.error("Failed to fetch users. Please try again later.");
     } finally {
       setLoading(false);
@@ -339,7 +367,14 @@ const CreateArtisan = () => {
     setValue("city", artisan.address?.city || "");
     setValue("state", artisan.address?.state || "");
     setSelectedImage(artisan.profileImage?.url || "");
+    // Ensure uploadedImage is set for editing (needed for Cloudinary removal)
+    setUploadedImage(
+      artisan.profileImage?.url && artisan.profileImage?.key
+        ? { url: artisan.profileImage.url, key: artisan.profileImage.key }
+        : null
+    );
   };
+
 
   // Edit form change handler
   const handleEditFormChange = (e) => {
@@ -784,8 +819,34 @@ const CreateArtisan = () => {
               variant={selectedImage ? "destructive" : "outline"}
               size="sm"
               className="flex items-center gap-2"
-              onClick={(e) => {
+              disabled={imageUploading}
+              onClick={async (e) => {
                 if (selectedImage) {
+                  // toast.success('Image removal requested');
+                  // Remove image from Cloudinary if uploadedImage.key is present
+                  if (uploadedImage && uploadedImage.key) {
+                    try {
+                      // console.log('Attempting to delete from Cloudinary:', uploadedImage.key);
+                      const res = await fetch('/api/cloudinary', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ publicId: uploadedImage.key }),
+                      });
+                      const data = await res.json();
+                      if (!res.ok) {
+                        toast.error('Cloudinary error: ' + (data.error || 'Failed to delete image from Cloudinary'));
+                        // console.error('Cloudinary deletion error:', data.error);
+                        return;
+                      }
+                      toast.success('Image deleted from Cloudinary');
+                    } catch (err) {
+                      toast.error('Failed to delete image from Cloudinary (network or server error)');
+                      // console.error('Cloudinary deletion network/server error:', err);
+                    }
+                  } else {
+                    toast.error('No Cloudinary key found for this image.');
+                    // console.error('No Cloudinary key found for image:', uploadedImage);
+                  }
                   setSelectedImage('');
                   setUploadedImage(null);
                 } else {
@@ -1078,26 +1139,41 @@ const CreateArtisan = () => {
               className="grid grid-cols-1 md:grid-cols-2 gap-4"
             >
               {/* Image upload input */}
-              <div className="col-span-2">
-                <label className="font-semibold">Profile Image</label>
-                <br />
+              <div className="flex flex-col items-center">
+                {selectedImage && (
+                  <div className="mb-2 flex flex-col items-center">
+                    <img
+                      src={selectedImage}
+                      alt="Selected"
+                      className="w-32 h-32 object-cover rounded-full border-2 border-blue-500"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      className="mt-2"
+                      onClick={handleRemoveImage}
+                      disabled={imageUploading}
+                    >
+                      Remove Image
+                    </Button>
+                  </div>
+                )}
                 <input
                   type="file"
                   accept="image/*"
+                  ref={fileInputRef}
                   onChange={handleImageChange}
+                  style={{ display: 'none' }}
                 />
-                {imageUploading && (
-                  <span style={{ color: "orange" }}>Uploading...</span>
-                )}
-                {selectedImage && (
-                  <div style={{ marginTop: 8 }}>
-                    <img
-                      src={selectedImage}
-                      alt="Preview"
-                      style={{ maxWidth: 150, borderRadius: 8 }}
-                    />
-                  </div>
-                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                  disabled={imageUploading}
+                >
+                  {imageUploading ? 'Uploading...' : 'Upload Image'}
+                </Button>
+              
               </div>
               <div>
                 <label className="font-semibold">First Name</label>

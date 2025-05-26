@@ -7,6 +7,7 @@ try {
   Artisan = require('@/models/Artisan');
 }
 import { addSpecializationIfNotExists } from "@/lib/specialization";
+import { deleteFileFromCloudinary } from "@/utils/cloudinary";
 import { deleteFileFromUploadthing } from "@/utils/Utapi";
 
 // Helper to normalize form data
@@ -131,6 +132,20 @@ export async function PATCH(req) {
       updateFields.active = !!updateFields.active;
     }
     console.log('PATCH updateFields:', updateFields); // Debug log
+    // If profileImage is being updated or cleared, delete the old image from Cloudinary
+    if (Object.prototype.hasOwnProperty.call(updateFields, 'profileImage')) {
+      const artisan = await Artisan.findById(id);
+      const oldKey = artisan?.profileImage?.key;
+      const newKey = updateFields.profileImage?.key;
+      // If the image is being changed or removed
+      if (oldKey && oldKey !== newKey) {
+        try {
+          await deleteFileFromCloudinary(oldKey);
+        } catch (err) {
+          console.error('Cloudinary deletion failed (PATCH):', err.message);
+        }
+      }
+    }
     // Directly replace all fields with the new data (admin full update)
     const updatedArtisan = await Artisan.findByIdAndUpdate(id, updateFields, { new: true, overwrite: false });
     if (!updatedArtisan) {
@@ -192,7 +207,7 @@ export async function DELETE(req) {
       return new Response(JSON.stringify({ message: 'Artisan not found' }), { status: 404 });
     }
     // Delete the image from Cloudinary if key exists (from request or document)
-    const imageKey = req.body?.imageKey || artisan.profileImage?.key;
+    const imageKey = artisan.profileImage?.key;
     if (imageKey) {
       try {
         await deleteFileFromCloudinary(imageKey);
