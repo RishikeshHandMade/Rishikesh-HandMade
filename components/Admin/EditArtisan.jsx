@@ -92,19 +92,17 @@ export default function EditArtisan({ artisan }) {
                   <TableCell className="px-4 py-3">{artisan.artisanNumber}</TableCell>
                   <TableCell className="px-4 py-3">
                     
-                    <Button
-                      size="sm"
-                      variant="default"
-                      className="bg-blue-600 hover:bg-blue-700 text-white rounded"
+                    <Link
+                      href={`/admin/artisan/${artisan._id}`}
                       onClick={() => {
                         if (typeof window !== 'undefined') {
                           sessionStorage.setItem(`artisan_${artisan._id}`, JSON.stringify(artisan));
                         }
-                        router.push(`/admin/artisan/${artisan._id}`);
                       }}
+                      className="bg-blue-600 hover:bg-blue-700 text-white rounded px-4 py-2 text-sm font-medium transition"
                     >
                       Edit Info
-                    </Button>
+                    </Link>
                   </TableCell>
                   <TableCell className="px-4 py-3 space-x-2">
                     <Link href={`/admin/artisan_dashboard/${artisan._id}`}>

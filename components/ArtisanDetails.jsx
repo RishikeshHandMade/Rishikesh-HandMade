@@ -9,6 +9,8 @@ import Autoplay from "embla-carousel-autoplay";
 import Link from "next/link"
 import BlogQuickViewModal from "./BlogQuickViewModal";
 import CertificateQuickViewModal from "./CertificateQuickViewModal";
+
+
 const CertificateSectionGrid = ({ certificates, onImageClick }) => {
   if (!certificates || certificates.length === 0) return <div className="text-gray-500 text-center">No certificates available.</div>;
   // Layout logic
@@ -16,12 +18,10 @@ const CertificateSectionGrid = ({ certificates, onImageClick }) => {
   if (certificates.length === 1) {
     grid = (
       <div className="flex flex-row gap-8 w-full items-stretch">
-        <div className="flex-1  flex flex-col justify-center">
-          <CertificateDetails cert={certificates[0]} />
-        </div>
         <div className="flex-1 flex items-center justify-center">
           <CertificateImage
             cert={certificates[0]}
+            className="w-[400px] h-[400px] object-cover rounded-2xl cursor-pointer"
             onClick={() => { onImageClick(certificates[0]); }}
           />
         </div>
@@ -30,15 +30,12 @@ const CertificateSectionGrid = ({ certificates, onImageClick }) => {
   } else if (certificates.length === 2) {
     grid = (
       <div className="flex flex-row gap-8 w-full items-stretch">
-        <div className="flex-1 flex flex-col justify-center">
-          <CertificateDetails cert={certificates[0]} />
-        </div>
-        <div className="flex-1 grid grid-rows-2 gap-4">
+        <div className="flex-1 flex flex-col gap-4 items-center justify-center">
           {certificates.map((cert, idx) => (
             <CertificateImage
               key={cert._id}
               cert={cert}
-              className="w-full h-full object-contain rounded-2xl cursor-pointer"
+              className="w-[400px] h-[220px] object-cover rounded-2xl cursor-pointer"
               onClick={() => { onImageClick(cert); }}
             />
           ))}
@@ -48,24 +45,21 @@ const CertificateSectionGrid = ({ certificates, onImageClick }) => {
   } else if (certificates.length === 3) {
     grid = (
       <div className="flex flex-row gap-8 w-full items-stretch">
-        <div className="flex-1 flex flex-col justify-center">
-          <CertificateDetails cert={certificates[0]} />
-        </div>
-        <div className="flex-1 grid grid-rows-2 gap-4">
-          <div className="grid grid-cols-2 gap-4">
-            {certificates.slice(1, 3).map((cert, idx) => (
+        <div className="flex-1 flex flex-col gap-4 items-center justify-center">
+          <div className="flex flex-row gap-4">
+            {certificates.slice(0, 2).map((cert, idx) => (
               <CertificateImage
                 key={cert._id}
                 cert={cert}
-                className="w-full h-full object-contain rounded-2xl cursor-pointer"
+                className="w-[200px] h-[200px] object-cover rounded-2xl cursor-pointer"
                 onClick={() => { onImageClick(cert); }}
               />
             ))}
           </div>
           <CertificateImage
-            cert={certificates[0]}
-            className="w-full h-full object-contain rounded-2xl cursor-pointer"
-            onClick={() => { setModalCertificate(certificates[0]); setShowCertificateModal(true); }}
+            cert={certificates[2]}
+            className="w-[400px] h-[200px] object-cover rounded-2xl cursor-pointer"
+            onClick={() => { onImageClick(certificates[2]); }}
           />
         </div>
       </div>
@@ -73,15 +67,12 @@ const CertificateSectionGrid = ({ certificates, onImageClick }) => {
   } else if (certificates.length === 4) {
     grid = (
       <div className="flex flex-row gap-8 w-full items-stretch">
-        <div className="flex-1 flex flex-col justify-center">
-          <CertificateDetails cert={certificates[0]} />
-        </div>
-        <div className="flex-1 grid grid-rows-2 grid-cols-2 gap-4">
+        <div className="flex-1 grid grid-rows-2 grid-cols-2 gap-4 items-center justify-center">
           {certificates.slice(0, 4).map((cert, idx) => (
             <CertificateImage
               key={cert._id}
               cert={cert}
-              className="w-full h-full object-contain rounded-2xl cursor-pointer"
+              className="w-[200px] h-[200px] object-cover rounded-2xl cursor-pointer"
               onClick={() => { onImageClick(cert); }}
             />
           ))}
@@ -92,15 +83,12 @@ const CertificateSectionGrid = ({ certificates, onImageClick }) => {
     // For more than 4, show first 4 as above, or you can expand logic as needed
     grid = (
       <div className="flex flex-row gap-8 w-full items-stretch">
-        <div className="flex-1 flex flex-col justify-center">
-          <CertificateDetails cert={certificates[0]} />
-        </div>
-        <div className="flex-1 grid grid-rows-2 grid-cols-2 gap-4">
+        <div className="flex-1 grid grid-rows-2 grid-cols-2 gap-4 items-center justify-center">
           {certificates.slice(0, 4).map((cert, idx) => (
             <CertificateImage
               key={cert._id}
               cert={cert}
-              className="w-full h-full object-contain rounded-2xl cursor-pointer"
+              className="w-[200px] h-[200px] object-cover rounded-2xl cursor-pointer"
               onClick={() => { onImageClick(cert); }}
             />
           ))}
@@ -115,34 +103,25 @@ const CertificateSectionGrid = ({ certificates, onImageClick }) => {
   );
 };
 
-const CertificateDetails = ({ cert }) => (
-  <div className="mb-6">
-    <p className='text-xl'>
-    Lorem ipsum dolor sit amet consectetur adipisicing elit. Aliquam aut ipsa corrupti, laudantium eos assumenda sed qui vitae ut. Aut mollitia obcaecati rerum optio repellendus reiciendis, accusamus, dignissimos impedit quisquam in molestias, voluptates voluptatem expedita. Nisi eligendi excepturi, optio ipsam, porro dolore perspiciatis corrupti atque anim
-    </p>
-  </div>
-);
-
-const CertificateImage = ({ cert, className = '', onClick }) => {
+const CertificateImage = ({ cert, className="", onClick }) => {
   const [hovered, setHovered] = React.useState(false);
   return (
     <div
-      className={`relative group ${className}`}
+      className={`relative w-[200px] h-[200px] rounded-2xl overflow-hidden shadow-lg ${className}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={onClick}
-      style={{ cursor: 'pointer', minHeight: 100, maxWidth: 200, maxHeight: 200 }}
+      style={{ cursor: 'pointer' }}
     >
       <img
         src={cert.imageUrl || cert.image}
         alt={cert.title}
-        className={`object-contain w-full h-full rounded-2xl transition-transform duration-200 ${hovered ? 'scale-105 brightness-90' : ''}`}
-        style={{ maxWidth: 500, maxHeight: 500 }}
+        className={`object-cover w-full h-full rounded-2xl transition-transform duration-200 ${hovered ? 'scale-105 brightness-90' : ''}`}
       />
       <div
-        className={`absolute inset-0 flex items-center justify-center bg-black bg-opacity-60 rounded-2xl transition-opacity duration-200 ${hovered ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 flex items-end pb-10 justify-center transition-opacity duration-200 ${hovered ? 'opacity-100' : 'opacity-0'}`}
       >
-        <span className="text-white text-lg font-bold px-4 text-center">{cert.title}</span>
+        <span className="text-white text-2xl font-bold px-4 text-center">{cert.title}</span>
       </div>
     </div>
   );
@@ -167,7 +146,7 @@ const ArtisanDetails = ({ artisan }) => {
       .then(data => setOtherArtisans(data))
       .catch(err => setOtherArtisans([]));
   }, [artisan._id]);
-  console.log(artisan)
+  // console.log(artisan)
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const [showShareBox, setShowShareBox] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -177,7 +156,7 @@ const ArtisanDetails = ({ artisan }) => {
   useEffect(() => {
     if (!showShareBox) return;
     function handleClick(e) {
-      if (shareBoxRef.current && !shareBoxRef.current.contains(e.target)) {
+      if (shareBoxRef.current && !shareBoxRef.current.covers(e.target)) {
         setShowShareBox(false);
       }
     }
@@ -735,8 +714,8 @@ const ArtisanDetails = ({ artisan }) => {
                           onClick={() => { setModalBlog(blog); setShowBlogModal(true); }}
                           className="text-gray-700 font-semibold hover:underline flex items-center group transition focus:outline-none"
                         >
-                          Read More
-                          <span className="ml-2">&gt;</span>
+                          Read More  &gt;
+                          
                         </button>
                       </div>
                     </div>
@@ -817,8 +796,8 @@ const ArtisanDetails = ({ artisan }) => {
       </div>
 
       {/* Certificate And Awards Section */}
-      <div className="w-full max-w-7xl mx-auto mb-10 mt-10">
-        <div className="flex flex-col md:flex-row items-start gap-8">
+      <div className="w-full md:w-[90%] mx-auto my-10">
+        <div className="flex flex-col items-start gap-8">
           {/* Left: Heading and description */}
           <div className="flex-1">
             <h2 className="text-4xl md:text-5xl font-bold mb-2">
@@ -826,31 +805,39 @@ const ArtisanDetails = ({ artisan }) => {
                 Certificate And Awards
               </span>
             </h2>
-            <div className="text-lg md:text-xl font-mono text-gray-700 mb-6">
-              {/* (<span className="font-bold"> Short Description </span>) Praesent vestibulum congue tellus at fringilla. Curabitur vitae semper sem, eu convallis est. Cras felis nunc commodo eu convallis vitae interdum non nisl. */}
-            </div>
           </div>
         </div>
-        {/* Responsive Certificate Grid */}
-      <CertificateSectionGrid
-        certificates={artisan.certificates && artisan.certificates.length > 0 ? artisan.certificates : [
-          {
-            _id: 1,
-            title: 'Gold Glitter Award',
-            year: '2021',
-            specialization: 'Craft Excellence',
-            image: 'https://img.freepik.com/free-vector/black-gold-glitter-background_52683-65222.jpg',
-          },
-          {
-            _id: 2,
-            title: 'Silver Handicraft Medal',
-            year: '2020',
-            specialization: 'Traditional Art',
-            image: 'https://img.freepik.com/free-vector/black-gold-glitter-background_52683-65222.jpg',
-          },
-        ]}
-        onImageClick={(cert) => { setModalCertificate(cert); setShowCertificateModal(true); }}
-      />
+        <div className="w-full h-[500px] mx-auto flex flex-row items-start justify-center px-5 py-1 gap-8">
+          {/* Left Column: Text */}
+          <div className="w-1/2 pr-6 flex flex-col justify-center h-full">
+            <p className="text-gray-700 text-2xl leading-relaxed">
+              Lorem ipsum dolor sit amet consectetur adipisicing elit. Aliquam aut ipsa corrupti, laudantium eos assumenda sed qui vitae ut. Aut mollitia obcaecati rerum optio repellendus reiciendis, accusamus, dignissimos impedit quisquam in molestias, voluptates voluptatem expedita. Nisi eligendi excepturi, optio ipsam, porro dolore perspiciatis corrupti atque anim
+            </p>
+          </div>
+          {/* Right Column: Certificate Grid */}
+          <div className="w-1/2 h-full flex flex-col items-center gap-4 overflow-hidden">
+            <CertificateSectionGrid
+              certificates={artisan.certificates && artisan.certificates.length > 0 ? artisan.certificates : [
+                {
+                  _id: 1,
+                  title: 'Gold Glitter Award',
+                  year: '2021',
+                  specialization: 'Craft Excellence',
+                  image: 'https://img.freepik.com/free-vector/black-gold-glitter-background_52683-65222.jpg',
+                },
+                {
+                  _id: 2,
+                  title: 'Silver Handicraft Medal',
+                  year: '2020',
+                  specialization: 'Traditional Art',
+                  image: 'https://img.freepik.com/free-vector/black-gold-glitter-background_52683-65222.jpg',
+                },
+              ]}
+              onImageClick={(cert) => { setModalCertificate(cert); setShowCertificateModal(true); }}
+              // imageClassName="w-full h-full object-cover rounded-lg shadow-md"
+            />
+          </div>
+        </div>   
       </div>
 
       {/* Meet Other Artisans Section */}
