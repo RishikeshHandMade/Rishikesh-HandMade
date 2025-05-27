@@ -9,7 +9,7 @@ import Autoplay from "embla-carousel-autoplay";
 import Link from "next/link"
 import BlogQuickViewModal from "./BlogQuickViewModal";
 import CertificateQuickViewModal from "./CertificateQuickViewModal";
-
+import { Star } from 'lucide-react';
 
 const CertificateSectionGrid = ({ certificates, onImageClick }) => {
   if (!certificates || certificates.length === 0) return <div className="text-gray-500 text-center">No certificates available.</div>;
@@ -103,7 +103,7 @@ const CertificateSectionGrid = ({ certificates, onImageClick }) => {
   );
 };
 
-const CertificateImage = ({ cert, className="", onClick }) => {
+const CertificateImage = ({ cert, className = "", onClick }) => {
   const [hovered, setHovered] = React.useState(false);
   return (
     <div
@@ -715,7 +715,7 @@ const ArtisanDetails = ({ artisan }) => {
                           className="text-gray-700 font-semibold hover:underline flex items-center group transition focus:outline-none"
                         >
                           Read More  &gt;
-                          
+
                         </button>
                       </div>
                     </div>
@@ -762,8 +762,22 @@ const ArtisanDetails = ({ artisan }) => {
                   key={review._id}
                   className="min-w-0 snap-center w-full"
                 >
-                  <div className="bg-white rounded-3xl px-8 py-5 flex flex-col justify-between h-full min-h-[300px] relative overflow-visible">
+                  <div className="bg-white rounded-3xl px-8 py-5 flex flex-col justify-between h-full min-h-[320px] relative overflow-visible">
                     {/* Review text */}
+                    <div className="text-md md:text-2xl text-gray-800 font-bold leading-relaxed mb-2 text-left">
+                      {review.title || 'No review text.'}
+                    </div>
+                    <div className="absolute right-4 top-4 flex items-center gap-1">
+                      {review.rating && (
+                        <>
+                          {[...Array(review.rating)].map((_, i) => (
+                            <Star key={i} size={22} className="text-yellow-400 fill-yellow-400" />
+                          ))}
+                        </>
+                      )}
+                    </div>
+
+
                     <div className="text-md md:text-md text-gray-800 font-medium leading-relaxed mb-2 text-left">
                       {review.shortDescription || 'No review text.'}
                     </div>
@@ -773,7 +787,7 @@ const ArtisanDetails = ({ artisan }) => {
                       <div className="flex items-center">
                         <img
                           src={review.image || "/placeholder-user.jpg"}
-                          alt={review.createdBy || review.title || 'Anonymous'}
+                          alt={review.createdBy || 'Anonymous'}
                           className="w-14 h-14 rounded-full border-4 border-white shadow object-cover"
                         />
                         <div className="ml-4 text-left">
@@ -811,11 +825,11 @@ const ArtisanDetails = ({ artisan }) => {
           {/* Left Column: Text */}
           <div className="w-1/2 pr-6 flex flex-col justify-center h-full">
             <p className="text-gray-700 text-2xl leading-relaxed">
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Aliquam aut ipsa corrupti, laudantium eos assumenda sed qui vitae ut. Aut mollitia obcaecati rerum optio repellendus reiciendis, accusamus, dignissimos impedit quisquam in molestias, voluptates voluptatem expedita. Nisi eligendi excepturi, optio ipsam, porro dolore perspiciatis corrupti atque anim
+              We extend our heartfelt congratulations to you on the remarkable achievement of reaching your goal. Your dedication, skill, and unwavering commitment to excellence have truly set you apart. As an artisan, your work reflects not only your talent but also the passion and perseverance that define true craftsmanship. It is with great pride and admiration that we recognize your outstanding accomplishment. May this milestone be a stepping stone to even greater success in your journey. We are honored to celebrate this moment with you and look forward to your continued excellence.
             </p>
           </div>
           {/* Right Column: Certificate Grid */}
-          <div className="w-1/2 h-full flex flex-col items-center gap-4 overflow-hidden">
+          <div className="w-1/2 h-full flex flex-col items-center gap-4 overflow-hidden border-4 border-black rounded-xl">
             <CertificateSectionGrid
               certificates={artisan.certificates && artisan.certificates.length > 0 ? artisan.certificates : [
                 {
@@ -834,10 +848,10 @@ const ArtisanDetails = ({ artisan }) => {
                 },
               ]}
               onImageClick={(cert) => { setModalCertificate(cert); setShowCertificateModal(true); }}
-              // imageClassName="w-full h-full object-cover rounded-lg shadow-md"
+            // imageClassName="w-full h-full object-cover rounded-lg shadow-md"
             />
           </div>
-        </div>   
+        </div>
       </div>
 
       {/* Meet Other Artisans Section */}
@@ -845,9 +859,9 @@ const ArtisanDetails = ({ artisan }) => {
         <div className="flex flex-col md:flex-row items-start gap-5 ">
           {/* Left: Heading and description */}
           <div className="flex-1 flex flex-col justify-center md:pr-8">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">Meet our team of creators, designers, and world-class problem solvers</h2>
-            <div className="text-lg md:text-xl text-gray-700 mb-6">
-              There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words.
+            <h2 className="text-4xl md:text-4xl font-bold mb-4">Celebrating the Art of Craftsmanship. Honoring the Hands That Shape Beauty</h2>
+            <div className="text-lg md:text-md text-gray-700 mb-6">
+              We are proud to recognize and celebrate your exceptional talent and dedication as a skilled handicraft artisan. Your ability to transform raw materials into beautiful, meaningful works of art speaks to your creativity, precision, and passion for the craft. Each piece you create is a testament to the enduring value of handmade artistry and the cultural richness it preserves. With deep appreciation, we commend you for achieving this milestone and look forward to witnessing your continued journey of artistic excellence.
             </div>
             <button className="bg-black text-white py-3 px-6 rounded-lg font-semibold text-lg w-fit mb-6">Join Our Team</button>
           </div>

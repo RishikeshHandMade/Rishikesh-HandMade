@@ -499,6 +499,7 @@ const RandomTourPackageSection = () => {
                             src={artisan.image}
                             alt={artisan.name}
                             fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                             className="object-cover w-full h-full"
                           />
                         </div>

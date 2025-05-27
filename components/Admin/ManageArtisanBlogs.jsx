@@ -42,10 +42,14 @@ const ManageArtisanBlogs = ({ artisanId, artisanDetails = null }) => {
     // Fetch artisans from API
     setArtisans([]);
   };
-  const fetchBlogs = async () => {
+  const fetchBlogs = async (artisanIdToFetch) => {
+    if (!artisanIdToFetch) {
+      setBlogs([]);
+      return;
+    }
     try {
       setLoadingReviews(true);
-      const res = await fetch('/api/artisanBlog');
+      const res = await fetch(`/api/artisanBlog?artisanId=${artisanIdToFetch}`);
       if (!res.ok) throw new Error('Failed to fetch blogs');
       const data = await res.json();
       setBlogs(data.blogs || []);
@@ -164,14 +168,13 @@ const ManageArtisanBlogs = ({ artisanId, artisanDetails = null }) => {
   }, [artisanId]);
 
   useEffect(() => {
-    fetchBlogs();
-    // Optionally, fetchArtisans();
+    fetchBlogs(selectedArtisan || artisanId);
     return () => {
       selectedImages.forEach(image => {
         URL.revokeObjectURL(image.url);
       });
     };
-  }, [selectedImages]);
+  }, [selectedArtisan, artisanId]);
 
   const handleEdit = (blog) => {
     setEditMode(true);
@@ -209,7 +212,7 @@ const ManageArtisanBlogs = ({ artisanId, artisanDetails = null }) => {
       const data = await res.json();
       if (res.ok) {
         toast.success('Blog deleted successfully!');
-        fetchBlogs();
+        fetchBlogs(selectedArtisan || artisanId);
       } else {
         toast.error(data?.message || 'Failed to delete blog');
       }
@@ -260,7 +263,7 @@ const ManageArtisanBlogs = ({ artisanId, artisanDetails = null }) => {
       data = await res.json();
       if (res.ok) {
         toast.success(editMode ? 'Blog updated successfully!' : 'Blog created successfully!');
-        fetchBlogs();
+        fetchBlogs(selectedArtisan || artisanId);
         handleCancelEdit();
       } else {
         toast.error(data?.message || 'Failed to save blog');
@@ -274,7 +277,6 @@ const ManageArtisanBlogs = ({ artisanId, artisanDetails = null }) => {
 
   useEffect(() => {
     fetchArtisans();
-    fetchBlogs();
   }, []);
 
   const handleCancelEdit = () => {
@@ -289,16 +291,16 @@ const ManageArtisanBlogs = ({ artisanId, artisanDetails = null }) => {
     setSelectedImages([]);
   };
 
-const [mediaTab, setMediaTab] = useState('image'); // 'image' or 'youtube'
+  const [mediaTab, setMediaTab] = useState('image'); // 'image' or 'youtube'
 
-const handleTabChange = (tab) => {
-  setMediaTab(tab);
-  if (tab === 'image') {
-    setYoutubeUrl('');
-  } else {
-    setSelectedImages([]);
-  }
-};
+  const handleTabChange = (tab) => {
+    setMediaTab(tab);
+    if (tab === 'image') {
+      setYoutubeUrl('');
+    } else {
+      setSelectedImages([]);
+    }
+  };
   // GROUP BLOGS BY ARTISAN
   // const groupedBlogs = blogs.reduce((acc, blog) => {
   //   const artisanId = blog.artisan?._id;
@@ -344,100 +346,100 @@ const handleTabChange = (tab) => {
                   </div>
                 </div>
                 {/* Media Tab Section */}
-<div className="mb-4">
-  <div className="flex gap-2 mb-2">
-    <button
-      type="button"
-      className={`px-4 py-2 rounded-t ${mediaTab === 'image' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
-      onClick={() => handleTabChange('image')}
-    >
-      Image
-    </button>
-    <button
-      type="button"
-      className={`px-4 py-2 rounded-t ${mediaTab === 'youtube' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
-      onClick={() => handleTabChange('youtube')}
-    >
-      YouTube URL
-    </button>
-  </div>
-  {mediaTab === 'youtube' ? (
-    <div>
-      <label className="block font-semibold mb-1">YouTube URL</label>
-      <input
-        type="text"
-        placeholder="YouTube URL:"
-        value={youtubeUrl}
-        onChange={e => setYoutubeUrl(e.target.value)}
-        className="w-full border rounded px-3 py-2"
-      />
-    </div>
-  ) : (
-    <div>
-      <label className="block font-semibold mb-1">Artisan Images</label>
-      <div className="border rounded p-4 mt-2">
-        <div className="text-center mb-3">
-          {selectedImages.length === 0 ? (
-            <div className="text-gray-400">No images uploaded yet.</div>
-          ) : (
-            <div className="flex flex-wrap gap-3 justify-center">
-              {selectedImages.map((image, index) => (
-                <div key={image.key || image.url || index} className="relative w-40 h-36">
-                  <img
-                    src={image.url}
-                    alt={`Preview ${index + 1}`}
-                    className="w-full h-full object-cover rounded"
-                  />
-                  <button
-                    type="button"
-                    className="absolute top-2 right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center"
-                    onClick={() => removeImage(index)}
-                  >
-                    ×
-                  </button>
+                <div className="mb-4">
+                  <div className="flex gap-2 mb-2">
+                    <button
+                      type="button"
+                      className={`px-4 py-2 rounded-t ${mediaTab === 'image' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+                      onClick={() => handleTabChange('image')}
+                    >
+                      Image
+                    </button>
+                    <button
+                      type="button"
+                      className={`px-4 py-2 rounded-t ${mediaTab === 'youtube' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+                      onClick={() => handleTabChange('youtube')}
+                    >
+                      YouTube URL
+                    </button>
+                  </div>
+                  {mediaTab === 'youtube' ? (
+                    <div>
+                      <label className="block font-semibold mb-1">YouTube URL</label>
+                      <input
+                        type="text"
+                        placeholder="YouTube URL:"
+                        value={youtubeUrl}
+                        onChange={e => setYoutubeUrl(e.target.value)}
+                        className="w-full border rounded px-3 py-2"
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="block font-semibold mb-1">Artisan Images</label>
+                      <div className="border rounded p-4 mt-2">
+                        <div className="text-center mb-3">
+                          {selectedImages.length === 0 ? (
+                            <div className="text-gray-400">No images uploaded yet.</div>
+                          ) : (
+                            <div className="flex flex-wrap gap-3 justify-center">
+                              {selectedImages.map((image, index) => (
+                                <div key={image.key || image.url || index} className="relative w-40 h-36">
+                                  <img
+                                    src={image.url}
+                                    alt={`Preview ${index + 1}`}
+                                    className="w-full h-full object-cover rounded"
+                                  />
+                                  <button
+                                    type="button"
+                                    className="absolute top-2 right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center"
+                                    onClick={() => removeImage(index)}
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-center mt-2">
+                          <div className="mt-2">
+                            <small className={selectedImages.length === 10 ? 'text-red-600' : 'text-gray-500'}>
+                              {selectedImages.length}/10 images selected
+                            </small>
+                          </div>
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          style={{ display: 'none' }}
+                          ref={fileInputRef}
+                          onChange={handleImageChange}
+                        />
+                        <Button
+                          type="button"
+                          className="bg-blue-600 text-white px-4 py-2 rounded mt-2"
+                          onClick={handleBrowseClick}
+                          disabled={imageUploading || selectedImages.length >= 10}
+                        >
+                          {imageUploading ? 'Uploading...' : 'Browse Image(s)'}
+                        </Button>
+                        {imageUploading && (
+                          <div className="w-full mt-2">
+                            <div className="bg-gray-200 rounded h-2 overflow-hidden">
+                              <div
+                                className="bg-blue-500 h-2 rounded"
+                                style={{ width: `${uploadProgress}%`, transition: 'width 0.3s' }}
+                              />
+                            </div>
+                            <div className="text-sm text-gray-600 mt-1">Uploading... {uploadProgress}%</div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-        <div className="text-center mt-2">
-          <div className="mt-2">
-            <small className={selectedImages.length === 10 ? 'text-red-600' : 'text-gray-500'}>
-              {selectedImages.length}/10 images selected
-            </small>
-          </div>
-        </div>
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          style={{ display: 'none' }}
-          ref={fileInputRef}
-          onChange={handleImageChange}
-        />
-        <Button
-          type="button"
-          className="bg-blue-600 text-white px-4 py-2 rounded mt-2"
-          onClick={handleBrowseClick}
-          disabled={imageUploading || selectedImages.length >= 10}
-        >
-          {imageUploading ? 'Uploading...' : 'Browse Image(s)'}
-        </Button>
-        {imageUploading && (
-          <div className="w-full mt-2">
-            <div className="bg-gray-200 rounded h-2 overflow-hidden">
-              <div
-                className="bg-blue-500 h-2 rounded"
-                style={{ width: `${uploadProgress}%`, transition: 'width 0.3s' }}
-              />
-            </div>
-            <div className="text-sm text-gray-600 mt-1">Uploading... {uploadProgress}%</div>
-          </div>
-        )}
-      </div>
-    </div>
-  )}
-</div>
                 <div className="mb-4">
                   <label className="block font-semibold mb-1">Short Description</label>
                   <input

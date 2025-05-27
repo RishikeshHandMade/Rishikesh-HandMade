@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import connectDB from '../../../lib/connectDB';
+import connectDB from '@/lib/connectDB';
 let ArtisanCertificate 
 try {
   ArtisanCertificate = mongoose.model('ArtisanCertificate');
@@ -12,16 +12,28 @@ const Artisan = require('@/models/Artisan');
 export async function GET(req) {
   await connectDB();
   const url = new URL(req.url);
-  const artisanId = url.searchParams.get('artisan');
+  const artisanId = url.searchParams.get('artisanId');
   try {
     let certificates;
     if (artisanId) {
-      certificates = await ArtisanCertificate.find({ artisan: artisanId }).populate('artisan');
-      return NextResponse.json({ success: true, certificates });
+      // First check if the artisan exists and get their certificates
+      const artisan = await Artisan.findById(artisanId)
+        .populate({
+          path: 'certificates',
+          populate: { path: 'artisan', select: 'firstName lastName' }
+        })
+        .select('certificates');
+      
+      if (artisan && artisan.certificates) {
+        certificates = artisan.certificates;
+      } else {
+        certificates = [];
+      }
     } else {
-      certificates = await ArtisanCertificate.find().populate('artisan');
-      return NextResponse.json({ success: true, certificates });
+      certificates = await ArtisanCertificate.find()
+        .populate('artisan', 'firstName lastName');
     }
+    return NextResponse.json({ success: true, certificates });
   } catch (err) {
     return NextResponse.json({ success: false, message: 'Failed to fetch certificates', error: err.message }, { status: 500 });
   }

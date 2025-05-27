@@ -64,19 +64,35 @@ const ArtisonStory = ({ artisanId, artisanDetails = null }) => {
 
 
   // Placeholder fetchers (replace with your API calls)
-  const fetchStories = async () => {
+const fetchStories = async () => {
+    const currentArtisanId = artisanDetails?._id || artisanId || selectedArtisan;
+    if (!currentArtisanId) {
+      setStories([]);
+      return;
+    }
     try {
-      const res = await fetch('/api/artisanStory');
+      setLoading(true);
+      const res = await fetch(`/api/artisanStory?artisanId=${currentArtisanId}`);
       const data = await res.json();
       if (data.success) {
-        setStories(data.stories);
+        setStories(data.stories || []);
       } else {
         toast.error(data.message || 'Failed to fetch stories');
+        setStories([]);
       }
     } catch (err) {
+      console.error('Error fetching stories:', err);
       toast.error('Failed to fetch stories');
+      setStories([]);
+    } finally {
+      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchStories();
+  }, [artisanId, artisanDetails, selectedArtisan]);
+ 
   const handleEditStory = (story) => {
     setEditMode(true);
     setEditingId(story._id);
@@ -197,7 +213,10 @@ const ArtisonStory = ({ artisanId, artisanDetails = null }) => {
     setShortDescription('');
     setLongDescription('');
     setSelectedImage(null);
-    setSelectedArtisan('');
+    // Only reset selectedArtisan if there's no artisanId provided
+    if (!artisanId) {
+      setSelectedArtisan('');
+    }
   };
 
   const handleCancelEdit = () => {
@@ -207,8 +226,8 @@ const ArtisonStory = ({ artisanId, artisanDetails = null }) => {
   };
 
   useEffect(() => {
-    fetchStories();
-  }, []);
+    fetchStories(selectedArtisan || artisanId);
+  }, [selectedArtisan, artisanId]);
 
   // GROUP STORIES BY ARTISAN
   const groupedStories = stories.reduce((acc, story) => {

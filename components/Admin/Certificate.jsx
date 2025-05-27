@@ -81,17 +81,34 @@ const Certificate = ({ artisanId, artisanDetails = null }) => {
   const fetchCertificates = async () => {
     setLoadingCertificates(true);
     try {
-      const res = await fetch('/api/artisanCertificates');
+      const currentArtisanId = selectedArtisan || artisanId;
+      const res = await fetch(`/api/artisanCertificates?artisanId=${currentArtisanId}`);
       const data = await res.json();
-      if (data.success) setCertificates(data.certificates);
-      else toast.error(data.message || 'Failed to fetch certificates');
+      if (data.success) {
+        setCertificates(data.certificates || []);
+      } else {
+        toast.error(data.message || 'Failed to fetch certificates');
+        setCertificates([]);
+      }
     } catch {
       toast.error('Failed to fetch certificates');
+      setCertificates([]);
     } finally {
       setLoadingCertificates(false);
     }
   };
-  useEffect(() => { fetchCertificates(); fetchSpecializations(); }, []);
+
+  useEffect(() => {
+    fetchSpecializations();
+  }, []);
+
+  useEffect(() => {
+    if (selectedArtisan || artisanId) {
+      fetchCertificates();
+    } else {
+      setCertificates([]);
+    }
+  }, [selectedArtisan, artisanId]);
   // Helper: Group certificates by artisan
   const groupedByArtisan = React.useMemo(() => {
     const map = {};

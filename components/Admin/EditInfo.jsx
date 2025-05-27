@@ -7,6 +7,7 @@ import ManageArtisanBlogs from './ManageArtisanBlogs';
 import ArtisonStory from './ArtisonStory';
 import SocialPlugins from './SocialPlugins';
 import Certificate from './Certificate';
+// import ProductCatalog from './ProductCatalog';
 
 const sectionConfig = [
   {
@@ -14,11 +15,11 @@ const sectionConfig = [
     label: 'Promotional Reviews',
     component: CreatePromotional,
   },
-  {
-    key: 'catalog',
-    label: 'Product Catalog',
-    component: () => <div style={{ fontSize: 22, textAlign: 'center', marginTop: 40 }}>Product Catalog page coming soon...</div>
-  },
+  // {
+  //   key: 'catalog',
+  //   label: 'Product Catalog',
+  //   component: ProductCatalog
+  // },
   {
     key: 'artisanBlogs',
     label: 'Artisan Blogs / Experience',

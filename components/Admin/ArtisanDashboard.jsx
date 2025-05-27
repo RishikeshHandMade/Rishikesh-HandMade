@@ -4,7 +4,7 @@ import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { toast } from 'react-hot-toast';
-
+import Link from "next/link"
 const sectionTitles = [
   'Profile',
   'Promotions Reviews',
@@ -27,103 +27,14 @@ const boxStyle = {
   marginBottom: '16px'
 };
 
-const sectionConfig = [
-  {
-    key: 'profile',
-    label: 'Profile',
-    component: ({ artisanId, artisanDetails }) => (
-      <div style={boxStyle}>
-        <img
-          src={artisanDetails?.profileImage?.url || '/artisan-placeholder.png'}
-          alt="Artisan"
-          className="w-32 h-32 object-cover rounded-full border mb-4"
-        />
-        <div className="ml-4">
-          <div className="font-bold text-lg">{artisanDetails?.title} {artisanDetails?.firstName} {artisanDetails?.lastName}</div>
-          <div className="text-gray-600 text-sm">Artisan Number: {artisanDetails?.artisanNumber}</div>
-        </div>
-      </div>
-    )
-  },
-  {
-    key: 'promotionalReviews',
-    label: 'Promotions Reviews',
-    component: ({ artisanId, artisanDetails }) => (
-      <div style={boxStyle}>
-        <div className="font-bold text-lg">Promotions Reviews</div>
-        <div className="text-gray-600 text-sm">Reviews for artisan {artisanId}</div>
-        <Button>View</Button>
-        <Button>Delete</Button>
-      </div>
-    )
-  },
-  {
-    key: 'catalog',
-    label: 'Catalog',
-    component: ({ artisanId }) => (
-      <div style={boxStyle}>
-        <div className="font-bold text-lg">Catalog</div>
-        <div className="text-gray-600 text-sm">Catalog for artisan {artisanId}</div>
-        <Button>View</Button>
-        <Button>Delete</Button>
-      </div>
-    )
-  },
-  {
-    key: 'blog',
-    label: 'Blog',
-    component: ({ artisanId }) => (
-      <div style={boxStyle}>
-        <div className="font-bold text-lg">Blog</div>
-        <div className="text-gray-600 text-sm">Blog for artisan {artisanId}</div>
-        <Button>View</Button>
-        <Button>Delete</Button>
-      </div>
-    )
-  },
-  {
-    key: 'artisanStory',
-    label: 'Artisan Story',
-    component: ({ artisanId }) => (
-      <div style={boxStyle}>
-        <div className="font-bold text-lg">Artisan Story</div>
-        <div className="text-gray-600 text-sm">Story for artisan {artisanId}</div>
-        <Button>View</Button>
-        <Button>Delete</Button>
-      </div>
-    )
-  },
-  {
-    key: 'social',
-    label: 'Social Plugins',
-    component: ({ artisanId }) => (
-      <div style={boxStyle}>
-        <div className="font-bold text-lg">Social Plugins</div>
-        <div className="text-gray-600 text-sm">Plugins for artisan {artisanId}</div>
-        <Button>View</Button>
-        <Button>Delete</Button>
-      </div>
-    )
-  },
-  {
-    key: 'certifications',
-    label: 'Certifications',
-    component: ({ artisanId }) => (
-      <div style={boxStyle}>
-        <div className="font-bold text-lg">Certifications</div>
-        <div className="text-gray-600 text-sm">Certifications for artisan {artisanId}</div>
-        <Button>View</Button>
-        <Button>Delete</Button>
-      </div>
-    )
-  },
-];
+
 
 const ArtisanDashboard = () => {
   const params = useParams();
   const artisanId = params?.id;
   // State for artisan and all section data
   const [artisan, setArtisan] = useState(null);
+  console.log(artisan)
   const [loading, setLoading] = useState(true);
   const [promotions, setPromotions] = useState([]);
   const [blogs, setBlogs] = useState([]);
@@ -140,50 +51,42 @@ const ArtisanDashboard = () => {
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [selectedCertificate, setSelectedCertificate] = useState(null);
   const [deleteModal, setDeleteModal] = useState({ show: false, type: '', id: null });
-
+  const [catalogLoading, setCatalogLoading] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [showProductModal, setShowProductModal] = useState(false);
+  // console.log(products)
   useEffect(() => {
     async function fetchAll() {
       setLoading(true);
       try {
-        const [
-          artisanRes,
-          promoRes,
-          blogRes,
-          storyRes,
-          pluginRes,
-          certRes
-        ] = await Promise.all([
-          fetch(`/api/createArtisan`),
-          fetch(`/api/promotion?artisanId=${artisanId}`),
-          fetch(`/api/artisanBlog?artisanId=${artisanId}`),
-          fetch(`/api/artisanStory?artisanId=${artisanId}`),
-          fetch(`/api/artisanPlugins?artisanId=${artisanId}`),
-          fetch(`/api/artisanCertificates?artisanId=${artisanId}`)
-        ]);
-        const [
-          artisanData,
-          promoData,
-          blogData,
-          storyData,
-          pluginData,
-          certData
-        ] = await Promise.all([
-          artisanRes.json(),
-          promoRes.json(),
-          blogRes.json(),
-          storyRes.json(),
-          pluginRes.json(),
-          certRes.json()
-        ]);
-        const found = artisanData.find(a => a._id === artisanId);
-        setArtisan(found);
-        setPromotions(Array.isArray(promoData) ? promoData : (promoData.promotions || []));
-        setBlogs(Array.isArray(blogData) ? blogData : (blogData.blogs || []));
-        setStories(Array.isArray(storyData) ? storyData : (storyData.stories || []));
-        setSocialPlugin(Array.isArray(pluginData) ? pluginData : (pluginData.plugins || []));
-        setCertificates(Array.isArray(certData) ? certData : (certData.certificates || []));
+        const res = await fetch(`/api/createArtisan/${artisanId}`);
+        const artisan = await res.json();
+        if (!artisan || artisan.message === 'Artisan not found') {
+          setArtisan(null);
+          setProducts([]);
+          setPromotions([]);
+          setBlogs([]);
+          setStories([]);
+          setSocialPlugin([]);
+          setCertificates([]);
+        } else {
+          setArtisan(artisan);
+          setProducts(Array.isArray(artisan.products) ? artisan.products : []);
+          setPromotions(Array.isArray(artisan.promotions) ? artisan.promotions : []);
+          setBlogs(Array.isArray(artisan.artisanBlogs) ? artisan.artisanBlogs : []);
+          setStories(Array.isArray(artisan.artisanStories) ? artisan.artisanStories : []);
+          setSocialPlugin(Array.isArray(artisan.socialPlugin) ? artisan.socialPlugin : []);
+          setCertificates(Array.isArray(artisan.certificates) ? artisan.certificates : []);
+        }
       } catch (e) {
         setArtisan(null);
+        setProducts([]);
+        setPromotions([]);
+        setBlogs([]);
+        setStories([]);
+        setSocialPlugin([]);
+        setCertificates([]);
       } finally {
         setLoading(false);
       }
@@ -260,6 +163,8 @@ const ArtisanDashboard = () => {
       <div className="flex-1" style={{ border: '1px solid #ced4da', borderRadius: '8px', background: '#fff', padding: '20px', height: '100%', overflowY: 'auto' }}>
         <h2 className="mb-4 text-center" style={{ fontWeight: 600 }}>{activeKey}</h2>
 
+
+
         {/* Profile Section */}
         {activeKey === 'Profile' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -312,6 +217,44 @@ const ArtisanDashboard = () => {
                   <div className="flex gap-2 mt-2 self-end">
                     <Button size="sm" variant="default" onClick={() => { setSelectedPromotion(promotion); setShowPromotionModal(true); }}>View</Button>
                     <Button size="sm" variant="destructive" onClick={() => handleDelete('promotion', promotion._id)}>Delete</Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+        {/* Catalog Section */}
+        {activeKey === 'Catalog' && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {catalogLoading ? (
+              <div className="col-span-3 text-center">Loading products...</div>
+            ) : products.length === 0 ? (
+              <div className="col-span-3 text-center">No products found for this artisan.</div>
+            ) : (
+              products.map((product, idx) => (
+                <div
+                  key={product._id || idx}
+                  className="flex flex-col overflow-hidden"
+                >
+                  {/* Image Section */}
+                  <div className="w-full h-48 bg-gray-100">
+                    <img
+                      src={product.gallery?.mainImage || '/placeholder.jpeg'}
+                      alt={product.title || 'Product Image'}
+                      className="w-full h-full object-cover rounded-xl"
+                      onError={e => { e.target.onerror = null; e.target.src = '/placeholder.jpeg'; }}
+                    />
+                  </div>
+                  {/* Info Section */}
+                  <div className="flex items-center justify-between gap-1 p-3">
+                    <Link
+                      href={`/product/${product._id}`}
+                    >
+                      <div className="font-semibold text-base text-gray-900 truncate hover:underline cursor-pointer">{product.title || 'Product'}</div>
+                    </Link>
+                    <div className="text-green-700 font-bold text-lg">
+                      {product.quantity?.variants[0] ? `₹${product.quantity.variants[0].price}` : 'No price'}
+                    </div>
                   </div>
                 </div>
               ))
@@ -391,26 +334,32 @@ const ArtisanDashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
             <div style={boxStyle}>
               <b>Facebook: &nbsp;</b>
-              <a href={socialPlugin[0].facebook} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
-                {socialPlugin[0].facebook}
+              <a href={socialPlugin[0]?.facebook} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
+                {socialPlugin[0]?.facebook || "Not Avaliable"}
               </a>
             </div>
             <div style={boxStyle}>
               <b>Instagram: &nbsp;</b>
-              <a href={socialPlugin[0].instagram} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
-                {socialPlugin[0].instagram}
+              <a href={socialPlugin[0]?.instagram} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
+                {socialPlugin[0]?.instagram|| "Not Avaliable"}
+              </a>
+            </div>
+            <div style={boxStyle}>
+              <b>Youtube: &nbsp;</b>
+              <a href={socialPlugin[0]?.youtube} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
+                {socialPlugin[0]?.youtube|| "Not Avaliable"}
               </a>
             </div>
             <div style={boxStyle}>
               <b>Google: &nbsp;</b>
-              <a href={socialPlugin[0].google} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
-                {socialPlugin[0].google}
+              <a href={socialPlugin[0]?.google} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
+                {socialPlugin[0]?.google || "Not Avaliable"}
               </a>
             </div>
             <div style={boxStyle}>
               <b>Website: &nbsp;</b>
-              <a href={socialPlugin[0].website} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
-                {socialPlugin[0].website}
+              <a href={socialPlugin[0]?.website} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
+                {socialPlugin[0]?.website || "Not Avaliable"}
               </a>
             </div>
           </div>

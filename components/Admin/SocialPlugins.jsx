@@ -27,24 +27,41 @@ const SocialPlugins = ({ artisanId, artisanDetails = null }) => {
   const [selectedArtisanInfo, setSelectedArtisanInfo] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Fetch all plugins
+  // Fetch plugins for selected artisan
   const fetchPlugins = async () => {
+    const currentArtisanId = selectedArtisan || artisanId;
+    if (!currentArtisanId) {
+      setPlugins([]);
+      return;
+    }
+
     setLoading(true);
     try {
-      const res = await fetch('/api/artisanPlugins');
+      const res = await fetch(`/api/artisanPlugins?artisanId=${currentArtisanId}`);
+      if (!res.ok) throw new Error('Network response was not ok');
+      
       const data = await res.json();
-      console.log(data)
-      if (data.success) setPlugins(data.plugins);
-      else toast.error(data.message || 'Failed to fetch plugins');
-    } catch {
+      if (data.success) {
+        setPlugins(data.plugins || []);
+      } else {
+        console.error('API Error:', data.message);
+        toast.error(data.message || 'Failed to fetch plugins');
+        setPlugins([]);
+      }
+    } catch (error) {
+      console.error('Fetch Error:', error);
       toast.error('Failed to fetch plugins');
+      setPlugins([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
-    fetchPlugins();
-  }, []);
+    if (selectedArtisan || artisanId) {
+      fetchPlugins();
+    }
+  }, [selectedArtisan, artisanId]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -86,10 +103,17 @@ const SocialPlugins = ({ artisanId, artisanDetails = null }) => {
           toast.error(data.message || 'Failed to create plugin');
         }
       }
-      setEditMode(false);
-      setEditPluginData(null);
-      setFormData({ facebook: '', google: '', instagram: '',youtube:'', website: '' });
-      setSelectedArtisan('');
+      if (data.success) {
+        setEditMode(false);
+        setEditPluginData(null);
+        setFormData({ facebook: '', google: '', instagram: '',youtube:'', website: '' });
+        // Don't reset selectedArtisan if we have artisanId
+        if (!artisanId) {
+          setSelectedArtisan('');
+        }
+        // Fetch updated plugins
+        fetchPlugins();
+      }
       fetchPlugins();
     } catch {
       toast.error('Something went wrong!');

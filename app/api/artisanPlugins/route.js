@@ -14,7 +14,7 @@ const Artisan = require('@/models/Artisan');
 export async function GET(req) {
   await connectDB();
   const url = new URL(req.url);
-  const artisanId = url.searchParams.get('artisan');
+  const artisanId = url.searchParams.get('artisanId');
   try {
     let plugins;
     if (artisanId) {
@@ -34,27 +34,48 @@ export async function POST(req) {
   await connectDB();
   try {
     const body = await req.json();
-    // Ensure only one plugin per artisan
-    let existing = await ArtisanPlugin.findOne({ artisan: body.artisan });
+
+    // Validate required fields
+    if (!body.artisan) {
+      return NextResponse.json({ success: false, message: 'Artisan ID is required.' }, { status: 400 });
+    }
+
+    // Check if artisan exists
+    const artisan = await Artisan.findById(body.artisan);
+    if (!artisan) {
+      return NextResponse.json({ success: false, message: 'Artisan not found.' }, { status: 404 });
+    }
+
+    // Check for existing plugin
+    const existing = await ArtisanPlugin.findOne({ artisan: body.artisan });
     if (existing) {
-      return NextResponse.json({ success: false, message: 'Plugin already exists for this artisan.' }, { status: 400 });
-    }
-    // Log the incoming body for debugging
-    // console.log('Received body for SocialPlugin POST:', body);
-    try {
-      const plugin = await ArtisanPlugin.create(body);
-      // Push plugin _id to artisan's socialPlugin field
-      if (plugin.artisan) {
-        await Artisan.findByIdAndUpdate(plugin.artisan, { socialPlugin: plugin._id });
+      // If plugin exists but is empty, allow update
+      const hasContent = existing.facebook || existing.google || existing.instagram || existing.youtube || existing.website;
+      if (hasContent) {
+        return NextResponse.json({ success: false, message: 'Social plugin already exists for this artisan.' }, { status: 400 });
       }
-      return NextResponse.json({ success: true, plugin });
-    } catch (pluginErr) {
-      console.error('Error creating ArtisanPlugin:', pluginErr);
-      return NextResponse.json({ success: false, message: 'Failed to create plugin', error: pluginErr.stack }, { status: 500 });
+      // If empty, delete the existing one
+      await ArtisanPlugin.findByIdAndDelete(existing._id);
     }
+
+    // Create new plugin
+    const plugin = await ArtisanPlugin.create(body);
+    
+    // Update artisan's reference
+    await Artisan.findByIdAndUpdate(
+      body.artisan,
+      { socialPlugin: plugin._id },
+      { new: true }
+    );
+
+    return NextResponse.json({ success: true, plugin });
   } catch (err) {
     console.error('Error in POST /api/artisanPlugins:', err);
-    return NextResponse.json({ success: false, message: 'Failed to process request', error: err.stack }, { status: 500 });
+    return NextResponse.json({ 
+      success: false, 
+      message: err.name === 'ValidationError' ? 'Invalid plugin data provided.' : 'Failed to create plugin',
+      error: err.message
+    }, { status: 500 });
   }
 }
 

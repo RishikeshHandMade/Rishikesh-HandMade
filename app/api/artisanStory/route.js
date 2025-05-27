@@ -8,7 +8,7 @@ const Artisan = mongoose.models.Artisan || mongoose.model('Artisan', ArtisanSche
 export async function GET(req) {
   await connectDB();
   const url = new URL(req.url);
-  const artisanId = url.searchParams.get('artisan');
+  const artisanId = url.searchParams.get('artisanId');
   try {
     let stories;
     if (artisanId) {

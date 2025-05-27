@@ -49,6 +49,12 @@ export async function DELETE(req, { params }) {
         { $pull: { products: product._id } }
       );
     }
+    // Delete all color and size docs for this product
+    const Color = require('@/models/Color');
+    const Size = require('@/models/Size');
+    await Color.deleteMany({ product: id });
+    await Size.deleteMany({ product: id });
+
     // Now delete the product
     await Product.findByIdAndDelete(id);
     return new Response(null, { status: 204 });
