@@ -60,25 +60,25 @@ export default async function SalesSection() {
         });
     }
     if (orders) {
-        orders.forEach(customOrder => {
-            customOrder._id = customOrder._id?.toString();
-            customOrder.userId = customOrder.userId?.toString();
+        orders.forEach(order => {
+            order._id = order._id?.toString();
+            order.userId = order.userId?.toString();
 
-            if (customOrder.packageId) {
-                customOrder.packageId.info = customOrder.packageId.info.map(info => {
+            if (customOrder.productId) {
+                customOrder.productId.info = customOrder.productId.info.map(info => {
                     info._id = info._id.toString();
                     return info;
                 });
-                customOrder.packageId.gallery = customOrder.packageId.gallery.map(gallery => {
+                customOrder.productId.gallery = customOrder.productId.gallery.map(gallery => {
                     gallery._id = gallery._id.toString();
                     return gallery;
                 });
-                customOrder.packageId.createPlanType = customOrder.packageId.createPlanType.map(createPlanType => {
+                customOrder.productId.createPlanType = customOrder.productId.createPlanType.map(createPlanType => {
                     createPlanType._id = createPlanType._id.toString();
                     return createPlanType;
                 });
 
-                customOrder.packageId.reviews = customOrder.packageId.reviews.map(review => {
+                customOrder.productId.reviews = customOrder.productId.reviews.map(review => {
                     review = review.toString();
                     return review;
                 });

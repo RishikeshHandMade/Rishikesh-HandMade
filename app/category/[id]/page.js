@@ -48,7 +48,7 @@ const CategoryPage = async ({ params }) => {
     // products is now an array of full product objects
     const products = Array.isArray(categoryData.products) ? categoryData.products : [];
     const visibleProducts = products.filter(prod => prod.active !== false);
-    console.log(visibleProducts)
+    // console.log(visibleProducts)
     const categoryInfo = await getCategoryInfo(categoryData);
 
     return (
@@ -70,7 +70,11 @@ const CategoryPage = async ({ params }) => {
                                 {visibleProducts.map((item, index) => (
                                     <PackageCard
                                         key={item._id || index}
-                                        pkg={item}
+                                        pkg={{
+                                            ...item,
+                                            name: item.title,
+                                            image: item.gallery?.mainImage,
+                                        }}
                                         // addToWishlist={addToWishlist}
                                         // addToCart={addToCart}
                                         // setQuickViewProduct={setQuickViewProduct}

@@ -43,7 +43,7 @@ const Footer = () => {
         <footer className={`print:hidden ${pathName.includes('admin') && 'hidden'}
          ${pathName.includes('artisan') && 'block'} 
         
-        ${pathName.includes('product') && 'hidden'} ${pathName.includes('customEnquiry') && 'hidden'} ${pathName.includes('checkout') && 'hidden'}  ${pathName.includes('category') && 'block'} 
+        ${pathName.includes('product') && 'block'} ${pathName.includes('customEnquiry') && 'hidden'} ${pathName.includes('checkout') && 'hidden'}  ${pathName.includes('category') && 'block'} 
         bg-[#2563eb]
         text-white py-4`}>
             <div className="w-full flex justify-center pb-8">

@@ -23,11 +23,11 @@ const PackageCard = ({ pkg }) => {
     return new Intl.NumberFormat('en-IN').format(number)
   }
 
-  if (loading) {
-    return (
-      <div className="w-[300px] h-[500px] bg-gray-100 rounded-3xl animate-pulse" />
-    )
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="w-[300px] h-[500px] bg-gray-100 rounded-3xl animate-pulse" />
+  //   )
+  // }
 
   return (
     <div className="flex flex-col max-w-[300px]  rounded-3xl mb-2 group cursor-pointer ">

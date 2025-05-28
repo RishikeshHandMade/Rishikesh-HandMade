@@ -17,7 +17,7 @@ const UserSchema = new Schema(
         image: { type: String },
         provider: { type: String, required: true },
         reviews: { type: [Schema.Types.ObjectId], ref: "Review" },
-        packages: { type: [Schema.Types.ObjectId], ref: "Package" },
+        products: { type: [Schema.Types.ObjectId], ref: "Product" },
         orders: { type: [Schema.Types.ObjectId], ref: "Order" },
         isVerified: { type: Boolean, default: false },
         otp: { type: Number },

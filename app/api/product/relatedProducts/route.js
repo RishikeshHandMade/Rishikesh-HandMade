@@ -13,11 +13,29 @@ export async function GET(request) {
   }
   await connectDB();
 
-  // Find products in the same category, excluding the current product
-  const relatedProducts = await Product.find({
-    _id: { $ne: productId },
-    category: category,
-  }).limit(10);
+  try {
+    // Find products in the same category, excluding the current product
+    const relatedProducts = await Product.find({
+      _id: { $ne: productId },
+      categoryTag: category,
+      active: true // Only show active products
+    })
+    .populate('gallery')
+    .populate('size')
+    .populate('color')
+    .populate('price')
+    .populate('video')
+    .populate('description')
+    .populate('info')
+    .populate('categoryTag')
+    .populate('review')
+    .populate('quantity')
+    .populate('coupons')
+    .limit(10);
 
-  return NextResponse.json(relatedProducts);
+    return NextResponse.json(relatedProducts);
+  } catch (error) {
+    console.error('Error fetching related products:', error);
+    return NextResponse.json({ error: 'Failed to fetch related products' }, { status: 500 });
+  }
 }

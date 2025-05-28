@@ -11,20 +11,12 @@ export async function GetAllOrders(page = 1, limit = 20) {
     const skip = (page - 1) * limit;
 
     const orders = await Order.find({})
-        .populate({
-            path: "packageId",
-            model: "Package",
-        })
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .lean();
 
     const customOrders = await CustomOrder.find({})
-        .populate({
-            path: "packageId",
-            model: "Package",
-        })
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
@@ -36,10 +28,7 @@ export async function GetAllOrders(page = 1, limit = 20) {
     // Convert MongoDB ObjectIds to strings
     orders.forEach(order => {
         order._id = order._id.toString();
-        if (order.packageId) {
-            order.packageId._id = order.packageId._id.toString();
-        }
-        order.userId = order.userId.toString();
+        if (order.userId) order.userId = order.userId.toString();
     });
 
     customOrders.forEach(order => {

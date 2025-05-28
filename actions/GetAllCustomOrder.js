@@ -2,15 +2,15 @@
 
 import connectDB from "@/lib/connectDB";
 import CustomOrder from "@/models/CustomOrder";
-import Package from "@/models/Package";
+import Product from "@/models/Product";
 
 export async function GetAllCustomOrder() {
     await connectDB();
 
     const customOrders = await CustomOrder.find({})
         .populate({
-            path: "packageId",
-            model: "Package",
+            path: "productId",
+            model: "Product",
         })
         .sort({ createdAt: -1 })
         .lean();

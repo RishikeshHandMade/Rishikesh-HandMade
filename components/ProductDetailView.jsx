@@ -3,7 +3,7 @@ import React from "react";
 import Image from "next/image";
 import {Heart,Share2} from "lucide-react"
 export default function ProductDetailView({ product }) {
-  console.log(product)
+  // console.log(product)
   const [selectedImage, setSelectedImage] = React.useState(product?.gallery?.mainImage);
   const [quantity, setQuantity] = React.useState(1);
   const [showSizeChart, setShowSizeChart] = React.useState(false);

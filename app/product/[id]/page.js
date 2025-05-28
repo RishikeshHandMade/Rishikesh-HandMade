@@ -31,14 +31,8 @@ const ProductDetailPage = async ({ params }) => {
     // Fetch the product by its slug using the API route
     const res = await fetch(apiUrl, { cache: 'no-store' });
     const product = await res.json();
-    console.log('Fetched product:', product);
+    // console.log('Fetched product:', product);
 
-    const relatedRes = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/product/relatedProducts?id=${id}&category=${product.category}`,
-        { cache: 'no-store' }   
-      );
-      const relatedProducts = await relatedRes.json();
-      console.log('Fetched related products:', relatedProducts);
     // If product not found, show not found message
     if (!product || product.error) {
         return (
@@ -52,24 +46,43 @@ const ProductDetailPage = async ({ params }) => {
         );
     }
 
+    // Fetch related products only if we have a valid product
+    let relatedProducts = [];
+    try {
+        const relatedRes = await fetch(
+            `${process.env.NEXT_PUBLIC_BASE_URL}/api/product/relatedProducts?id=${id}&category=${product.category}`,
+            { cache: 'no-store' }   
+        );
+        if (relatedRes.ok) {
+            relatedProducts = await relatedRes.json();
+            console.log('Fetched related products:', relatedProducts);
+        }
+    } catch (error) {
+        console.error('Error fetching related products:', error);
+    }
+
     // Render the product details page
     return (
         <SidebarInset>
-            <div className="container mx-auto px-4 py-12">
-                <ProductDetailView product={product} />
-                {/* Product Tabs Section */}
-                <div className="my-2 flex items-center justify-center w-full">
-                    <ProductInfoTabs product={product} />
-                    </div>
-                    <ResponsiveFeaturedCarousel />
-                    <RelatedProductsCarousel products={relatedProducts} />
-                    <StickyAddToCartBar product={product} />
-
+            <div className="container w-full mx-auto px-4 py-8 flex flex-col">
+                <div className="space-y-8">
+                    <ProductDetailView product={product} />
                 </div>
+                <div className="space-y-8">
+                        <ProductInfoTabs product={product} />
+                    </div>
+                {/* Related Products */}
+                {relatedProducts && relatedProducts.length > 0 &s& (
+                    <div className="mt-16">
+                        <h2 className="text-2xl font-semibold mb-8">Related Products</h2>
+                        <RelatedProductsCarousel products={relatedProducts} />
+                    </div>
+                )}
+                <ResponsiveFeaturedCarousel />
+                <StickyAddToCartBar product={product} />
+            </div>
         </SidebarInset>
     )
 }
-
-
 
 export default ProductDetailPage
