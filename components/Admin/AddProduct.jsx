@@ -34,7 +34,7 @@ const AddProduct = ({ id }) => {
     const [title, setTitle] = useState("");
     const [order, setOrder] = useState(1);
     const [active, setActive] = useState(true);
-    console.log(products)
+    // console.log(products)
 
     useEffect(() => {
         setLoading(true);

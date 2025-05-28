@@ -56,11 +56,11 @@ export async function POST(request) {
 export async function PUT(request) {
     await connectDB();
     try {
-        console.log("[PAYMENT] Verification started");
+        // console.log("[PAYMENT] Verification started");
         const { razorpay_payment_id, razorpay_order_id, razorpay_signature } =
             await request.json();
 
-        console.log("[PAYMENT] Signature verification for order:", razorpay_order_id);
+        // console.log("[PAYMENT] Signature verification for order:", razorpay_order_id);
         // ✅ Step 1: Verify Razorpay Signature
         const generatedSignature = crypto
             .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
@@ -68,14 +68,14 @@ export async function PUT(request) {
             .digest("hex");
 
         if (generatedSignature !== razorpay_signature) {
-            console.error("[PAYMENT] Invalid signature", { razorpay_order_id, razorpay_payment_id });
+            // console.error("[PAYMENT] Invalid signature", { razorpay_order_id, razorpay_payment_id });
             return NextResponse.json(
                 { success: false, error: "Invalid signature" },
                 { status: 400 }
             );
         }
 
-        console.log("[PAYMENT] Fetching payment details for:", razorpay_payment_id);
+        // console.log("[PAYMENT] Fetching payment details for:", razorpay_payment_id);
         // ✅ Step 2: Fetch Full Payment Details from Razorpay
         const paymentResponse = await fetch(
             `https://api.razorpay.com/v1/payments/${razorpay_payment_id}`,
@@ -93,7 +93,7 @@ export async function PUT(request) {
         const paymentDetails = await paymentResponse.json();
 
         if (!paymentResponse.ok) {
-            console.error("[PAYMENT] Failed to fetch payment details", paymentDetails);
+            // console.error("[PAYMENT] Failed to fetch payment details", paymentDetails);
             throw new Error("Failed to fetch payment details");
         }
 
@@ -103,12 +103,12 @@ export async function PUT(request) {
         const bank = paymentDetails.bank || null; // If paid via Net Banking
         const cardType = paymentDetails.card?.type || null; // If paid via Card
 
-        console.log("[PAYMENT] Looking for order in DB:", razorpay_order_id);
+        // console.log("[PAYMENT] Looking for order in DB:", razorpay_order_id);
         // ✅ Step 4: Find and Update the Order
         const order = await Order.findOne({ orderId: razorpay_order_id });
 
         if (!order) {
-            console.error("[PAYMENT] Order not found in DB", razorpay_order_id);
+            // console.error("[PAYMENT] Order not found in DB", razorpay_order_id);
             throw new Error("Order not found");
         }
 
@@ -119,7 +119,7 @@ export async function PUT(request) {
         order.bank = bank;
         order.cardType = cardType;
 
-        console.log("[PAYMENT] Saving order with payment status:", order.status);
+        // console.log("[PAYMENT] Saving order with payment status:", order.status);
         await order.save();
 
         // ✅ Step 5: Return Payment Details
@@ -134,7 +134,7 @@ export async function PUT(request) {
             order,
         });
     } catch (error) {
-        console.error("Error verifying Razorpay payment:", error);
+        // console.error("Error verifying Razorpay payment:", error);
         return NextResponse.json(
             { success: false, error: error.message || "Payment verification failed" },
             { status: 500 }

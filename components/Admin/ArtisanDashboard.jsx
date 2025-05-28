@@ -434,11 +434,6 @@ const ArtisanDashboard = () => {
                       </div>
                     </div>
                   </div>
-
-                  <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
-                    <div className="font-semibold text-gray-800">Short Text</div>
-                    <div className="text-gray-600">{selectedPromotion.shortText || '-'}</div>
-                  </div>
                   <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
                     <div className="font-semibold text-gray-800">Description</div>
                     <div className="text-gray-600">{selectedPromotion.shortDescription || '-'}</div>

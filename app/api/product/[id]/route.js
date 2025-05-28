@@ -5,22 +5,22 @@ import Product from '@/models/Product';
 export async function GET(req, { params }) {
   try {
     await connectDB();
-    let { id } = params;
+    let { id } = await params;
     try {
       id = decodeURIComponent(id);
     } catch (e) {}
     // Strictly fetch by MongoDB _id
     const product = await Product.findById(id)
       .populate('artisan')
-      .populate('size')
-      .populate('color')
+      // .populate('size')
+      // .populate('color')
       .populate('price')
       .populate('gallery')
       .populate('video')
       .populate('description')
       .populate('info')
       .populate('categoryTag')
-      .populate('review')
+      .populate('reviews')
       .populate('quantity')
       .populate('coupons');
     if (!product) {

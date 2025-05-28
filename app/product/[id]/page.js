@@ -31,7 +31,7 @@ const ProductDetailPage = async ({ params }) => {
     // Fetch the product by its slug using the API route
     const res = await fetch(apiUrl, { cache: 'no-store' });
     const product = await res.json();
-    // console.log('Fetched product:', product);
+    console.log('Fetched product:', product);
 
     // If product not found, show not found message
     if (!product || product.error) {
@@ -64,16 +64,16 @@ const ProductDetailPage = async ({ params }) => {
     // Render the product details page
     return (
         <SidebarInset>
-            <div className="container w-full mx-auto px-4 py-8 flex flex-col">
-                <div className="space-y-8">
+            <div className="w-full px-4 py-8 flex flex-col">
+                <div className="space-y-4">
                     <ProductDetailView product={product} />
                 </div>
-                <div className="space-y-8">
+                <div className="space-y-4">
                         <ProductInfoTabs product={product} />
                     </div>
                 {/* Related Products */}
-                {relatedProducts && relatedProducts.length > 0 &s& (
-                    <div className="mt-16">
+                {relatedProducts && relatedProducts.length > 0 && (
+                    <div className="mt-8">
                         <h2 className="text-2xl font-semibold mb-8">Related Products</h2>
                         <RelatedProductsCarousel products={relatedProducts} />
                     </div>

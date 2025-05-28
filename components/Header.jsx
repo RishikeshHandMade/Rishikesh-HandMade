@@ -12,6 +12,7 @@ import LanguageSelector from "./LanguageSelector"
 import SearchBar from "./SearchBar"
 import Cart from "./Cart";
 import { ShoppingCart,Heart } from "lucide-react"
+import { useCart } from "../context/CartContext";
 const Header = () => {
   const pathName = usePathname();
   const [isMounted, setIsMounted] = useState(false);
@@ -21,6 +22,7 @@ const Header = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [initialCartTab, setInitialCartTab] = useState('cart');
   const { data: session, status } = useSession();
+  const { cart = [], wishlist = [] } = useCart();
   const [showHeader, setShowHeader] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 
@@ -122,6 +124,11 @@ const Header = () => {
               aria-label="Open Cart"
             >
               <ShoppingCart size={26} />
+              {cart.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
+                  {cart.length}
+                </span>
+              )}
             </button>
             <button
               className="relative p-2 rounded-full hover:bg-neutral-100 transition"
@@ -129,6 +136,11 @@ const Header = () => {
               aria-label="Open Wishlist"
             >
               <Heart size={26} />
+              {wishlist.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-pink-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
+                  {wishlist.length}
+                </span>
+              )}
             </button>
             <Cart open={isCartOpen} onClose={() => setIsCartOpen(false)} initialTab={initialCartTab} />
             <div className="relative">

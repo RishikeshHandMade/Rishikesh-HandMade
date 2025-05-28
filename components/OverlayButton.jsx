@@ -14,7 +14,7 @@ const OverlayButton = () => {
         const options = {
             call: "+917351009107 ", // Call phone number
             whatsapp: "+917351009107 ", // WhatsApp number
-            call_to_action: "Rishikesh HandMade", // Call to action
+            call_to_action: "", // Call to action
             button_color: "#2563eb", // Color of button
             position: "left", // Position may be 'right' or 'left'
             order: "call,whatsapp", // Order of buttons

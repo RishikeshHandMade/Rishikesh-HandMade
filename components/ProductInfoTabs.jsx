@@ -73,10 +73,10 @@ export default function ProductInfoTabs({ product }) {
                 {tabs.map((tab, idx) => (
                     <button
                         key={tab.label}
-                        className={`py-3 px-2 text-md font-semibold focus:outline-none transition relative ${
+                        className={`py-3 px-2 text-lg font-semibold focus:outline-none transition relative ${
                             activeTab === idx
                                 ? "text-black border-b-2 border-black"
-                                : "text-gray-500 hover:text-black"
+                                : "text-gray-900"
                         }`}
                         onClick={() => setActiveTab(idx)}
                     >

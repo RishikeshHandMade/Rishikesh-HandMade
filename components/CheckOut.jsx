@@ -1,6 +1,7 @@
 "use client"
 import React, { useState } from 'react';
 import { useCart } from "../context/CartContext";
+import { useSession } from "next-auth/react";
 
 const shippingOptions = [
   { label: 'Free shipping', value: 'free', cost: 0 },
@@ -167,6 +168,7 @@ const handleOnlinePaymentWithOrder = async (total, cart, customer, setLoading, s
 import { useRouter } from 'next/navigation';
 
 const CheckOut = () => {
+  const { data: session, status } = useSession();
   const router = useRouter();
   // const { cart, updateCartQty, removeFromCart } = useCart();
   // const [shipping, setShipping] = useState('free');
@@ -211,6 +213,22 @@ const CheckOut = () => {
 
   React.useEffect(() => { setMounted(true); }, []);
   if (!mounted) return null;
+
+  // Require login
+  if (status === "loading") return null;
+  if (!session) {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/sign-in?callbackUrl=' + encodeURIComponent(window.location.pathname);
+    }
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="bg-white shadow-lg rounded-lg p-8 text-center">
+          <h2 className="text-xl font-bold mb-4">Please log in to continue</h2>
+          <a href="/sign-in" className="text-blue-600 underline">Go to Login</a>
+        </div>
+      </div>
+    );
+  }
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
   const shippingCost = shippingOptions.find(opt => opt.value === shipping)?.cost || 0;

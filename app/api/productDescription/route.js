@@ -18,7 +18,7 @@ export async function POST(req) {
       infoDoc = await Description.create({ product: productId, overview });
     }
     // Optionally link Info to Product
-    await Product.findByIdAndUpdate(productId, { info: infoDoc._id });
+    await Product.findByIdAndUpdate(productId, { description: infoDoc._id });
     return NextResponse.json({ success: true, info: infoDoc });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });

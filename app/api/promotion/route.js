@@ -16,12 +16,11 @@ export async function POST(req) {
   try {
     await connectDB();
     const data = await req.json();
-    const { title, shortText, shortDescription, rating, createdBy, date, artisan, image } = data;
+    const { title, shortDescription, rating, createdBy, date, artisan, image } = data;
     const dateTimestamp = date ? new Date(date).getTime() : Date.now();
     // Create the promotion
     const promotion = await Promotion.create({
       title,
-      shortText,
       shortDescription,
       rating,
       createdBy,
@@ -45,7 +44,7 @@ export async function PATCH(req) {
   try {
     await connectDB();
     const data = await req.json();
-    const { id, title, shortText, shortDescription, rating, createdBy, date, artisan, image } = data;
+    const { id, title, shortDescription, rating, createdBy, date, artisan, image } = data;
     const dateTimestamp = date ? new Date(date).getTime() : Date.now();
     const existingPromotion = await Promotion.findById(id);
     if (!existingPromotion) {
@@ -67,7 +66,6 @@ export async function PATCH(req) {
       id,
       {
         title,
-        shortText,
         shortDescription,
         rating,
         createdBy,

@@ -35,7 +35,7 @@ export async function GET(req, { params }) {
         { path: 'description' },
         { path: 'info' },
         { path: 'categoryTag' },
-        { path: 'review' },
+        { path: 'reviews' },
         { path: 'quantity' },
         { path: 'coupons' }
       ]

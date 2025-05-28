@@ -1,7 +1,10 @@
 "use client";
 import React from "react";
 import Image from "next/image";
-import {Heart,Share2} from "lucide-react"
+import { Heart, Share2 } from "lucide-react"
+import { useCart } from "../context/CartContext";
+import { Star } from 'lucide-react';
+
 export default function ProductDetailView({ product }) {
   // console.log(product)
   const [selectedImage, setSelectedImage] = React.useState(product?.gallery?.mainImage);
@@ -58,13 +61,14 @@ export default function ProductDetailView({ product }) {
   const price = selectedVariant ? formatNumeric(selectedVariant.price) : 0;
   const total = selectedVariant ? (selectedVariant.price * quantity).toFixed(2) : 0;
 
+  const { addToCart, addToWishlist } = useCart();
   return (
-    <div className="flex flex-col lg:flex-row gap-4">
-      {/* LEFT: Main Image + Sub-Image Carousel */}
-      <div className="flex-1 flex flex-col items-center">
+    <div className="flex flex-col lg:flex-row gap-8">
+      {/* LEFT: Product Images */}
+      <div className="w-full lg:w-1/3 flex flex-col items-center">
         {/* Main Image */}
         <div className="w-full flex justify-center mb-4">
-          <div className="relative w-[400px] h-[420px] flex items-center justify-center bg-white border rounded-2xl overflow-hidden">
+          <div className="relative w-[400px] h-[400px] flex items-center justify-center rounded-xl overflow-hidden">
             <Image
               src={selectedImage || product.gallery?.mainImage || '/placeholder.png'}
               alt={product.title}
@@ -76,7 +80,7 @@ export default function ProductDetailView({ product }) {
         </div>
         {/* Sub-Images Carousel */}
         {product.gallery?.subImages && product.gallery.subImages.length > 0 && (
-          <div className="w-full max-w-[420px] mx-auto">
+          <div className="w-full max-w-[400px] mx-auto">
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
               {[product.gallery.mainImage, ...product.gallery.subImages].filter(Boolean).map((img, idx) => (
                 <button
@@ -99,19 +103,25 @@ export default function ProductDetailView({ product }) {
         )}
       </div>
 
-      {/* RIGHT: Product Details */}
-      <div className="flex-1 max-w-xl mx-auto">
+      {/* CENTER: Product Details/Description/Selectors */}
+      <div className="w-full lg:w-1/3 max-w-xl mx-auto flex flex-col">
         {/* Badges and Title */}
         <div className="flex items-center gap-3 mb-2">
           <span className="bg-black text-white text-xs px-3 py-1 rounded font-bold">SALE 20% OFF</span>
         </div>
         <h1 className="text-3xl font-bold mb-1">{product.title}</h1>
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-yellow-500 text-lg">★</span>
-          <span className="font-semibold">4.7 Rating</span>
-          <span className="text-gray-500 text-sm">(50 customer reviews)</span>
+          <span className="font-semibold flex items-center">
+            {product.reviews[0]?.rating && (
+              <>
+                {[...Array(product.reviews[0]?.rating)].map((_, i) => (
+                  <Star key={i} size={20} className="text-yellow-400 fill-yellow-400" />
+                ))}
+              </>
+            )} &nbsp; Rating</span>
+          <span className="text-gray-700 text-sm">({product.reviews?.length || 0} customer reviews)</span>
         </div>
-        <p className="text-gray-700 mb-6 max-w-lg">{product.description || "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book."}</p>
+        <p className="text-gray-700 mb-6 max-w-lg">{product.description?.overview || "No Description"}</p>
         {/* Selectors */}
         <div className="flex flex-col gap-4 mb-6">
           {/* Quantity */}
@@ -210,42 +220,73 @@ export default function ProductDetailView({ product }) {
         </div>
         {/* SKU, Tags, etc. */}
         <div className="mb-4">
-          {/* <div className="text-sm mb-1"><span className="font-bold">SKU:</span> {product.sku || 'PRT584E63A'}</div> */}
           <div className="text-sm mb-1"><span className="font-bold">Category:</span> Dresses, Jeans, Summer, Clothing</div>
           <div className="text-sm"><span className="font-bold">Tags:</span> {(product?.categoryTag?.tags && product?.categoryTag?.tags.length > 0) ? product.categoryTag.tags.join(', ') : 'No tags'}</div>
         </div>
-        {/* Total Price */}
-        <div className="flex items-center justify-start gap-4 mb-3">
-          <span className="font-bold text-xl">Total</span>
-          <span className="font-bold text-2xl">₹ {total}</span>
-        </div>
-        {/* Action Buttons */}
-        <div className="flex gap-4 mb-6 items-center">
-          <button className="bg-black text-white py-3 px-8 rounded-lg font-semibold hover:bg-gray-800">ADD TO CART</button>
-          <Heart />
-          <Share2 />
-        </div>
-        {/* Info Boxes */}
-        <div className="flex flex-col gap-3 mb-6">
-          <div className="border rounded-lg p-3 flex items-center justify-between">
-            <span className="font-semibold">Bank Offer 5% Cashback</span>
-          </div>
-          <div className="border rounded-lg p-3 flex items-center justify-between">
-            <span className="font-semibold">Easy Returns</span>
-            <span className="text-gray-500">30 Days</span>
-          </div>
-          <div className="border rounded-lg p-3 flex items-center gap-2">
-            <span className="font-semibold">Enjoy The Product</span>
-            <span className="text-gray-500 text-xs">Lorem Ipsum is simply dummy text of the printing and typesetting</span>
-          </div>
-          {/* <div className="flex items-center gap-2 text-green-700 text-sm">
-            <span>✔</span>
-            <span>You will save ₹504 on this order</span>
-          </div> */}
-        </div>
+      </div>
 
-        {/* Buy Now Button */}
-        <button className="border border-black py-3 rounded-lg font-semibold hover:bg-gray-100 w-full">BUY IT NOW</button>
+      {/* RIGHT: Price/Offers/Add to Cart Box */}
+      <div className="w-full lg:w-1/3 flex flex-col">
+        <div className="border rounded-xl p-6">
+          {/* Total Price */}
+          <div className="flex items-center justify-between gap-4 mb-3">
+            <span className="font-bold text-xl">Total</span>
+            <span className="font-bold text-2xl">₹ {total}</span>
+          </div>
+          {/* Offers/Info Boxes */}
+          <div className="flex flex-col gap-3 mb-6">
+            <div className="border rounded-lg p-3 flex items-center justify-between">
+              <span className="font-semibold">Bank Offer 5% Cashback</span>
+            </div>
+            <div className="border rounded-lg p-3 flex items-center justify-between">
+              <span className="font-semibold">Easy Returns</span>
+              <span className="text-gray-500">30 Days</span>
+            </div>
+            <div className="border rounded-lg p-3 flex items-center gap-2">
+              <span className="font-semibold">Enjoy The Product</span>
+              <span className="text-gray-500 text-xs">Lorem Ipsum is simply dummy text of the printing and typesetting</span>
+            </div>
+          </div>
+          {/* Action Buttons */}
+          <div className="flex gap-4 mb-6 items-center">
+            <button
+              className="bg-black text-white py-3 px-8 rounded-lg font-semibold hover:bg-gray-800 w-full"
+              onClick={() => {
+                if (!selectedVariant) return;
+                addToCart({
+                  id: product._id,
+                  name: product.title,
+                  image: selectedImage || product.gallery?.mainImage || '/placeholder.png',
+                  price: selectedVariant.price,
+                  size: selectedSize,
+                  color: selectedColor,
+                }, quantity);
+              }}
+            >
+              ADD TO CART
+            </button>
+            <button
+              className="p-2 rounded-full border hover:bg-gray-50"
+              onClick={() => {
+                if (!selectedVariant) return;
+                addToWishlist({
+                  id: product._id,
+                  name: product.title,
+                  image: selectedImage || product.gallery?.mainImage || '/placeholder.png',
+                  price: selectedVariant.price,
+                  size: selectedSize,
+                  color: selectedColor,
+                });
+              }}
+              aria-label="Add to Wishlist"
+            >
+              <Heart />
+            </button>
+            <Share2 />
+          </div>
+          {/* Buy Now Button */}
+          <button className="border border-black py-3 rounded-lg font-semibold hover:bg-gray-100 w-full">BUY IT NOW</button>
+        </div>
       </div>
     </div>
   );

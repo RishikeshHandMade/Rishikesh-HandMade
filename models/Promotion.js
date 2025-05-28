@@ -3,7 +3,6 @@ const { Schema } = mongoose;
 
 const PromotionSchema = new Schema({
   title: { type: String, required: true },
-  shortText: { type: String, required: true },
   shortDescription: { type: String, required: true },
   rating: { type: Number, required: true },
   createdBy: { type: String, required: true },

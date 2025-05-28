@@ -17,7 +17,7 @@ export async function GET(request) {
     // Find products in the same category, excluding the current product
     const relatedProducts = await Product.find({
       _id: { $ne: productId },
-      categoryTag: category,
+      category: category,
       active: true // Only show active products
     })
     .populate('gallery')

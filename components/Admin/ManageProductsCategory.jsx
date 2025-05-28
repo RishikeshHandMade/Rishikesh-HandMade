@@ -37,11 +37,12 @@ const ManageProductsCategory = () => {
     // const [galleryUploading, setGalleryUploading] = useState(false)
     // const galleryFileInputRef = useRef(null);
     const bannerFileInputRef = useRef(null);
-
+// console.log(menuItems)
     useEffect(() => {
         fetch("/api/getAllMenuItems")
             .then(res => res.json())
             .then(data => setMenuItems(data))
+            // console.log(menuItems)
     }, [])
 
     const onSubmit = async (data) => {
@@ -340,9 +341,9 @@ const ManageProductsCategory = () => {
                                             <TableRow key={subItem._id}>
                                                 <TableCell className="border font-semibold border-blue-600">
                                                 <Link href={`/admin/manage_products_category/addSubMenuPackage/${subItem._id}`} variant="outline" className="bg-white border-2 border-blue-500 p-2 rounded-full text-blue-600 hover:text-blue-500 focus:text-blue-500 flex items-center justify-center">
-                                                        <span className="xl:mr-6 mr-2 bg-blue-100 rounded py-1 px-3">{subItem?.packages?.length !== 0 ? subItem?.packages?.length : 0}</span>
+                                                        <span className="xl:mr-6 mr-2 bg-blue-100 rounded py-1 px-3">{subItem?.products?.length !== 0 ? subItem?.products?.length : 0}</span>
                                                         <Plus className="w-4 h-4" />
-                                                        <span>Add Package</span>
+                                                        <span>Add Product</span>
                                                     </Link>
                                                 </TableCell>
                                                 <TableCell className="border font-semibold border-blue-600">{subItem?.title}</TableCell>

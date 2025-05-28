@@ -95,7 +95,6 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
       const updatedPromotion = {
         ...selectedPromotion,
         title,
-        shortText,
         shortDescription,
         createdBy,
         date: date ? new Date(date).getTime() : undefined,
@@ -122,8 +121,7 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
   const handleCancelEdit = () => {
     setSelectedPromotion(null);
     setIsEditing(false);
-    setTitle('');
-    setShortText('');
+    setTitle('')
     setShortDescription('');
     setCreatedBy('');
     setDate('');
@@ -158,7 +156,6 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
 
   // Replace these with real data fetching and state logic
   const [title, setTitle] = useState('');
-  const [shortText, setShortText] = useState('');
   const [shortDescription, setShortDescription] = useState('');
   const [createdBy, setCreatedBy] = useState('');
   const [date, setDate] = useState('');
@@ -222,7 +219,6 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
     try {
       const payload = {
         title,
-        shortText,
         shortDescription,
         rating,
         createdBy,
@@ -239,7 +235,6 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
       if (res.ok && data.success) {
         toast.success('Promotion saved!');
         setTitle('');
-        setShortText('');
         setShortDescription('');
         setRating(0);
         setCreatedBy('');
@@ -319,10 +314,6 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
             <label className="block font-semibold mb-1">Date</label>
             <Input type="date" value={date} onChange={e => setDate(e.target.value)} required />
           </div>
-        </div>
-        <div className="mb-4">
-          <label className="block font-semibold mb-1">Short Text</label>
-          <Input type="text" value={shortText} placeholder="Short Text" onChange={e => setShortText(e.target.value)} required />
         </div>
         <div className="mb-4">
           <label className="block font-semibold mb-1"> Description</label>
@@ -437,7 +428,6 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
                       <Button size="sm" variant="outline" onClick={() => {
                         setSelectedPromotion(review);
                         setTitle(review.title || '');
-                        setShortText(review.shortText || '');
                         setShortDescription(review.shortDescription || '');
                         setCreatedBy(review.createdBy || '');
                         setDate(dateToInputValue(review.date));
@@ -489,10 +479,6 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
                     <div className="font-semibold text-gray-800">Date</div>
                     <div className="text-gray-600">{formatDateDDMMYYYY(selectedPromotion.date)}</div>
                   </div>
-                </div>
-                <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
-                  <div className="font-semibold text-gray-800">Short Text</div>
-                  <div className="text-gray-600">{selectedPromotion.shortText}</div>
                 </div>
                 <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 max-h-28 overflow-y-auto">
                   <div className="font-semibold text-gray-800">Short Description</div>
