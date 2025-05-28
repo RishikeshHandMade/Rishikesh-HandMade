@@ -4,10 +4,38 @@ import Image from "next/image";
 import { Heart, Share2 } from "lucide-react"
 import { useCart } from "../context/CartContext";
 import { Star } from 'lucide-react';
+import { toast } from "react-hot-toast";
+import Router from "next/router";
+import { useRouter } from "next/navigation";
 
 export default function ProductDetailView({ product }) {
+  const router = useRouter();
+  const [showShareBox, setShowShareBox] = React.useState(false);
+  const [productUrl, setProductUrl] = React.useState("");
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined" && product && product._id) {
+      setProductUrl(window.location.origin + "/product/" + product._id);
+    } else if (product && product._id) {
+      setProductUrl("/product/" + product._id);
+    }
+  }, [product]);
+
+  // Close share box when clicking outside
+  React.useEffect(() => {
+    if (!showShareBox) return;
+    function handleClick(e) {
+      const pop = document.getElementById("share-popover");
+      if (pop && !pop.contains(e.target)) {
+        setShowShareBox(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [showShareBox]);
+
   // console.log(product)
-  const [selectedImage, setSelectedImage] = React.useState(product?.gallery?.mainImage);
+  const [selectedImage, setSelectedImage] = React.useState(product?.gallery?.mainImage|| []);
   const [quantity, setQuantity] = React.useState(1);
   const [showSizeChart, setShowSizeChart] = React.useState(false);
   const [selectedSize, setSelectedSize] = React.useState(null);
@@ -61,7 +89,7 @@ export default function ProductDetailView({ product }) {
   const price = selectedVariant ? formatNumeric(selectedVariant.price) : 0;
   const total = selectedVariant ? (selectedVariant.price * quantity).toFixed(2) : 0;
 
-  const { addToCart, addToWishlist } = useCart();
+  const { addToCart, addToWishlist, removeFromWishlist, wishlist } = useCart();
   return (
     <div className="flex flex-col lg:flex-row gap-8">
       {/* LEFT: Product Images */}
@@ -261,31 +289,107 @@ export default function ProductDetailView({ product }) {
                   size: selectedSize,
                   color: selectedColor,
                 }, quantity);
+                toast.success("Added to cart!");
               }}
             >
               ADD TO CART
             </button>
             <button
-              className="p-2 rounded-full border hover:bg-gray-50"
+              className={`p-2 rounded-full border hover:bg-gray-50 ${wishlist && wishlist.some(i => i.id === product._id) ? "bg-pink-600 border-pink-600" : ""}`}
               onClick={() => {
                 if (!selectedVariant) return;
-                addToWishlist({
-                  id: product._id,
-                  name: product.title,
-                  image: selectedImage || product.gallery?.mainImage || '/placeholder.png',
-                  price: selectedVariant.price,
-                  size: selectedSize,
-                  color: selectedColor,
-                });
+                if (wishlist && wishlist.some(i => i.id === product._id)) {
+                  removeFromWishlist(product._id);
+                  toast.success("Removed from wishlist!");
+                } else {
+                  addToWishlist({
+                    id: product._id,
+                    name: product.title,
+                    image: selectedImage || product.gallery?.mainImage || '/placeholder.png',
+                    price: selectedVariant.price,
+                    size: selectedSize,
+                    color: selectedColor,
+                  });
+                  toast.success("Added to wishlist!");
+                }
               }}
               aria-label="Add to Wishlist"
             >
-              <Heart />
+              <Heart className={wishlist && wishlist.some(i => i.id === product._id) ? "text-white" : "text-pink-600"} />
             </button>
-            <Share2 />
+            {/* Share Button with Popover */}
+            <div className="relative">
+              <button
+                className="p-2 rounded-full border hover:bg-gray-50"
+                onClick={() => setShowShareBox((prev) => !prev)}
+                aria-label="Share Product"
+                type="button"
+              >
+                <Share2 />
+              </button>
+              {showShareBox && (
+                <div id="share-popover" className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-xl shadow-xl z-50 p-5 flex flex-col gap-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-bold text-base">Share Product</span>
+                    <button className="text-gray-400 hover:text-black text-xl" onClick={() => setShowShareBox(false)} aria-label="Close share box">&times;</button>
+                  </div>
+                  <div className="mb-2">
+                    <span className="text-sm font-semibold text-gray-700">Share via...</span>
+                    <div className="flex gap-4 mt-2">
+                      <a
+                        href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(productUrl)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-[#3b5998] hover:bg-[#334f88] rounded-full w-12 h-12 flex items-center justify-center transition-colors"
+                        title="Share on Facebook"
+                      >
+                        <svg width="26" height="26" fill="white" viewBox="0 0 24 24"><path d="M22.675 0h-21.35C.6 0 0 .6 0 1.326v21.348C0 23.4.6 24 1.326 24h11.495v-9.294H9.691V11.01h3.13V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.797.143v3.24l-1.918.001c-1.504 0-1.797.715-1.797 1.763v2.31h3.587l-.467 3.696h-3.12V24h6.116C23.4 24 24 23.4 24 22.674V1.326C24 .6 23.4 0 22.675 0"/></svg>
+                      </a>
+                      <a
+                        href={`https://wa.me/?text=${encodeURIComponent(productUrl)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-[#25D366] hover:bg-[#1da851] rounded-full w-12 h-12 flex items-center justify-center transition-colors"
+                        title="Share on WhatsApp"
+                      >
+                        <svg width="26" height="26" fill="white" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.447-.52.151-.174.2-.298.3-.497.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.207-.242-.58-.487-.501-.669-.51-.173-.007-.372-.009-.571-.009-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.099 3.2 5.077 4.366.709.306 1.262.489 1.694.626.712.227 1.36.195 1.87.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.617h-.001a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.999-3.646-.235-.374a9.86 9.86 0 0 1-1.51-5.204c.001-5.455 4.436-9.89 9.892-9.89 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.896 6.991c-.003 5.456-4.437 9.891-9.892 9.891m8.413-18.304A11.815 11.815 0 0 0 12.05.001C5.495.001.06 5.436.058 11.992c0 2.115.553 4.178 1.602 5.993L.057 24l6.184-1.646a11.94 11.94 0 0 0 5.809 1.479h.005c6.555 0 11.892-5.437 11.893-11.994a11.86 11.86 0 0 0-3.487-8.413"/></svg>
+                      </a>
+                    </div>
+                  </div>
+                  <span className="text-sm font-semibold text-gray-700 mt-2">Or copy link</span>
+                  <div className="flex gap-2 mt-1">
+                    <input
+                      id="share-url"
+                      type="text"
+                      className="border rounded px-2 py-1 flex-1 text-sm bg-[#f5f6fa]"
+                      value={productUrl}
+                      readOnly
+                    />
+                    <button
+                      className="bg-[#6c47ff] text-white px-4 py-1.5 rounded font-semibold text-sm hover:bg-[#4f2eb8]"
+                      onClick={() => {
+                        navigator.clipboard.writeText(productUrl);
+                        toast.success('Copied to clipboard!');
+                      }}
+                      type="button"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
           {/* Buy Now Button */}
-          <button className="border border-black py-3 rounded-lg font-semibold hover:bg-gray-100 w-full">BUY IT NOW</button>
+          <button
+            className="border border-black py-3 rounded-lg font-semibold hover:bg-gray-100 w-full"
+            onClick={() => {
+              if (!selectedVariant) return;
+              router.push("/checkout");
+            }}
+          >
+            BUY IT NOW
+          </button>
         </div>
       </div>
     </div>

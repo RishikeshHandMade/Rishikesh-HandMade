@@ -281,10 +281,20 @@ const ProductReview = ({ productData, productId }) => {
                     <Textarea
                       id="review"
                       value={review}
-                      onChange={(e) => setReview(e.target.value)}
+                      onChange={e => {
+                        const value = e.target ? e.target.value : e; // fallback for direct string
+                        const safeValue = typeof value === 'string' ? value : String(value ?? '');
+                        const wordCount = safeValue.trim().split(/\s+/).filter(Boolean).length;
+                        if (wordCount >100) {
+                          toast.error('Word limit exceeded! Maximum 100 words allowed.');
+                          return;
+                        }
+                        setReview(safeValue);
+                      }}
+                      // onChange={(e) => setReview(e.target.value)}
                       rows={4}
                       className="w-full border rounded mt-1 px-3 py-2"
-                      placeholder="Write your review here..."
+                      placeholder="Write your review here... (max 100 characters)"
                       required
                     />
                   </div>

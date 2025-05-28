@@ -63,15 +63,15 @@ export async function GET(req) {
       // Find by MongoDB _id
       const product = await Product.findById(id)
         .populate('artisan')
-        .populate('size')
-        .populate('color')
+        // .populate('size')
+        // .populate('color')
         .populate('price')
         .populate('gallery')
         .populate('video')
         .populate('description')
         .populate('info')
         .populate('categoryTag')
-        .populate('review')
+        .populate('reviews')
         .populate('quantity')
         .populate('coupons');
       if (!product) {
@@ -82,15 +82,15 @@ export async function GET(req) {
       // Fallback to slug search
       const product = await Product.findOne({ slug: name })
         .populate('artisan')
-        .populate('size')
-        .populate('color')
+        // .populate('size')
+        // .populate('color')
         .populate('price')
         .populate('gallery')
         .populate('video')
         .populate('description')
         .populate('info')
         .populate('categoryTag')
-        .populate('review')
+        .populate('reviews')
         .populate('quantity')
         .populate('coupons');
       if (!product) {
@@ -104,15 +104,15 @@ export async function GET(req) {
       if (isDirectParam === 'false') filter.isDirect = false;
       const products = await Product.find(filter)
         .populate('artisan')
-        .populate('size')
-        .populate('color')
+        // .populate('size')
+        // .populate('color')
         .populate('price')
         .populate('gallery')
         .populate('video')
         .populate('description')
         .populate('info')
         .populate('categoryTag')
-        .populate('review')
+        .populate('reviews')
         .populate('quantity')
         .populate('coupons');
       return new Response(JSON.stringify(products), { status: 200 });

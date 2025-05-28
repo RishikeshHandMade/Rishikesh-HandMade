@@ -2,6 +2,8 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/connectDB';
 import Product from '@/models/Product';
+import MenuBar from '@/models/MenuBar';
+import mongoose from 'mongoose';
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -11,27 +13,53 @@ export async function GET(request) {
   if (!productId || !category) {
     return NextResponse.json({ error: 'Missing id or category' }, { status: 400 });
   }
-  await connectDB();
 
   try {
-    // Find products in the same category, excluding the current product
+    await connectDB();
+    
+    // First find the MenuBar document containing this category in its subMenu
+    const menuBar = await MenuBar.findOne({
+      'subMenu._id': new mongoose.Types.ObjectId(category)
+    });
+
+    if (!menuBar) {
+      return NextResponse.json([]);
+    }
+
+    // Find the specific submenu
+    const submenu = menuBar.subMenu.find(sub => 
+      sub._id.toString() === category
+    );
+
+    if (!submenu || !submenu.products || submenu.products.length === 0) {
+      return NextResponse.json([]);
+    }
+
+    // Get related products from this submenu's products array
     const relatedProducts = await Product.find({
-      _id: { $ne: productId },
-      category: category,
-      active: true // Only show active products
+      _id: { 
+        $in: submenu.products,
+        $ne: new mongoose.Types.ObjectId(productId)
+      },
+      isDirect: false
     })
-    .populate('gallery')
-    .populate('size')
-    .populate('color')
-    .populate('price')
-    .populate('video')
-    .populate('description')
-    .populate('info')
-    .populate('categoryTag')
-    .populate('review')
-    .populate('quantity')
-    .populate('coupons')
-    .limit(10);
+    .populate([
+      'gallery',
+      'color',
+      'size',
+      'price',
+      'video',
+      'description',
+      'info',
+      'categoryTag',
+      'quantity',
+      'coupons',
+      'artisan'
+    ])
+    .limit(12)
+    .sort({ createdAt: -1 })
+    .lean()
+    .exec();
 
     return NextResponse.json(relatedProducts);
   } catch (error) {

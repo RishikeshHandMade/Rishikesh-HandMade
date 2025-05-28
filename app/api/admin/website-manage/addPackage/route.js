@@ -22,7 +22,7 @@ export async function POST(req) {
             // If already linked to submenu, skip push
             if (!body.isDirect && body.subMenuId) {
                 const menuBarDoc = await MenuBar.findOne({ "subMenu._id": new mongoose.Types.ObjectId(body.subMenuId) });
-                console.log("[EXISTING PRODUCT] MenuBar doc for submenu:", JSON.stringify(menuBarDoc, null, 2));
+                // console.log("[EXISTING PRODUCT] MenuBar doc for submenu:", JSON.stringify(menuBarDoc, null, 2));
                 const updateResult = await MenuBar.updateOne(
                     { "subMenu._id": new mongoose.Types.ObjectId(body.subMenuId), "subMenu.products": { $ne: existingProduct._id } },
                     { $push: { "subMenu.$.products": existingProduct._id } }
@@ -46,8 +46,8 @@ export async function POST(req) {
             code: body.code,
             artisan: body.artisan,
             isDirect: false,
-            // Optionally store subMenuId/category info if your schema supports it
-            ...(body.subMenuId ? { categoryTag: body.subMenuId } : {})
+            // Save subMenuId as category if present
+            ...(body.subMenuId ? { category: body.subMenuId } : {})
         });
 
         // Step 2.5: Push product _id to artisan's products array

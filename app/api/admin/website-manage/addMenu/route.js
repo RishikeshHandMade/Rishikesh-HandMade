@@ -1,7 +1,7 @@
 import connectDB from "@/lib/connectDB";
 import { NextResponse } from "next/server";
 import MenuBar from "@/models/MenuBar";
-import Package from "@/models/Package";
+import Product from "@/models/Product";
 import { deleteFileFromCloudinary } from "@/utils/cloudinary";
 
 export async function POST(req) {
@@ -61,7 +61,7 @@ export async function DELETE(req) {
         }
 
         // Collect all package IDs from submenus
-        const packageIds = menu.subMenu.flatMap(sub => sub.packages);
+        const packageIds = menu.subMenu.flatMap(sub => sub.products);
 
         // Collect image keys from the menu's banners and submenus
         const imageKeysToDelete = [];
@@ -74,9 +74,9 @@ export async function DELETE(req) {
                 }
 
                 // Loop through packages in submenus and gather image keys
-                for (const packageId of subMenu.packages) {
+                for (const productId of subMenu.products) {
                     // Fetch the package and collect the gallery image keys
-                    const pkg = await Package.findById(packageId);
+                    const pkg = await Product.findById(productId);
                     if (pkg) {
                         for (const galleryItem of pkg.gallery) {
                             if (galleryItem.key) {

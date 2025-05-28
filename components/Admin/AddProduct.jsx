@@ -106,7 +106,7 @@ const AddProduct = ({ id }) => {
                 order,
                 active,
                 isDirect: !subMenuId,
-                ...(subMenuId ? { subMenuId } : {})
+                ...(subMenuId ? { subMenuId, category: subMenuId } : {})
             };
             const response = await fetch('/api/admin/website-manage/addPackage', {
                 method: 'POST',
@@ -173,6 +173,7 @@ const AddProduct = ({ id }) => {
 
             if (response.ok) {
                 toast.success("Package added successfully!", { style: { borderRadius: "10px", border: "2px solid green" } })
+                window.location.reload();
             } else {
                 toast.error("Failed to add package", { style: { borderRadius: "10px", border: "2px solid red" } })
             }

@@ -1,139 +1,128 @@
 "use client";
 import React from "react";
 import Image from "next/image";
+import { Heart, ShoppingCart } from "lucide-react";
+import { useCart } from "../context/CartContext";
+import { toast } from "react-hot-toast";
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "./ui/carousel";
+import { Button } from "./ui/button";
+import Link from "next/link";
+import Autoplay from "embla-carousel-autoplay";
+function RelatedProductsCarousel({ products }) {
+  // Ensure products is always an array
+  const safeProducts = Array.isArray(products) ? products : [];
+  const { addToCart, addToWishlist, removeFromWishlist, wishlist } = useCart();
+  const handleAddToCart = (p) => {
+    addToCart({
+      id: p._id,
+      name: p.title,
+      image: p?.gallery?.mainImage || "/RandomTourPackageImages/u1.jpg",
+      price: p?.quantity?.variants[0].price,
+    }, 1);
+    toast.success("Added to cart!");
+  };
+  // If no products, don't render the component
+  if (safeProducts.length === 0) {
+    return null;
+  }
 
-const relatedProducts = [
-  {
-    id: 1,
-    name: "ANNA",
-    title: "Naminos Lorem A Dincidunto - Blue",
-    price: "$89.00 – $139.00",
-    image: "/RandomTourPackageImages/u1.jpg",
-    colors: ["#1e90ff", "#000", "#fff", "#ffe4b5"],
-    badges: [],
-    sale: false,
-    mustHave: false,
-    soldOut: false,
-    oldPrice: null,
-    showDiscount: false,
-  },
-  {
-    id: 2,
-    name: "BENJAMIN BUTTON",
-    title: "Dinterdum Pretium Condimento - Blue",
-    price: "$89.00 – $139.00",
-    image: "/RandomTourPackageImages/u2.jpg",
-    colors: ["#228b22", "#1e90ff", "#000", "#fff"],
-    badges: ["Sale", "Must Have"],
-    sale: true,
-    mustHave: true,
-    soldOut: false,
-    oldPrice: "$66.00",
-    showDiscount: true,
-    discountPrice: "$68.80",
-  },
-  {
-    id: 3,
-    name: "BURBERRY",
-    title: "Magnis Darturten Meros Lacinado - Green",
-    price: "$89.00 – $139.00",
-    image: "/RandomTourPackageImages/u3.jpg",
-    colors: ["#228b22", "#000", "#ffe4b5", "#1e90ff"],
-    badges: ["Sold Out"],
-    sale: false,
-    mustHave: false,
-    soldOut: true,
-    oldPrice: null,
-    showDiscount: false,
-  },
-  {
-    id: 4,
-    name: "DAVENTRY MEERS",
-    title: "Loremous Saliduar A Cosmopalis - Black",
-    price: "$286.00",
-    image: "/RandomTourPackageImages/u1.jpg",
-    colors: ["#000", "#1e90ff", "#228b22", "#ffe4b5"],
-    badges: [],
-    sale: false,
-    mustHave: false,
-    soldOut: false,
-    oldPrice: null,
-    showDiscount: false,
-  },
-];
-
-function RelatedProductsCarousel({ products=[] }) {
   return (
-    <div className="w-full py-12">
-      <h2 className="text-xl font-bold mb-8 text-center">Related Products</h2>
+    <div className="w-full py-10 px-5">
+      {/* <h2 className="text-xl font-bold mb-8 text-center">Related Products</h2> */}
       <div className="relative">
-        {/* Carousel content */}
-        <div className="flex gap-6 overflow-x-auto scrollbar-hide px-4">
-          {products.map((p, idx) => (
-            <div
-              key={p.id}
-              className="bg-white border rounded-lg shadow-sm flex flex-col items-center w-72 min-w-[270px] p-4 relative"
-            >
-              {/* Badges */}
-              <div className="absolute left-3 top-3 flex flex-col gap-1 z-10">
-                {p.badges.includes("Sale") && (
-                  <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded mb-1">Sale</span>
-                )}
-                {p.badges.includes("Must Have") && (
-                  <span className="bg-yellow-400 text-white text-xs px-2 py-0.5 rounded">Must Have</span>
-                )}
-                {p.badges.includes("Sold Out") && (
-                  <span className="bg-gray-400 text-white text-xs px-2 py-0.5 rounded">Sold Out</span>
-                )}
-              </div>
-              {/* Heart icon top right */}
-              <button className="absolute right-3 top-3 p-1 rounded-full hover:bg-gray-100">
-                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path d="M4.318 6.318a4.5 4.5 0 0 1 6.364 0L12 7.636l1.318-1.318a4.5 4.5 0 1 1 6.364 6.364L12 21.682l-7.682-7.682a4.5 4.5 0 0 1 0-6.364z" />
-                </svg>
-              </button>
-              {/* Image */}
-              <Image
-                src={p.image}
-                alt={p.name}
-                width={200}
-                height={220}
-                className="object-contain w-full h-56 mb-2"
-              />
-              {/* Name and Title */}
-              <div className="text-xs text-gray-400 font-medium text-center uppercase mt-2">{p.name}</div>
-              <div className="text-sm font-normal text-center mb-2">{p.title}</div>
-              {/* Price */}
-              <div className="flex flex-col items-center mb-2">
-                {p.showDiscount && (
-                  <span className="text-xs line-through text-gray-400">{p.oldPrice}</span>
-                )}
-                <span className={`font-bold text-base ${p.showDiscount ? "text-red-600" : "text-black"}`}>
-                  {p.showDiscount ? p.discountPrice : p.price}
-                </span>
-              </div>
-              {/* Color Swatches */}
-              <div className="flex gap-3 justify-center mt-2 mb-2">
-                {p.colors.map((color, i) => (
-                  <span
-                    key={i}
-                    className="w-6 h-6 rounded-full border border-gray-300"
-                    style={{ background: color }}
-                  ></span>
-                ))}
-              </div>
-              {/* Sold Out/Notify Me */}
-              {p.soldOut && (
-                <button className="w-full border border-gray-400 text-gray-700 py-1 rounded mt-2">NOTIFY ME</button>
-              )}
-            </div>
-          ))}
-        </div>
-        {/* Carousel arrows (optional, for now just placeholders) */}
-        {/*
-        <button className="absolute left-0 top-1/2 -translate-y-1/2 bg-white p-2 rounded-full shadow">&#8592;</button>
-        <button className="absolute right-0 top-1/2 -translate-y-1/2 bg-white p-2 rounded-full shadow">&#8594;</button>
-        */}
+        <Carousel className="w-full" plugins={[Autoplay({ delay: 4000 })]}>
+          <CarouselContent>
+            {safeProducts.map((p, idx) => (
+              <CarouselItem key={p._id || idx} className="w-72 min-w-[270px]">
+                <div
+                  className="rounded-2xl flex flex-col justify-between w-72 min-w-[270px] p-0 relative overflow-hidden"
+                >
+                  {/* Discount badge */}
+                  <div className="absolute left-4 top-4 z-20">
+                    <span className="bg-white text-black font-semibold text-xs px-4 py-1 rounded-full shadow">
+                      GET 20% OFF
+                    </span>
+                  </div>
+                  {/* Icons top right, stacked */}
+                  <div className="absolute top-6 right-6 z-10 flex flex-col gap-4 items-end">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={`rounded-full transition-colors duration-300 h-12 w-12 shadow-none ${wishlist.some(i => i.id === p._id) ? "bg-pink-600 hover:bg-pink-700" : "bg-white hover:bg-[#b3a7a3]"}`}
+                      onClick={() => {
+                        if (wishlist.some(i => i.id === p._id)) {
+                          removeFromWishlist(p._id);
+                          toast.success("Removed from wishlist!");
+                        } else {
+                          addToWishlist({
+                            id: p._id,
+                            name: p.title,
+                            image: p?.gallery?.mainImage || "/RandomTourPackageImages/u1.jpg",
+                            price: p?.quantity?.variants[0].price,
+                            qty: 1
+                          });
+                          toast.success("Added to wishlist!");
+                        }
+                      }}
+                    >
+                      <Heart size={28} className={wishlist.some(i => i.id === p._id) ? "text-white" : "text-pink-600"} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="rounded-full bg-[#b3a7a3]/80 hover:bg-[#b3a7a3] transition-colors duration-300 h-12 w-12 shadow-none"
+                      onClick={() => handleAddToCart(p)}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="28"
+                        height="28"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-white"
+                      >
+                        <circle cx="8" cy="21" r="1" />
+                        <circle cx="19" cy="21" r="1" />
+                        <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
+                      </svg>
+                    </Button>
+                  </div>
+                  {/* Image */}
+                  <div className="w-full aspect-[3/4] relative bg-[#f6eaea] flex items-center justify-center">
+                    <Image
+                      src={p.gallery?.mainImage || '/placeholder-image.jpg'}
+                      alt={p.title || 'Product Image'}
+                      fill
+                      className="object-cover rounded-2xl"
+                      sizes="(max-width: 768px) 100vw, 300px"
+                      priority={idx === 0}
+                    />
+                  </div>
+                  {/* Bottom section: name and price */}
+                  <div className="flex flex-row items-center justify-between w-full px-5 py-4">
+                    <div className="flex-1 min-w-0">
+                    <Link
+                          href={`/product/${p._id}`}
+                          className="font-bold hover:underline text-xl text-gray-900 leading-tight max-w-[200px] truncate cursor-pointer"
+                        >
+                          {p?.title}
+                        </Link>
+                    </div>
+                    <div className="ml-4 text-xl font-bold text-black whitespace-nowrap">
+                      ₹{p.quantity?.variants[0].price || '00'}
+                    </div>
+                  </div>
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          {/* <CarouselPrevious /> */}
+          {/* <CarouselNext /> */}
+        </Carousel>
       </div>
     </div>
   );

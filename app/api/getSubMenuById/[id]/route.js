@@ -1,7 +1,7 @@
 import connectDB from "@/lib/connectDB";
 import { NextResponse } from "next/server";
 import MenuBar from "@/models/MenuBar";
-import Package from "@/models/Package";
+import Product from "@/models/Product";
 
 export async function GET(req, { params }) {
     await connectDB();

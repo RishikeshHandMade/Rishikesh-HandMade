@@ -7,31 +7,18 @@ import RelatedProductsCarousel from "@/components/RelatedProductsCarousel";
 import StickyAddToCartBar from "@/components/StickyAddToCartBar"
 import ProductDetailView from "@/components/ProductDetailView";
 import ProductInfoTabs from "@/components/ProductInfoTabs";
-// Fetch featured packages from the API
-// const getFeaturedPackages = async () => {
-//     try {
-//         const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/featured-packages`);
-
-//         if (!res.ok) return [];
-//         const data = await res.json();
-//         // console.log(data);
-//         return data || [];
-//     } catch (error) {
-//         console.error('Error fetching featured packages:', error);
-//         return [];
-//     }
-// };
 
 const ProductDetailPage = async ({ params }) => {
     // Get the product slug from the URL and decode it
     let { id } = await params;
     const decodedSlug = decodeURIComponent(id);
+    // console.log(decodedSlug)
     const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/product/${decodedSlug}`;
     // console.log('Fetching product with slug:', decodedSlug, 'API URL:', apiUrl);
     // Fetch the product by its slug using the API route
     const res = await fetch(apiUrl, { cache: 'no-store' });
     const product = await res.json();
-    console.log('Fetched product:', product);
+    // console.log('Fetched product:', product);
 
     // If product not found, show not found message
     if (!product || product.error) {
@@ -45,21 +32,43 @@ const ProductDetailPage = async ({ params }) => {
             </div>
         );
     }
+   // Fetch frequently bought together products
+   let frequentlyBoughtTogether = [];
+   try {
+       const fbtRes = await fetch(
+           `${process.env.NEXT_PUBLIC_BASE_URL}/api/product/frequentlyBoughtTogether?id=${product._id}`,
+           { cache: 'no-store' }
+       );
+       if (fbtRes.ok) {
+           frequentlyBoughtTogether = await fbtRes.json();
+           console.log('Fetched frequently bought together products:', frequentlyBoughtTogether);
+       }
+   } catch (error) {
+       console.error('Error fetching frequently bought together products:', error);
+   }
 
     // Fetch related products only if we have a valid product
     let relatedProducts = [];
     try {
-        const relatedRes = await fetch(
-            `${process.env.NEXT_PUBLIC_BASE_URL}/api/product/relatedProducts?id=${id}&category=${product.category}`,
-            { cache: 'no-store' }   
-        );
-        if (relatedRes.ok) {
+        if (product.category) {  // Only fetch if category exists
+            const relatedRes = await fetch(
+                `${process.env.NEXT_PUBLIC_BASE_URL}/api/product/relatedProducts?id=${product._id}&category=${product.category}`,
+                { 
+                    cache: 'no-store',  
+                }   
+            );
+            if (!relatedRes.ok) {
+                throw new Error(`Failed to fetch related products: ${relatedRes.status}`);
+            }
             relatedProducts = await relatedRes.json();
-            console.log('Fetched related products:', relatedProducts);
+            // console.log('Fetched related products:', relatedProducts);
         }
     } catch (error) {
         console.error('Error fetching related products:', error);
+        // Don't throw the error, just show the product without related items
     }
+
+ 
 
     // Render the product details page
     return (
@@ -71,14 +80,20 @@ const ProductDetailPage = async ({ params }) => {
                 <div className="space-y-4">
                         <ProductInfoTabs product={product} />
                     </div>
+                {/* <ResponsiveFeaturedCarousel /> */}
+                {frequentlyBoughtTogether && frequentlyBoughtTogether.length > 0 && (
+                  <div className="mt-8 px-4 py-2 bg-[#fafafa]">
+                    <h2 className="text-4xl font-semibold mb-4 px-4">Frequently Bought Together</h2>
+                    <ResponsiveFeaturedCarousel products={frequentlyBoughtTogether} />
+                  </div>
+                )}
                 {/* Related Products */}
                 {relatedProducts && relatedProducts.length > 0 && (
-                    <div className="mt-8">
-                        <h2 className="text-2xl font-semibold mb-8">Related Products</h2>
+                    <div className="mt-8 px-4 py-2">
+                        <h2 className="text-4xl font-semibold mb-4 px-4">Related Products</h2>
                         <RelatedProductsCarousel products={relatedProducts} />
                     </div>
                 )}
-                <ResponsiveFeaturedCarousel />
                 <StickyAddToCartBar product={product} />
             </div>
         </SidebarInset>

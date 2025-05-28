@@ -17,7 +17,7 @@ const AddDirectProduct = ({ productId }) => {
 
   const [productData, setProductData] = useState(null);
   const [loading, setLoading] = useState(false);
-  console.log(productData)
+  // console.log(productData)
   useEffect(() => {
     if (productId) {
       setLoading(true);
@@ -26,10 +26,6 @@ const AddDirectProduct = ({ productId }) => {
         headers: {
           'Content-Type': 'application/json'
         },
-        // body: JSON.stringify({
-        //   productId: productId
-        //   // Remove isDirect: true to handle both types
-        // })
       })
         .then(res => res.json())
         .then(data => {
