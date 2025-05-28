@@ -6,7 +6,8 @@ import Link from "next/link";
 import { useSidebar } from "@/components/ui/sidebar";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
-
+import { useCart } from "../context/CartContext";
+import {toast } from "react-hot-toast"
 
 const dummyProducts = [
   {
@@ -48,6 +49,7 @@ const dummyProducts = [
 const discountPercent = 10;
 
 const ResponsiveFeaturedCarousel = ({ products }) => {
+  const { addToCart, addToWishlist, removeFromWishlist, wishlist } = useCart();
   // Use products if available and non-empty, otherwise fallback to 3 dummy products
   // console.log(products)
   const displayProducts = Array.isArray(products) && products.length > 0
@@ -132,7 +134,30 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
           <div className="flex gap-2 items-center mb-2">
             <span className="text-2xl font-bold text-black">₹{total.toFixed(2)}</span>
           </div>
-          <button className="bg-black text-white w-full py-3 rounded-lg font-bold text-base mb-2 hover:bg-gray-900 transition">ADD ALL TO CART</button>
+           <button
+            className="bg-black text-white w-full py-3 rounded-lg font-bold text-base mb-2 hover:bg-gray-900 transition"
+            onClick={() => {
+              // Add all selected products to cart
+              let added = 0;
+              displayProducts.forEach((p, i) => {
+                if (selected[i]) {
+                  // Use similar logic as ProductDetailView
+                  addToCart({
+                    id: p._id || p.id,
+                    name: p.title || p.name,
+                    image: (p.gallery?.mainImage) || (p.image?.url) || p.image || "/RandomTourPackageImages/u1.jpg",
+                    price: (p.quantity?.variants?.[0]?.price) || p.price || p.minPrice || 0,
+                  }, 1);
+                  added++;
+                }
+              });
+              if (added > 0) {
+                toast.success(`${added} product${added > 1 ? 's' : ''} added to cart!`);
+              } else {
+                toast.error("Please select at least one product.");
+              }
+            }}
+          >ADD ALL TO CART</button>
           <div className="text-xs text-center text-gray-700">Get a 10% discount buying these products together</div>
         </div>
       </div>

@@ -5,7 +5,6 @@ import { Heart, Share2 } from "lucide-react"
 import { useCart } from "../context/CartContext";
 import { Star } from 'lucide-react';
 import { toast } from "react-hot-toast";
-import Router from "next/router";
 import { useRouter } from "next/navigation";
 
 export default function ProductDetailView({ product }) {
@@ -154,7 +153,7 @@ export default function ProductDetailView({ product }) {
         <div className="flex flex-col gap-4 mb-6">
           {/* Quantity */}
           <div className="flex items-center gap-2">
-            <span className="font-semibold">Quantity:</span>
+            <span className="font-bold text-md">Quantity:</span>
             <button
               className="w-8 h-8 border rounded flex items-center justify-center font-bold text-lg hover:bg-gray-100"
               onClick={() => setQuantity(q => Math.max(1, q - 1))}
@@ -175,7 +174,7 @@ export default function ProductDetailView({ product }) {
           </div>
           {/* Size */}
           <div className="flex items-center gap-2">
-            <span className="font-semibold">Size:</span>
+            <span className="font-bold text-md">Size:</span>
             {availableSizes.map((size, idx) => (
               <button
                 key={size || idx}
@@ -224,7 +223,7 @@ export default function ProductDetailView({ product }) {
           </div>
           {/* Color */}
           <div className="flex items-center gap-2">
-            <span className="font-semibold">Color:</span>
+            <span className="font-bold text-md">Color:</span>
             {allColors.map((color, idx) => (
               <button
                 key={color || idx}
@@ -248,8 +247,8 @@ export default function ProductDetailView({ product }) {
         </div>
         {/* SKU, Tags, etc. */}
         <div className="mb-4">
-          <div className="text-sm mb-1"><span className="font-bold">Category:</span> Dresses, Jeans, Summer, Clothing</div>
-          <div className="text-sm"><span className="font-bold">Tags:</span> {(product?.categoryTag?.tags && product?.categoryTag?.tags.length > 0) ? product.categoryTag.tags.join(', ') : 'No tags'}</div>
+          <div className="text-md mb-1"><span className="font-bold text-md">Category:</span> Dresses, Jeans, Summer, Clothing</div>
+          <div className="text-md"><span className="font-bold ">Tags:</span> {(product?.categoryTag?.tags && product?.categoryTag?.tags.length > 0) ? product.categoryTag.tags.join(', ') : 'No tags'}</div>
         </div>
       </div>
 
