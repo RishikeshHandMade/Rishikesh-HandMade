@@ -51,6 +51,8 @@ const RandomTourPackageSection = () => {
   const [isFbLoading, setIsFbLoading] = useState(true);
   const [artisan, setArtisan] = useState([])
   const [quickViewProduct, setQuickViewProduct] = useState(null);
+  const [promotinalBanner, setPromotinalBanner] = useState([])
+  const [featuredOffer, setFeaturedOffer] = useState([])
   // Prevent background scroll when Quick View is open
   useEffect(() => {
     if (quickViewProduct) {
@@ -110,7 +112,7 @@ const RandomTourPackageSection = () => {
       try {
         const res = await fetch("/api/product");
         const data = await res.json();
-        console.log("Product API response:", data);
+        // console.log("Product API response:", data);
 
         if (data && data.length > 0) {
           setProducts(data);
@@ -144,9 +146,45 @@ const RandomTourPackageSection = () => {
         setIsBlogsLoading(false);
       }
     };
+    const fetchPromotinalBanner = async () => {
+      try {
+        const res = await fetch("/api/addPromotinalBanner");
+        const data = await res.json();
+        // console.log("Promotinal Banner API response:", data);
+        if (data && data.length > 0) {
+          setPromotinalBanner(data);
+        } else {
+          setPromotinalBanner([]);
+        }
+      } catch (error) {
+        // console.error("Error fetching products:", error);
+        setPromotinalBanner([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    const fetchFeaturedOffer = async () => {
+      try {
+        const res = await fetch("/api/addFeaturedOffer");
+        const data = await res.json();
+        console.log("Featured Offer API response:", data);
+        if (data && data.length > 0) {
+          setFeaturedOffer(data);
+        } else {
+          setFeaturedOffer([]);
+        }
+      } catch (error) {
+        // console.error("Error fetching products:", error);
+        setFeaturedOffer([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
     fetchProducts();
     fetchBlogs();
+    fetchPromotinalBanner();
+    fetchFeaturedOffer();
   }, []);
 
   if (isLoading) {
@@ -325,70 +363,42 @@ const RandomTourPackageSection = () => {
             {/* <CarouselPrevious /> */}
             {/* <CarouselNext /> */}
           </Carousel>
-
           {/* Promotional Banner Section */}
-          <div className="w-full flex flex-col md:flex-row h-[350px] md:h-[400px] gap-0 md:gap-4 my-8">
-            {/* Left Side - Summer 2024 */}
-            <div className="flex-1 bg-pink-100 flex items-center justify-center relative overflow-hidden">
-              <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=80" alt="Summer 2024" className="absolute inset-0 w-full h-full object-cover object-center opacity-90" />
-              <div className="relative z-10 flex flex-col items-center justify-center">
-                <div className="rounded-full bg-white/90 border-2 border-black shadow-lg w-64 h-64 flex flex-col items-center justify-center text-center p-6">
-                  <span className="text-xs font-semibold tracking-widest text-gray-700 mb-2">SALE UP TO 50% OFF</span>
-                  <span className="text-2xl md:text-3xl font-bold tracking-wide mb-1">SUMMER</span>
-                  <span className="text-5xl md:text-6xl font-extrabold mb-2">2024</span>
-                  <button className="mt-2 px-5 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition">SHOP NOW</button>
-                </div>
+          {promotinalBanner.length > 0 && (
+            <div className="w-full my-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {promotinalBanner.map((item, idx) => (
+                  <div key={idx} className="rounded-2xl flex flex-col h-[350px] md:h-[400px] p-0 overflow-hidden relative group">
+                    <img src={item?.image?.url} alt={item?.title} className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105" />
+                    <div className="absolute z-10 flex flex-col justify-center gap-2 px-10 h-full items-start">
+                      <div className="flex flex-col gap-2 items-start gap-4">
+                        <span className="inline-block bg-white text-black px-3 py-1 rounded text-xs font-bold w-fit mb-2 shadow">{item?.coupon ? `GET ${item?.coupon}% OFF` : ''}</span>
+                        <span className="text-2xl md:text-3xl font-extrabold text-black mb-2 leading-tight w-1/2">{item?.title}</span>
+                      </div>
+                      <a href={item?.buttonLink || '#'} target="_blank" rel="noopener noreferrer" className="mt-4 px-5 py-2 bg-black text-white rounded-xl hover:bg-gray-800 transition w-fit">View Now</a>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-            {/* Right Side - New Summer Collection */}
-            <div className="flex-1 bg-yellow-300 flex items-center justify-center relative overflow-hidden">
-              <img src="https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=800&q=80" alt="New Summer Collection" className="absolute inset-0 w-full h-full object-cover object-center opacity-90" />
-              <div className="relative z-10 flex flex-col items-start justify-center pl-8 md:pl-16">
-                <span className="text-xs font-semibold tracking-widest text-black mb-2">SALE UP TO 50% OFF</span>
-                <span className="text-3xl md:text-4xl font-bold text-black mb-2">NEW SUMMER</span>
-                <span className="text-3xl md:text-4xl font-bold text-black mb-4">COLLECTION</span>
-                <button className="px-5 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition">SHOP NOW</button>
-              </div>
-            </div>
-          </div>
-          {/* Featured Offer For You Section */}
-          <div className="w-full my-8">
+          )}
+
+            {/* Featured Offer For You Section */}
+            {featuredOffer.length > 0 && (
+            <div className="w-full my-8">
             <h2 className="text-2xl md:text-3xl font-bold text-center mb-5">Featured Offer For You</h2>
-            <Carousel className="w-full max-w-full">
+            <Carousel className=" w-full max-w-full">
               <CarouselContent>
-                {/* Static featured offers */}
-                {[
-                  {
-                    img: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&q=80",
-                    badge: "20% OFF",
-                    title: "SWIMWEAR SALE",
-                    button: "Collect Now",
-                    bg: "bg-[#FBE7DD]"
-                  },
-                  {
-                    img: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=600&q=80",
-                    badge: "20% OFF",
-                    title: "LUXURY BRAS",
-                    button: "Collect Now",
-                    bg: "bg-[#F3F3F3]"
-                  },
-                  {
-                    img: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=600&q=80",
-                    badge: "SALE UP TO 50% OFF",
-                    title: "SUMMER 2024",
-                    button: "Collect Now",
-                    bg: "bg-[#EBC7D9]"
-                  }
-                ].map((item, idx) => (
-                  <CarouselItem key={idx} className="px-2 md:basis-1/3 lg:basis-1/4">
-                    <div className={`rounded-2xl flex flex-col h-[340px] p-0 overflow-hidden relative ${item.bg}`}>
-                      <img src={item.img} alt={item.title} className="absolute inset-0 w-full h-full object-cover object-center opacity-80" />
-                      <div className="relative z-10 flex flex-col justify-between h-full p-6">
+                {featuredOffer.map((item, idx) => (
+                  <CarouselItem key={idx} className="px-2 md:basis-1/3 lg:basis-1/4 ml-5">
+                    <div className="rounded-2xl flex flex-col h-[340px] p-0 overflow-hidden relative bg-white group">
+                      <img src={item.image?.url} alt={item.title} className="absolute inset-0 w-full h-full object-cover object-center opacity-80 transition-transform duration-300 group-hover:scale-105" />
+                      <div className="relative z-10 flex flex-col justify-center items-start h-full p-6">
                         <div className="flex flex-col gap-2">
-                          <span className="inline-block bg-white text-black px-3 py-1 rounded text-xs font-bold w-fit mb-2 shadow">{item.badge}</span>
-                          <span className="text-2xl md:text-3xl font-extrabold text-black mb-2 leading-tight">{item.title}</span>
+                          <span className="inline-block bg-white text-black px-3 py-1 rounded text-xs font-bold w-fit mb-2 shadow">{item.coupon ? `GET ${item.coupon}% OFF` : ''}</span>
+                          <span className="text-2xl md:text-3xl font-extrabold text-black mb-2 leading-tight w-1/2">{item.title}</span>
                         </div>
-                        <button className="mt-4 px-5 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition w-fit">{item.button}</button>
+                        <Link href={item.buttonLink || '#'} target="_blank" rel="noopener noreferrer" className="mt-4 px-5 py-4 bg-black text-white rounded-xl hover:bg-gray-800 transition w-fit">View Now</Link>
                       </div>
                     </div>
                   </CarouselItem>
@@ -398,7 +408,8 @@ const RandomTourPackageSection = () => {
               <CarouselNext />
             </Carousel>
           </div>
-          {/* Artisan Carousel Section */}
+          )}
+            {/* Artisan Carousel Section */}
           <div className="w-full mt-16">
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-8">Meet Our Artisans</h2>
             <Carousel

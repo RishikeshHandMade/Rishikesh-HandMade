@@ -41,10 +41,10 @@ const data = {
       url: "/admin/create_user",
       icon: User,
     },
-    
+
     // Space (empty item)
     { divider: true },
-    
+
     // Second group: Basic setup
     {
       name: "Manage Banner",
@@ -84,43 +84,54 @@ const data = {
       url: "/admin/add_direct_product",
       icon: Plus,
     },
+    { divider: true },
+    {
+      name: "Create Discount",
+      url: "/admin/create_discount",
+      icon: Plus
+    },
+    { divider: true },
+    {
+      name: "Promotional Banner",
+      url: "/admin/promotional_banner",
+      icon: Image
+    },
+    {
+      name: "Featured Offered Banner",
+      url: "/admin/featured_offered_banner",
+      icon: Image
+    },
+
     // Space (empty item)
     { divider: true },
-
     {
-      name:"Create Discount",
-      url:"/admin/create_discount",
-      icon:Plus
-    },
-    { divider: true },
-    {
-      name:"Insta or Facebook Post",
-      url:"/admin/insta_fb_post",
-      icon:Image
+      name: "Insta or Facebook Post",
+      url: "/admin/insta_fb_post",
+      icon: Image
     },
     {
-      name:"Manage Blogs",
+      name: "Manage Blogs",
       url: "/admin/manage_blogs",
       icon: Rss,
     },
 
-   // Space (empty item)
-   { divider: true },
+    // Space (empty item)
+    { divider: true },
 
-       {
-         name:"Coming Soon",
-         url:"/admin/coming_soon",
-         icon:Image
-       },   
-       {
-        name:"Coming Soon Enquiries",
-        url:"/admin/coming_soon_enquiries",
-        icon:MessageCircleMore
-       },
-      // Space (empty item)
-      { divider: true },
+    {
+      name: "Coming Soon",
+      url: "/admin/coming_soon",
+      icon: Image
+    },
+    {
+      name: "Coming Soon Enquiries",
+      url: "/admin/coming_soon_enquiries",
+      icon: MessageCircleMore
+    },
+    // Space (empty item)
+    { divider: true },
 
-    
+
     // Third group: Content management
     {
       name: "Manage Featured Packages",
@@ -152,20 +163,20 @@ const data = {
       url: "/admin/manage_reviews",
       icon: Star,
     },
-    
+
     // Space (empty item)
     { divider: true },
-    
+
     // Fourth group: Blog & pages
     {
       name: "Manage Webpages",
       url: "/admin/manage_webpage",
       icon: StickyNote,
     },
-    
+
     // Space (empty item)
     { divider: true },
-    
+
     // Fifth group: Enquiries
     {
       name: "Contact Page Enquiry",
@@ -177,10 +188,10 @@ const data = {
       url: "/admin/chat",
       icon: MessageCircleMore,
     },
-    
+
     // Space (empty item)
     { divider: true },
-    
+
     // Sixth group: Reports & tools
     {
       name: "Sales Section",
