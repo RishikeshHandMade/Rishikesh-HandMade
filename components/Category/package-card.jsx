@@ -1,6 +1,5 @@
 "use client"
-
-import { useState, useEffect } from 'react'
+import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Heart } from "lucide-react"
@@ -8,22 +7,20 @@ import { Button } from "@/components/ui/button"
 import { useCart } from "@/context/CartContext"
 import toast from "react-hot-toast"
 
-const PackageCard = ({ pkg }) => {
-  console.log(pkg)
-  const { addToWishlist, addToCart } = useCart()
+const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, setQuickViewProduct, handleAddToCart }) => {
+  // If not passed as prop, fallback to context
+  const cart = useCart?.() || {}
+  const addToWishlistFn = addToWishlist || cart.addToWishlist
+  const removeFromWishlistFn = removeFromWishlist || cart.removeFromWishlist
+  const addToCartFn = handleAddToCart || cart.addToCart
+  const [loading, setLoading] = useState(false)
+  const isWishlisted = wishlist?.some?.(i => i.id === pkg._id)
+  const formatNumber = (number) => new Intl.NumberFormat('en-IN').format(number)
 
-
-
-
-
-  const formatNumber = (number) => {
-    return new Intl.NumberFormat('en-IN').format(number)
-  }
-  // if (loading) {
   return (
     <div className="flex flex-col w-[290px] rounded-3xl mb-2 group cursor-pointer">
       {/* Image Section */}
-      <div className="relative w-full h-96 rounded-3xl overflow-hidden flex items-center justify-center group/image">
+      <div className="relative w-full h-80 rounded-3xl overflow-hidden flex items-center justify-center group/image">
         {/* GET 10% OFF Tag */}
         <div className="absolute top-6 left-4 z-10">
           <div className="bg-white rounded-full px-4 py-1 text-sm font-bold shadow text-black tracking-tight" style={{ letterSpacing: 0 }}>
@@ -35,32 +32,37 @@ const PackageCard = ({ pkg }) => {
           <Button
             variant="ghost"
             size="icon"
-            className="rounded-full transition-colors duration-300 h-12 w-12 shadow-none bg-white hover:bg-[#b3a7a3]"
+            className={`rounded-full transition-colors duration-300 h-12 w-12 shadow-none ${isWishlisted ? "bg-pink-600 hover:bg-pink-700" : "bg-white hover:bg-[#b3a7a3]"}`}
             onClick={() => {
-              addToWishlist({
-                id: pkg._id,
-                name: pkg.title,
-                image: (pkg?.gallery?.mainImage ? pkg.gallery.mainImage : "/RandomTourPackageImages/u1.jpg"),
-                price: pkg.price || 0,
-                qty: 1
-              });
-              toast.success("Added to wishlist!");
+              if (isWishlisted) {
+                removeFromWishlistFn(pkg._id)
+                toast.success("Removed from wishlist!")
+              } else {
+                addToWishlistFn({
+                  id: pkg._id,
+                  name: pkg.title,
+                  image: pkg?.gallery?.mainImage || "/RandomTourPackageImages/u1.jpg",
+                  price: pkg.price || 0,
+                  qty: 1
+                })
+                toast.success("Added to wishlist!")
+              }
             }}
           >
-            <Heart size={28} className="text-pink-600" />
+            <Heart size={28} className={isWishlisted ? "text-white" : "text-pink-600"} />
           </Button>
           <Button
             variant="ghost"
             size="icon"
             className="rounded-full bg-[#b3a7a3]/80 hover:bg-[#b3a7a3] transition-colors duration-300 h-12 w-12 shadow-none"
             onClick={() => {
-              addToCart({
+              addToCartFn({
                 id: pkg._id,
                 name: pkg.title,
-                image: (pkg?.gallery?.mainImage ? pkg.gallery.mainImage : "/RandomTourPackageImages/u1.jpg"),
+                image: pkg?.gallery?.mainImage || "/RandomTourPackageImages/u1.jpg",
                 price: pkg.price || 0,
-              }, 1);
-              toast.success("Added to cart!");
+              }, 1)
+              toast.success("Added to cart!")
             }}
           >
             <svg
@@ -89,6 +91,17 @@ const PackageCard = ({ pkg }) => {
           quality={60}
           className="object-cover w-full h-full rounded-3xl transition-transform duration-300 group-hover/image:scale-105"
         />
+        {/* Quick View Button - Slide Up from Bottom on Hover (image only) */}
+        {setQuickViewProduct && (
+          <div className="absolute left-0 right-0 bottom-0 flex items-center justify-center translate-y-10 opacity-0 group-hover/image:translate-y-0 group-hover/image:opacity-100 transition-all duration-300 py-4 ">
+            <Button
+              className="bg-black text-white hover:bg-gray-800 transition-colors duration-300 uppercase text-sm font-bold px-8 py-3 rounded-full shadow-lg border border-2 border-white"
+              onClick={() => setQuickViewProduct(pkg)}
+            >
+              QUICK VIEW
+            </Button>
+          </div>
+        )}
       </div>
       {/* Name and Price Section */}
       <div className="flex items-center justify-between px-2 pt-4 pb-2 mt-0">

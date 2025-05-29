@@ -85,6 +85,8 @@ export async function PATCH(req) {
             return NextResponse.json({ message: "Submenu updated successfully!", menu: updatedMenu });
         }
 
+        // Ensure profileImage is included in submenu data if sent from frontend
+        // body.subMenu.profileImage should be an object { url, key }
         const updatedMenu = await MenuBar.findByIdAndUpdate(
             body.id,
             { $push: { subMenu: body.subMenu } },

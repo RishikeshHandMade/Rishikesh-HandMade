@@ -99,6 +99,7 @@ const ManageProductsCategory = () => {
                 reset()
                 setSelectedMenu("")
                 setBannerImage(null)
+                setProfileImage(null)
                 toast.success("Sub Menu added successfully!", { style: { borderRadius: "10px", border: "2px solid green" } })
                 window.location.reload()
             }
@@ -201,50 +202,6 @@ const ManageProductsCategory = () => {
         }
     }
 
-    // const handleRemoveImage = async (key) => {
-    //     await deleteFileFromCloudinary(key)
-    //     setBannerImage(null)
-    // }
-
-    // const handleGalleryImageLoad = (index) => {
-    //     setLoadedGalleryImages((prev) => {
-    //         const updated = [...prev, index]
-    //         return updated
-    //     })
-    // }
-
-    // const handleGalleryImageUpload = async (event) => {
-    //     const files = Array.from(event.target.files)
-    //     if (!files.length) return
-    //     setGalleryUploading(true)
-    //     let newFiles = []
-    //     try {
-    //         for (const file of files) {
-    //             const formData = new FormData()
-    //             formData.append('file', file)
-    //             const res = await fetch('/api/cloudinary', {
-    //                 method: 'POST',
-    //                 body: formData
-    //             })
-    //             if (!res.ok) throw new Error('Image upload failed')
-    //             const result = await res.json()
-    //             newFiles.push({ url: result.url, key: result.key })
-    //         }
-    //         setGalleryImages(prev => [...prev, ...newFiles])
-    //         toast.success('Images uploaded successfully')
-    //     } catch (err) {
-    //         toast.error('Image upload failed')
-    //     } finally {
-    //         setGalleryUploading(false)
-    //         if (galleryFileInputRef.current) galleryFileInputRef.current.value = ''
-    //     }
-    // }
-
-    // const handleRemoveGalleryImage = async (key) => {
-    //     await deleteFileFromCloudinary(key)
-    //     setGalleryImages(prev => prev.filter(file => file.key !== key))
-    //     toast.success('Image Deleted')
-    // }
 
     return (
         <>
@@ -507,6 +464,7 @@ const ManageProductsCategory = () => {
                                         Upload Banner Image
                                     </button>
                                 </div>
+                                
                                 <DialogFooter>
                                     <button className="bg-blue-600 hover:bg-blue-500 mt-4" type="submit">Save Changes</button>
                                 </DialogFooter>

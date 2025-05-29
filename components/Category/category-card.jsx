@@ -3,22 +3,23 @@ import Link from "next/link";
 
 const CategoryCard = ({ category }) => {
   return (
-    <Link href={category.url || `/category/${category.url || category._id}` }>
-      <div className="flex flex-col items-center justify-center w-40 h-44 bg-white rounded-2xl shadow hover:scale-105 transition-transform cursor-pointer mx-2 my-2">
-        <div className="relative w-24 h-24 mb-2">
+    
+      <div className="bg-[#fcf7f1] group w-44 h-52  rounded-2xl transition-transform mx-2 my-2 flex flex-col">
+        <div className="relative w-full h-52 overflow-hidden rounded-2xl mb-2">
           <Image
-            src={category.banner?.url || "/placeholder.jpg"}
+            src={category.profileImage?.url || "/placeholder.jpeg"}
             alt={category.title}
             fill
-            className="object-cover rounded-xl"
-            sizes="96px"
+            className="object-cover rounded-2xl group-hover:-translate-y-3 transition-transform duration-200"
+            sizes="176px"
           />
         </div>
-        <span className="font-semibold text-center text-gray-800 text-base truncate w-32">
+        <Link href={category.url || `/category/${category.url || category._id}` }>
+        <span className="font-semibold text-start text-gray-800 text-base hover:underline truncate w-full mt-5 px-2 ">
           {category.title}
         </span>
+        </Link>
       </div>
-    </Link>
   );
 };
 
