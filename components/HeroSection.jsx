@@ -175,28 +175,42 @@ const HeroSection = () => {
   }
 
   return (
-    <section className="bg-[#fcf7f1] relative xl:h-screen w-full overflow-hidden z-0 group">
+    <section className="bg-[#fcf7f1] relative xl:h-full w-full overflow-hidden z-0 group">
       <div className="hidden xl:block w-full h-full ">
         <div className="flex h-full w-full items-center justify-center">
           {/* Left Side: Details (fixed, updates on image change) */}
-          <div className="flex flex-col justify-center items-start w-1/2 h-full px-16 gap-6">
+          <div className="flex flex-col justify-center items-start w-1/2 h-full px-20 gap-6">
             <div className="mb-8">
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-black leading-tight mb-2">
-                {banners[selectedIndex]?.title}
+              <h1 className="text-5xl md:text-6xl lg:text-6xl font-bold text-black leading-tight mb-4">
+                {banners[selectedIndex]?.title || "No Title"}
               </h1>
-              <div className="text-2xl md:text-3xl font-bold text-black mb-4">Price</div>
-              <div className="text-3xl md:text-4xl font-extrabold text-black mb-8">{banners[selectedIndex]?.price || "$0.00"}</div>
+              <div className="text-2xl md:text-2xl font-semibold text-black mb-4">Price</div>
+              <div className="text-3xl md:text-3xl font-extrabold text-black mb-8">{banners[selectedIndex]?.price || "0.00"}</div>
               <div className="flex gap-3 mb-6">
-                <button className="bg-black text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-800 transition">ADD TO CART</button>
-                <button className="border border-black px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">VIEW DETAIL</button>
+                <a
+                  href={banners[selectedIndex]?.addtoCartLink || '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`bg-black text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-800 transition${!banners[selectedIndex]?.addtoCartLink ? ' opacity-50 pointer-events-none' : ''}`}
+                >
+                  ADD TO CART
+                </a>
+                <a
+                  href={banners[selectedIndex]?.viewDetailLink || '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`border border-black px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition${!banners[selectedIndex]?.viewDetailLink ? ' opacity-50 pointer-events-none' : ''}`}
+                >
+                  VIEW DETAIL
+                </a>
               </div>
               <div className="flex items-center justify-between gap-8 mt-2 mb-2">
                 <div className="flex gap-2 flex-col ">
-                  <div className="text-xl font-semibold text-black">Summer Collection</div>
-                  <div className="text-lg font-light text-black">TRENDY AND CLASSIC FOR THE NEW SEASON</div>
+                  <div className="text-xl font-bold text-black">{banners[selectedIndex]?.subtitle || "No Subtitle"}</div>
+                  <div className="text-lg  font-semibold text-black tracking-tight">{banners[selectedIndex]?.subDescription || "No Sub Description"}</div>
                 </div>
                 {/* More Category Circular Button */}
-                <div>
+                <div className="absolute left-[40%] bottom-[40%] transform translate-x-1/2 translate-y-1/2">
                   <button
                     className="relative flex items-center justify-center w-28 h-28 group focus:outline-none"
                     style={{ minWidth: '112px', minHeight: '112px' }}
@@ -245,7 +259,7 @@ const HeroSection = () => {
             </div>
           </div>
           {/* Right Side: Image Carousel */}
-          <div className="flex items-center justify-center w-1/2 h-full relative">
+          <div className="relative flex items-center justify-center w-1/2 h-full">
             <Carousel
               className="h-full w-full"
               plugins={[Autoplay({ delay: 4000 })]}
@@ -256,12 +270,12 @@ const HeroSection = () => {
               <CarouselContent className="h-full">
                 {banners.map((item, index) => (
                   <CarouselItem key={index} className="h-[100vh] md:h-full flex items-center justify-center">
-                    <div className="relative w-[420px] h-[520px] flex items-center justify-center">
+                    <div className="relative w-[420px] h-[600px] flex items-center justify-center">
                       <Image
                         src={item?.image?.url}
                         alt={item?.title || "Banner Image"}
                         width={420}
-                        height={520}
+                        height={600}
                         quality={100}
                         priority
                         className="object-cover w-full h-full rounded-3xl shadow-lg"
@@ -269,7 +283,11 @@ const HeroSection = () => {
                       {/* Example: Discount badge */}
                       <div className="absolute top-6 left-6 z-10">
                         <div className="bg-white rounded-full px-5 py-2 text-sm font-bold shadow text-black tracking-tight">
-                          GET 20% OFF
+                          {banners[selectedIndex]?.coupon ? (
+                            "GET " + banners[selectedIndex]?.coupon + "% OFF"
+                          ) : (
+                            "No Coupon"
+                          )}
                         </div>
                       </div>
                     </div>
@@ -277,7 +295,7 @@ const HeroSection = () => {
                 ))}
               </CarouselContent>
               {/* <CarouselPrevious className="left-4 md:left-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300" /> */}
-              <CarouselNext className="absolute bg-black text-white p-10 right-[10%]" />
+              <CarouselNext className="absolute p-8 bg-black text-white right-[15%] bottom-[50%]"/>
             </Carousel>
           </div>
         </div>

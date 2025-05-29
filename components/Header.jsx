@@ -83,21 +83,21 @@ const Header = () => {
       <div className="md:flex hidden items-center justify-between gap-8 border-b py-1 border-gray-400 md:px-8 ">
         <p className="text-md">Crafted by Hand, Cherished by Heart</p>
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-4">
+          {/* <div className="flex items-center gap-4">
             <Mail size={20} />
             <Link href={"mailto:info@rishikeshhandmade.com"}>
               <p className="text-sm font-semibold hover:underline">info@rishikeshhandmade.com</p>
             </Link>
-          </div>
+          </div> */}
 
           <div className="h-4 w-0.5 bg-white rounded-full"></div>
 
-          <div className="flex items-center gap-4">
+          {/* <div className="flex items-center gap-4">
             <Phone size={20}/>
             <Link href={"tel:+917351009107"}>
               <p className="text-sm font-semibold tracking-widest hover:underline">+91 7351009107 </p>
             </Link>
-          </div>  
+          </div>   */}
         </div>
       </div>
       <div className="lg:flex hidden items-center z-50 justify-center md:justify-between py-2 md:px-4 ">

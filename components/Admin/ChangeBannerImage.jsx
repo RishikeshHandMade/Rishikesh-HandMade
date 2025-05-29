@@ -11,16 +11,22 @@ import toast from "react-hot-toast";
 
 import { PencilIcon, Trash2Icon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useRef } from "react";
+import { UploadIcon } from "lucide-react";
 
 const ChangeBannerImage = () => {
     const [banners, setBanners] = useState([]);
     const [editBanner, setEditBanner] = useState(null);
     const [formData, setFormData] = useState({
         title: "",
-        subTitle: "",
-        order: 1,
+        price: "",
+        coupon: "",
+        addtoCartLink: "",
+        viewDetailLink: "",
+        subtitle: "",
+        subDescription: "",
         image: { url: "", key: "" },
-        link: "",
+        order: 1,
     });
 
     // Fetch banners and determine the next order number
@@ -98,10 +104,14 @@ const ChangeBannerImage = () => {
                 // Reset form
                 setFormData({
                     title: "",
-                    subTitle: "",
+                    price: "",
+                    coupon: "",
+                    addtoCartLink: "",
+                    viewDetailLink: "",
+                    subtitle: "",
+                    subDescription: "",
                     order: updatedBanners.length + 1,
                     image: { url: "", key: "" },
-                    link: "",
                 });
             } else {
                 toast.error(data.error);
@@ -116,10 +126,14 @@ const ChangeBannerImage = () => {
         console.log(banner)
         setFormData({
             title: banner.title,
-            subTitle: banner.subTitle,
+            price: banner.price,
+            coupon: banner.coupon,
+            addtoCartLink: banner.addtoCartLink,
+            viewDetailLink: banner.viewDetailLink,
+            subtitle: banner.subtitle,
+            subDescription: banner.subDescription,
             order: banner.order,
             image: banner.image,
-            link: banner.link,
         });
     };
 
@@ -155,6 +169,9 @@ const ChangeBannerImage = () => {
     };
 
 
+    // Ref for file input
+    const fileInputRef = useRef(null);
+
     return (
         <div className="max-w-5xl mx-auto py-10 w-full">
             <h2 className="text-2xl font-bold mb-6">{editBanner ? "Edit Banner" : "Add New Banner"}</h2>
@@ -166,8 +183,19 @@ const ChangeBannerImage = () => {
                         type="file"
                         accept="image/*"
                         onChange={handleImageChange}
-                        className="mb-2"
+                        ref={fileInputRef}
+                        className="hidden"
+                        id="banner-image-input"
                     />
+                    <Button
+                        type="button"
+                        variant="outline"
+                        className="mb-2 flex items-center gap-2 bg-blue-500 text-white"
+                        onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                    >
+                        <span>Select Banner Image</span>
+                        <UploadIcon className="w-4 h-4" />
+                    </Button>
                     {uploading && <div className="text-blue-600 font-semibold">Uploading...</div>}
                     {formData.image.url && (
                         <div className="relative w-48 h-28 border rounded overflow-hidden mb-2">
@@ -188,34 +216,41 @@ const ChangeBannerImage = () => {
                         </div>
                     )}
                 </div>
-                {/* <div>
-                    <Label>Upload Banner Image</Label>
-                    {formData.image.url ? (
-                        <div className="relative">
-                            <Image src={formData.image.url} alt="Banner Preview" width={400} height={200} className="rounded-lg shadow" />
-                            <Button type="button" onClick={() => { handleDeleteImage(formData.image.key) }} className="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 text-xs">Remove</Button>
-                        </div>
-                    ) : (
-                        <Input type="file" accept="image/*" onChange={handleImageChange} disabled={uploading} />
-                    )}
-                </div> */}
                 <div>
                     <Label>Title</Label>
-                    <Input name="title" value={formData.title} onChange={handleInputChange} />
+                    <Input name="title" placeholder="Enter title" value={formData.title} onChange={handleInputChange} />
+                </div>
+                <div className="flex gap-2">
+                    <div className="flex-1">
+                        <Label>Price</Label>
+                        <Input name="price" placeholder="Enter price" value={formData.price} onChange={handleInputChange} />
+                    </div>   <div className="flex-1">
+                        <Label>Coupon Code</Label>
+                        <Input name="coupon" placeholder="Enter coupon code" value={formData.coupon} onChange={handleInputChange} />
+                    </div>
+                </div>
+
+                <div>
+                    <Label>Add To Cart Link</Label>
+                    <Input name="addtoCartLink" placeholder="Enter add to cart link" type="url" value={formData.addtoCartLink} onChange={handleInputChange} />
+                </div>
+                <div>
+                    <Label>View Detail Link</Label>
+                    <Input name="viewDetailLink" placeholder="Enter view detail link" type="url" value={formData.viewDetailLink} onChange={handleInputChange} />
                 </div>
                 <div>
                     <Label>Subtitle</Label>
-                    <Input name="subTitle" value={formData.subTitle} onChange={handleInputChange} />
+                    <Input name="subtitle" placeholder="Enter subtitle" value={formData.subtitle} onChange={handleInputChange} />
                 </div>
                 <div>
-                    <Label>URL</Label>
-                    <Input name="link" type="url" value={formData.link} onChange={handleInputChange} />
+                    <Label>Sub Description</Label>
+                    <Input name="subDescription" placeholder="Enter sub description" value={formData.subDescription} onChange={handleInputChange} />
                 </div>
                 <div>
                     <Label>Order</Label>
-                    <Input name="order" type="number" value={formData.order} readOnly className="bg-gray-100 cursor-not-allowed" />
+                    <Input name="order" placeholder="Enter order" type="number" value={formData.order} readOnly className="bg-gray-100 cursor-not-allowed" />
                 </div>
-                
+
                 <Button type="submit" className="bg-blue-600 hover:bg-blue-500">
                     {editBanner ? "Update Banner" : "Add Banner"}
                 </Button>
@@ -226,8 +261,8 @@ const ChangeBannerImage = () => {
                 <TableHeader>
                     <TableRow>
                         <TableHead>Title</TableHead>
+                        <TableHead>Price</TableHead>
                         <TableHead>Subtitle</TableHead>
-                        <TableHead>Link</TableHead>
                         <TableHead>Order</TableHead>
                         <TableHead>Image</TableHead>
                         <TableHead>Actions</TableHead>
@@ -238,19 +273,8 @@ const ChangeBannerImage = () => {
                         banners.map((banner) => (
                             <TableRow key={banner._id}>
                                 <TableCell>{banner.title}</TableCell>
-                                <TableCell>{banner.subTitle}</TableCell>
-                                <TableCell>
-                                    <TooltipProvider>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <span className="cursor-pointer">Hover to view</span>
-                                            </TooltipTrigger>
-                                            <TooltipContent className="bg-white text-blue-600 font-medium text-base font-barlow shadow-2xl">
-                                                <p>{banner.link}</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
-                                </TableCell>
+                                <TableCell>{banner.price}</TableCell>
+                                <TableCell>{banner.coupon}</TableCell>
                                 <TableCell>{banner.order}</TableCell>
                                 <TableCell>
                                     <Image src={banner.image.url} alt="Banner" width={100} height={50} className="rounded-lg" />

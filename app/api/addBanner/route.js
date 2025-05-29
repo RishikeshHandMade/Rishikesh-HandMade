@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/connectDB";
 import HeroBanner from "@/models/HeroBanner";
-import { deleteFileFromCloudinary } from "@/utils/Utapi";
+import { deleteFileFromCloudinary } from "@/utils/cloudinary";
 connectDB();
 
 export async function GET() {
@@ -15,13 +15,13 @@ export async function GET() {
 
 export async function POST(req) {
     try {
-        const { title, subTitle, image, link } = await req.json();
+        const { title, price, coupon, addtoCartLink, viewDetailLink, subtitle, subDescription, image, order } = await req.json();
 
         // Find the highest order number
         const lastBanner = await HeroBanner.findOne().sort({ order: -1 });
         const nextOrder = lastBanner ? lastBanner.order + 1 : 1; // Auto-increment order
 
-        const newBanner = new HeroBanner({ title, subTitle, order: nextOrder, image, link });
+        const newBanner = new HeroBanner({ title, price, coupon, addtoCartLink, viewDetailLink, subtitle, subDescription, order: nextOrder, image });
         await newBanner.save();
         return NextResponse.json(newBanner, { status: 201 });
     } catch (error) {
@@ -31,8 +31,8 @@ export async function POST(req) {
 
 export async function PATCH(req) {
     try {
-        const { id, title, subTitle, order, image, link } = await req.json();
-        const updatedBanner = await HeroBanner.findByIdAndUpdate(id, { title, subTitle, order, image, link }, { new: true });
+        const { id, title, price, coupon, addtoCartLink, viewDetailLink, subtitle, subDescription, image, order } = await req.json();
+        const updatedBanner = await HeroBanner.findByIdAndUpdate(id, { title, price, coupon, addtoCartLink, viewDetailLink, subtitle, subDescription, order, image }, { new: true });
         return NextResponse.json(updatedBanner, { status: 200 });
     } catch (error) {
         return NextResponse.json({ error: "Failed to update banner" }, { status: 500 });

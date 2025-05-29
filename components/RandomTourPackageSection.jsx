@@ -217,7 +217,7 @@ const RandomTourPackageSection = () => {
           <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mt-10">
             Trending Products: The Best, Today
           </h1>
-          <p className=" text-gray-600 py-8 text-center font-barlow w-[80%] mx-auto">
+          <p className=" text-gray-600 py-8 text-center font-barlow w-[50%] mx-auto">
             Discover the hottest deals with our Trending Products! Curated
             daily, these top-rated picks offer the best value and quality —
             handpicked for professionals who demand the best, today. Don’t miss
