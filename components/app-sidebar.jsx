@@ -101,6 +101,11 @@ const data = {
       url: "/admin/featured_offered_banner",
       icon: Image
     },
+    {
+      name: "Category Advertisment",
+      url: "/admin/category_advertisment",
+      icon: Image
+    },
 
     // Space (empty item)
     { divider: true },

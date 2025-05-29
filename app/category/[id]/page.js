@@ -55,13 +55,19 @@ const CategoryPage = async ({ params }) => {
   // products is now an array of full product objects
   const products = Array.isArray(categoryData.products) ? categoryData.products : [];
   const visibleProducts = products.filter(prod => prod.active !== false);
-  console.log(visibleProducts)
+  // console.log(visibleProducts)
   const categoryInfo = await getCategoryInfo(categoryData);
+
+  // Fetch category advertisement banner
+
+  const adRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/categoryAdvertisment`, { cache: 'no-store' });
+  const categoryAds = await adRes.json();
+  const categoryAdList = Array.isArray(categoryAds) && categoryAds.length > 0 ? categoryAds : [];
 
   // Fetch all categories for the category cards row
   const allCategoriesRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/getAllMenuItems`, { cache: 'no-store' });
   const allCategories = await allCategoriesRes.json();
-  console.log(allCategories)
+  // console.log(allCategories)
 
   return (
     <SidebarInset>
@@ -72,13 +78,36 @@ const CategoryPage = async ({ params }) => {
         <div className="flex flex-col md:flex-row gap-6 w-full mt-4">
           {/* Left Image Section */}
           <div className="hidden md:flex flex-col w-full max-w-xs justify-start items-center">
-            <div className="w-full h-80 rounded-2xl overflow-hidden shadow">
-              <img
-                src={categoryInfo.bannerImage}
-                alt={categoryInfo.title}
-                className="object-cover w-full h-full"
-              />
-            </div>
+            {/* Category Advertisement Banner */}
+            {categoryAdList.length > 0 ? (
+              <>
+                {categoryAdList.map((ad, idx) => (
+                  <div key={ad._id || idx} className="w-full h-80 rounded-2xl overflow-hidden shadow mb-4">
+                    {ad.image && ad.buttonLink ? (
+                      <a href={ad.buttonLink} target="_blank" rel="noopener noreferrer">
+                        <img
+                          src={ad.image?.url || ad.image}
+                          alt={"Category Advertisement"}
+                          className="object-cover w-full h-full cursor-pointer hover:opacity-90 transition"
+                        />
+                      </a>
+                    ) : ad.image ? (
+                      <img
+                        src={ad.image?.url || ad.image}
+                        alt={"Category Advertisement"}
+                        className="object-cover w-full h-full"
+                      />
+                    ) : (
+                      <div className="w-full h-80 flex items-center justify-center text-gray-400">No Image</div>
+                    )}
+                  </div>
+                ))}
+              </>
+            ) : (
+              <div className="w-full h-80 rounded-2xl overflow-hidden shadow flex items-center justify-center text-gray-400">
+                No Advertisement
+              </div>
+            )}
           </div>
 
           {/* Middle Section: Category Cards + Package Cards */}
