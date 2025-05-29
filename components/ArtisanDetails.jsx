@@ -824,7 +824,7 @@ const ArtisanDetails = ({ artisan }) => {
         <div className="w-full h-[500px] mx-auto flex flex-row items-start justify-center px-5 py-1 gap-8">
           {/* Left Column: Text */}
           <div className="w-1/2 pr-6 flex flex-col justify-center h-full">
-            <p className="text-gray-700 text-2xl leading-relaxed">
+            <p className="text-gray-700 text-xl text-justify leading-relaxed">
               We extend our heartfelt congratulations to you on the remarkable achievement of reaching your goal. Your dedication, skill, and unwavering commitment to excellence have truly set you apart. As an artisan, your work reflects not only your talent but also the passion and perseverance that define true craftsmanship. It is with great pride and admiration that we recognize your outstanding accomplishment. May this milestone be a stepping stone to even greater success in your journey. We are honored to celebrate this moment with you and look forward to your continued excellence.
             </p>
           </div>
@@ -863,7 +863,7 @@ const ArtisanDetails = ({ artisan }) => {
             <div className="text-lg md:text-md text-gray-700 mb-6">
               We are proud to recognize and celebrate your exceptional talent and dedication as a skilled handicraft artisan. Your ability to transform raw materials into beautiful, meaningful works of art speaks to your creativity, precision, and passion for the craft. Each piece you create is a testament to the enduring value of handmade artistry and the cultural richness it preserves. With deep appreciation, we commend you for achieving this milestone and look forward to witnessing your continued journey of artistic excellence.
             </div>
-            <button className="bg-black text-white py-3 px-6 rounded-lg font-semibold text-lg w-fit mb-6">Join Our Team</button>
+            <Link href="/contact" className="bg-black text-white py-3 px-6 rounded-lg font-semibold text-lg w-fit mb-6">Join Our Team</Link>
           </div>
           {/* Right: Top 2 artisan cards in new style */}
           <div className="flex flex-row  gap-4 justify-end">
@@ -886,7 +886,7 @@ const ArtisanDetails = ({ artisan }) => {
                 ],
               };
               return (
-                <div key={card.id} className="relative rounded-2xl overflow-hidden shadow-md group transition-all h-full max-w-5xl  flex flex-col bg-[#fbeff2] ">
+                <div key={card.id} className="relative rounded-2xl overflow-hidden shadow-md group transition-all h-full  w-[340px]  flex flex-col bg-[#fbeff2] ">
                   {/* Date Badge */}
                   <div className="absolute top-5 left-5 z-20 flex items-center gap-2">
                     <span className="bg-white rounded px-3 py-1 text-md font-bold shadow text-gray-800">{card.subtitle}</span>
@@ -992,7 +992,13 @@ const ArtisanDetails = ({ artisan }) => {
                         <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-6 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
                           <div>
                             <div className="font-bold text-2xl text-white mb-2 leading-tight drop-shadow-md">{card.name}</div>
-                            <div className="text-md text-white drop-shadow-md">{card.title}</div>
+                            <Link
+                              href={`/artisan/${card.id}`}
+                              className="font-bold text-2xl text-white mb-3 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
+                              title={card.name}
+                            >
+                              {card.name}
+                            </Link>
                           </div>
                           {/* Arrow Button with Socials on Hover */}
                           <div className="relative group/arrow">

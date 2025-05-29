@@ -7,7 +7,7 @@ import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
-
+import CategoryCard from "@/components/Category/category-card";
 import { Heart } from "lucide-react";
 const formatCategoryId = (categoryId) => {
     return categoryId
@@ -48,45 +48,76 @@ const CategoryPage = async ({ params }) => {
     // products is now an array of full product objects
     const products = Array.isArray(categoryData.products) ? categoryData.products : [];
     const visibleProducts = products.filter(prod => prod.active !== false);
-    // console.log(visibleProducts)
+    console.log(visibleProducts)
     const categoryInfo = await getCategoryInfo(categoryData);
 
-    return (
-        <SidebarInset>
-            <div className="min-h-screen p-2 bg-[#fcf7f1]">
-                {/* Fixed Banner Section */}
-                <CategoryBanner title={categoryInfo.title} bannerImage={categoryInfo.bannerImage} />
+    // Fetch all categories for the category cards row
+    const allCategoriesRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/getAllMenuItems`, { cache: 'no-store' });
+    const allCategories = await allCategoriesRes.json();
+    console.log(allCategories)
 
-                {/* Products Section */}
-                <div className="container w-full px-10 md:px-4 py-5">
-                    {visibleProducts.length === 0 ? (
-                        <div className="text-center py-8">
-                            <h3 className="text-xl font-medium text-gray-600">No products found for this category</h3>
-                            <p className="mt-2 text-gray-500">Please try another category</p>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-2 md:grid-cols-5 xl:grid-cols-5 gap-10 justify-center items-center ">
-                            <Suspense fallback={<PackageCardSkeleton count={3} />}>
-                                {visibleProducts.map((item, index) => (
-                                    <PackageCard
-                                        key={item._id || index}
-                                        pkg={{
-                                            ...item,
-                                            name: item.title,
-                                            image: item.gallery?.mainImage,
-                                        }}
-                                        // addToWishlist={addToWishlist}
-                                        // addToCart={addToCart}
-                                        // setQuickViewProduct={setQuickViewProduct}
-                                    />
-                                ))}
-                            </Suspense>
-                        </div>
-                    )}
-                </div>
+    return (
+      <SidebarInset>
+        <div className="min-h-screen p-2 bg-[#fcf7f1]">
+          {/* Category Banner at the top */}
+          <CategoryBanner title={categoryInfo.title} bannerImage={categoryInfo.bannerImage} />
+
+          <div className="flex flex-col md:flex-row gap-6 w-full mt-4">
+            {/* Left Image Section */}
+            <div className="hidden md:flex flex-col w-full max-w-xs justify-start items-center">
+              <div className="w-full h-80 rounded-2xl overflow-hidden shadow">
+                <img
+                  src={categoryInfo.bannerImage}
+                  alt={categoryInfo.title}
+                  className="object-cover w-full h-full"
+                />
+              </div>
             </div>
-        </SidebarInset>
+
+            {/* Middle Section: Category Cards + Package Cards */}
+            <div className="flex-1 flex flex-col gap-8">
+              {/* Category Cards Row */}
+              <div className="w-full overflow-x-auto flex gap-4 pb-2">
+                {Array.isArray(allCategories) && allCategories.flatMap(cat =>
+                  Array.isArray(cat.subMenu) ? cat.subMenu.map((sub, idx) => (
+                    <CategoryCard key={sub.url || sub._id || idx} category={{
+                      title: sub.title,
+                      banner: sub.banner,
+                      url: `/category/${sub.url}`
+                    }} />
+                  )) : []
+                )}
+              </div>
+
+              {/* Package Cards Row */}
+              <div className="w-full grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-8">
+                {visibleProducts.length === 0 ? (
+                  <div className="col-span-full text-center py-8">
+                    <h3 className="text-xl font-medium text-gray-600">No products found for this category</h3>
+                    <p className="mt-2 text-gray-500">Please try another category</p>
+                  </div>
+                ) : (
+                  <Suspense fallback={<PackageCardSkeleton count={3} />}>
+                    {visibleProducts.map((item, index) => (
+                      <PackageCard
+                        key={item._id || index}
+                        pkg={{
+                          ...item,
+                          name: item.title,
+                          image: item.gallery?.mainImage,
+                          price: (item.quantity && Array.isArray(item.quantity.variants) && item.quantity.variants.length > 0 ? item.quantity.variants[0].price : 0),
+                        }}
+                      />
+                    ))}
+                  </Suspense>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </SidebarInset>
     )
+
 }
 
 const PackageCardSkeleton = ({ count = 3 }) => {

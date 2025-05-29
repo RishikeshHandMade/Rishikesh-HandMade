@@ -383,52 +383,54 @@ const RandomTourPackageSection = () => {
             </div>
           )}
 
-            {/* Featured Offer For You Section */}
-            {featuredOffer.length > 0 && (
+          {/* Featured Offer For You Section */}
+          {featuredOffer.length > 0 && (
             <div className="w-full my-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-center mb-5">Featured Offer For You</h2>
-            <Carousel className=" w-full max-w-full">
-              <CarouselContent>
-                {featuredOffer.map((item, idx) => (
-                  <CarouselItem key={idx} className="px-2 md:basis-1/3 lg:basis-1/4 ml-5">
-                    <div className="rounded-2xl flex flex-col h-[340px] p-0 overflow-hidden relative bg-white group">
-                      <img src={item.image?.url} alt={item.title} className="absolute inset-0 w-full h-full object-cover object-center opacity-80 transition-transform duration-300 group-hover:scale-105" />
-                      <div className="relative z-10 flex flex-col justify-center items-start h-full p-6">
-                        <div className="flex flex-col gap-2">
-                          <span className="inline-block bg-white text-black px-3 py-1 rounded text-xs font-bold w-fit mb-2 shadow">{item.coupon ? `GET ${item.coupon}% OFF` : ''}</span>
-                          <span className="text-2xl md:text-3xl font-extrabold text-black mb-2 leading-tight w-1/2">{item.title}</span>
+              <h2 className="text-2xl md:text-3xl font-bold text-center mb-5">Featured Offer For You</h2>
+              <Carousel className=" w-full max-w-full">
+                <CarouselContent>
+                  {featuredOffer.map((item, idx) => (
+                    <CarouselItem key={idx} className="px-2 md:basis-1/3 lg:basis-1/4 ml-5">
+                      <div className="rounded-2xl flex flex-col h-[340px] p-0 overflow-hidden relative bg-white group">
+                        <img src={item.image?.url} alt={item.title} className="absolute inset-0 w-full h-full object-cover object-center opacity-80 transition-transform duration-300 group-hover:scale-105" />
+                        <div className="relative z-10 flex flex-col justify-center items-start h-full p-6">
+                          <div className="flex flex-col gap-2">
+                            <span className="inline-block bg-white text-black px-3 py-1 rounded text-xs font-bold w-fit mb-2 shadow">{item.coupon ? `GET ${item.coupon}% OFF` : ''}</span>
+                            <span className="text-2xl md:text-3xl font-extrabold text-black mb-2 leading-tight w-1/2">{item.title}</span>
+                          </div>
+                          <Link href={item.buttonLink || '#'} target="_blank" rel="noopener noreferrer" className="mt-4 px-5 py-4 bg-black text-white rounded-xl hover:bg-gray-800 transition w-fit">View Now</Link>
                         </div>
-                        <Link href={item.buttonLink || '#'} target="_blank" rel="noopener noreferrer" className="mt-4 px-5 py-4 bg-black text-white rounded-xl hover:bg-gray-800 transition w-fit">View Now</Link>
                       </div>
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
-            </Carousel>
-          </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+              </Carousel>
+            </div>
           )}
-            {/* Artisan Carousel Section */}
+          {/* Artisan Carousel Section */}
           <div className="w-full mt-16">
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-8">Meet Our Artisans</h2>
-            <Carousel
-              className="w-full  mx-auto my-4"
-              plugins={[Autoplay({ delay: 4000 })]}
-            >
-              <CarouselContent className="-ml-1 w-full gap-4">
-                {
-                  (artisan.length > 0
-                    ? artisan.map((item, idx) => ({
+            <div className="w-full max-w-[90%] mx-auto mb-16 mt-16">
+              <div className="flex flex-col md:flex-row items-start gap-5 ">
+                {/* Left: Heading and description */}
+                <div className="flex-1 flex flex-col justify-center md:pr-8">
+                  <h2 className="text-4xl md:text-4xl font-bold  mb-4">Celebrating the Art of Craftsmanship. Honoring the Hands That Shape Beauty</h2>
+                  <div className="text-lg md:text-md text-gray-700 text-justify mb-6">
+                    We are proud to recognize and celebrate your exceptional talent and dedication as a skilled handicraft artisan. Your ability to transform raw materials into beautiful, meaningful works of art speaks to your creativity, precision, and passion for the craft. Each piece you create is a testament to the enduring value of handmade artistry and the cultural richness it preserves. With deep appreciation, we commend you for achieving this milestone and look forward to witnessing your continued journey of artistic excellence.
+                  </div>
+                  <Link href="/contact" className="bg-black text-white py-3 px-6 rounded-lg font-semibold text-lg w-fit mb-6">Join Our Team</Link>
+                </div>
+                {/* Right: Top 2 artisan cards in new style */}
+                <div className="flex flex-row  gap-4 justify-end">
+                  {(artisan && artisan.slice(0, 2).map((item, idx) => {
+                    const card = {
                       id: item._id || idx,
                       name: `${item.title ? item.title + " " : ""}${item.firstName || ''} ${item.lastName || ''}`.trim() || "Unknown Artisan",
-                      date: item.createdAt
-                        ? new Date(item.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase()
-                        : "N/A",
-                      image: item.profileImage?.url || "/bg-custom-1.jpg",
-                      title: item.specializations && item.specializations.length > 0
-                        ? item.specializations.join(", ")
-                        : "Artisan",
+                      date: item.createdAt ? new Date(item.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase() : "N/A",
+                      image: item.profileImage?.url || item.image || "/bg-custom-1.jpg",
+                      title: item.specializations && item.specializations.length > 0 ? item.specializations.join(", ") : "Artisan",
                       subtitle: item.shgName || "",
                       experience: item.yearsOfExperience ? `${item.yearsOfExperience} years experience` : "",
                       location: item.address ? `${item.address.city}, ${item.address.state}` : "",
@@ -439,96 +441,34 @@ const RandomTourPackageSection = () => {
                         { icon: "/google.png", url: item.socialPlugin?.google || "#" },
                         { icon: "/website.png", url: item.socialPlugin?.website || "#" }
                       ],
-                    }))
-                    : [
-                      {
-                        id: 1,
-                        name: "Aanya Sharma",
-                        date: "17 FEB 2025",
-                        image: "/bg-custom-1.jpg",
-                        title: "Chic & Unique: Personalized Fashion Finds",
-                        socials: [
-                          { icon: "/insta-Tranparent.webp", url: "#" },
-                          { icon: "/facebook.png", url: "#" },
-                          { icon: "/google.png", url: "#" },
-                          { icon: "/website.png", url: "#" }
-                        ],
-                      },
-                      {
-                        id: 2,
-                        name: "Riya & Meera",
-                        date: "19 FEB 2025",
-                        image: "/bg-custom-2.jpg",
-                        title: "Dress to Impress: Elevate Your Everyday Style",
-                        socials: [
-                          { icon: "/insta-Tranparent.webp", url: "#" },
-                          { icon: "/facebook.png", url: "#" },
-                          { icon: "/google.png", url: "#" },
-                          { icon: "/website.png", url: "#" }
-                        ],
-                      },
-                      {
-                        id: 3,
-                        name: "Kabir & Tara",
-                        date: "21 FEB 2025",
-                        image: "/bg-custom-3.jpg",
-                        title: "Street Style Safari: Global Fashion Influences",
-                        socials: [
-                          { icon: "/insta-Tranparent.webp", url: "#" },
-                          { icon: "/facebook.png", url: "#" },
-                          { icon: "/google.png", url: "#" },
-                          { icon: "/website.png", url: "#" }
-                        ],
-                      },
-                      {
-                        id: 4,
-                        name: "Priya Kapoor",
-                        date: "25 FEB 2025",
-                        image: "/bg-custom-4.jpg",
-                        title: "Fashion & Beauty: The Ultimate Style Guide",
-                        socials: [
-                          { icon: "/insta-Tranparent.webp", url: "#" },
-                          { icon: "/facebook.png", url: "#" },
-                          { icon: "/google.png", url: "#" },
-                          { icon: "/website.png", url: "#" }
-                        ],
-                      },
-                    ]
-                  ).map((artisan, idx) => (
-                    <CarouselItem
-                      key={artisan.id}
-                      className="pl-1 md:basis-1/2 lg:basis-1/4 min-w-0 snap-start"
-                    >
-                      <div className="relative rounded-2xl overflow-hidden shadow-md group transition-all h-full flex flex-col bg-[#fbeff2]">
+                    };
+                    return (
+                      <div key={card.id} className="relative rounded-2xl overflow-hidden shadow-md group transition-all h-full w-[340px] flex flex-col bg-[#fbeff2] ">
                         {/* Date Badge */}
                         <div className="absolute top-5 left-5 z-20 flex items-center gap-2">
-                          <span className="bg-white rounded px-3 py-1 text-md font-bold shadow text-gray-800">{artisan.subtitle}</span>
+                          <span className="bg-white rounded px-3 py-1 text-md font-bold shadow text-gray-800">{card.subtitle}</span>
                         </div>
                         {/* Card Image */}
                         <div className="relative w-full h-96">
-                          <Image
-                            src={artisan.image}
-                            alt={artisan.name}
-                            fill
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                            className="object-cover w-full h-full"
+                          <img
+                            src={card.image}
+                            alt={card.name}
+                            className="object-cover w-full h-full "
+                            style={{ objectFit: 'cover' }}
                           />
                         </div>
                         {/* Card Content Overlay */}
                         <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-6 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
-                          <div className="flex flex-col gap-2">
-                            <div>
-                              <Link
-                                href={`/artisan/${artisan.id}`}
-                                className="font-bold text-2xl text-white mb-3 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
-                                title={artisan.name}
-                              >
-                                {artisan.name}
-                              </Link>
-                            </div>
-                            <div className="text-md text-white drop-shadow-md">{artisan.title}</div>
+                          <div>
+                            <Link
+                              href={`/artisan/${card.id}`}
+                              className="font-bold text-2xl text-white mb-3 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
+                              title={card.name}
+                            >
+                              {card.name}
+                            </Link>
+                            <div className="text-md text-white drop-shadow-md">{card.title}</div>
                           </div>
-
                           {/* Arrow Button with Socials on Hover */}
                           <div className="relative group/arrow">
                             <button className="bg-white text-black rounded-full w-12 h-12 flex items-center justify-center shadow transition group-hover/arrow:bg-[#e84393] group-hover/arrow:text-white">
@@ -537,17 +477,17 @@ const RandomTourPackageSection = () => {
                               </svg>
                             </button>
                             {/* Social Icons: show on arrow hover */}
-                            <div className="absolute bottom-14 right-0 flex flex-col gap-3 opacity-0 group-hover/arrow:opacity-100 transition-opacity duration-300 z-30 items-center">
-                              {artisan.socials.slice(0, 6).map((s, i) => (
+                            <div className="absolute bottom-12 right-0 flex flex-col gap-4 opacity-0 group-hover/arrow:opacity-100 transition-opacity duration-300 z-30 items-center">
+                              {card.socials.slice(0, 6).map((s, i) => (
                                 <a
                                   key={i}
                                   href={s.url}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className={`
-        bg-white rounded-full w-12 h-12 flex items-center justify-center shadow hover:bg-gray-100 transition
-        transform translate-y-5 group-hover/arrow:translate-y-0
-      `}
+                          bg-white rounded-full w-12 h-12 flex items-center justify-center shadow hover:bg-gray-100 transition
+                          transform translate-y-5 group-hover/arrow:translate-y-0
+                        `}
                                   style={{
                                     transitionProperty: 'transform, opacity, background-color, box-shadow',
                                     transitionDuration: '0.6s',
@@ -555,19 +495,107 @@ const RandomTourPackageSection = () => {
                                     transitionDelay: `${i * 60}ms`
                                   }}
                                 >
-                                  <img src={s.icon} alt="social" className="w-7 h-7" />
+                                  <img src={s.icon} alt="social" className="w-7 h-7 object-contain" />
                                 </a>
                               ))}
                             </div>
                           </div>
                         </div>
                       </div>
-                    </CarouselItem>
-                  ))}
-              </CarouselContent>
-              {/* <CarouselPrevious /> */}
-              {/* <CarouselNext /> */}
-            </Carousel>
+                    );
+                  }))}
+                </div>
+              </div>
+              {/* Carousel for remaining artisans in new style */}
+              {artisan && artisan.length > 2 && (
+                <div className="mt-10">
+                  <Carousel className="w-full">
+                    <CarouselContent className="flex gap-6">
+                      {artisan.slice(2).map((item, idx) => {
+                        const card = {
+                          id: item._id || idx,
+                          name: `${item.title ? item.title + " " : ""}${item.firstName || ''} ${item.lastName || ''}`.trim() || "Unknown Artisan",
+                          date: item.createdAt ? new Date(item.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase() : "N/A",
+                          image: item.profileImage?.url || item.image || "/bg-custom-1.jpg",
+                          title: item.specializations && item.specializations.length > 0 ? item.specializations.join(", ") : "Artisan",
+                          subtitle: item.shgName || "",
+                          experience: item.yearsOfExperience ? `${item.yearsOfExperience} years experience` : "",
+                          location: item.address ? `${item.address.city}, ${item.address.state}` : "",
+                          socials: [
+                            { icon: "/fb.png", url: item.socialPlugin?.facebook || "#" },
+                            { icon: "/insta-Tranparent.webp", url: item.socialPlugin?.instagram || "#" },
+                            { icon: "/youtube.webp", url: item.socialPlugin?.youtube || "#" },
+                            { icon: "/google.png", url: item.socialPlugin?.google || "#" },
+                            { icon: "/website.png", url: item.socialPlugin?.website || "#" }
+                          ],
+                        };
+                        return (
+                          <CarouselItem key={card.id} className="pl-5 md:basis-1/2 lg:basis-1/4 min-w-0 snap-start">
+                            <div className="relative rounded-2xl overflow-hidden shadow-md group transition-all h-full flex flex-col bg-[#fbeff2]">
+                              {/* Date Badge */}
+                              <div className="absolute top-5 left-5 z-20 flex items-center gap-2">
+                                <span className="bg-white rounded px-3 py-1 text-md font-bold shadow text-gray-800">{card.subtitle}</span>
+                              </div>
+                              {/* Card Image */}
+                              <div className="relative w-full h-96">
+                                <img
+                                  src={card.image}
+                                  alt={card.name}
+                                  className="object-cover w-full h-full"
+                                  style={{ objectFit: 'cover' }}
+                                />
+                              </div>
+                              {/* Card Content Overlay */}
+                              <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-6 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
+                                <div>
+                                  <div className="font-bold text-2xl text-white mb-2 leading-tight drop-shadow-md">{card.name}</div>
+                                  <div className="text-md text-white drop-shadow-md">{card.title}</div>
+                                </div>
+                                {/* Arrow Button with Socials on Hover */}
+                                <div className="relative group/arrow">
+                                  <button className="bg-white text-black rounded-full w-12 h-12 flex items-center justify-center shadow transition group-hover/arrow:bg-[#e84393] group-hover/arrow:text-white">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                  </button>
+                                  {/* Social Icons: show on arrow hover */}
+                                  <div className="absolute bottom-14 right-0 flex flex-col gap-4 opacity-0 group-hover/arrow:opacity-100 transition-opacity duration-300 z-30 items-center">
+                                    {card.socials.slice(0, 6).map((s, i) => (
+                                      <a
+                                        key={i}
+                                        href={s.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={`
+                                bg-white rounded-full w-12 h-12 flex items-center justify-center shadow hover:bg-gray-100 transition
+                                transform translate-y-5 group-hover/arrow:translate-y-0
+                              `}
+                                        style={{
+                                          transitionProperty: 'transform, opacity, background-color, box-shadow',
+                                          transitionDuration: '0.6s',
+                                          transitionTimingFunction: 'cubic-bezier(0.4,0,0.2,1)',
+                                          transitionDelay: `${i * 60}ms`
+                                        }}
+                                      >
+                                        <img src={s.icon} alt="social" className="w-7 h-7" />
+                                      </a>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </CarouselItem>
+                        );
+                      })}
+                    </CarouselContent>
+                    <div className="flex items-center gap-3 mt-4 justify-center">
+                      <CarouselPrevious className="bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
+                      <CarouselNext className="bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
+                    </div>
+                  </Carousel>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Blog Section with full-width background */}

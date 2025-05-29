@@ -36,13 +36,19 @@ const ManageProductsCategory = () => {
     // const [loadedGalleryImages, setLoadedGalleryImages] = useState([])
     // const [galleryUploading, setGalleryUploading] = useState(false)
     // const galleryFileInputRef = useRef(null);
+    const [profileImage, setProfileImage] = useState(null);
+    const profileFileInputRef = useRef();
+    const handleRemoveProfileImage = (key) => {
+      setProfileImage(null);
+      // Optionally, add logic to remove from cloud if needed
+    };
     const bannerFileInputRef = useRef(null);
-// console.log(menuItems)
+    // console.log(menuItems)
     useEffect(() => {
         fetch("/api/getAllMenuItems")
             .then(res => res.json())
             .then(data => setMenuItems(data))
-            // console.log(menuItems)
+        // console.log(menuItems)
     }, [])
 
     const onSubmit = async (data) => {
@@ -70,6 +76,7 @@ const ManageProductsCategory = () => {
         data.subMenu = {
             title: data.subMenu.title,
             url: url,
+            profileImage: profileImage,
             active: true,
             order: (menuItems.find(item => item.title === selectedMenu)?.subMenu.length || 0) + 1,
             banner: bannerImage,
@@ -113,7 +120,7 @@ const ManageProductsCategory = () => {
                 body: JSON.stringify({
                     id: data.id,
                     subMenuId: editItem._id,
-                    subMenu: { title: data.subMenu.title, order: data.subMenu.order, banner: bannerImage }
+                    subMenu: { title: data.subMenu.title, order: data.subMenu.order, banner: bannerImage, profileImage: profileImage }
                 }),
             })
 
@@ -272,6 +279,51 @@ const ManageProductsCategory = () => {
                         />
                     </div>
                     <div className="flex flex-col gap-2">
+                        <Label>Upload Category Profile Image</Label>
+                        {profileImage && (
+                            <div className="relative">
+                                <Image className="w-32 h-32 object-cover rounded-full" src={profileImage?.url} quality={50} alt="Profile" width={128} height={128} />
+                                <button type="button" className="absolute top-2 right-2 bg-red-500 text-white rounded-full" onClick={() => handleRemoveProfileImage(profileImage?.key)}><X className="w-6 h-6" /></button>
+                            </div>
+                        )}
+                        <input
+                            type="file"
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            ref={profileFileInputRef}
+                            onChange={async (event) => {
+                                const file = event.target.files[0];
+                                if (!file) return;
+                                try {
+                                    const formData = new FormData();
+                                    formData.append('file', file);
+                                    const res = await fetch('/api/cloudinary', {
+                                        method: 'POST',
+                                        body: formData
+                                    });
+                                    if (!res.ok) throw new Error('Profile upload failed');
+                                    const result = await res.json();
+                                    setProfileImage({ url: result.url, key: result.key });
+                                    toast.success('Profile image uploaded successfully!');
+                                } catch (err) {
+                                    toast.error('Failed to upload profile image');
+                                } finally {
+                                    if (profileFileInputRef.current) profileFileInputRef.current.value = '';
+                                }
+                            }}
+                            disabled={!selectedMenu || !!profileImage}
+                        />
+                        <button
+                            type="button"
+                            className="bg-blue-600 text-white px-4 py-2 rounded mt-2"
+                            onClick={() => profileFileInputRef.current && profileFileInputRef.current.click()}
+                            disabled={!selectedMenu || !!profileImage}
+                        >
+                            Upload Profile Image
+                        </button>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
                         <Label>Upload Banner</Label>
                         {bannerImage && (
                             <div className="relative">
@@ -340,7 +392,7 @@ const ManageProductsCategory = () => {
                                         .flatMap(menuItem => menuItem.subMenu.sort((a, b) => a.order - b.order).map((subItem) => (
                                             <TableRow key={subItem._id}>
                                                 <TableCell className="border font-semibold border-blue-600">
-                                                <Link href={`/admin/manage_products_category/addSubMenuPackage/${subItem._id}`} variant="outline" className="bg-white border-2 border-blue-500 p-2 rounded-full text-blue-600 hover:text-blue-500 focus:text-blue-500 flex items-center justify-center">
+                                                    <Link href={`/admin/manage_products_category/addSubMenuPackage/${subItem._id}`} variant="outline" className="bg-white border-2 border-blue-500 p-2 rounded-full text-blue-600 hover:text-blue-500 focus:text-blue-500 flex items-center justify-center">
                                                         <span className="xl:mr-6 mr-2 bg-blue-100 rounded py-1 px-3">{subItem?.products?.length !== 0 ? subItem?.products?.length : 0}</span>
                                                         <Plus className="w-4 h-4" />
                                                         <span>Add Product</span>
