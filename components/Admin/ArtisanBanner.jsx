@@ -43,7 +43,6 @@ const ArtisanBanner = ({ artisanId, artisanDetails = null }) => {
 
   const [certificates, setCertificates] = useState([]);
   const [certificateName, setCertificateName] = useState('');
-  const [certificateIssueFrom, setCertificateIssueFrom] = useState('');
   const [loading, setLoading] = useState(false);
   const [selectedArtisan, setSelectedArtisan] = useState(artisanId || '');
   const [artisans, setArtisans] = useState([]);
@@ -60,10 +59,11 @@ const ArtisanBanner = ({ artisanId, artisanDetails = null }) => {
     setLoadingBanners(true);
     try {
       const currentArtisanId = selectedArtisan || artisanId;
-      const res = await fetch(`/api/artisanBanners?artisanId=${currentArtisanId}`);
+      const res = await fetch(`/api/artisanBanner?artisanId=${currentArtisanId}`);
       const data = await res.json();
+      console.log(data);
       if (data.success) {
-        setBanners(data.banners || []);
+        setBanners(data.banner || []);
       } else {
         toast.error(data.message || 'Failed to fetch banners');
         setBanners([]);
@@ -83,22 +83,7 @@ const ArtisanBanner = ({ artisanId, artisanDetails = null }) => {
       setBanners([]);
     }
   }, [selectedArtisan, artisanId]);
-  // Helper: Group banners by artisan
-  const groupedByArtisan = React.useMemo(() => {
-    const map = {};
-    certificates.forEach(cert => {
-      if (cert.artisan && cert.artisan._id) {
-        if (!map[cert.artisan._id]) {
-          map[cert.artisan._id] = {
-            artisan: cert.artisan,
-            certificates: []
-          };
-        }
-        map[cert.artisan._id].certificates.push(cert);
-      }
-    });
-    return Object.values(map);
-  }, [certificates]);
+  // No grouping needed for banners, just show banners in the table
 
   // UploadThing image upload handler
   const handleUploadComplete = (res) => {
@@ -113,16 +98,12 @@ const ArtisanBanner = ({ artisanId, artisanDetails = null }) => {
   const removeImage = () => {
     setSelectedImage(null);
 };
-  const handleEdit = (certificate) => {
-    setCertificateName(certificate.title || '');
-    setYearOfIssue(certificate.issueDate || '');
-    setCertificateIssueFrom(certificate.issuedBy || '');
-    setSelectedSpec(certificate.description || '');
-    setSelectedArtisan(certificate.artisan ? certificate.artisan._id : '');
-    setSelectedImage(certificate.imageUrl ? { url: certificate.imageUrl, file: null } : null);
+  const handleEdit = (banner) => {
+    setSelectedArtisan(banner.artisan ? banner.artisan._id : '');
+    setSelectedImage(banner.image ? { url: banner.image, file: null } : null);
     setIsEditMode(true);
-    setId(certificate._id);
-  };
+    setId(banner._id);
+  };    
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -133,51 +114,50 @@ const ArtisanBanner = ({ artisanId, artisanDetails = null }) => {
       setLoading(false);
       return;
     }
-    if (!certificateName) {
-      toast.error("Certificate name is required.");
-      setLoading(false);
-      return;
-    }
 
     const payload = {
       artisan: selectedArtisan,
-      imageUrl: selectedImage?.url || '',
-      issuedBy: certificateIssueFrom,
+      image: selectedImage || '',
     };
 
     try {
       let res, data;
       if (isEditMode && id) {
-        // Update existing certificate
-        res = await fetch('/api/artisanCertificates', {
+        // Update existing banner
+        res = await fetch('/api/artisanBanner', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ _id: id, ...payload }),
         });
         data = await res.json();
-        if (data.success) toast.success('Certificate updated successfully!');
-        else toast.error(data.message || 'Failed to update certificate');
+        if (data.success) toast.success('Banner updated successfully!');
+        else toast.error(data.message || 'Failed to update banner');
       } else {
-        // Create new certificate
-        res = await fetch('/api/artisanCertificates', {
+        // Create new banner
+        res = await fetch('/api/artisanBanner', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
         data = await res.json();
-        if (data.success) toast.success('Certificate created successfully!');
-        else toast.error((data.message || 'Failed to create certificate') + (data.error ? (': ' + data.error) : ''));
+        if (data.success) {
+          toast.success('Banner created successfully!');
+        } else if (res.status === 400 && data.message === 'Banner already exists for this artisan.') {
+          toast.error('A banner already exists for this artisan. You can only have one banner per artisan.');
+        } else {
+          toast.error((data.message || 'Failed to create certificate') + (data.error ? (': ' + data.error) : ''));
+        }
       }
+    } catch (err) {
+      toast.error('Error saving banner: ' + (err.message || 'Unknown error'));
+    } finally {
+      setLoading(false);
       // Always reset form after create/update
       setSelectedImage(null);
       if (!artisanId && !artisanDetails) setSelectedArtisan('');
       setIsEditMode(false);
       setId(null);
       fetchBanners();
-    } catch (err) {
-      toast.error('Error saving banner: ' + (err.message || 'Unknown error'));
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -185,14 +165,13 @@ const ArtisanBanner = ({ artisanId, artisanDetails = null }) => {
   const handleCancelEdit = () => {
     setSelectedImage(null);
     setSelectedArtisan('');
-    setCertificateIssueFrom('');
     setIsEditMode(false);
     setId(null);
   };
   const handleDelete = async (id) => {
     setShowDeleteModal(false);
     try {
-      const res = await fetch('/api/artisanCertificates', {
+      const res = await fetch('/api/artisanBanner', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
@@ -209,8 +188,8 @@ const ArtisanBanner = ({ artisanId, artisanDetails = null }) => {
     }
   };
   const cancelDelete = () => { setShowDeleteModal(false); setDeleteId(null); };
-  const handleView = (certificate) => { setSelectedCertificate(certificate); setViewModal(true); };
-  const handleCloseViewModal = () => { setSelectedCertificate(null); setViewModal(false); };
+  const handleView = (banner) => { setSelectedBanner(banner); setViewModal(true); };
+  const handleCloseViewModal = () => { setSelectedBanner(null); setViewModal(false); };
 
   return (
     <div className="page-content">
@@ -334,44 +313,33 @@ const ArtisanBanner = ({ artisanId, artisanDetails = null }) => {
                           </div>
                         </TableCell>
                       </TableRow>
-                    ) : groupedByArtisan && groupedByArtisan.length > 0 ? (
-                      groupedByArtisan.map((group, idx) => (
-                        group.certificates && group.certificates.length > 0 ? (
-                          group.certificates.map((cert, cidx) => (
-                            <TableRow key={cert._id}>
-                              <TableCell className="px-4 py-3 text-center font-medium">{cidx + 1}</TableCell>
-                              <TableCell className="px-4 py-3 text-center pl-4 whitespace-nowrap ">{cert.title}</TableCell>
-                              <TableCell className="px-4 py-3 text-center pl-4 whitespace-nowrap ">{cert.issueDate}</TableCell>
-                              <TableCell className="px-4 py-3 text-center pl-4 whitespace-nowrap ">{cert.description}</TableCell>
-                              <TableCell className="px-4 py-3 flex gap-2 justify-center">
-                                <Button size="sm" variant="outline" className="bg-gray-700 text-white px-3 py-1 rounded" onClick={() => handleView(cert)}>
-                                  View
-                                </Button>
-                                <Button size="sm" variant="default" className="bg-blue-600 hover:bg-blue-700 text-white rounded" onClick={() => handleEdit(cert)}>
-                                  Edit
-                                </Button>
-                                <Button size="sm" variant="destructive" className="bg-red-600 text-white px-3 py-1 rounded" onClick={() => { setDeleteId(cert._id); setShowDeleteModal(true); }}>
-                                  Delete
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))
-                        ) : (
-                          <TableRow key={group.artisan._id + '-empty'}>
-                            <TableCell className="px-4 py-3 text-center font-medium">{idx + 1}</TableCell>
-                            <TableCell className="px-4 py-3" colSpan={4}>No certificates for this artisan.</TableCell>
-                          </TableRow>
-                        )
+                    ) : (Array.isArray(banners) ? banners.length > 0 : banners) ? (
+                      (Array.isArray(banners) ? banners : [banners]).map((banner, idx) => (
+                        <TableRow key={banner._id || idx}>
+                          <TableCell className="px-4 py-3 text-center">{idx + 1}</TableCell>
+                          <TableCell className="px-4 py-3 items-center flex justify-center">
+                            {banner.image && banner.image.url ? (
+                              <img src={banner?.image?.url} alt="Banner"  style={{ width: 200, objectFit: 'cover', borderRadius: 4 }} />
+                            ) : 'No Image'}
+                          </TableCell>
+                          <TableCell className="px-4 py-3 text-center gap-2">
+                            <Button onClick={() => handleEdit(banner)}>Edit</Button>
+                            <Button variant="destructive" className="ml-2" onClick={() => { setDeleteId(banner._id); setShowDeleteModal(true); }}>Delete</Button>
+                          </TableCell>
+                        </TableRow>
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={5} className="text-center py-4">No certificates found.</TableCell>
+                        <TableCell colSpan={5} className="text-center py-12">
+                          No banners found
+                        </TableCell>
                       </TableRow>
                     )}
                   </TableBody>
                 </Table>
               </div>
-
+            </div>
+        
               {/* Delete Modal */}
               {showDeleteModal && (
                 <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
@@ -389,9 +357,10 @@ const ArtisanBanner = ({ artisanId, artisanDetails = null }) => {
               )}
 
               {/* View Modal */}
-              {viewModal && selectedCertificate && (
+              {viewModal && selectedBanner && (
                 <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
                   <div className="bg-white rounded shadow-lg max-w-lg w-full p-8 relative">
+                    <h4 className="font-bold text-lg mb-4">Banner Details</h4>
                     <h4 className="font-bold text-lg mb-4">Certificate Details</h4>
                     <div className="grid grid-cols-1 gap-4 mb-2">
                       <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
@@ -435,7 +404,6 @@ const ArtisanBanner = ({ artisanId, artisanDetails = null }) => {
           </div>
         </div>
       </div>
-    </div>
   );
 };
 
