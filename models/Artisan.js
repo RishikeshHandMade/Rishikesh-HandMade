@@ -59,6 +59,10 @@ const artisanSchema = new mongoose.Schema({
     type: String,
     trim: true
   }],
+  artisanBanner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ArtisanBanner'
+  },
   contact: {
     callNumber: {
       type: String,

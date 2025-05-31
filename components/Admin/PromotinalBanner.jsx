@@ -13,7 +13,11 @@ import { PencilIcon, Trash2Icon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useRef } from "react";
 import { UploadIcon } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+
 const PromotinalBanner = () => {
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [bannerToDelete, setBannerToDelete] = useState(null);
     const [banners, setBanners] = useState([]);
     const [editBanner, setEditBanner] = useState(null);
     const [formData, setFormData] = useState({
@@ -93,7 +97,7 @@ const PromotinalBanner = () => {
                 setEditBanner(null);
 
                 // Refresh banner list
-                const updatedBanners = await fetch("/api/addBanner").then((res) => res.json());
+                const updatedBanners = await fetch("/api/addPromotinalBanner").then((res) => res.json());
                 setBanners(updatedBanners);
 
                 // Reset form
@@ -104,6 +108,7 @@ const PromotinalBanner = () => {
                     order: updatedBanners.length + 1,
                     image: { url: "", key: "" },
                 });
+
             } else {
                 toast.error(data.error);
             }
@@ -148,6 +153,19 @@ const PromotinalBanner = () => {
         } catch (error) {
             toast.error("Something went wrong");
         }
+    };
+
+    const confirmDelete = async () => {
+        if (bannerToDelete) {
+            await handleDelete(bannerToDelete);
+            setBannerToDelete(null);
+            setShowDeleteModal(false);
+        }
+    };
+
+    const cancelDelete = () => {
+        setShowDeleteModal(false);
+        setBannerToDelete(null);
     };
 
     // Remove image from formData only
@@ -220,12 +238,33 @@ const PromotinalBanner = () => {
                     <Input name="order" placeholder="Enter order" type="number" value={formData.order} readOnly className="bg-gray-100 cursor-not-allowed" />
                 </div>
 
-                <Button type="submit" className="bg-blue-600 hover:bg-blue-500">
-                    {editBanner ? "Update Promotinal Banner" : "Add Promotinal Banner"}
-                </Button>
+                <div className="flex gap-3">
+                    <Button type="submit" className="bg-blue-600 hover:bg-blue-500">
+                        {editBanner ? "Update Promotinal Banner" : "Add Promotinal Banner"}
+                    </Button>
+                    {editBanner && (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="bg-gray-300 hover:bg-gray-200 text-black"
+                            onClick={() => {
+                                setEditBanner(null);
+                                setFormData({
+                                    title: "",
+                                    coupon: "",
+                                    buttonLink: "",
+                                    order: banners.length > 0 ? Math.max(...banners.map(b => b.order)) + 1 : 1,
+                                    image: { url: "", key: "" },
+                                });
+                            }}
+                        >
+                            Cancel Edit
+                        </Button>
+                    )}
+                </div>
             </form>
 
-            <h2 className="text-2xl font-bold mt-10 mb-4">Existing Promotinal Image</h2>
+            <h2 className="text-2xl font-bold mt-10 mb-4">Existing Promotional Image</h2>
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -241,14 +280,25 @@ const PromotinalBanner = () => {
                         banners.map((banner) => (
                             <TableRow key={banner._id}>
                                 <TableCell>{banner.title}</TableCell>
-                                <TableCell>{banner.buttonLink}</TableCell>
+                                <TableCell>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <span className="cursor-pointer">Hover to view</span>
+                                            </TooltipTrigger>
+                                            <TooltipContent className="bg-white text-blue-600 font-medium text-base font-barlow shadow-2xl">
+                                                <p>{banner.buttonLink}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </TableCell>
                                 <TableCell>{banner.order}</TableCell>
                                 <TableCell>
-                                    <Image src={banner.image.url} alt="Promotinal Image" width={100} height={50} className="rounded-lg" />
+                                    <Image src={banner.image.url} alt="Promotinal Image" width={100} height={50} className="rounded-xl" />
                                 </TableCell>
                                 <TableCell>
                                     <Button variant="outline" size="icon" onClick={() => handleEdit(banner)} className="mr-2 "><PencilIcon /></Button>
-                                    <Button size="icon" onClick={() => handleDelete(banner._id)} variant="destructive"><Trash2Icon /></Button>
+                                    <Button size="icon" onClick={() => { setShowDeleteModal(true); setBannerToDelete(banner._id); }} variant="destructive"><Trash2Icon /></Button>
                                 </TableCell>
                             </TableRow>
                         ))
@@ -259,9 +309,21 @@ const PromotinalBanner = () => {
                     )}
                 </TableBody>
             </Table>
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Delete Banner</DialogTitle>
+                    </DialogHeader>
+                    <p>Are you sure you want to delete this banner?</p>
+                    <DialogFooter>
+                        <Button variant="secondary" onClick={cancelDelete}>Cancel</Button>
+                        <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };
-
 
 export default PromotinalBanner

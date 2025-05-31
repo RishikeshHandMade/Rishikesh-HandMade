@@ -12,7 +12,7 @@ const sectionTitles = [
   'Blog',
   'Artisan Story',
   'Social Plugins',
-  'Certificates'
+  'Certificates',
 ];
 
 const boxStyle = {

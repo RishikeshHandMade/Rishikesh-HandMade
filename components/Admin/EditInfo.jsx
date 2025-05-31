@@ -7,6 +7,7 @@ import ManageArtisanBlogs from './ManageArtisanBlogs';
 import ArtisonStory from './ArtisonStory';
 import SocialPlugins from './SocialPlugins';
 import Certificate from './Certificate';
+import ArtisanBanner from './ArtisanBanner';
 // import ProductCatalog from './ProductCatalog';
 
 const sectionConfig = [
@@ -15,11 +16,6 @@ const sectionConfig = [
     label: 'Promotional Reviews',
     component: CreatePromotional,
   },
-  // {
-  //   key: 'catalog',
-  //   label: 'Product Catalog',
-  //   component: ProductCatalog
-  // },
   {
     key: 'artisanBlogs',
     label: 'Artisan Blogs / Experience',
@@ -39,6 +35,11 @@ const sectionConfig = [
     key: 'certifications',
     label: 'Certifications',
     component: Certificate,
+  },
+  {
+    key: 'banner',
+    label: 'Add Banner',
+    component: ArtisanBanner,
   },
 ];
 

@@ -393,7 +393,7 @@ const RandomTourPackageSection = () => {
                     <CarouselItem key={idx} className="px-2 md:basis-1/3 lg:basis-1/4 ml-5">
                       <div className="rounded-2xl flex flex-col h-[340px] p-0 overflow-hidden relative bg-white group">
                         <img src={item.image?.url} alt={item.title} className="absolute inset-0 w-full h-full object-cover object-center opacity-80 transition-transform duration-300 group-hover:scale-105" />
-                        <div className="relative z-10 flex flex-col justify-center items-start h-full p-6">
+                        <div className="relative z-10 flex flex-col justify-between items-start h-full p-6">
                           <div className="flex flex-col gap-2">
                             <span className="inline-block bg-white text-black px-3 py-1 rounded text-xs font-bold w-fit mb-2 shadow">{item.coupon ? `GET ${item.coupon}% OFF` : ''}</span>
                             <span className="text-2xl md:text-3xl font-extrabold text-black mb-2 leading-tight w-1/2">{item.title}</span>
@@ -867,7 +867,6 @@ const RandomTourPackageSection = () => {
               </div>
             </div>
           )}
-
         </div>
       </div>
     </section>

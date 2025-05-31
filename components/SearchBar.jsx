@@ -95,9 +95,8 @@ export default function SearchBar({ placeholder }) {
             <DialogTrigger asChild>
                 <button className="hidden" aria-label="Open search"></button>
             </DialogTrigger>
-            <DialogTitle className="px-4 py-2 flex items-center xl:justify-between border-2 rounded-full focus:ring-2 focus:ring-primary gap-4 h-10 w-36 cursor-pointer" onClick={() => setIsSearchOpen(true)}>
+            <DialogTitle className="px-4 py-2 flex items-center xl:justify-between gap-4 h-10 w-14 cursor-pointer" onClick={() => setIsSearchOpen(true)}>
                 <Search className="h-6 w-6" />
-                <p className="text-sm font-medium">Ctrl + K</p>
             </DialogTitle>
 
             <DialogContent className="max-w-2xl max-h-[60vh] font-barlow p-4 overflow-y-auto">

@@ -4,30 +4,30 @@ import Link from "next/link";
 
 const VisionMission = () => {
   return (
-    <section className="w-full py-6 bg-[#fcf7f1] min-h-screen">
+    <section className="w-full  bg-[#fcf7f1] min-h-screen">
       <div className="w-full">
-          <div className="relative w-full h-[250px] flex items-center justify-center bg-[#fcf7f1] overlay-black-light">
-                <Image
-                  src="/bg1.jpg"
-                  alt="About Banner"
-                  layout="fill"
-                  objectFit="cover"
-                  className="z-0 opacity-80"
-                  priority
-                />
-                <div className="relative z-10 text-center text-white">
-                  <h1 className="text-4xl md:text-5xl font-bold mb-2 drop-shadow-lg">Our Vision & Mission</h1>
-                  {/* <nav aria-label="breadcrumb" className="flex justify-center"> */}
-                  {/* <ul className="flex gap-2 text-lg">
+        <div className="relative w-full h-[250px] flex items-center justify-center bg-[#fcf7f1] overlay-black-light">
+          <Image
+            src="/bg1.jpg"
+            alt="About Banner"
+            layout="fill"
+            objectFit="cover"
+            className="z-0 opacity-80"
+            priority
+          />
+          <div className="relative z-10 text-center text-white">
+            <h1 className="text-4xl md:text-5xl font-bold mb-2 drop-shadow-lg">Our Vision & Mission</h1>
+            {/* <nav aria-label="breadcrumb" className="flex justify-center"> */}
+            {/* <ul className="flex gap-2 text-lg">
                       <li>
                         <Link href="/" className="hover:underline">Home</Link>
                       </li>
                       <li>/</li>
                       <li className="text-amber-300">About Me</li>
                     </ul> */}
-                  {/* </nav> */}
-                </div>
-              </div>
+            {/* </nav> */}
+          </div>
+        </div>
         <div className="w-full container mx-auto flex gap-10 items-center mt-10">
           {/* Left: Intro & Image */}
           <div className="w-full flex flex-col items-start">
@@ -67,9 +67,9 @@ const VisionMission = () => {
 
         </div>
       </div>
-          {/* Get In Touch Section */}
-          <section className="w-full bg-black py-5 text-white flex flex-col md:flex-row items-center justify-between  md:px-24 gap-6 ">
-        <div className="mb-6 md:mb-0 px-3">
+      {/* Get In Touch Section */}
+      <section className="w-full bg-black py-5 text-white flex flex-col md:flex-row items-center justify-between  md:px-24 gap-6 ">
+        <div className="md:mb-0 px-3">
           <h3 className="text-2xl md:text-3xl font-bold gap-2">Questions?
             <span className="text-lg font-normal px-2">Our experts will help find the gear that’s right for you</span>
           </h3>
@@ -77,7 +77,7 @@ const VisionMission = () => {
         <Link href="/contact" className="btn bg-white text-black font-bold px-8 py-3 rounded-lg shadow transition">Get In Touch</Link>
       </section>
     </section>
-    
+
   );
 };
 

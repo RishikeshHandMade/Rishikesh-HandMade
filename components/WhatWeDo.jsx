@@ -122,11 +122,13 @@ const WhatWeDo = () => {
         </div>
       </section>
       {/* Get in Touch Section */}
-      <section className="get-in-touch bg-black py-10 flex flex-col md:flex-row items-center justify-between px-4 md:px-24 mb-2">
-        <div className="mb-4 md:mb-0">
-          <h3 className="text-2xl font-bold text-white mb-2">Questions ? <span className="block text-lg font-normal">Our experts will help find the gear that’s right for you</span></h3>
+      <section className="w-full bg-black py-5 text-white flex flex-col md:flex-row items-center justify-between  md:px-24 gap-6 ">
+        <div className="mb-6 md:mb-0 px-3">
+          <h3 className="text-2xl md:text-3xl font-bold gap-2">Questions?
+            <span className="text-lg font-normal px-2">Our experts will help find the gear that’s right for you</span>
+          </h3>
         </div>
-        <Link href="/contact" className="btn btn-light bg-white text-amber-700 font-bold py-3 px-8 rounded shadow hover:bg-amber-100 transition-all">Get In Touch</Link>
+        <Link href="/contact" className="btn bg-white text-black font-bold px-8 py-3 rounded-lg shadow transition">Get In Touch</Link>
       </section>
     </div>
   );

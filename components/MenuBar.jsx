@@ -199,11 +199,11 @@ const MenuBar = (props) => {
             </div>
 
             {/* Desktop Navigation */}
-            <NavigationMenu.Root className="hidden lg:flex relative justify-center" >
-                <NavigationMenu.List className="flex space-x-4">
+            <NavigationMenu.Root className="hidden lg:flex relative justify-center " >
+                <NavigationMenu.List className="flex space-x-2">
                     {menuItems.map((item, index) => (
                         <NavigationMenu.Item key={index} className="relative flex justify-center">
-                            <NavigationMenu.Trigger className="flex items-center px-4 py-2 text-sm font-semibold  data-[state=open]:text-black rounded-md">
+                            <NavigationMenu.Trigger className="flex items-center px-4 py-2 hover:bg-blue-300 text-sm font-semibold  data-[state=open]:text-black rounded-md">
                                 {item.title} <ArrowDown className="ml-2" size={12} />
                             </NavigationMenu.Trigger>
                             <AnimatePresence>
@@ -214,7 +214,7 @@ const MenuBar = (props) => {
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, y: -10 }}
                                             transition={{ duration: 0.2, ease: "easeInOut" }}
-                                            className="absolute top-full mt-2 -translate-x-1/2 bg-white text-black shadow-lg rounded-md w-48"
+                                            className="absolute top-full mt-2 -translate-x-1/2 bg-white text-black shadow-lg rounded-md w-44"
                                         >
                                             <ul className="grid gap-2 p-2 text-sm">
                                                 {item.subMenu
@@ -224,7 +224,7 @@ const MenuBar = (props) => {
                                                         <li key={subIndex}>
                                                             <NavigationMenu.Link asChild>
                                                                 <Link
-                                                                    className="block px-4 py-2 rounded-md"
+                                                                    className="block px-2 py-2 rounded-md text-sm hover:bg-gray-200"
                                                                     href={`/category/${subItem.url}`}
                                                                 >
                                                                     {subItem.title}
