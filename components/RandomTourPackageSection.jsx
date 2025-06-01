@@ -95,7 +95,7 @@ const RandomTourPackageSection = () => {
       try {
         const res = await fetch("/api/createArtisan");
         const data = await res.json();
-        console.log(data);
+        // console.log(data);
         // Ensure artisan is always an array
         if (Array.isArray(data)) {
           setArtisan(data);

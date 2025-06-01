@@ -73,7 +73,7 @@ const SizeManagement = ({ productData, productId }) => {
     try {
       const res = await fetch(`/api/productSize?product=${productId}`);
       const data = await res.json();
-      console.log(data)
+      // console.log(data)
       if (res.ok && data && data._id) setSizeEntries([data]);
       else setSizeEntries([]);
     } catch {

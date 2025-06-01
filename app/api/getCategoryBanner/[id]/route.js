@@ -1,8 +1,8 @@
 
 import connectDB from "@/lib/connectDB";
 import MenuBar from "@/models/MenuBar";
-const mongoose = require('mongoose');
-const Product = require('@/models/Product');
+import mongoose from 'mongoose';
+import Product from '@/models/Product';
 import { NextResponse } from "next/server";
 
 export const GET = async (req, { params }) => {
@@ -37,6 +37,7 @@ export const GET = async (req, { params }) => {
             // console.log('After population:', submenu.products);
         }
 
+        console.log('API returning submenu:', submenu);
         return NextResponse.json(submenu);
     } catch (error) {
         return NextResponse.json({ message: error.message }, { status: 500 });

@@ -121,7 +121,7 @@ const CategoryPage = async ({ params }) => {
                 <CarouselContent className=" w-full gap-2">
                   {Array.isArray(allCategories) && allCategories.flatMap(cat =>
                     Array.isArray(cat.subMenu) ? cat.subMenu.map((sub, idx) => (
-                      <CarouselItem key={sub.url || sub._id || idx} className="md:basis-1/5 lg:basis-1/5 min-w-0 snap-start">
+                      <CarouselItem key={`${cat._id || cat.title || idx}-${sub._id || sub.url || idx}`} className="md:basis-1/5 lg:basis-1/5 min-w-0 snap-start">
                         <CategoryCard category={{
                           title: sub.title,
                           profileImage: sub.profileImage,
