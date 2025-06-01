@@ -1,6 +1,7 @@
 import connectDB from "@/lib/connectDB";
 import mongoose from 'mongoose';
 import Artisan from '@/models/Artisan';
+import '@/models/ArtisanPlugin'; // Ensures ArtisanPlugin is registered for population
 import { addSpecializationIfNotExists } from "@/lib/specialization";
 import { deleteFileFromCloudinary } from "@/utils/cloudinary";
 // Helper to normalize form data
