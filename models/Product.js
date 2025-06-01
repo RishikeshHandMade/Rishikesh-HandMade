@@ -22,6 +22,8 @@ const ProductSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now },
 });
 
-const Product = mongoose.models.Product || mongoose.model('Product', ProductSchema);
-export default Product;
-export { ProductSchema };
+export default mongoose.models.Product || mongoose.model('Product', ProductSchema);
+ 
+// export { ProductSchema };
+
+// export default models.Package || model("Package", PackageSchema);

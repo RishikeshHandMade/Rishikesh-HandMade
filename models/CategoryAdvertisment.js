@@ -6,4 +6,4 @@ const CategoryAdvertismentSchema = new Schema({
     order: { type: Number, required: true },
 }, { timestamps: true });
 
-export default models.FeaturedBanner || model("CategoryAdvertisment", CategoryAdvertismentSchema);
+export default models.CategoryAdvertisment || model("CategoryAdvertisment", CategoryAdvertismentSchema);
