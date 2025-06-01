@@ -12,6 +12,27 @@ try {
   Artisan = require('@/models/Artisan');
 }
 
+export async function GET(req) {
+  try {
+    await connectDB();
+    const url = req?.url ? new URL(req.url, "http://localhost") : null; // base for relative URLs
+    const artisanId = url?.searchParams?.get('artisanId');
+    let promotions;
+    if (artisanId) {
+      promotions = await Promotion.find({ artisan: artisanId })
+        .populate('artisan', 'firstName lastName title artisanNumber')
+        .sort({ date: -1 });
+    } else {
+      promotions = await Promotion.find()
+        .populate('artisan', 'firstName lastName title artisanNumber')
+        .sort({ date: -1 });
+    }
+    return new Response(JSON.stringify({ success: true, promotions }), { status: 200 });
+  } catch (err) {
+    return new Response(JSON.stringify({ success: false, error: err.message }), { status: 500 });
+  }
+}
+
 export async function POST(req) {
   try {
     await connectDB();
@@ -98,19 +119,19 @@ export async function DELETE(req) {
   }
 }
 
-export async function GET(req) {
-  try {
-    await connectDB();
-    const url = req?.url ? new URL(req.url) : null;
-    const artisanId = url?.searchParams?.get('artisanId');
-    let promotions;
-    if (artisanId) {
-      promotions = await Promotion.find({ artisan: artisanId }).populate('artisan', 'firstName lastName title artisanNumber');
-    } else {
-      promotions = await Promotion.find().populate('artisan', 'firstName lastName title artisanNumber');
-    }
-    return new Response(JSON.stringify(promotions), { status: 200 });
-  } catch (err) {
-    return new Response(JSON.stringify({ success: false, error: err.message }), { status: 500 });
-  }
-}
+// export async function GET(req) {
+//   try {
+//     await connectDB();
+//     const url = req?.url ? new URL(req.url) : null;
+//     const artisanId = url?.searchParams?.get('artisanId');
+//     let promotions;
+//     if (artisanId) {
+//       promotions = await Promotion.find({ artisan: artisanId }).populate('artisan', 'firstName lastName title artisanNumber');
+//     } else {
+//       promotions = await Promotion.find().populate('artisan', 'firstName lastName title artisanNumber');
+//     }
+//     return new Response(JSON.stringify(promotions), { status: 200 });
+//   } catch (err) {
+//     return new Response(JSON.stringify({ success: false, error: err.message }), { status: 500 });
+//   }
+// }

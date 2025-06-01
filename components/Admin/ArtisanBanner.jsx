@@ -100,7 +100,15 @@ const ArtisanBanner = ({ artisanId, artisanDetails = null }) => {
 };
   const handleEdit = (banner) => {
     setSelectedArtisan(banner.artisan ? banner.artisan._id : '');
-    setSelectedImage(banner.image ? { url: banner.image, file: null } : null);
+    setSelectedImage(
+      banner.image
+        ? typeof banner.image === 'string'
+          ? { url: banner.image, file: null }
+          : banner.image.url
+            ? { url: banner.image.url, file: null }
+            : null
+        : null
+    );
     setIsEditMode(true);
     setId(banner._id);
   };    

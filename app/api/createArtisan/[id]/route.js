@@ -6,7 +6,7 @@ import "@/models/ArtisanStory";
 import "@/models/ArtisanCertificate";
 import "@/models/ArtisanPlugin";
 import "@/models/Product";
-
+import "@/models/ArtisanBanner";
 let Artisan;
 try {
   Artisan = mongoose.model('Artisan');
@@ -16,7 +16,7 @@ try {
 
 export async function GET(req, { params }) {
   await connectDB();
-  const { id } = await params;
+  const id = await params.id;
   // console.log('Requested artisan id:', id);
   const artisan = await Artisan.findById(id)
     .populate('promotions')
@@ -24,12 +24,11 @@ export async function GET(req, { params }) {
     .populate('artisanStories')
     .populate('certificates')
     .populate('socialPlugin')
+    .populate('artisanBanner')
     .populate({
       path: 'products',
       populate: [
         { path: 'gallery' },
-        { path: 'size' },
-        { path: 'color' },
         { path: 'price' },
         { path: 'video' },
         { path: 'description' },

@@ -8,8 +8,6 @@ try {
 }
 import { addSpecializationIfNotExists } from "@/lib/specialization";
 import { deleteFileFromCloudinary } from "@/utils/cloudinary";
-import { deleteFileFromUploadthing } from "@/utils/Utapi";
-
 // Helper to normalize form data
 function normalizeFormData(body) {
   const normalized = {};

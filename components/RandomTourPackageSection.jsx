@@ -17,6 +17,7 @@ import Autoplay from "embla-carousel-autoplay";
 import QuickViewProductCard from "./QuickViewProductCard";
 import { useCart } from "../context/CartContext";
 import { toast } from "react-hot-toast"
+import { Star } from 'lucide-react';
 function slugify(text) {
   return text
     .toString()
@@ -29,6 +30,18 @@ function slugify(text) {
 
 const RandomTourPackageSection = () => {
   const { addToCart, addToWishlist, removeFromWishlist, wishlist } = useCart();
+
+  // State and effect for fetching all reviews
+  const [allReviews, setAllReviews] = useState([]);
+  useEffect(() => {
+    fetch('/api/promotion')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.promotions)) {
+          setAllReviews(data.promotions);
+        }
+      });
+  }, []);
 
   const handleAddToCart = (item) => {
     addToCart({
@@ -370,12 +383,10 @@ const RandomTourPackageSection = () => {
                 {promotinalBanner.map((item, idx) => (
                   <div key={idx} className="rounded-2xl flex flex-col h-[350px] md:h-[400px] p-0 overflow-hidden relative group">
                     <img src={item?.image?.url} alt={item?.title} className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105" />
-                    <div className="absolute z-10 flex flex-col justify-center gap-2 px-10 h-full items-start">
-                      <div className="flex flex-col gap-2 items-start gap-4">
+                    <div className="absolute z-10 flex flex-col justify-between gap-2 px-10 p-6 h-full items-start">
                         <span className="inline-block bg-white text-black px-3 py-1 rounded text-xs font-bold w-fit mb-2 shadow">{item?.coupon ? `GET ${item?.coupon}% OFF` : ''}</span>
                         <span className="text-2xl md:text-3xl font-extrabold text-black mb-2 leading-tight w-1/2">{item?.title}</span>
-                      </div>
-                      <a href={item?.buttonLink || '#'} target="_blank" rel="noopener noreferrer" className="mt-4 px-5 py-2 bg-black text-white rounded-xl hover:bg-gray-800 transition w-fit">View Now</a>
+                        <Link href={item?.buttonLink || '#'} target="_blank" rel="noopener noreferrer" className="mt-4 px-5 py-2 bg-black text-white rounded-xl hover:bg-gray-800 transition w-fit">View Now</Link>
                     </div>
                   </div>
                 ))}
@@ -394,11 +405,9 @@ const RandomTourPackageSection = () => {
                       <div className="rounded-2xl flex flex-col h-[340px] p-0 overflow-hidden relative bg-white group">
                         <img src={item.image?.url} alt={item.title} className="absolute inset-0 w-full h-full object-cover object-center opacity-80 transition-transform duration-300 group-hover:scale-105" />
                         <div className="relative z-10 flex flex-col justify-between items-start h-full p-6">
-                          <div className="flex flex-col gap-2">
-                            <span className="inline-block bg-white text-black px-3 py-1 rounded text-xs font-bold w-fit mb-2 shadow">{item.coupon ? `GET ${item.coupon}% OFF` : ''}</span>
-                            <span className="text-2xl md:text-3xl font-extrabold text-black mb-2 leading-tight w-1/2">{item.title}</span>
-                          </div>
-                          <Link href={item.buttonLink || '#'} target="_blank" rel="noopener noreferrer" className="mt-4 px-5 py-4 bg-black text-white rounded-xl hover:bg-gray-800 transition w-fit">View Now</Link>
+                          <span className="inline-block bg-white text-black px-3 py-1 rounded text-xs font-bold w-fit mb-2 shadow">{item.coupon ? `GET ${item.coupon}% OFF` : ''}</span>
+                          <span className="text-2xl md:text-3xl font-extrabold text-black mb-2 leading-tight w-1/2">{item.title}</span>
+                          <Link href={item.buttonLink || '#'} target="_blank" rel="noopener noreferrer" className="mt-4 px-5 py-3 bg-black text-white rounded-xl hover:bg-gray-800 transition w-fit">View Now</Link>
                         </div>
                       </div>
                     </CarouselItem>
@@ -409,6 +418,86 @@ const RandomTourPackageSection = () => {
               </Carousel>
             </div>
           )}
+
+          {/* Reviews Section */}
+          <div className="w-full mx-auto mb-10 relative min-h-[600px] flex items-center justify-end relative">
+            {/* Background Image */}
+            <div className="absolute inset-0 w-full h-full z-0">
+              <img
+                src="/blogs.jpg"
+                alt="Happy client"
+                className="w-full h-full object-cover bg-[#FCEED5]"
+                style={{ objectPosition: 'top' }}
+              />
+            </div>
+
+            {/* Review Card Overlay */}
+            <div className="absolute right-1 top-[40%] z-10 flex flex-col justify-start w-full md:w-1/2 items-end pr-1">
+              <Carousel className="w-full md:w-[600px]"
+                plugins={[Autoplay({ delay: 4000 })]}>
+
+                <CarouselContent className="w-full">
+                  {(allReviews && allReviews.length > 0 ? allReviews : [
+                    {
+                      _id: 1,
+                      rating: 3,
+                      title: 'Joe Doe',
+                      subtitle: 'Undergraduate Student',
+                      shortDescription: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Aliquam aut ipsa corrupti, laudantium eos assumenda sed qui vitae ut. Aut mollitia obcaecati rerum optio repellendus reiciendis, accusamus, dignissimos impedit quisquam in molestias, voluptates voluptatem expedita. Nisi eligendi excepturi, optio ipsam, porro dolore perspiciatis corrupti atque animi ipsa architecto eum laboriosam.architecto eum laboriosam.architecto eum laboriosam.",
+                      image: '/placeholder.jpeg',
+                    },
+                  ]).map((review, idx) => (
+                    <CarouselItem
+                      key={review._id}
+                      className="min-w-0 snap-center w-full"
+                    >
+                      <div className="bg-white rounded-3xl px-8 py-5 flex flex-col justify-between h-full min-h-[320px] relative overflow-visible">
+                        {/* Review text */}
+                        <div className="text-md md:text-2xl text-gray-800 font-bold leading-relaxed mb-2 text-left">
+                          {review.title || 'No review text.'}
+                        </div>
+                        <div className="absolute right-4 top-4 flex items-center gap-1">
+                          {review.rating && (
+                            <>
+                              {[...Array(review.rating)].map((_, i) => (
+                                <Star key={i} size={22} className="text-yellow-400 fill-yellow-400" />
+                              ))}
+                            </>
+                          )}
+                        </div>
+
+
+                        <div className="text-md md:text-md text-gray-800 font-medium leading-relaxed mb-2 text-left">
+                          {review.shortDescription || 'No review text.'}
+                        </div>
+                        {/* Bottom row: avatar, name, subtitle, nav buttons */}
+                        <div className="flex items-center justify-between w-full mt-auto">
+                          {/* Avatar, Name, Subtitle */}
+                          <div className="flex items-center">
+                            <img
+                              src={review.image || "/placeholder-user.jpg"}
+                              alt={review.createdBy || 'Anonymous'}
+                              className="w-14 h-14 rounded-full border-4 border-white shadow object-cover"
+                            />
+                            <div className="ml-4 text-left">
+                              <div className="font-bold text-xl text-black">{review.createdBy || review.title || 'Anonymous'}</div>
+                            </div>
+                          </div>
+
+                        </div>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                {/* Carousel navigation styled as in screenshot */}
+                <div className="flex items-center gap-3">
+                  <CarouselPrevious className="absolute top-[85%] left-[65%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
+                  <CarouselNext className="absolute top-[85%] left-[80%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
+                </div>
+              </Carousel>
+            </div>
+          </div>
+
           {/* Artisan Carousel Section */}
           <div className="w-full mt-16">
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-8">Meet Our Artisans</h2>
@@ -548,7 +637,13 @@ const RandomTourPackageSection = () => {
                               {/* Card Content Overlay */}
                               <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-6 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
                                 <div>
-                                  <div className="font-bold text-2xl text-white mb-2 leading-tight drop-shadow-md">{card.name}</div>
+                                  <Link
+                                    href={`/artisan/${card.id}`}
+                                    className="font-bold text-2xl text-white mb-3 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
+                                    title={card.name}
+                                  >
+                                    {card.name}
+                                  </Link>
                                   <div className="text-md text-white drop-shadow-md">{card.title}</div>
                                 </div>
                                 {/* Arrow Button with Socials on Hover */}

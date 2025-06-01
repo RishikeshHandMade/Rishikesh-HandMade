@@ -146,7 +146,7 @@ const ArtisanDetails = ({ artisan }) => {
       .then(data => setOtherArtisans(data))
       .catch(err => setOtherArtisans([]));
   }, [artisan._id]);
-  // console.log(artisan)
+  console.log(artisan)
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const [showShareBox, setShowShareBox] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -232,8 +232,8 @@ const ArtisanDetails = ({ artisan }) => {
       {/* Top section: Image left, details right */}
       <div className="relative w-full overflow-visible  mb-10 bg-[#f9f6f1]">
         {/* Banner Background Image */}
-        <div className="inset-0 h-[300px] w-full object-cover object-center grayscale-[0.8] brightness-100 z-0 overflow-hidden">
-          <img src="https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?auto=format&fit=crop&w=1200&q=80" className="w-full h-full object-cover grayscale-[0.8] brightness-100 " alt="Office" />
+        <div className="inset-0 h-[300px] w-full object-cover object-center brightness-100 z-0 overflow-hidden">
+          <img src={artisan.artisanBanner?.image?.url || artisan.artisanBanner?.image || "/placeholder.jpeg"} className="w-full h-full object-cover brightness-100 " alt="Office" />
         </div>
         {/* Overlay Content */}
         <div className="relative w-[80%] mx-auto flex flex-row items-start pt-0 px-0 pb-8">
@@ -583,7 +583,7 @@ const ArtisanDetails = ({ artisan }) => {
                     </div>
                     {/* Main Product Image */}
                     <img
-                      src={Array.isArray(product.gallery) ? product.gallery[0]?.mainImage : product.gallery?.mainImage || "/placeholder-product.jpg"}
+                      src={Array.isArray(product.gallery) ? product.gallery[0]?.mainImage : product.gallery?.mainImage || "/placeholder.jpeg"}
                       alt={product.title}
                       className="object-cover w-full h-full rounded-3xl transition-transform duration-300 group-hover/image:scale-105"
                     />
