@@ -17,4 +17,5 @@ const ProductTaxSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-module.exports = mongoose.models.ProductTax || mongoose.model('ProductTax', ProductTaxSchema);
+const ProductTax = mongoose.models.ProductTax || mongoose.model('ProductTax', ProductTaxSchema);
+export default ProductTax;

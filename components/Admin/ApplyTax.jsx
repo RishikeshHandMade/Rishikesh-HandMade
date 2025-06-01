@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast, { Toaster } from 'react-hot-toast';
 
 const ApplyTax = ({ productData, productId }) => {
   const [cgst, setCgst] = useState(0);
@@ -6,40 +7,7 @@ const ApplyTax = ({ productData, productId }) => {
   const [taxTable, setTaxTable] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [editingId, setEditingId] = useState(null);
   const productTitle = productData?.title || "";
-
-  // Edit handler
-  const handleEdit = (row) => {
-    setCgst(row.cgst);
-    setSgst(row.sgst);
-    setEditingId(row._id);
-  };
-
-  // Delete handler
-  const handleDelete = async (row) => {
-    if (!window.confirm("Are you sure you want to delete this product tax entry?")) return;
-    try {
-      const res = await fetch('/api/productTax', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ product: row.product, tax: '__all__' })
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        window?.toast?.success?.('Product tax deleted!') || alert('Product tax deleted!');
-        fetchTaxTable();
-        // If deleted row was being edited, reset form
-        if (editingId === row._id) {
-          setCgst(0); setSgst(0); setEditingId(null);
-        }
-      } else {
-        window?.toast?.error?.(data.error || 'Failed to delete') || alert(data.error || 'Failed to delete');
-      }
-    } catch {
-      window?.toast?.error?.('API error') || alert('API error');
-    }
-  };
 
   // Fetch all product taxes for the table
   const fetchTaxTable = async () => {
@@ -76,8 +44,91 @@ const ApplyTax = ({ productData, productId }) => {
     }
   };
 
+  // Editing state
+  const [editingTaxId, setEditingTaxId] = useState(null);
+
+  // Edit handler: fill form with selected row's data
+  const handleEditTax = (row) => {
+    setCgst(row.cgst);
+    setSgst(row.sgst);
+    setEditingTaxId(row._id);
+  };
+
+  // Cancel edit handler
+  const handleCancelEdit = () => {
+    setCgst(0);
+    setSgst(0);
+    setEditingTaxId(null);
+  };
+
+  // Delete handler: confirmation dialog, then delete
+  const handleDeleteTax = async (row) => {
+    if (!window.confirm(`Are you sure you want to delete the tax for product: ${row.product?.title || row.product}?`)) return;
+    try {
+      const res = await fetch('/api/productTax', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product: row.product._id || row.product, tax: '__all__' })
+      });
+      const data = await res.json();
+      console.log('[ApplyTax] DELETE response:', data, 'status:', res.status);
+      if (res.ok && data.success !== false) {
+        toast.success('Tax deleted!');
+        fetchTaxTable();
+        // If deleted row was being edited, reset form
+        if (editingTaxId === row._id) {
+          setCgst(0); setSgst(0); setEditingTaxId(null);
+        }
+      } else {
+        toast.error(data.error || 'Failed to delete tax');
+      }
+    } catch (err) {
+      toast.error('API error');
+    }
+  };
+
+  // Save handler with detailed debug logs
+  const handleSaveTax = async () => {
+    console.log('[ApplyTax] handleSaveTax called');
+    console.log('[ApplyTax] productId:', productId, 'cgst:', cgst, 'sgst:', sgst);
+    if (!productId) {
+      toast.error('Product ID is missing or invalid!');
+      return;
+    }
+    try {
+      let method = 'POST';
+      const exists = await checkProductTaxExists();
+      console.log('[ApplyTax] checkProductTaxExists:', exists);
+      if (exists) method = 'PATCH';
+      const payload = { product: productId, cgst: Number(cgst), sgst: Number(sgst) };
+      console.log('[ApplyTax] Sending payload:', payload, 'method:', method);
+      const res = await fetch('/api/productTax', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      console.log('[ApplyTax] fetch response status:', res.status);
+      const data = await res.json();
+      console.log('[ApplyTax] API response:', data);
+      if (res.ok) {
+        toast.success('Taxes saved!');
+        fetchTaxTable();
+        setEditingTaxId(null); // Reset edit mode
+      } else {
+        toast.error(data.error || 'Failed to save taxes');
+      }
+    } catch (err) {
+      console.error('[ApplyTax] API error:', err);
+      toast.error('API error');
+    }
+  };
+
+
+
   return (
-    <div className="container mx-auto p-6 max-w-lg">
+    <>
+      {/* <Toaster position="top-right" /> */}
+      <div className="container mx-auto p-6 max-w-xl">
       <h3 className="text-xl font-bold mb-4 text-center">Apply Tax</h3>
       <div className='mb-2'>
         <label className="block text-sm font-medium mb-1">Product Name</label>
@@ -115,34 +166,25 @@ const ApplyTax = ({ productData, productId }) => {
           />
         </div>
       </div>
-      <div className="flex justify-center mt-4">
+      <div className="flex justify-center mt-4 gap-2">
         <button
           type="button"
           className="bg-green-600 text-white px-6 py-2 rounded shadow disabled:opacity-50"
           disabled={(!cgst && !sgst) || !productId}
-          onClick={async () => {
-            try {
-              let method = 'POST';
-              if (await checkProductTaxExists()) method = 'PATCH';
-              const res = await fetch('/api/productTax', {
-                method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ product: productId, cgst: Number(cgst), sgst: Number(sgst) })
-              });
-              const data = await res.json();
-              if (res.ok) {
-                window?.toast?.success?.('Taxes saved!') || alert('Taxes saved!');
-                fetchTaxTable();
-              } else {
-                window?.toast?.error?.(data.error || 'Failed to save taxes') || alert(data.error || 'Failed to save taxes');
-              }
-            } catch (err) {
-              window?.toast?.error?.('API error') || alert('API error');
-            }
-          }}
+          onClick={handleSaveTax}
         >
-          Save
+          {editingTaxId ? 'Update Tax' : 'Save Tax'}
         </button>
+        {editingTaxId && (
+          <button
+            type="button"
+            className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-2 rounded shadow"
+            onClick={handleCancelEdit}
+            disabled={false}
+          >
+            Cancel Edit
+          </button>
+        )}
       </div>
       {/* Tax Table Section */}
       <div className="mt-10">
@@ -156,23 +198,33 @@ const ApplyTax = ({ productData, productId }) => {
             <table className="min-w-full border text-sm">
               <thead>
                 <tr className="bg-gray-100">
-                  <th className="border px-3 py-2">Product ID</th>
+                  <th className="border px-3 py-2">Product Name</th>
                   <th className="border px-3 py-2">CGST (%)</th>
                   <th className="border px-3 py-2">SGST (%)</th>
-                  <th className="border px-3 py-2">Actions</th>
+                  <th className="border px-3 py-2">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {taxTable.length === 0 ? (
                   <tr><td colSpan={4} className="text-center py-2">No tax data</td></tr>
                 ) : taxTable.map((row) => (
-                  <tr key={row._id} className={editingId === row._id ? 'bg-yellow-100' : ''}>
-                    <td className="border px-3 py-2">{row.product}</td>
-                    <td className="border px-3 py-2">{row.cgst}</td>
-                    <td className="border px-3 py-2">{row.sgst}</td>
-                    <td className="border px-3 py-2">
-                      <button className="text-blue-600 underline mr-2" onClick={() => handleEdit(row)}>Edit</button>
-                      <button className="text-red-600 underline" onClick={() => handleDelete(row)}>Delete</button>
+                  <tr key={row._id}>
+                    <td className="border px-3 py-2 text-center">{row.product?.title || row.product}</td>
+                    <td className="border px-3 py-2 text-center">{row.cgst}</td>
+                    <td className="border px-3 py-2 text-center">{row.sgst}</td>
+                    <td className="border px-3 py-2 text-center">
+                      <button
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded"
+                        onClick={() => handleEditTax(row)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="bg-red-500 hover:bg-red-600 ml-2 text-white px-2 py-1 rounded"
+                        onClick={() => handleDeleteTax(row)}
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -182,6 +234,7 @@ const ApplyTax = ({ productData, productId }) => {
         )}
       </div>
     </div>
+    </>
   );
 };
 

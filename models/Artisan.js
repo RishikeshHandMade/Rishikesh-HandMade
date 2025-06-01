@@ -128,5 +128,5 @@ const artisanSchema = new mongoose.Schema({
 });
 
 const Artisan = mongoose.models.Artisan || mongoose.model('Artisan', artisanSchema);
-module.exports = Artisan;
-module.exports.schema = artisanSchema;
+export default Artisan;
+export { artisanSchema };

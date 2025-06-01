@@ -1,5 +1,7 @@
 // Product.js - Mongoose Product Model for AddDirectProduct Page
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
+import Artisan from './Artisan';
+import ProductTax from './ProductTax';
 const ProductSchema = new mongoose.Schema({
   title: { type: String, required: true },
   code: { type: String, required: true },
@@ -22,4 +24,6 @@ const ProductSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now },
 });
 
-module.exports = mongoose.models.Product || mongoose.model('Product', ProductSchema);
+const Product = mongoose.models.Product || mongoose.model('Product', ProductSchema);
+export default Product;
+export { ProductSchema };

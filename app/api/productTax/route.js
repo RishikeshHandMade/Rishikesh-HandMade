@@ -8,10 +8,10 @@ export async function GET(req) {
   const product = searchParams.get('product');
   try {
     if (product) {
-      const data = await ProductTax.findOne({ product });
+      const data = await ProductTax.findOne({ product }).populate('product', 'title');
       return Response.json({ data });
     } else {
-      const data = await ProductTax.find({});
+      const data = await ProductTax.find({}).populate('product', 'title');
       return Response.json({ data });
     }
   } catch (err) {
@@ -21,14 +21,12 @@ export async function GET(req) {
 
 export async function POST(req) {
   await connectDB();
-  try {
-    const { product, cgst = 0, sgst = 0 } = await req.json();
+  try { 
+    const { product, cgst, sgst } = await req.json();
     if (!product) return Response.json({ error: 'Product is required' }, { status: 400 });
     let doc = await ProductTax.findOne({ product });
     if (doc) {
-      doc.cgst = cgst;
-      doc.sgst = sgst;
-      await doc.save();
+      return Response.json({ error: 'Tax already exists for this product' }, { status: 400 });
     } else {
       doc = await ProductTax.create({ product, cgst, sgst });
     }
@@ -41,7 +39,7 @@ export async function POST(req) {
 export async function PATCH(req) {
   await connectDB();
   try {
-    const { product, cgst = 0, sgst = 0 } = await req.json();
+    const { product, cgst, sgst } = await req.json();
     if (!product) return Response.json({ error: 'Product is required' }, { status: 400 });
     const doc = await ProductTax.findOneAndUpdate(
       { product },

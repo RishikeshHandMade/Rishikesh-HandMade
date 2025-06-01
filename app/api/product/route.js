@@ -12,6 +12,7 @@ import CategoryTag from '@/models/CategoryTag';
 import ProductReview from '@/models/ProductReview';
 import Quantity from '@/models/Quantity';
 import ProductCoupons from '@/models/ProductCoupons';
+import ProductTax from '@/models/ProductTax';
 
 export async function POST(req) {
   try {
@@ -73,7 +74,8 @@ export async function GET(req) {
         .populate('categoryTag')
         .populate('reviews')
         .populate('quantity')
-        .populate('coupons');
+        .populate('coupons')
+        .populate('taxes');
       if (!product) {
         return new Response(JSON.stringify({ error: 'Product not found' }), { status: 404 });
       }
