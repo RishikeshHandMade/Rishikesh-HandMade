@@ -119,20 +119,6 @@ const data = {
       url: "/admin/manage_blogs",
       icon: Rss,
     },
-
-    // Space (empty item)
-    { divider: true },
-
-    {
-      name: "Coming Soon",
-      url: "/admin/coming_soon",
-      icon: Image
-    },
-    {
-      name: "Coming Soon Enquiries",
-      url: "/admin/coming_soon_enquiries",
-      icon: MessageCircleMore
-    },
     // Space (empty item)
     { divider: true },
 

@@ -22,22 +22,15 @@ export async function GET(req) {
 export async function POST(req) {
   await connectDB();
   try {
-    const { product, taxes } = await req.json();
+    const { product, cgst = 0, sgst = 0 } = await req.json();
     if (!product) return Response.json({ error: 'Product is required' }, { status: 400 });
     let doc = await ProductTax.findOne({ product });
     if (doc) {
-      doc.taxes = taxes;
+      doc.cgst = cgst;
+      doc.sgst = sgst;
       await doc.save();
     } else {
-      doc = await ProductTax.create({ product, taxes });
-    }
-    // Ensure ProductTax _id is in Product.taxes array
-    if (doc && doc._id) {
-      await Product.findByIdAndUpdate(
-        product,
-        { $addToSet: { taxes: doc._id } },
-        { new: true }
-      );
+      doc = await ProductTax.create({ product, cgst, sgst });
     }
     return Response.json({ data: doc });
   } catch (err) {
@@ -48,21 +41,13 @@ export async function POST(req) {
 export async function PATCH(req) {
   await connectDB();
   try {
-    const { product, taxes } = await req.json();
+    const { product, cgst = 0, sgst = 0 } = await req.json();
     if (!product) return Response.json({ error: 'Product is required' }, { status: 400 });
     const doc = await ProductTax.findOneAndUpdate(
       { product },
-      { taxes },
+      { cgst, sgst },
       { new: true }
     );
-    // Ensure ProductTax _id is in Product.taxes array
-    if (doc && doc._id) {
-      await Product.findByIdAndUpdate(
-        product,
-        { $addToSet: { taxes: doc._id } },
-        { new: true }
-      );
-    }
     return Response.json({ data: doc });
   } catch (err) {
     return Response.json({ error: err.message }, { status: 500 });
