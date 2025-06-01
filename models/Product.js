@@ -1,7 +1,5 @@
 // Product.js - Mongoose Product Model for AddDirectProduct Page
 import mongoose from 'mongoose';
-import Artisan from './Artisan';
-import ProductTax from './ProductTax';
 const ProductSchema = new mongoose.Schema({
   title: { type: String, required: true },
   code: { type: String, required: true },

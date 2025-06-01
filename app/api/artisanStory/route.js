@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server';
-import connectDB from '../../../lib/connectDB';
-import ArtisanStory from '../../../models/ArtisanStory';
-import mongoose from 'mongoose';
-import ArtisanSchema from '../../../models/Artisan';
-const Artisan = mongoose.models.Artisan || mongoose.model('Artisan', ArtisanSchema.schema);
+import connectDB from '@/lib/connectDB';
+import ArtisanStory from '@/models/ArtisanStory';
+import Artisan from '@/models/Artisan';
 
 export async function GET(req) {
   await connectDB();

@@ -1,11 +1,6 @@
 import connectDB from "@/lib/connectDB";
 import mongoose from 'mongoose';
-let Artisan;
-try {
-  Artisan = mongoose.model('Artisan');
-} catch {
-  Artisan = require('@/models/Artisan');
-}
+import Artisan from '@/models/Artisan';
 import { addSpecializationIfNotExists } from "@/lib/specialization";
 import { deleteFileFromCloudinary } from "@/utils/cloudinary";
 // Helper to normalize form data
@@ -99,7 +94,9 @@ export async function GET(req) {
     if (excludeId) {
       query._id = { $ne: excludeId };
     }
-    const artisans = await Artisan.find(query).sort({ createdAt: -1 });
+    const artisans = await Artisan.find(query)
+      .populate('socialPlugin')
+      .sort({ createdAt: -1 });
     return new Response(JSON.stringify(artisans), { status: 200 });
   } catch (error) {
     return new Response(JSON.stringify({ message: 'Error fetching artisans', error: error.message }), { status: 500 });

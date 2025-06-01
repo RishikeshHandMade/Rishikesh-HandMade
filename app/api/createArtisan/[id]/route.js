@@ -7,12 +7,7 @@ import "@/models/ArtisanCertificate";
 import "@/models/ArtisanPlugin";
 import "@/models/Product";
 import "@/models/ArtisanBanner";
-let Artisan;
-try {
-  Artisan = mongoose.model('Artisan');
-} catch {
-  Artisan = require('@/models/Artisan');
-}
+import Artisan from '@/models/Artisan';
 
 export async function GET(req, { params }) {
   await connectDB();

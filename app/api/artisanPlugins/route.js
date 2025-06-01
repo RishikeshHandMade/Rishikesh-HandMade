@@ -7,8 +7,7 @@ try {
 } catch {
   ArtisanPlugin = require('@/models/ArtisanPlugin');
 }
-
-const Artisan = require('@/models/Artisan');
+import Artisan from '@/models/Artisan';
 
 // GET all plugins or by artisan
 export async function GET(req) {
