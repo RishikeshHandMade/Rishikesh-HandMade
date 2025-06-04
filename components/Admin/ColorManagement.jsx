@@ -167,13 +167,13 @@ const ColorManagement = ({ productData, productId }) => {
   };
 
   const patchColor = async ({ id, active, colors }) => {
-  const res = await fetch('/api/productColor', {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id, active, colors })
-  });
-  return res.json();
-};
+    const res = await fetch('/api/productColor', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, active, colors })
+    });
+    return res.json();
+  };
 
 
   const fetchColorTable = async () => {
@@ -244,37 +244,37 @@ const ColorManagement = ({ productData, productId }) => {
 
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-const [deleteId, setDeleteId] = useState(null);
+  const [deleteId, setDeleteId] = useState(null);
 
-const openDeleteModal = (id) => {
-  setDeleteId(id);
-  setShowDeleteModal(true);
-};
+  const openDeleteModal = (id) => {
+    setDeleteId(id);
+    setShowDeleteModal(true);
+  };
 
-const cancelDelete = () => {
-  setShowDeleteModal(false);
-  setDeleteId(null);
-};
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setDeleteId(null);
+  };
 
-const handleDeleteRow = async () => {
-  if (!deleteId) return;
-  try {
-    await fetch(`/api/productColor/${deleteId}`, { method: "DELETE" });
-    setColorTableData(prev => prev.filter(row => row._id !== deleteId));
-    toast.success("Deleted");
-  } catch {
-    toast.error("Delete failed");
-  }
-  setShowDeleteModal(false);
-  setDeleteId(null);
-};
+  const handleDeleteRow = async () => {
+    if (!deleteId) return;
+    try {
+      await fetch(`/api/productColor/${deleteId}`, { method: "DELETE" });
+      setColorTableData(prev => prev.filter(row => row._id !== deleteId));
+      toast.success("Deleted");
+    } catch {
+      toast.error("Delete failed");
+    }
+    setShowDeleteModal(false);
+    setDeleteId(null);
+  };
 
   // Fetch product title on mount or productId change
   useEffect(() => {
     if (productData && productData.title) {
       setFetchedTitle(productData.title);
     } else if (productId) {
-       fetch(`/api/product/${productId}`)
+      fetch(`/api/product/${productId}`)
         .then(async res => {
           if (!res.ok) {
             setFetchedTitle("");
@@ -522,8 +522,8 @@ const handleDeleteRow = async () => {
                   </td>
                   <td style={{ padding: 8, border: '1px solid #ddd' }}>
                     <Button variant="destructive" onClick={() => openDeleteModal(row._id)}>
-  Delete
-</Button>
+                      Delete
+                    </Button>
                   </td>
                 </tr>
               ))}
@@ -531,22 +531,22 @@ const handleDeleteRow = async () => {
           </table>
         </div>
       </div>
-    {/* Delete Modal */}
-    {showDeleteModal && (
-      <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Color Entry</DialogTitle>
-          </DialogHeader>
-          <p>Are you sure you want to delete this color entry?</p>
-          <DialogFooter>
-            <Button variant="secondary" onClick={cancelDelete}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDeleteRow}>Delete</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    )}
-  </div>
+      {/* Delete Modal */}
+      {showDeleteModal && (
+        <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Color Entry</DialogTitle>
+            </DialogHeader>
+            <p>Are you sure you want to delete this color entry?</p>
+            <DialogFooter>
+              <Button variant="secondary" onClick={cancelDelete}>Cancel</Button>
+              <Button variant="destructive" onClick={handleDeleteRow}>Delete</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
   );
 };
 

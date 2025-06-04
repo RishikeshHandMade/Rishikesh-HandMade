@@ -7,7 +7,12 @@ try {
   ArtisanCertificate = require('@/models/ArtisanCertificate');
 }
 import mongoose from 'mongoose';
-const Artisan = require('@/models/Artisan');
+let Artisan;
+try {
+  Artisan = mongoose.model('Artisan');
+} catch {
+  Artisan = require('@/models/Artisan');
+}
 // GET all certificates or by artisan
 export async function GET(req) {
   await connectDB();

@@ -242,6 +242,7 @@ const RandomTourPackageSection = () => {
         setIsLoading(false);
       }
     };
+    
 
     fetchProducts();
     fetchBlogs();
@@ -756,9 +757,11 @@ const RandomTourPackageSection = () => {
                     <br /><br />
                     Stay connected — great things are coming soon!"
                   </p>
+                  <Link href="/blogs">
                   <button className="w-full bg-black text-white py-4 font-bold rounded hover:bg-gray-800 transition-colors text-lg">
                     View More
                   </button>
+                  </Link>
                 </div>
                 {/* News box */}
                 <div className="flex-1 bg-white rounded-lg shadow p-6 flex flex-col min-h-[400px]">
@@ -770,75 +773,104 @@ const RandomTourPackageSection = () => {
                       </div>
                     ))}
                   </div>
+                  <Link href="/contact">
+                  
                   <button className="w-full bg-lime-400 text-black font-bold py-3 rounded hover:bg-lime-500 transition-colors text-lg">
                     Get Connected
                   </button>
+                  </Link>
                 </div>
               </div>
             </div>
           </div>
           {/* Blog Section with full-width background */}
           {!isBlogsLoading && blogs && blogs.length > 0 && (
-            <div className="w-full flex flex-col items-center mt-12">
-              <Carousel className="w-full">
-  <CarouselContent className="px-1 sm:px-0">
-    {Array.from({ length: Math.ceil(blogs.length / 2) }).map((_, pairIdx) => (
-      <CarouselItem key={pairIdx} className="w-full">
-        <div className="flex flex-col md:flex-row gap-6">
-          {[0, 1].map((offset) => {
-            const blog = blogs[pairIdx * 2 + offset];
-            if (!blog) return null;
-            return (
-              <div
-                key={blog._id || offset}
-                className="flex bg-[#fcf3d7] rounded-2xl shadow-lg overflow-hidden w-full md:w-1/2 min-h-[180px]"
-              >
-                {/* Left: Video or Image */}
-                <div className="w-2/5 min-w-[160px] bg-black flex items-center justify-center">
-                  {blog.youtubeUrl ? (
-                    <iframe
-                      width="100%"
-                      height="100%"
-                      src={blog.youtubeUrl}
-                      title={blog.title}
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                      className="aspect-video w-full h-full"
-                    />
-                  ) : (
-                    <img
-                      src={blog.image || "https://images.unsplash.com/photo-1506744038136-46273834b3fb"}
-                      alt={blog.title}
-                      className="object-cover w-full h-full"
-                    />
-                  )}
-                </div>
-                {/* Right: Text */}
-                <div className="flex-1 flex flex-col justify-center px-6 py-4">
-                  <div className="font-bold text-2xl mb-2">{blog.title}</div>
-                  <div className="text-gray-700 mb-4 line-clamp-3">
-                    {blog.shortDesc}
-                  </div>
-                  <a
-                    href={blog.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-bold text-gray-700 hover:text-black"
-                  >
-                    Read More &gt;
-                  </a>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </CarouselItem>
-    ))}
-  </CarouselContent>
-  <CarouselPrevious />
-  <CarouselNext />
-</Carousel>
+            <div className="w-full mx-auto  max-w-7xl mb-10 p-2">
+              <Carousel className="w-full" plugins={[Autoplay({ delay: 4000 })]}>
+                <CarouselContent className="px-10 sm:px-0">
+                  {Array.from({ length: Math.ceil(blogs.length / 2) }).map((_, pairIdx) => (
+                    <CarouselItem key={pairIdx} className="w-full">
+                      <div className="flex flex-col md:flex-row gap-6">
+                        {[0, 1].map((offset) => {
+                          const blog = blogs[pairIdx * 2 + offset];
+                          if (!blog) return null;
+
+                          // Determine media (YouTube or image)
+                          let mediaUrl = blog.image || (Array.isArray(blog.images) && blog.images.length > 0 ? blog.images[0].url || blog.images[0] : undefined) || blog.youtubeUrl;
+                          let isYoutube = false;
+                          let embedUrl = '';
+                          if (mediaUrl && /^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//.test(mediaUrl)) {
+                            isYoutube = true;
+                            embedUrl = mediaUrl;
+                            if (embedUrl.includes('youtube.com/watch?v=')) {
+                              const videoId = embedUrl.split('v=')[1].split('&')[0];
+                              embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                            } else if (embedUrl.includes('youtu.be/')) {
+                              const videoId = embedUrl.split('youtu.be/')[1].split(/[?&]/)[0];
+                              embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                            }
+                          }
+                          return (
+                            <div
+                              key={blog._id || offset}
+                              className="flex flex-row bg-[#FFF3C9] rounded-xl min-h-[220px] w-full md:w-1/2 overflow-hidden"
+                            >
+                              {/* Image/Video section */}
+                              <div className="flex-shrink-0 w-1/2 md:w-2/5 flex items-center justify-center bg-[#E8A57B]">
+                                {isYoutube ? (
+                                  <div className="w-full h-full aspect-video rounded-l-xl overflow-hidden flex items-center justify-center">
+                                    <iframe
+                                      src={embedUrl}
+                                      title={blog.title}
+                                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                      allowFullScreen
+                                      className="w-full h-full min-h-[160px] max-h-[220px] border-0"
+                                    />
+                                  </div>
+                                ) : mediaUrl ? (
+                                  <img
+                                    src={mediaUrl}
+                                    alt={blog.title}
+                                    className="object-cover w-full h-full max-h-[220px] rounded-l-xl"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-l-xl text-gray-400">
+                                    No Image
+                                  </div>
+                                )}
+                              </div>
+                              {/* Content section */}
+                              <div className="flex flex-col justify-between p-6 flex-1">
+                                <div>
+                                  <div className="font-bold text-lg md:text-xl text-black mb-2 leading-snug">{blog.title || 'No title available.'}</div>
+                                  <div className="text-gray-800 text-base mb-4 line-clamp-3 min-h-[48px]">{blog.shortDescription || blog.shortDesc || 'No description available.'}</div>
+                                </div>
+                                <div className="flex items-center mt-auto">
+                                  <a
+                                    href={blog.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-gray-700 font-semibold hover:underline flex items-center group transition focus:outline-none"
+                                  >
+                                    Read More  &gt;
+                                  </a>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        {/* If odd number of blogs, fill the row with an empty div for alignment */}
+                        {(() => {
+                          const isOdd = blogs.length % 2 !== 0 && pairIdx === Math.floor(blogs.length / 2);
+                          return isOdd ? <div className="hidden md:block w-1/2"></div> : null;
+                        })()}
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+              </Carousel>
             </div>
           )}
           {/* Instagram-like Image Carousel using Carousel classes */}
