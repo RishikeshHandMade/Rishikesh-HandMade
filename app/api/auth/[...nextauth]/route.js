@@ -88,12 +88,21 @@ export const authOptions = {
 
         let existingUser = await User.findOne({ email: user.email });
         if (!existingUser) {
+          // Generate a unique username from Google profile or email
+          let baseUsername = user.name?.replace(/\s+/g, '').toLowerCase() || user.email?.split('@')[0];
+          let username = baseUsername;
+          let suffix = 1;
+          // Ensure username is unique
+          while (await User.findOne({ username })) {
+            username = `${baseUsername}${suffix++}`;
+          }
           // Create a new user if they don't exist
           const newUser = await User.create({
             name: user.name,
             email: user.email,
             image: user.image,
             provider: 'Google',
+            username,
             isVerified: true,
           });
           existingUser = newUser;

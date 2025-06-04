@@ -549,7 +549,7 @@ const RandomTourPackageSection = () => {
                           <img
                             src={card.image}
                             alt={card.name}
-                            className="object-cover w-full h-full "
+                            className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
                             style={{ objectFit: 'cover' }}
                           />
                         </div>
@@ -637,7 +637,7 @@ const RandomTourPackageSection = () => {
                                 <img
                                   src={card.image}
                                   alt={card.name}
-                                  className="object-cover w-full h-full"
+                                  className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
                                   style={{ objectFit: 'cover' }}
                                 />
                               </div>

@@ -114,7 +114,7 @@ const handleOnlinePaymentWithOrder = async (total, cart, customer, setLoading, s
       <p>Your payment for order <b>${verificationResponse.data.orderId || verificationResponse.data._id || ''}</b> was successful.</p>
     </div>
     <table>
-      <tr><th>Amount</th><td>₹${(verificationResponse.data.amount/100).toFixed(2)}</td></tr>
+      <tr><th>Amount</th><td>₹${(verificationResponse.data.amount / 100).toFixed(2)}</td></tr>
       <tr><th>Payment ID</th><td>${verificationResponse.data.paymentId || verificationResponse.data.razorpay_payment_id || ''}</td></tr>
       <tr><th>Order ID</th><td>${verificationResponse.data.orderId || verificationResponse.data._id || ''}</td></tr>
       <tr><th>Email</th><td>${customer.email}</td></tr>
@@ -122,11 +122,11 @@ const handleOnlinePaymentWithOrder = async (total, cart, customer, setLoading, s
       <tr><th>Date</th><td>${new Date().toLocaleString()}</td></tr>
     </table>
     <div style="margin-top: 24px; text-align:center;">
-      <a href="https://yatrazone.vercel.app/profile/orders" style="display:inline-block;background:#10B981;color:#fff;text-decoration:none;padding:12px 25px;border-radius:4px;font-weight:bold;">View Your Account</a>
+      <a href="https://rishikeshhandmade.com/profile/orders" style="display:inline-block;background:#10B981;color:#fff;text-decoration:none;padding:12px 25px;border-radius:4px;font-weight:bold;">View Your Account</a>
     </div>
     <div class="footer">
-      <p>If you have any questions, email <a href="mailto:info@yatrazone.com">info@yatrazone.com</a></p>
-      <p>&copy; ${new Date().getFullYear()} YatraZone. All rights reserved.</p>
+      <p>If you have any questions, email <a href="mailto:info@rishikeshhandmade.com">info@rishikeshhandmade.com</a></p>
+      <p>&copy; ${new Date().getFullYear()} Rishikesh HandMade. All rights reserved.</p>
     </div>
   </div>
 </body>
@@ -152,7 +152,7 @@ const handleOnlinePaymentWithOrder = async (total, cart, customer, setLoading, s
             }
           }
         })();
-        } 
+      }
     };
     if (typeof window !== "undefined" && typeof window.Razorpay === "function") {
       const rzp = new window.Razorpay(options);
@@ -170,25 +170,6 @@ import { useRouter } from 'next/navigation';
 const CheckOut = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
-  // const { cart, updateCartQty, removeFromCart } = useCart();
-  // const [shipping, setShipping] = useState('free');
-  // const [payment, setPayment] = useState('bank');
-  // const [agree, setAgree] = useState(false);
-  // const [mounted, setMounted] = useState(false);
-  // Billing form state
-  // const [firstName, setFirstName] = useState("");
-  // const [lastName, setLastName] = useState("");
-  // const [company, setCompany] = useState("");
-  // const [country, setCountry] = useState("");
-  // const [street, setStreet] = useState("");
-  // const [apartment, setApartment] = useState("");
-  // const [city, setCity] = useState("");
-  // const [state, setState] = useState("");
-  // const [zip, setZip] = useState("");
-  // const [phone, setPhone] = useState("");
-  // const [email, setEmail] = useState("");
-  // const [orderNotes, setOrderNotes] = useState("");
-  // Loading and error state for payment
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const { cart, updateCartQty, removeFromCart } = useCart();
@@ -262,14 +243,7 @@ const CheckOut = () => {
       <div className="flex-1 bg-white rounded-lg shadow p-8">
         <h2 className="text-xl font-bold mb-6">Billing details</h2>
         <form className="space-y-4" onSubmit={handlePlaceOrder}>
-          <div className="flex flex-col md:flex-row gap-4">
-            <select className="border rounded px-3 py-2 w-full">
-              <option>Returning customer? Click here to login</option>
-            </select>
-            <select className="border rounded px-3 py-2 w-full">
-              <option>Have a coupon? Click here to enter your code</option>
-            </select>
-          </div>
+
           <div className="flex gap-4">
             <div className="flex-1">
               <label className="block text-sm mb-1">First Name</label>

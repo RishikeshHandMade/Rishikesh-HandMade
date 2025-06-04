@@ -269,12 +269,12 @@ const HeroSection = () => {
             >
               <CarouselContent className="h-full">
                 {banners.map((item, index) => (
-                  <CarouselItem key={index} className="h-[100vh] md:h-full flex items-center justify-center">
+                  <CarouselItem key={index} className="h-[100vh] md:h-full flex items-center justify-center ">
                     <div className="relative w-[420px] h-[600px] flex items-center justify-center">
                       <Image
                         src={item?.image?.url}
                         alt={item?.title || "Banner Image"}
-                        width={420}
+                        width={420} 
                         height={600}
                         quality={100}
                         priority

@@ -133,7 +133,7 @@ export default function Cart({ open, onClose, initialTab = "cart" }) {
               </div>
             </div>
             <div className="flex flex-col items-end gap-2">
-              <span className="font-semibold">${(item.price * (item.qty || 1)).toFixed(2)}</span>
+              <span className="font-semibold">₹{(item.price * (item.qty || 1)).toFixed(2)}</span>
               {tab === "cart" ? (
                 <button onClick={() => removeFromCart(item.id)} className="text-neutral-400 hover:text-red-500"><X size={18} /></button>
               ) : (
@@ -147,7 +147,7 @@ export default function Cart({ open, onClose, initialTab = "cart" }) {
         <div className="px-6 pt-2 pb-6 border-t border-neutral-200">
           <div className="flex justify-between text-lg font-semibold mb-2">
             <span>Subtotal:</span>
-            <span>${subtotal.toFixed(2)}</span>
+            <span>₹{subtotal.toFixed(2)}</span>
           </div>
           <div className="flex items-center gap-3 mb-4">
             <Ship size={36} />
