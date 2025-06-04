@@ -4,49 +4,34 @@ import connectDB from "@/lib/connectDB";
 import { NextResponse } from "next/server";
 import Package from "@/models/Package";
 
+export const GET = async () => {
+    try {
+        await connectDB();
+        const reviews = await Review.find({});
+        return NextResponse.json({ success: true, reviews }, { status: 200 });
+    } catch (error) {
+        return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    }
+};
+
 export const POST = async (req) => {
     try {
         await connectDB();
         const data = await req.json();
 
-        const user = await User.findOne({ email: data.email });
-        if (!user) {
-            return NextResponse.json({ message: "User not found" }, { status: 404 });
-        }
-
-        // ✅ Check if user already reviewed this specific package
-        const existingReview = await Review.findOne({
-            user: user._id,
-            packageId: data.packageId, // ✅ Match specific package
-        });
-
-        if (existingReview) {
-            return NextResponse.json({ message: "You have already reviewed this package" }, { status: 400 });
-        }
-
+        // Only accept form fields
         const review = new Review({
-            approved: false,
-            message: data.message,
+            name: data.name,
+            email: data.email,
+            thumb: data.thumb, // Should be an object { url, key } if uploaded
             rating: data.rating,
-            packageId: data.packageId,
-            packageName: data.packageName,
-            user: user._id,
+            title: data.title,
+            description: data.description,
+            approved: false
         });
 
         await review.save();
-
-        // ✅ Add review to package's reviews list
-        const packageData = await Package.findOne({ _id: data.packageId });
-        if (packageData) {
-            packageData.reviews.push(review._id);
-            await packageData.save();
-        }
-
-        // ✅ Add review to user's reviews list
-        user.reviews.push(review._id);
-        await user.save();
-
-        return NextResponse.json({ message: "Review saved successfully" }, { status: 200 });
+        return NextResponse.json({ message: "Review submitted successfully" }, { status: 201 });
     } catch (error) {
         return NextResponse.json({ message: error.message }, { status: 500 });
     }

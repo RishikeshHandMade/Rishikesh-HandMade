@@ -13,9 +13,9 @@ const ManageReviews = ({ reviews }) => {
     const [selectedReview, setSelectedReview] = useState(null)
     const [windowWidth, setWindowWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 0)
 
-
+console.log(allReviews)
     useEffect(() => {
-        setAllReviews(reviews.filter((review) => review.approved === false))
+        setAllReviews(reviews)
 
         const handleResize = () => {
             setWindowWidth(window.innerWidth)
@@ -102,13 +102,13 @@ const ManageReviews = ({ reviews }) => {
                         <div className="bg-blue-600 p-3 text-white flex justify-between items-center">
                             <div className="flex items-center gap-2">
                                 <div>
-                                    <p className="font-medium text-sm">{review.user.name}</p>
+                                    <p className="font-medium text-sm">{review.name}</p>
                                     <div className="flex items-center text-xs text-blue-100">
                                         <span>{new Date(review.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: 'numeric' })}</span>
                                     </div>
                                 </div>
                             </div>
-                            <Badge className="bg-blue-700 hover:bg-blue-700 text-xs">{review.packageName}</Badge>
+                            {/* <Badge className="bg-blue-700 hover:bg-blue-700 text-xs">{review.packageName}</Badge> */}
                         </div>
 
                         <div className="p-3">
@@ -117,10 +117,10 @@ const ManageReviews = ({ reviews }) => {
                                     {renderStars(review.rating)}
                                     <span className="text-xs text-gray-600 ml-1">({review.rating}.0)</span>
                                 </div>
-                                <p className="text-xs text-gray-500 truncate max-w-[150px]">{review.user.email}</p>
+                                <p className="text-xs text-gray-500 truncate max-w-[150px]">{review.email}</p>
                             </div>
 
-                            <p className="text-sm text-gray-700 line-clamp-2 mb-3">{review.message}</p>
+                            <p className="text-sm text-gray-700 line-clamp-2 mb-3">{review.description}</p>
 
                             <div className="flex flex-col gap-2">
                                 <div className="flex gap-2">

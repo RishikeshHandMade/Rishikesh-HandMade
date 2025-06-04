@@ -4,7 +4,7 @@ import { useState } from "react"
 import Image from "next/image"
 import { format } from "date-fns"
 import { Star, Calendar, Package, MessageSquare, Mail } from "lucide-react"
-import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
@@ -51,15 +51,16 @@ const ReviewDetails = ({ review, onClose }) => {
     return (
         <Dialog open={!!review} onOpenChange={onClose}>
             <DialogContent className="max-w-[95vw] sm:max-w-lg md:max-w-2xl p-0 overflow-hidden">
+                <DialogTitle className="sr-only">Review Details</DialogTitle>
 
                 <div className="pt-4 sm:pt-4 px-4 sm:px-6 pb-4 sm:pb-6">
                     <div className="flex flex-col items-center sm:flex-row sm:items-center gap-2 sm:gap-4">
                         <div className="flex items-center justify-between w-full">
                             <div>
-                                <h2 className="text-xl sm:text-2xl font-bold">{review.user.name}</h2>
+                                <h2 className="text-xl sm:text-2xl font-bold">{review.name}</h2>
                                 <div className="flex items-center gap-2 text-gray-600">
                                     <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
-                                    <span className="text-xs sm:text-sm truncate max-w-[200px] sm:max-w-none">{review.user.email}</span>
+                                    <span className="text-xs sm:text-sm truncate max-w-[200px] sm:max-w-none">{review.email}</span>
                                 </div>
                             </div>
                             <Badge
@@ -78,9 +79,9 @@ const ReviewDetails = ({ review, onClose }) => {
                         <div>
                             <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2">
                                 <Package className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                                Package Details:
+                                Review Title:
                             </h3>
-                            <p className="text-base sm:text-lg font-medium mt-1 sm:mt-2">{review.packageName}</p>
+                            <p className="text-base sm:text-lg font-medium mt-1 sm:mt-2 px-5">{review.title}</p>
                         </div>
 
                         <div>
@@ -101,7 +102,7 @@ const ReviewDetails = ({ review, onClose }) => {
                             Message
                         </h3>
                         <div className="mt-1 sm:mt-2 p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200">
-                            <p className="italic text-sm sm:text-base text-gray-700">{review.message}</p>
+                            <p className="italic text-sm sm:text-base text-gray-700">{review.description}</p>
                         </div>
                     </div>
                 </div>

@@ -18,6 +18,7 @@ import QuickViewProductCard from "./QuickViewProductCard";
 import { useCart } from "../context/CartContext";
 import { toast } from "react-hot-toast"
 import { Star } from 'lucide-react';
+import ReviewModal from "./ReviewModal";
 function slugify(text) {
   return text
     .toString()
@@ -29,6 +30,8 @@ function slugify(text) {
 }
 
 const RandomTourPackageSection = () => {
+  // ...existing state
+  const [showReviewModal, setShowReviewModal] = useState(false);
   const { addToCart, addToWishlist, removeFromWishlist, wishlist } = useCart();
 
   // State and effect for fetching all reviews
@@ -42,6 +45,45 @@ const RandomTourPackageSection = () => {
         }
       });
   }, []);
+  const [customReview, setcustomReview] = useState([]);
+  console.log(customReview)
+  useEffect(() => {
+    fetch('/api/saveReviews')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.reviews)) {
+          setcustomReview(data.reviews);
+        }
+      });
+  }, []);
+  const artisanReviews = [...customReview, ...allReviews];
+  console.log(allReviews)
+
+  // Normalize reviews to a standard format
+  function normalizeReview(review) {
+    // Backend reviews (MongoDB)
+    if (review.thumb || review.description) {
+      return {
+        _id: review._id || Math.random().toString(36).substr(2, 9),
+        rating: review.rating,
+        title: review.title || review.name || 'No Title',
+        shortDescription: review.description || review.shortDescription || '',
+        image: review.thumb?.url || '/placeholder-user.jpg',
+        createdBy: review.name || review.title || 'Anonymous',
+      };
+    }
+    // Static/dummy reviews or other format
+    return {
+      _id: review._id || Math.random().toString(36).substr(2, 9),
+      rating: review.rating,
+      title: review.title || 'No Title',
+      shortDescription: review.shortDescription || '',
+      image: review.image || '/placeholder-user.jpg',
+      createdBy: review.createdBy || review.title || 'Anonymous',
+    };
+  }
+
+  const normalizedReviews = artisanReviews.map(normalizeReview);
 
   const handleAddToCart = (item) => {
     addToCart({
@@ -364,6 +406,7 @@ const RandomTourPackageSection = () => {
                           >
                             QUICK VIEW
                           </Button>
+
                         </div>
                       </div>
                       {/* Name and Price Section */}
@@ -391,9 +434,9 @@ const RandomTourPackageSection = () => {
                   <div key={idx} className="rounded-2xl flex flex-col h-[350px] md:h-[400px] p-0 overflow-hidden relative group">
                     <img src={item?.image?.url} alt={item?.title} className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105" />
                     <div className="absolute z-10 flex flex-col justify-between gap-2 px-10 p-6 h-full items-start">
-                        <span className="inline-block bg-white text-black px-3 py-1 rounded text-xs font-bold w-fit mb-2 shadow">{item?.coupon ? `GET ${item?.coupon}% OFF` : ''}</span>
-                        <span className="text-2xl md:text-3xl font-extrabold text-black mb-2 leading-tight w-1/2">{item?.title}</span>
-                        <Link href={item?.buttonLink || '#'} target="_blank" rel="noopener noreferrer" className="mt-4 px-5 py-2 bg-black text-white rounded-xl hover:bg-gray-800 transition w-fit">View Now</Link>
+                      <span className="inline-block bg-white text-black px-3 py-1 rounded text-xs font-bold w-fit mb-2 shadow">{item?.coupon ? `GET ${item?.coupon}% OFF` : ''}</span>
+                      <span className="text-2xl md:text-3xl font-extrabold text-black mb-2 leading-tight w-1/2">{item?.title}</span>
+                      <Link href={item?.buttonLink || '#'} target="_blank" rel="noopener noreferrer" className="mt-4 px-5 py-2 bg-black text-white rounded-xl hover:bg-gray-800 transition w-fit">View Now</Link>
                     </div>
                   </div>
                 ))}
@@ -439,12 +482,15 @@ const RandomTourPackageSection = () => {
             </div>
 
             {/* Review Card Overlay */}
-            <div className="absolute right-1 top-[40%] z-10 flex flex-col justify-start w-full md:w-1/2 items-end pr-1">
+            <div className="absolute right-1 gap-2 top-[30%] z-10 flex flex-col justify-start w-full md:w-1/2 items-end pr-1">
+              <div className="button px-10">
+                <Button className="bg-white text-black hover:bg-black hover:text-white transition-colors duration-300" onClick={() => setShowReviewModal(true)}>Write Reviews</Button>
+              </div>
               <Carousel className="w-full md:w-[600px]"
                 plugins={[Autoplay({ delay: 4000 })]}>
 
                 <CarouselContent className="w-full">
-                  {(allReviews && allReviews.length > 0 ? allReviews : [
+                  {(normalizedReviews && normalizedReviews.length > 0 ? normalizedReviews : [
                     {
                       _id: 1,
                       rating: 3,
@@ -453,7 +499,7 @@ const RandomTourPackageSection = () => {
                       shortDescription: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Aliquam aut ipsa corrupti, laudantium eos assumenda sed qui vitae ut. Aut mollitia obcaecati rerum optio repellendus reiciendis, accusamus, dignissimos impedit quisquam in molestias, voluptates voluptatem expedita. Nisi eligendi excepturi, optio ipsam, porro dolore perspiciatis corrupti atque animi ipsa architecto eum laboriosam.architecto eum laboriosam.architecto eum laboriosam.",
                       image: '/placeholder.jpeg',
                     },
-                  ]).map((review, idx) => (
+                  ].map(normalizeReview)).map((review, idx) => (
                     <CarouselItem
                       key={review._id}
                       className="min-w-0 snap-center w-full"
@@ -699,194 +745,100 @@ const RandomTourPackageSection = () => {
               )}
             </div>
           </div>
-
+          <div className="w-full flex flex-col items-center mb-12">
+            <div className="w-full flex flex-col md:flex-row gap-8 min-h-[300px]">
+              {/* News/Announcement Section */}
+              <div className="flex flex-row w-full gap-8">
+                <div className="flex-1 bg-white rounded-lg shadow p-8 flex flex-col justify-between min-h-[400px]">
+                  <h2 className="text-3xl font-bold mb-4">Upcoming News, Blog and Events</h2>
+                  <p className="text-gray-800 mb-8 text-lg font-medium">
+                    "We're preparing exciting new content and updates for our users, including upcoming news and events. We’re working behind the scenes to bring you fresh news, upcoming events, and new features to enhance your experience.
+                    <br /><br />
+                    Stay connected — great things are coming soon!"
+                  </p>
+                  <button className="w-full bg-black text-white py-4 font-bold rounded hover:bg-gray-800 transition-colors text-lg">
+                    View More
+                  </button>
+                </div>
+                {/* News box */}
+                <div className="flex-1 bg-white rounded-lg shadow p-6 flex flex-col min-h-[400px]">
+                  <div className="font-bold text-2xl mb-4">Upcoming.....</div>
+                  <div className="flex-1 overflow-y-auto pr-2 mb-4">
+                    {[...Array(4)].map((_, i) => (
+                      <div key={i} className="bg-gray-100 rounded-lg p-4 mb-4 text-base font-medium">
+                        Exciting updates are on the way! We're working behind the scenes. Something great is coming soon!
+                      </div>
+                    ))}
+                  </div>
+                  <button className="w-full bg-lime-400 text-black font-bold py-3 rounded hover:bg-lime-500 transition-colors text-lg">
+                    Get Connected
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
           {/* Blog Section with full-width background */}
           {!isBlogsLoading && blogs && blogs.length > 0 && (
             <div className="w-full flex flex-col items-center mt-12">
-              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold w-full text-center md:pt-10">
-                Our Blog
-              </h1>
-              <p className="text-gray-600 py-8 text-center font-barlow w-[80%] mx-auto">
-                Stay ahead of the curve with Trending Packages – The Best,
-                Today. We bring you a curated selection of the most popular,
-                high-value deals and experiences that are capturing attention
-                right now. From must-have products to top-rated services, each
-                package is handpicked for quality, relevance, and impact.
-                Updated daily to reflect what’s hot and happening, it’s your
-                go-to source for discovering what’s trending – and making the
-                most of it. Don’t just follow the trend, be part of it.
-              </p>
-              {/* Two Promotional Banners */}
-              <div className="w-full flex flex-col md:flex-row gap-4 mb-8">
-                {/* First Banner */}
-                {blogs.length > 0 && (
-                  <div className="w-full md:w-1/2 bg-amber-100 rounded-lg overflow-hidden relative">
-                    <div className="flex h-[250px]">
-                      {/* <div className="text-sm font-semibold mb-1">STAY 4 NIGHTS</div> */}
-                      <div className="w-1/2 p-4 flex flex-col justify-center">
-                        <div className="absolute top-2 left-2 text-gray-700 bg-yellow-400 text-xs font-bold px-2 py-1 rounded">
-                          {blogs?.[0]?.date?.slice(0, 10) || ""}
-                        </div>
-                        {/* NameCode and Role in one row, spaced between */}
-                        <div className="flex flex-row items-center justify-between mb-1">
-                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-bold">
-                            {blogs?.[0]?.nameCode}
-                          </span>
-                          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded font-bold">
-                            {blogs?.[0]?.role}
-                          </span>
-                        </div>
-                        <div className="text-2xl md:text-3xl font-black mb-2">
-                          {blogs?.[0]?.title}
-                        </div>
-                        <p className="text-xs md:text-sm mb-4">
-                          {blogs?.[0]?.shortDesc?.split(" ").length > 18
-                            ? blogs?.[0]?.shortDesc
-                              .split(" ")
-                              .slice(0, 18)
-                              .join(" ") + "..."
-                            : blogs?.[0]?.shortDesc}
-                        </p>
-                        <a
-                          href={blogs?.[0]?.url ? blogs?.[0].url : "#"}
-                          className="bg-black text-white text-xs font-bold py-2 px-4 inline-block w-fit rounded"
-                        >
-                          Read More
-                        </a>
-                      </div>
-                      <div className="w-1/2 relative">
-                        <Image
-                          src={
-                            blogs?.[0]?.image
-                              ? blogs?.[0].image
-                              : "https://images.unsplash.com/photo-1506744038136-46273834b3fb"
-                          }
-                          alt={
-                            blogs?.[0]?.title
-                              ? blogs?.[0].title
-                              : "Promotional offer"
-                          }
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {/* Second Banner */}
-                {blogs.length > 1 && (
-                  <div className="w-full md:w-1/2 bg-gray-900 text-white rounded-lg overflow-hidden relative">
-                    <div className="flex h-[250px]">
-                      <div className="w-1/2 p-4 flex flex-col justify-center">
-                        {/* <div className="text-sm font-semibold mb-1">MEMBER GET</div> */}
-                        <div className="absolute top-2 left-2 text-gray-700 bg-yellow-400 text-xs font-bold px-2 py-1 rounded">
-                          {blogs?.[1]?.date?.slice(0, 10) || ""}
-                        </div>
-                        {/* NameCode and Role in one row, spaced between */}
-                        <div className="flex flex-row items-center justify-between mb-1">
-                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-bold">
-                            {blogs?.[1]?.nameCode}
-                          </span>
-                          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded font-bold">
-                            {blogs?.[1]?.role}
-                          </span>
-                        </div>
-                        <div className="text-2xl md:text-3xl font-black text-amber-400 mb-2">
-                          {blogs?.[1]?.title}
-                        </div>
-                        <p className="text-xs md:text-sm mb-4">
-                          {blogs?.[1]?.shortDesc?.split(" ").length > 18
-                            ? blogs?.[1]?.shortDesc
-                              .split(" ")
-                              .slice(0, 18)
-                              .join(" ") + "..."
-                            : blogs?.[1]?.shortDesc}
-                        </p>
-                        <a
-                          href={blogs?.[1]?.url ? blogs?.[1].url : "#"}
-                          className="border border-white text-white text-xs font-bold py-2 px-4 inline-block w-fit rounded"
-                        >
-                          Read More
-                        </a>
-                      </div>
-                      <div className="w-1/2 relative">
-                        <Image
-                          src={
-                            blogs?.[1]?.image
-                              ? blogs?.[1].image
-                              : "https://images.unsplash.com/photo-1506744038136-46273834b3fb"
-                          }
-                          alt={
-                            blogs?.[1]?.title
-                              ? blogs?.[1].title
-                              : "Member discount"
-                          }
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
               <Carousel className="w-full">
-                <CarouselContent className="sm:-ml-4 flex  px-1 sm:px-0">
-                  {blogs.slice(2).map((blog, idx) => (
-                    <CarouselItem
-                      key={blog._id || idx}
-                      className="basis-[85vw] sm:basis-1/2 md:basis-1/3 lg:basis-1/4 max-w-xs sm:max-w-sm md:max-w-md flex-shrink-0"
-                    >
-                      <div className="bg-white rounded-xl shadow p-4 flex flex-col h-full relative overflow-y-auto max-h-[90vh]">
-                        <div className="relative w-full h-40 sm:h-48 mb-3 rounded-lg overflow-hidden">
-                          <Image
-                            src={
-                              blog.image ||
-                              "https://images.unsplash.com/photo-1506744038136-46273834b3fb"
-                            }
-                            alt={blog.title}
-                            fill
-                            className="object-cover w-full h-full"
-                          />
-                          <div className="absolute top-2 left-2 bg-yellow-400 text-xs font-bold px-2 py-1 rounded">
-                            {blog.date?.slice(0, 10) || ""}
-                          </div>
-                        </div>
-                        {/* NameCode and Role in one row, spaced between */}
-                        <div className="flex flex-row items-center justify-between mb-1">
-                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-bold">
-                            {blog.nameCode}
-                          </span>
-                          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded font-bold">
-                            {blog.role}
-                          </span>
-                        </div>
-                        {/* Title below */}
-                        <div className="font-semibold text-lg md:text-xl mb-1 line-clamp-2">
-                          {blog.title}
-                        </div>
-                        {/* shortDesc limited to 18 words */}
-                        <div className="text-xs text-gray-600 mb-2 flex-grow">
-                          {blog.shortDesc &&
-                            blog.shortDesc.split(" ").length > 18
-                            ? blog.shortDesc.split(" ").slice(0, 18).join(" ") +
-                            "..."
-                            : blog.shortDesc}
-                        </div>
-                        <a
-                          href={blog.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="bg-yellow-400 text-white px-4 py-2 rounded text-xs font-bold w-fit mt-auto"
-                        >
-                          READ MORE
-                        </a>
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
-              </Carousel>
+  <CarouselContent className="px-1 sm:px-0">
+    {Array.from({ length: Math.ceil(blogs.length / 2) }).map((_, pairIdx) => (
+      <CarouselItem key={pairIdx} className="w-full">
+        <div className="flex flex-col md:flex-row gap-6">
+          {[0, 1].map((offset) => {
+            const blog = blogs[pairIdx * 2 + offset];
+            if (!blog) return null;
+            return (
+              <div
+                key={blog._id || offset}
+                className="flex bg-[#fcf3d7] rounded-2xl shadow-lg overflow-hidden w-full md:w-1/2 min-h-[180px]"
+              >
+                {/* Left: Video or Image */}
+                <div className="w-2/5 min-w-[160px] bg-black flex items-center justify-center">
+                  {blog.youtubeUrl ? (
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      src={blog.youtubeUrl}
+                      title={blog.title}
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="aspect-video w-full h-full"
+                    />
+                  ) : (
+                    <img
+                      src={blog.image || "https://images.unsplash.com/photo-1506744038136-46273834b3fb"}
+                      alt={blog.title}
+                      className="object-cover w-full h-full"
+                    />
+                  )}
+                </div>
+                {/* Right: Text */}
+                <div className="flex-1 flex flex-col justify-center px-6 py-4">
+                  <div className="font-bold text-2xl mb-2">{blog.title}</div>
+                  <div className="text-gray-700 mb-4 line-clamp-3">
+                    {blog.shortDesc}
+                  </div>
+                  <a
+                    href={blog.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold text-gray-700 hover:text-black"
+                  >
+                    Read More &gt;
+                  </a>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </CarouselItem>
+    ))}
+  </CarouselContent>
+  <CarouselPrevious />
+  <CarouselNext />
+</Carousel>
             </div>
           )}
           {/* Instagram-like Image Carousel using Carousel classes */}
@@ -969,10 +921,18 @@ const RandomTourPackageSection = () => {
               </div>
             </div>
           )}
+          <ReviewModal
+            open={showReviewModal}
+            onClose={() => setShowReviewModal(false)}
+            onSubmit={(data) => { setShowReviewModal(false); toast.success('Review submitted!'); }}
+          />
         </div>
       </div>
     </section>
+
   );
 };
+
+
 
 export default RandomTourPackageSection;

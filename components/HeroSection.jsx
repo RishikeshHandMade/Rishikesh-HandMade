@@ -210,7 +210,7 @@ const HeroSection = () => {
                   <div className="text-lg  font-semibold text-black tracking-tight">{banners[selectedIndex]?.subDescription || "No Sub Description"}</div>
                 </div>
                 {/* More Category Circular Button */}
-                <div className="absolute left-[40%] bottom-[40%] transform translate-x-1/2 translate-y-1/2">
+                <div className="absolute left-[35%] bottom-[35%] transform translate-x-1/2 translate-y-1/2">
                   <button
                     className="relative flex items-center justify-center w-28 h-28 group focus:outline-none"
                     style={{ minWidth: '112px', minHeight: '112px' }}
@@ -259,7 +259,7 @@ const HeroSection = () => {
             </div>
           </div>
           {/* Right Side: Image Carousel */}
-          <div className="relative flex items-center justify-center w-1/2 h-full">
+          <div className="relative flex items-center justify-center w-1/2 h-full ">
             <Carousel
               className="h-full w-full"
               plugins={[Autoplay({ delay: 4000 })]}
@@ -270,7 +270,7 @@ const HeroSection = () => {
               <CarouselContent className="h-full">
                 {banners.map((item, index) => (
                   <CarouselItem key={index} className="h-[100vh] md:h-full flex items-center justify-center ">
-                    <div className="relative w-[420px] h-[600px] flex items-center justify-center">
+                    <div className="relative w-full h-[600px] flex items-center justify-center">
                       <Image
                         src={item?.image?.url}
                         alt={item?.title || "Banner Image"}
