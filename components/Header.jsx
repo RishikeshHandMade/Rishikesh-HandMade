@@ -1,6 +1,6 @@
 "use client"
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ChevronDown, LogOutIcon, Mail, Phone, User2Icon } from "lucide-react"
 import Link from "next/link"
 import MenuBar from "./MenuBar"
@@ -11,8 +11,12 @@ import { Loader2 } from "lucide-react"
 import LanguageSelector from "./LanguageSelector"
 import SearchBar from "./SearchBar"
 import Cart from "./Cart";
-import { ShoppingCart,Heart } from "lucide-react"
+import { ShoppingCart, Heart } from "lucide-react"
 import { useCart } from "../context/CartContext";
+import { ArrowDown, Menu, X } from "lucide-react";
+import * as NavigationMenu from "@radix-ui/react-navigation-menu";
+import { motion, AnimatePresence } from "framer-motion";
+import clsx from "clsx";
 const Header = () => {
   const pathName = usePathname();
   const [isMounted, setIsMounted] = useState(false);
@@ -25,7 +29,7 @@ const Header = () => {
   const { cart = [], wishlist = [] } = useCart();
   const [showHeader, setShowHeader] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-
+  const [openFixedMenu, setOpenFixedMenu] = useState(null);
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -55,7 +59,50 @@ const Header = () => {
   if (!isMounted) return null;
 
   const isUser = session && !session.user.isAdmin;
-
+  const staticMenuItems = [
+    {
+      catTitle: "About Us",
+      subCat: [
+        {
+          subCatPackage: [
+            { title: "About Us", url: "/about-us", active: true },
+            { title: "Vision & Mission", url: "/vision-mission", active: true },
+            { title: "Team", url: "/team", active: true },
+            { title: "What We Do ", url: "/what-we-do", active: true }
+          ],
+          active: true,
+        }
+      ],
+      active: true,
+    },
+    {
+      catTitle: "Our Policy",
+      subCat: [
+        {
+          subCatPackage: [
+            { title: "Privacy Policy", url: "/privacy-policy", active: true },
+            { title: "Refund & Cancellation", url: "/refund-cancellation", active: true },
+            { title: "Shipping Policy", url: "/shipping-policy", active: true },
+            { title: "Terms & Conditions", url: "/terms-condition", active: true }
+          ],
+          active: true,
+        }
+      ],
+      active: true,
+    },
+    {
+      catTitle: "Contact Us",
+      subCat: [
+        {
+          subCatPackage: [
+            { title: "", url: "", active: true }
+          ],
+          active: true,
+        }
+      ],
+      active: true,
+    }
+  ];
   return (
     <header
       className={`print:hidden ${pathName.includes("admin") ||
@@ -82,23 +129,70 @@ const Header = () => {
     >
       <div className="md:flex hidden items-center justify-between gap-8 border-b py-1 border-gray-400 md:px-8 ">
         <p className="text-md">Crafted by Hand, Cherished by Heart</p>
-        <div className="flex items-center gap-4">
-          {/* <div className="flex items-center gap-4">
-            <Mail size={20} />
-            <Link href={"mailto:info@rishikeshhandmade.com"}>
-              <p className="text-sm font-semibold hover:underline">info@rishikeshhandmade.com</p>
-            </Link>
-          </div> */}
+          <div className="flex flex-row justify-center items-center gap-4">
+          <NavigationMenu.Root>
+            <NavigationMenu.List className="flex flex-row gap-2">
+            {staticMenuItems.length > 0 && staticMenuItems.map((cat, index) => (
+              <NavigationMenu.Item key={index} className="relative flex items-center justify-center">
+                {cat.catTitle === "Contact Us" ? (
+                  <Link href="/contact" className="flex items-center px-4 py-2 text-sm font-semibold hover:bg-blue-500 data-[state=open]:bg-blue-300 data-[state=open]:text-black rounded-md">
+                    {cat.catTitle}
+                  </Link>
+                ) : (
+                  <>
+                    <NavigationMenu.Trigger className="flex items-center px-4 py-2 text-sm font-semibold hover:bg-blue-500 data-[state=open]:bg-blue-300 data-[state=open]:text-black rounded-md">
+                      {cat.catTitle} <ArrowDown className="ml-2" size={12} />
+                    </NavigationMenu.Trigger>
+                    <AnimatePresence>
+                      <NavigationMenu.Content asChild>
+                        {(() => {
+                          const activeSubCats = cat.subCat.filter(subCat => subCat.active);
+                          const singleCategory = activeSubCats.length === 1;
+                          return (
+                            <motion.div
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                              transition={{ duration: 0.2, ease: "easeInOut" }}
+                              className={`absolute top-full mt-2 -translate-x-1/2 bg-white text-black shadow-lg rounded-md z-[9999] ${singleCategory ? 'w-48' : 'w-[400px] lg:w-[600px]'}`}
+                            >
+                              <div className={
+                                singleCategory
+                                  ? "flex flex-row gap-4 px-3 py-3"
+                                  : "flex flex-row gap-4 p-6"
+                              }>
+                                {activeSubCats.map((category, idx) => (
+                                  Array.isArray(category.subCatPackage) && category.subCatPackage.length > 0 ? (
+                                    <div key={idx} className={singleCategory ? "flex flex-col items-center w-full" : "flex flex-col"}>
+                                      <h3 className={singleCategory ? "font-medium text-gray-700 mb-2 text-start w-full px-2" : "font-medium text-gray-700 mb-2"}>{category.title}</h3>
+                                      <ul className={singleCategory ? "space-y-1 flex flex-col items-start w-full px-2 " : "space-y-2"}>
+                                        {category.subCatPackage
+                                          .filter(pkg => pkg.active)
+                                          .map((pkg, pkgIdx) => (
+                                            <li key={pkgIdx} className={singleCategory ? "w-full" : undefined}>
+                                              <Link href={pkg.url} className={singleCategory ? "text-gray-900 hover:text-blue-600 text-sm  text-start w-full block py-1" : "text-gray-600 hover:text-blue-600 text-sm"}>
+                                                {pkg.title}
+                                              </Link>
+                                            </li>
+                                          ))}
+                                      </ul>
+                                    </div>
+                                  ) : null
+                                ))}
+                              </div>
+                            </motion.div>
+                          );
+                        })()}
+                      </NavigationMenu.Content>
+                    </AnimatePresence>
+                  </>
+                )}
+              </NavigationMenu.Item>
+            ))}
+            </NavigationMenu.List>
+          </NavigationMenu.Root>
+          </div>
 
-          <div className="h-4 w-0.5 bg-white rounded-full"></div>
-
-          {/* <div className="flex items-center gap-4">
-            <Phone size={20}/>
-            <Link href={"tel:+917351009107"}>
-              <p className="text-sm font-semibold tracking-widest hover:underline">+91 7351009107 </p>
-            </Link>
-          </div>   */}
-        </div>
       </div>
       <div className="lg:flex hidden items-center z-50 justify-center md:justify-between py-2 md:px-4 ">
         <Link href={"/"}>

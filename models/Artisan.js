@@ -130,3 +130,6 @@ const artisanSchema = new mongoose.Schema({
 const Artisan = mongoose.models.Artisan || mongoose.model('Artisan', artisanSchema);
 export default Artisan;
 export { artisanSchema };
+
+
+// module.exports = mongoose.models.ArtisanBanner || mongoose.model('ArtisanBanner', ArtisanBanner);

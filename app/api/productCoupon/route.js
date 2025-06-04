@@ -31,6 +31,12 @@ export async function POST(req) {
     if (!productId || !Array.isArray(coupons)) {
       return Response.json({ error: 'Missing productId or coupons' }, { status: 400 });
     }
+    // coupons must be array of objects with couponCode, startDate, endDate, percent, amount
+    for (const c of coupons) {
+      if (!c.couponCode || !c.startDate || !c.endDate) {
+        return Response.json({ error: 'Each coupon must have couponCode, startDate, endDate' }, { status: 400 });
+      }
+    }
     // Check if mapping already exists
     const existing = await ProductCoupons.findOne({ productId });
     if (existing) {
@@ -47,25 +53,31 @@ export async function POST(req) {
 }
 // PATCH: update coupons for a product
 export async function PATCH(req) {
-    await connectDB();
-    try {
-      const { productId, coupons } = await req.json();
-      if (!productId || !Array.isArray(coupons)) {
-        return Response.json({ error: 'Missing productId or coupons' }, { status: 400 });
-      }
-      const doc = await ProductCoupons.findOneAndUpdate(
-        { productId },
-        { coupons },
-        { new: true }
-      );
-      if (!doc) return Response.json({ error: 'ProductCoupons not found' }, { status: 404 });
-      // Push the mapping ref to Product.coupons field (in case not already set)
-      await Product.findByIdAndUpdate(productId, { coupons: doc._id });
-      return Response.json(doc);
-    } catch (err) {
-      return Response.json({ error: err.message }, { status: 400 });
+  await connectDB();
+  try {
+    const { productId, coupons } = await req.json();
+    if (!productId || !Array.isArray(coupons)) {
+      return Response.json({ error: 'Missing productId or coupons' }, { status: 400 });
     }
+    // coupons must be array of objects with couponCode, startDate, endDate, percent, amount
+    for (const c of coupons) {
+      if (!c.couponCode || !c.startDate || !c.endDate) {
+        return Response.json({ error: 'Each coupon must have couponCode, startDate, endDate' }, { status: 400 });
+      }
+    }
+    const doc = await ProductCoupons.findOneAndUpdate(
+      { productId },
+      { coupons },
+      { new: true }
+    );
+    if (!doc) return Response.json({ error: 'ProductCoupons not found' }, { status: 404 });
+    // Push the mapping ref to Product.coupons field (in case not already set)
+    await Product.findByIdAndUpdate(productId, { coupons: doc._id });
+    return Response.json(doc);
+  } catch (err) {
+    return Response.json({ error: err.message }, { status: 400 });
   }
+}
 // DELETE: remove all coupons for a product
 export async function DELETE(req) {
   await connectDB();

@@ -6,7 +6,8 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, Dialo
 import toast from "react-hot-toast"
 const ApplyCoupon = ({ productData, productId }) => {
   const [coupons, setCoupons] = useState([]); // All available coupons
-  const [selectedCoupons, setSelectedCoupons] = useState([]); // Selected coupon codes
+  // Selected coupons: array of objects { couponCode, startDate, endDate, percent, amount }
+  const [selectedCoupons, setSelectedCoupons] = useState([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [allProductCoupons, setAllProductCoupons] = useState([]); // All product-coupon mappings
@@ -66,6 +67,7 @@ const ApplyCoupon = ({ productData, productId }) => {
       try {
         const res = await fetch(`/api/productCoupon?productId=${editProductId}`);
         const data = await res.json();
+        // console.log(data)
         setSelectedCoupons(Array.isArray(data.coupons) ? data.coupons : []);
       } catch (err) {
         setSelectedCoupons([]);
@@ -82,15 +84,27 @@ const ApplyCoupon = ({ productData, productId }) => {
   }, [editProductId]);
 
   // Add coupon
+  // Add coupon with default fields
   const handleSelectCoupon = (couponCode) => {
-    if (!selectedCoupons.includes(couponCode)) {
-      setSelectedCoupons([...selectedCoupons, couponCode]);
+    if (!selectedCoupons.some(c => c.couponCode === couponCode)) {
+      // Find coupon details from coupons list
+      const couponObj = coupons.find(c => c.couponCode === couponCode);
+      setSelectedCoupons([
+        ...selectedCoupons,
+        {
+          couponCode,
+          startDate: couponObj?.startDate || '',
+          endDate: couponObj?.endDate || '',
+          percent: couponObj?.percent || '',
+          amount: couponObj?.amount || ''
+        }
+      ]);
     }
   };
 
   // Remove coupon
   const handleRemoveCoupon = (couponCode) => {
-    setSelectedCoupons(selectedCoupons.filter(code => code !== couponCode));
+    setSelectedCoupons(selectedCoupons.filter(c => c.couponCode !== couponCode));
   };
 
   return (
@@ -123,14 +137,61 @@ const ApplyCoupon = ({ productData, productId }) => {
             </SelectContent>
           </Select>
           {selectedCoupons.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-2">
-              {selectedCoupons.map(code => (
-                <Badge key={code} variant="secondary" className="flex items-center gap-1 pr-1">
-                  {code}
-                  <button className="ml-1" onClick={() => handleRemoveCoupon(code)}>
-                    <X size={12} />
-                  </button>
-                </Badge>
+            <div className="flex flex-col gap-2 mt-2">
+              {selectedCoupons.map((c, idx) => (
+                <div key={c.couponCode + '-' + idx} className="flex flex-wrap items-center gap-2 border p-2 rounded bg-gray-50">
+                  <Badge key={c.couponCode + '-' + idx} variant="secondary" className="flex items-center gap-1 pr-1">
+                    {c.couponCode}
+                    <button className="ml-1" onClick={() => handleRemoveCoupon(c.couponCode)}>
+                      <X size={12} />
+                    </button>
+                  </Badge>
+                  <input
+                    type="date"
+                    className="border rounded px-1 py-0.5 text-xs"
+                    value={c.startDate ? c.startDate.slice(0,10) : ''}
+                    onChange={e => {
+                      const v = e.target.value;
+                      setSelectedCoupons(selectedCoupons.map((sc, i) => i === idx ? { ...sc, startDate: v } : sc));
+                    }}
+                    title="Start Date"
+                  />
+                  <input
+                    type="date"
+                    className="border rounded px-1 py-0.5 text-xs"
+                    value={c.endDate ? c.endDate.slice(0,10) : ''}
+                    onChange={e => {
+                      const v = e.target.value;
+                      setSelectedCoupons(selectedCoupons.map((sc, i) => i === idx ? { ...sc, endDate: v } : sc));
+                    }}
+                    title="End Date"
+                  />
+                  <input
+                    type="number"
+                    className="border rounded px-1 py-0.5 text-xs w-16"
+                    placeholder="Percent"
+                    value={c.percent}
+                    onChange={e => {
+                      const v = e.target.value;
+                      setSelectedCoupons(selectedCoupons.map((sc, i) => i === idx ? { ...sc, percent: v } : sc));
+                    }}
+                    min={0}
+                    max={100}
+                    title="Percent Discount"
+                  />
+                  <input
+                    type="number"
+                    className="border rounded px-1 py-0.5 text-xs w-16"
+                    placeholder="Amount"
+                    value={c.amount}
+                    onChange={e => {
+                      const v = e.target.value;
+                      setSelectedCoupons(selectedCoupons.map((sc, i) => i === idx ? { ...sc, amount: v } : sc));
+                    }}
+                    min={0}
+                    title="Amount Discount"
+                  />
+                </div>
               ))}
             </div>
           )}
@@ -142,7 +203,15 @@ const ApplyCoupon = ({ productData, productId }) => {
             onClick={async () => {
               setSaving(true);
               try {
-                const payload = { productId: editProductId || productId, coupons: selectedCoupons };
+                // Validate coupons before sending
+                const couponsPayload = selectedCoupons.map(c => ({
+                  couponCode: c.couponCode,
+                  startDate: c.startDate,
+                  endDate: c.endDate,
+                  percent: c.percent ? Number(c.percent) : undefined,
+                  amount: c.amount ? Number(c.amount) : undefined
+                }));
+                const payload = { productId: editProductId || productId, coupons: couponsPayload };
                 const res = await fetch('/api/productCoupon', {
                   method: editProductId ? 'PATCH' : 'POST',
                   headers: { 'Content-Type': 'application/json' },
@@ -207,11 +276,11 @@ const ApplyCoupon = ({ productData, productId }) => {
                 return (
                   <tr key={row.productId}>
                     <td className="border p-2 text-center">{idx + 1}</td>
-                    <td className="border p-2 text-center">{row.productId?.title || "N/A"}</td>
+                    <td className="border p-2 text-center">{prod.title || "N/A"}</td>
                     <td className="border p-2 text-center">
-                      <div className="flex flex-wrap gap-1">
-                        {row.coupons.map(code => (
-                          <Badge key={code} variant="secondary">{code}</Badge>
+                      <div className="flex flex-wrap gap-1 justify-center">
+                        {row.coupons.map((coupon, i) => (
+                          <Badge key={(coupon.couponCode || '') + '-' + i} variant="secondary">{coupon.couponCode}</Badge>
                         ))}
                       </div>
                     </td>

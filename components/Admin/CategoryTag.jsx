@@ -113,6 +113,7 @@ const CategoryTag = ({ productData, productId }) => {
   const tagSuggestions = tags.filter(tag =>
     newTagInput && tag.toLowerCase().includes(newTagInput.toLowerCase()) && !selectedTags.includes(tag)
   );
+  
   // Fetch all category tags and products for the table
   const fetchCategoryRows = async () => {
     try {
@@ -218,16 +219,6 @@ const CategoryTag = ({ productData, productId }) => {
   return (
     <form className="page-content" onSubmit={handleSubmit}>
       {/* If in edit mode, show a banner and Cancel button */}
-      {editRow && (
-        <div className="mb-4 flex items-center justify-between bg-yellow-100 border-l-4 border-yellow-500 p-3">
-          <span className="text-yellow-800 font-semibold">Edit mode: Updating category for <b>{productName}</b></span>
-          <Button type="button" variant="outline" onClick={() => {
-            setEditRow(null);
-            setSelectedTags([]);
-            setSelectedProduct("");
-          }}>Cancel Edit</Button>
-        </div>
-      )}
       <div className="container-fluid">
         <div className="row justify-content-center ">
           <div className="col-12 col-md-12 col-lg-12 bg-gray-100">

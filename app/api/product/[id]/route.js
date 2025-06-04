@@ -1,6 +1,17 @@
 // API Route for fetching, updating, and deleting a product by ID
 import connectDB from "@/lib/connectDB";
 import Product from '@/models/Product';
+import '@/models/Artisan';
+import '@/models/Price';
+import '@/models/Gallery';
+import '@/models/Video';
+import '@/models/Description';
+import '@/models/Info';
+import '@/models/CategoryTag';
+import '@/models/ProductReview';
+import '@/models/ProductTax';
+import '@/models/ProductCoupons';
+import '@/models/Quantity';
 
 export async function GET(req, { params }) {
   try {
@@ -22,7 +33,8 @@ export async function GET(req, { params }) {
       .populate('categoryTag')
       .populate('reviews')
       .populate('quantity')
-      .populate('coupons');
+      .populate('coupons')
+      .populate('taxes');
     if (!product) {
       return new Response(JSON.stringify({ error: 'Product not found' }), { status: 404 });
     }
