@@ -64,10 +64,24 @@ const HeroSection = () => {
   useEffect(() => {
     if (!api) return;
 
-    api.on("select", () => {
+    const onSelect = () => {
       setSelectedIndex(api.selectedScrollSnap());
-    });
+    };
+
+    api.on("select", onSelect);
+    onSelect(); // Set initial selectedIndex
+
+    return () => {
+      api.off("select", onSelect);
+    };
   }, [api]);
+
+  // Sync carousel to selectedIndex when it changes (for pagination dots)
+  useEffect(() => {
+    if (api && typeof api.scrollTo === "function") {
+      api.scrollTo(selectedIndex);
+    }
+  }, [selectedIndex, api]);
 
   const [query, setQuery] = useState("");
   const [relatedPackages, setRelatedPackages] = useState([]);
@@ -175,142 +189,119 @@ const HeroSection = () => {
   }
 
   return (
-    <section className="bg-[#fcf7f1] relative xl:h-full w-full overflow-hidden z-0 group">
-      <div className="hidden xl:block w-full h-full ">
-        <div className="flex h-full w-full items-center justify-center">
-          {/* Left Side: Details (fixed, updates on image change) */}
-          <div className="flex flex-col justify-center items-start w-1/2 h-full px-20 gap-6">
-            <div className="mb-8">
-              <h1 className="text-5xl md:text-6xl lg:text-6xl font-bold text-black leading-tight mb-4">
-                {banners[selectedIndex]?.title || "No Title"}
-              </h1>
-              <div className="text-2xl md:text-2xl font-semibold text-black mb-4">Price</div>
-              <div className="text-3xl md:text-3xl font-extrabold text-black mb-8">{banners[selectedIndex]?.price || "0.00"}</div>
-              <div className="flex gap-3 mb-6">
-                <a
-                  href={banners[selectedIndex]?.addtoCartLink || '#'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`bg-black text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-800 transition${!banners[selectedIndex]?.addtoCartLink ? ' opacity-50 pointer-events-none' : ''}`}
-                >
-                  ADD TO CART
-                </a>
-                <a
-                  href={banners[selectedIndex]?.viewDetailLink || '#'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`border border-black px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition${!banners[selectedIndex]?.viewDetailLink ? ' opacity-50 pointer-events-none' : ''}`}
-                >
-                  VIEW DETAIL
-                </a>
-              </div>
-              <div className="flex items-center justify-between gap-8 mt-2 mb-2">
-                <div className="flex gap-2 flex-col ">
-                  <div className="text-xl font-bold text-black">{banners[selectedIndex]?.subtitle || "No Subtitle"}</div>
-                  <div className="text-lg  font-semibold text-black tracking-tight">{banners[selectedIndex]?.subDescription || "No Sub Description"}</div>
-                </div>
-                {/* More Category Circular Button */}
-                <div className="absolute left-[35%] bottom-[35%] transform translate-x-1/2 translate-y-1/2">
+    <section className="bg-[#fcf7f1] relative xl:h-screen h-full w-full px-2 overflow-hidden z-0 group">
+      <div className="hidden xl:block w-full h-screen ">
+        {/* Carousel for desktop: each slide shows front image, details, back image in a single row */}
+        <div className="flex flex-col items-center justify-center h-screen w-full relative">
+          <Carousel className="h-screen w-full" plugins={[plugin.current]} onMouseLeave={plugin.current.reset} setApi={setApi} >
+            <CarouselContent className="h-screen">
+              {banners.map((banner, index) => (
+                <CarouselItem key={index} className="h-screen flex items-center">
+                  <div className="flex flex-row items-center justify-center w-full mx-auto gap-12 h-full">
+                    {/* Front Image */}
+                    <div className="flex-1 flex items-center justify-end h-full">
+                      <img
+                        src={banner.frontImg?.url || banner.frontImg?.url || "/placeholder.jpg"}
+                        alt={banner.title ? `${banner.title} Front` : "Front"}
+                        className="object-cover max-w-lg h-full rounded-2xl shadow-lg"
+                      />
+                    </div>
+                    {/* Details Centered */}
+                    <div className="flex flex-col items-center justify-center flex-1 min-w-[300px] py-8 relative h-full">
+                      <h1 className="text-5xl md:text-5xl font-bold text-black leading-tight mb-3">
+                        {banner.title || "No Title"}
+                      </h1>
+                      <div className="text-xl font-semibold text-black mb-2">Price</div>
+                      <div className="text-3xl font-extrabold text-black mb-4">{banner.price || "0.00"}</div>
+                      <div className="flex gap-3 mb-4 justify-center">
+                        <a
+                          href={banner.addtoCartLink || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`bg-black text-white px-5 py-2 rounded-lg font-semibold hover:bg-gray-800 transition${!banner.addtoCartLink ? ' opacity-50 pointer-events-none' : ''}`}
+                        >
+                          ADD TO CART
+                        </a>
+                        <a
+                          href={banner.viewDetailLink || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`border border-black px-5 py-2 rounded-lg font-semibold hover:bg-gray-100 transition${!banner.viewDetailLink ? ' opacity-50 pointer-events-none' : ''}`}
+                        >
+                          VIEW DETAIL
+                        </a>
+                      </div>
+                      <div className="flex flex-col items-center gap-1 mt-1 mb-2">
+                        <div className="text-lg font-bold text-black">{banner.subtitle || "No Subtitle"}</div>
+                        <div className="text-base font-semibold text-black tracking-tight">{banner.subDescription || "No Sub Description"}</div>
+                      </div>
+                      {/* More Category Circular Button */}
+                      {/* <div className="absolute left-1/2 bottom-[-72px] -translate-x-1/2">
                   <button
-                    className="relative flex items-center justify-center w-28 h-28 group focus:outline-none"
-                    style={{ minWidth: '112px', minHeight: '112px' }}
+                    className="relative flex items-center justify-center w-20 h-20 group focus:outline-none"
+                    style={{ minWidth: '80px', minHeight: '80px' }}
                     aria-label="Explore More Category"
                   >
-
-                    {/* Circular Text (rotating, larger font) */}
+           
                     <svg
                       viewBox="0 0 100 100"
-                      width="112"
-                      height="112"
+                      width="80"
+                      height="80"
                       className="absolute top-0 left-0 animate-spin-slow"
                       style={{ animation: 'spin 8s linear infinite' }}
                     >
                       <defs>
                         <path id="circlePath" d="M50,10 a40,40 0 1,1 -0.01,0" />
                       </defs>
-                      <text fontSize="15" fill="#222" fontWeight="bold" letterSpacing="2">
+                      <text fontSize="11" fill="#222" fontWeight="bold" letterSpacing="2">
                         <textPath href="#circlePath" startOffset="0">
                           MORE CATEGORY • EXPLORE •
                         </textPath>
                       </text>
                     </svg>
-                    {/* Center Lucide Icon */}
-                    <span className="z-10 flex items-center justify-center w-12 h-12 bg-[#222] rounded-full text-white shadow-lg">
-                      {/* LucidePlay icon (or LucideArrowRight) */}
+             
+                    <span className="z-10 flex items-center justify-center w-8 h-8 bg-[#222] rounded-full text-white shadow-lg">
                       <span className="flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                           <polygon points="6,4 20,12 6,20 6,4" fill="currentColor" />
                         </svg>
                       </span>
                     </span>
                   </button>
-
-                  {/* Add custom animation for slow spin */}
                   <style jsx>{`
-                  @keyframes spin {
-                    100% { transform: rotate(360deg); }
-                  }
-                  .animate-spin-slow {
-                    animation: spin 8s linear infinite;
-                  }
-                `}</style>
-                </div>
-              </div>
-            </div>
-          </div>
-          {/* Right Side: Image Carousel */}
-          <div className="relative flex items-center justify-center w-1/2 h-full ">
-            <Carousel
-              className="h-full w-full"
-              plugins={[Autoplay({ delay: 4000 })]}
-              setApi={setApi}
-              // selectedIndex={selectedIndex}
-              onSelect={setSelectedIndex}
-            >
-              <CarouselContent className="h-full">
-                {banners.map((item, index) => (
-                  <CarouselItem key={index} className="h-[100vh] md:h-full flex items-center justify-center ">
-                    <div className="relative w-full h-[600px] flex items-center justify-center">
-                      <Image
-                        src={item?.image?.url}
-                        alt={item?.title || "Banner Image"}
-                        width={420} 
-                        height={600}
-                        quality={100}
-                        priority
-                        className="object-cover w-full h-full rounded-3xl shadow-lg"
-                      />
-                      {/* Example: Discount badge */}
-                      <div className="absolute top-6 left-6 z-10">
-                        <div className="bg-white rounded-full px-5 py-2 text-sm font-bold shadow text-black tracking-tight">
-                          {banners[selectedIndex]?.coupon ? (
-                            "GET " + banners[selectedIndex]?.coupon + "% OFF"
-                          ) : (
-                            "No Coupon"
-                          )}
-                        </div>
-                      </div>
+                    @keyframes spin {
+                      100% { transform: rotate(360deg); }
+                    }
+                    .animate-spin-slow {
+                      animation: spin 8s linear infinite;
+                    }
+                  `}</style>
+                </div> */}
                     </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              {/* <CarouselPrevious className="left-4 md:left-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300" /> */}
-              <CarouselNext className="absolute p-8 bg-black text-white right-[15%] bottom-[50%]"/>
-            </Carousel>
+                    {/* Back Image */}
+                    <div className="flex-1 flex items-center justify-start h-screen">
+                      <img
+                        src={banner.backImg?.url || banner.backImg?.url || "/placeholder.jpg"}
+                        alt={banner.title ? `${banner.title} Back` : "Back"}
+                        className="object-cover max-w-lg h-screen rounded-2xl shadow-lg"
+                      />
+                    </div>
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+          </Carousel>
+          {/* Pagination dots */}
+          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex gap-2">
+            {banners.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setSelectedIndex(index)}
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${index === selectedIndex ? "bg-black w-6" : "bg-black/30"}`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
           </div>
-        </div>
-
-
-        {/* Custom Pagination Dots */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex gap-2">
-          {banners.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => api?.scrollTo(index)}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${index === selectedIndex ? "bg-black w-6" : "bg-black/30"}`}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
         </div>
       </div>
 

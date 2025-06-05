@@ -8,7 +8,8 @@ const HeroBannerSchema = new Schema({
     viewDetailLink: { type: String},
     subtitle: { type: String},
     subDescription: { type: String},
-    image: { url: { type: String }, key: { type: String } },
+    frontImg: { url: { type: String }, key: { type: String } },
+    backImg: { url: { type: String }, key: { type: String } },
     order: { type: Number, required: true },
 }, { timestamps: true });
 

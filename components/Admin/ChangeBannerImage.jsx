@@ -15,6 +15,7 @@ import { useRef } from "react";
 import { UploadIcon } from "lucide-react";
 
 const ChangeBannerImage = () => {
+    const fileInputRef = useRef(null);
     const [banners, setBanners] = useState([]);
     const [editBanner, setEditBanner] = useState(null);
     const [formData, setFormData] = useState({
@@ -25,7 +26,8 @@ const ChangeBannerImage = () => {
         viewDetailLink: "",
         subtitle: "",
         subDescription: "",
-        image: { url: "", key: "" },
+        frontImg: { url: "", key: "" },
+        backImg: { url: "", key: "" },
         order: 1,
     });
 
@@ -53,12 +55,13 @@ const ChangeBannerImage = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    // Cloudinary-style image upload (like AddGallery.jsx)
-    const [uploading, setUploading] = useState(false);
+    // Separate uploading states for each image
+    const [uploadingFront, setUploadingFront] = useState(false);
+    const [uploadingBack, setUploadingBack] = useState(false);
     const handleImageChange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        setUploading(true);
+        setUploadingFront(true);
         const formDataUpload = new FormData();
         formDataUpload.append('file', file);
         try {
@@ -68,21 +71,22 @@ const ChangeBannerImage = () => {
             });
             const data = await res.json();
             if (res.ok && data.url) {
-                setFormData(prev => ({ ...prev, image: { url: data.url, key: data.key || '' } }));
-                toast.success('Image uploaded!');
+                setFormData(prev => ({ ...prev, frontImg: { url: data.url, key: data.key || '' } }));
+                toast.success('Front image uploaded!');
             } else {
                 toast.error('Cloudinary upload failed: ' + (data.error || 'Unknown error'));
             }
         } catch (err) {
             toast.error('Cloudinary upload error: ' + err.message);
         }
-        setUploading(false);
+        setUploadingFront(false);
     };
 
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!formData.image.url || !formData.image.key) return toast.error("Please upload an image");
+        if (!formData.frontImg?.url || !formData.frontImg?.key) return toast.error("Please upload a front image");
+        if (!formData.backImg?.url || !formData.backImg?.key) return toast.error("Please upload a back image");
         try {
             const method = editBanner ? "PATCH" : "POST";
             const response = await fetch("/api/addBanner", {
@@ -111,7 +115,8 @@ const ChangeBannerImage = () => {
                     subtitle: "",
                     subDescription: "",
                     order: updatedBanners.length + 1,
-                    image: { url: "", key: "" },
+                    frontImg: { url: "", key: "" },
+                    backImg: { url: "", key: "" },
                 });
             } else {
                 toast.error(data.error);
@@ -123,7 +128,6 @@ const ChangeBannerImage = () => {
 
     const handleEdit = (banner) => {
         setEditBanner(banner._id);
-        console.log(banner)
         setFormData({
             title: banner.title,
             price: banner.price,
@@ -133,7 +137,8 @@ const ChangeBannerImage = () => {
             subtitle: banner.subtitle,
             subDescription: banner.subDescription,
             order: banner.order,
-            image: banner.image,
+            frontImg: banner.frontImg || { url: "", key: "" },
+            backImg: banner.backImg || { url: "", key: "" },
         });
     };
 
@@ -165,12 +170,39 @@ const ChangeBannerImage = () => {
 
     // Remove image from formData only
     const handleDeleteImage = () => {
-        setFormData(prev => ({ ...prev, image: { url: '', key: '' } }));
+        setFormData(prev => ({ ...prev, frontImg: { url: '', key: '' } }));
     };
 
+    const handleDeleteImageBack = () => {
+        setFormData(prev => ({ ...prev, backImg: { url: '', key: '' } }));
+    };
+    const handleImageChangeBack = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        setUploadingBack(true);
+        const formDataUpload = new FormData();
+        formDataUpload.append('file', file);
+        try {
+            const res = await fetch('/api/cloudinary', {
+                method: 'POST',
+                body: formDataUpload
+            });
+            const data = await res.json();
+            if (res.ok && data.url) {
+                setFormData(prev => ({ ...prev, backImg: { url: data.url, key: data.key || '' } }));
+                toast.success('Back image uploaded!');
+            } else {
+                toast.error('Cloudinary upload failed: ' + (data.error || 'Unknown error'));
+            }
+        } catch (err) {
+            toast.error('Cloudinary upload error: ' + err.message);
+        }
+        setUploadingBack(false);
+    };
 
-    // Ref for file input
-    const fileInputRef = useRef(null);
+    // Ref for file input (already declared above)
+    // Add ref for back image
+    const fileInputBackRef = useRef(null);
 
     return (
         <div className="max-w-5xl mx-auto py-10 w-full">
@@ -193,14 +225,14 @@ const ChangeBannerImage = () => {
                         className="mb-2 flex items-center gap-2 bg-blue-500 text-white"
                         onClick={() => fileInputRef.current && fileInputRef.current.click()}
                     >
-                        <span>Select Banner Image</span>
+                        <span>Select Front Image</span>
                         <UploadIcon className="w-4 h-4" />
                     </Button>
-                    {uploading && <div className="text-blue-600 font-semibold">Uploading...</div>}
-                    {formData.image.url && (
+                    {uploadingFront && <div className="text-blue-600 font-semibold">Uploading...</div>}
+                    {formData.frontImg.url && (
                         <div className="relative w-48 h-28 border rounded overflow-hidden mb-2">
                             <Image
-                                src={formData.image.url}
+                                src={formData.frontImg.url}
                                 alt="Banner Preview"
                                 fill
                                 className="object-cover"
@@ -211,7 +243,47 @@ const ChangeBannerImage = () => {
                                 className="absolute top-1 right-1 bg-white bg-opacity-80 rounded-full p-1 hover:bg-red-200"
                                 title="Remove image"
                             >
-                                <Trash2Icon className="w-5 h-5 text-red-600" />
+                                <Trash2Icon className="w-4 h-4 text-red-600" />
+                            </button>
+                        </div>
+                    )}
+                </div>
+                {/* Back Image Upload */}
+                <div className="mb-4">
+                    <Label className="block mb-2 font-bold">Back Image</Label>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChangeBack}
+                        ref={fileInputBackRef}
+                        className="hidden"
+                        id="banner-back-image-input"
+                    />
+                    <Button
+                        type="button"
+                        variant="outline"
+                        className="mb-2 flex items-center gap-2 bg-blue-500 text-white"
+                        onClick={() => fileInputBackRef.current && fileInputBackRef.current.click()}
+                    >
+                        <span>Select Back Image</span>
+                        <UploadIcon className="w-4 h-4" />
+                    </Button>
+                    {uploadingBack && <div className="text-blue-600 font-semibold">Uploading...</div>}
+                    {formData.backImg.url && (
+                        <div className="relative w-48 h-28 border rounded overflow-hidden mb-2">
+                            <Image
+                                src={formData.backImg.url}
+                                alt="Back Image Preview"
+                                fill
+                                className="object-cover"
+                            />
+                            <button
+                                type="button"
+                                onClick={handleDeleteImageBack}
+                                className="absolute top-1 right-1 bg-white bg-opacity-80 rounded-full p-1 hover:bg-red-200"
+                                title="Remove image"
+                            >
+                                <Trash2Icon className="w-4 h-4 text-red-600" />
                             </button>
                         </div>
                     )}
@@ -276,8 +348,16 @@ const ChangeBannerImage = () => {
                                 <TableCell>{banner.price}</TableCell>
                                 <TableCell>{banner.coupon}</TableCell>
                                 <TableCell>{banner.order}</TableCell>
-                                <TableCell>
-                                    <Image src={banner.image.url} alt="Banner" width={100} height={50} className="rounded-lg" />
+                                <TableCell className="flex flex-row gap-4 items-center justify-start">
+                                    {banner.frontImg?.url ? (
+                                        <Image src={banner.frontImg.url} alt="Front" width={100} height={50} className="rounded-lg mb-1" />
+                                    ) : null}
+                                    {banner.backImg?.url ? (
+                                        <Image src={banner.backImg.url} alt="Back" width={100} height={50} className="rounded-lg mt-1" />
+                                    ) : null}
+                                    {!banner.frontImg?.url && !banner.backImg?.url && (
+                                        <span className="text-gray-400">No image</span>
+                                    )}
                                 </TableCell>
                                 <TableCell>
                                     <Button variant="outline" size="icon" onClick={() => handleEdit(banner)} className="mr-2 "><PencilIcon /></Button>
