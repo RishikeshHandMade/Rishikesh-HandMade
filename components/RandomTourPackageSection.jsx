@@ -786,7 +786,7 @@ const RandomTourPackageSection = () => {
                 {/* News box */}
                 <div className="flex-1 bg-[#fcf7f1] rounded-lg p-4 flex flex-col min-h-[300px]">
                   <div className="flex-1 pr-2 mb-4">
-                  <div className="font-bold text-2xl mb-4">Latest News</div>
+                    <div className="font-bold text-2xl mb-4">Latest News</div>
                     <div className="h-[380px] overflow-y-auto p-4 border border-black rounded-xl">
                       {news && news.length > 0 ? (
                         news.map((item) => (

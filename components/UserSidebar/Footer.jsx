@@ -63,7 +63,7 @@ const Footer = ({ className = "" }) => {
                 ${pathName.includes('category') && 'block'}
                 ${pathName.includes('sign-up') && 'hidden'}
                 ${pathName.includes('sign-in') && 'hidden'}
-                bg-[url('/bg-custom-2.jpg')] text-black py-5 border-t border-gray-300
+                bg-black text-white py-5 border-t border-gray-300
                 ${isMobile === false
                     ? open
                         ? "w-[calc(100%-var(--sidebar-width))] ml-[var(--sidebar-width)]"

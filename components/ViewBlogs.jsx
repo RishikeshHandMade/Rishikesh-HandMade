@@ -2,37 +2,12 @@
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 
-function getBlogDate(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  if (isNaN(d)) return '';
-  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-}
-
-function getBlogMedia(blog) {
-  // Prefer first image, fallback to YouTube thumbnail if present
-  if (Array.isArray(blog.images) && blog.images.length > 0) {
-    const img = blog.images[0];
-    return typeof img === 'string' ? img : img.url || img;
-  }
-  if (blog.youtubeUrl) {
-    // Extract YouTube video ID for thumbnail
-    let id = '';
-    if (blog.youtubeUrl.includes('youtube.com/watch?v=')) {
-      id = blog.youtubeUrl.split('v=')[1].split('&')[0];
-    } else if (blog.youtubeUrl.includes('youtu.be/')) {
-      id = blog.youtubeUrl.split('youtu.be/')[1].split(/[?&]/)[0];
-    }
-    if (id) return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
-  }
-  return 'https://placehold.co/400x400?text=No+Image';
-}
-
 const ViewBlogs = () => {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-console.log(blogs)
+  const [visibleCount, setVisibleCount] = useState(6);
+  console.log(blogs)
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
@@ -51,7 +26,7 @@ console.log(blogs)
   }, []);
 
   return (
-    <div className="bg-[#fff8f2] min-h-screen">
+    <div className="bg-[#fff8f2] min-h-screen w-full">
       {/* Header with background image */}
       <div className="relative h-64 md:h-80 flex items-center justify-center bg-gradient-to-b from-[#fbeff2] to-[#fff8f2]">
         <img
@@ -65,34 +40,74 @@ console.log(blogs)
       </div>
 
       {/* Blog grid */}
-      <div className="max-w-5xl mx-auto py-10 px-4 grid grid-cols-1 md:grid-cols-2 gap-8">
-        {blogs.map((blog,key) => (
-          <div key={key} className="bg-yellow-100 rounded-xl flex flex-col md:flex-row overflow-hidden shadow group transition hover:shadow-lg">
-            <div className="md:w-1/3 w-full flex-shrink-0 flex items-center justify-center bg-white p-4">
-              <img
-                src={blog.images[0]?.url}
-                alt={blog.title}
-                className="object-cover rounded-lg w-32 h-32 md:w-28 md:h-28 shadow-md group-hover:scale-105 transition-transform"
-              />
+      <div className="max-w-7xl mx-auto py-10 px-4 grid grid-cols-1 md:grid-cols-2 gap-8">
+        {blogs.slice(0, visibleCount).map((blog, key) => (
+          <div
+            key={key}
+            className="flex flex-col md:flex-row rounded-3xl overflow-hidden shadow group hover:shadow-lg transition bg-transparent"
+            style={{ minHeight: '250px' }}
+          >
+            {/* Left: Image */}
+            <div className="md:w-1/2 w-full flex items-center justify-center bg-white p-0 md:p-0">
+              {blog.images && blog.images[0]?.url ? (
+                <img
+                  src={blog.images[0].url}
+                  alt={blog.title}
+                  className="object-cover w-full h-full md:h-auto md:w-full md:max-w-[340px] aspect-square md:aspect-auto md:rounded-l-3xl rounded-t-3xl md:rounded-t-none"
+                  style={{ minHeight: '250px', maxHeight: '270px' }}
+                />
+              ) : blog.youtubeUrl ? (
+                <div className="w-full h-full flex items-center justify-center md:max-w-[340px] aspect-video md:aspect-auto md:rounded-l-3xl rounded-t-3xl md:rounded-t-none overflow-hidden" style={{ minHeight: '250px', maxHeight: '270px' }}>
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src={
+                      blog.youtubeUrl.includes('youtube.com') || blog.youtubeUrl.includes('youtu.be')
+                        ? blog.youtubeUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')
+                        : blog.youtubeUrl
+                    }
+                    title={blog.title}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full"
+                  ></iframe>
+                </div>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gray-100 md:max-w-[340px] aspect-square md:aspect-auto md:rounded-l-3xl rounded-t-3xl md:rounded-t-none" style={{ minHeight: '250px', maxHeight: '270px' }}>
+                  <span className="text-gray-400">No Media</span>
+                </div>
+              )}
             </div>
-            <div className="flex-1 flex flex-col justify-between p-6">
+            {/* Right: Content */}
+            <div className="flex-1 flex flex-col justify-between bg-yellow-100 p-8 md:rounded-r-3xl">
               <div>
-                <span className="inline-block bg-black text-white text-xs px-3 py-1 rounded font-bold mb-3">{blog.date}</span>
-                <h3 className="font-bold text-lg md:text-xl text-gray-900 mb-2">{blog.title}</h3>
-                <p className="text-gray-700 text-base mb-4 line-clamp-3">{blog.shortDescription}</p>
+                <span className="inline-block bg-black text-white text-sm px-4 py-1 rounded font-bold mb-6 mt-2 md:mt-0">{blog.createdAt ? new Date(blog.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : ''}</span>
+                <h3 className="font-bold text-2xl md:text-3xl text-gray-900 mb-4 mt-4">{blog.title}</h3>
+                {/* <p className="text-gray-800 text-lg mb-8 md:mb-10">{blog.shortDescription}</p> */}
               </div>
               <div className="flex items-center mt-auto">
                 <Link
-                  href={`/blog/${blog.id}`}
-                  className="text-gray-800 hover:underline font-semibold flex items-center group transition focus:outline-none"
+                  href={`/blogs/${blog._id}`}
+                  className="text-gray-800 font-semibold hover:underline flex items-center group transition focus:outline-none text-lg"
                 >
-                  Read More <span className="ml-1">→</span>
+                  Read More <span className="ml-1">&gt;</span>
                 </Link>
               </div>
             </div>
           </div>
         ))}
       </div>
+      {blogs.length > visibleCount && (
+        <div className="flex justify-center my-8">
+          <button
+            className="bg-black text-white px-8 py-3 rounded-full font-bold hover:bg-gray-800 transition-colors text-lg shadow"
+            onClick={() => setVisibleCount(v => v + 6)}
+          >
+            Load More
+          </button>
+        </div>
+      )}
     </div>
   );
 };
