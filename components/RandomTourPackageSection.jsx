@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { CalendarClock, MapPin, Heart, Bookmark } from "lucide-react";
+import { CalendarClock, MapPin, Heart, Bookmark, ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Carousel,
@@ -19,6 +19,7 @@ import { useCart } from "../context/CartContext";
 import { toast } from "react-hot-toast"
 import { Star } from 'lucide-react';
 import ReviewModal from "./ReviewModal";
+import ViewNews from "./ViewNews";
 function slugify(text) {
   return text
     .toString()
@@ -108,6 +109,9 @@ const RandomTourPackageSection = () => {
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const [promotinalBanner, setPromotinalBanner] = useState([])
   const [featuredOffer, setFeaturedOffer] = useState([])
+  const [news, setNews] = useState([])
+  const [quickViewNews, setQuickViewNews] = useState(null); // For news modal
+
   // Prevent background scroll when Quick View is open
   useEffect(() => {
     if (quickViewProduct) {
@@ -242,12 +246,30 @@ const RandomTourPackageSection = () => {
         setIsLoading(false);
       }
     };
-    
+    const fetchNews = async () => {
+      try {
+        const res = await fetch("/api/addNews");
+        const data = await res.json();
+        console.log("News API response:", data);
+        if (data && data.length > 0) {
+          setNews(data);
+        } else {
+          setNews([]);
+        }
+      } catch (error) {
+        // console.error("Error fetching products:", error);
+        setNews([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
 
     fetchProducts();
     fetchBlogs();
     fetchPromotinalBanner();
     fetchFeaturedOffer();
+    fetchNews();
   }, []);
 
   if (isLoading) {
@@ -327,7 +349,7 @@ const RandomTourPackageSection = () => {
           <Carousel
             className={`w-full md:w-[95%]  mx-auto my-4 ${products.length > 0 ? "block" : "hidden"}`}
           >
-            <CarouselContent className="-ml-1 w-full gap-2">
+            <CarouselContent className="w-full gap-2">
               {products.length > 0 &&
                 products.map((item, index) => (
                   <CarouselItem
@@ -543,11 +565,8 @@ const RandomTourPackageSection = () => {
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                {/* Carousel navigation styled as in screenshot */}
-                <div className="flex items-center gap-3">
-                  <CarouselPrevious className="absolute top-[85%] left-[65%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
-                  <CarouselNext className="absolute top-[85%] left-[80%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
-                </div>
+                <CarouselPrevious />
+                <CarouselNext />
               </Carousel>
             </div>
           </div>
@@ -746,38 +765,56 @@ const RandomTourPackageSection = () => {
               )}
             </div>
           </div>
+
+          {/* News/Announcement Section */}
           <div className="w-full flex flex-col items-center mb-12">
             <div className="w-full flex flex-col md:flex-row gap-8 min-h-[300px]">
-              {/* News/Announcement Section */}
-              <div className="flex flex-row w-full gap-8">
-                <div className="flex-1 bg-white rounded-lg shadow p-8 flex flex-col justify-between min-h-[400px]">
+              <div className="flex flex-col md:flex-row w-full gap-8">
+                <div className="flex-1 bg-[#fcf7f1] rounded-lg p-4 flex flex-col justify-between min-h-[300px]">
                   <h2 className="text-3xl font-bold mb-4">Upcoming News, Blog and Events</h2>
-                  <p className="text-gray-800 mb-8 text-lg font-medium">
+                  <p className="text-gray-800 mb-8 text-lg md:text-md font-medium">
                     "We're preparing exciting new content and updates for our users, including upcoming news and events. We’re working behind the scenes to bring you fresh news, upcoming events, and new features to enhance your experience.
                     <br /><br />
                     Stay connected — great things are coming soon!"
                   </p>
                   <Link href="/blogs">
-                  <button className="w-full bg-black text-white py-4 font-bold rounded hover:bg-gray-800 transition-colors text-lg">
-                    View More
-                  </button>
+                    <button className="w-full bg-black text-white py-3 font-bold rounded hover:bg-gray-800 transition-colors text-lg">
+                      View More
+                    </button>
                   </Link>
                 </div>
                 {/* News box */}
-                <div className="flex-1 bg-white rounded-lg shadow p-6 flex flex-col min-h-[400px]">
-                  <div className="font-bold text-2xl mb-4">Upcoming.....</div>
-                  <div className="flex-1 overflow-y-auto pr-2 mb-4">
-                    {[...Array(4)].map((_, i) => (
-                      <div key={i} className="bg-gray-100 rounded-lg p-4 mb-4 text-base font-medium">
-                        Exciting updates are on the way! We're working behind the scenes. Something great is coming soon!
-                      </div>
-                    ))}
+                <div className="flex-1 bg-[#fcf7f1] rounded-lg p-4 flex flex-col min-h-[300px]">
+                  <div className="flex-1 pr-2 mb-4">
+                  <div className="font-bold text-2xl mb-4">Latest News</div>
+                    <div className="h-[380px] overflow-y-auto p-4 border border-black rounded-xl">
+                      {news && news.length > 0 ? (
+                        news.map((item) => (
+                          <div key={item._id} className="bg-gray-200 border border-black rounded-lg px-3 py-2 mb-2 text-base font-medium">
+                            <div className="mb-2">
+                              {(() => {
+                                const desc = item.description ?? "";
+                                const words = desc.trim().split(/\s+/);
+                                return words.slice(0, 20).join(" ") + (words.length > 20 ? " ..." : "");
+                              })()}
+                            </div>
+                            <button
+                              onClick={() => setQuickViewNews(item)}
+                              className="inline-block text-blue-600 hover:underline font-semibold mt-2"
+                            >
+                              Read More
+                            </button>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-gray-500 text-center py-8">No news available at the moment.</div>
+                      )}
+                    </div>
                   </div>
                   <Link href="/contact">
-                  
-                  <button className="w-full bg-lime-400 text-black font-bold py-3 rounded hover:bg-lime-500 transition-colors text-lg">
-                    Get Connected
-                  </button>
+                    <button className="w-full bg-lime-400 text-black font-bold py-3 rounded hover:bg-lime-500 transition-colors text-lg mt-2">
+                      Get Connected
+                    </button>
                   </Link>
                 </div>
               </div>
@@ -831,7 +868,7 @@ const RandomTourPackageSection = () => {
                                   <img
                                     src={mediaUrl}
                                     alt={blog.title}
-                                    className="object-cover w-full h-full max-h-[220px] rounded-l-xl"
+                                    className="object-cover md:object-cover w-full h-full max-h-[220px] rounded-l-xl"
                                   />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-l-xl text-gray-400">
@@ -846,14 +883,14 @@ const RandomTourPackageSection = () => {
                                   <div className="text-gray-800 text-base mb-4 line-clamp-3 min-h-[48px]">{blog.shortDescription || blog.shortDesc || 'No description available.'}</div>
                                 </div>
                                 <div className="flex items-center mt-auto">
-                                  <a
-                                    href={blog.url}
-                                    target="_blank"
+                                  <Link
+                                    href={`/blogs/${blog._id}`}
+
                                     rel="noopener noreferrer"
                                     className="text-gray-700 font-semibold hover:underline flex items-center group transition focus:outline-none"
                                   >
                                     Read More  &gt;
-                                  </a>
+                                  </Link>
                                 </div>
                               </div>
                             </div>
@@ -953,18 +990,19 @@ const RandomTourPackageSection = () => {
               </div>
             </div>
           )}
-          <ReviewModal
-            open={showReviewModal}
-            onClose={() => setShowReviewModal(false)}
-            onSubmit={(data) => { setShowReviewModal(false); toast.success('Review submitted!'); }}
-          />
+          {/* News Quick View Modal */}
+          {quickViewNews && (
+            <ViewNews news={quickViewNews} onClose={() => setQuickViewNews(null)} />
+          )}
         </div>
       </div>
+
+      <ReviewModal
+        open={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        onSubmit={(data) => { setShowReviewModal(false); toast.success('Review submitted!'); }}
+      />
     </section>
-
   );
-};
-
-
-
-export default RandomTourPackageSection;
+}
+export default RandomTourPackageSection

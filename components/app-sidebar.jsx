@@ -119,6 +119,11 @@ const data = {
       url: "/admin/manage_blogs",
       icon: Rss,
     },
+    {
+      name: "News",
+      url: "/admin/news",
+      icon: Rss,
+    },
     // Space (empty item)
     { divider: true },
 
