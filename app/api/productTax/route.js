@@ -29,6 +29,9 @@ export async function POST(req) {
       return Response.json({ error: 'Tax already exists for this product' }, { status: 400 });
     } else {
       doc = await ProductTax.create({ product, cgst, sgst });
+      // Also update the Product model to link the tax
+      const Product = (await import("@/models/Product")).default;
+      await Product.findByIdAndUpdate(product, { taxes: doc._id });
     }
     return Response.json({ data: doc });
   } catch (err) {
@@ -46,6 +49,9 @@ export async function PATCH(req) {
       { cgst, sgst },
       { new: true }
     );
+    // Also update the Product model to link the tax
+    const Product = (await import("@/models/Product")).default;
+    await Product.findByIdAndUpdate(product, { taxes: doc._id });
     return Response.json({ data: doc });
   } catch (err) {
     return Response.json({ error: err.message }, { status: 500 });
@@ -63,11 +69,14 @@ export async function DELETE(req) {
       return Response.json({ success: true });
     } else {
       // Remove a single tax from the array
-      const doc = await ProductTax.findOneAndUpdate(
-        { product },
-        { $pull: { taxes: tax } },
-        { new: true }
-      );
+      // Remove the ProductTax document for this product
+      const doc = await ProductTax.findOneAndDelete({ _id: tax, product });
+      // Also update the Product model to remove the tax
+      const Product = (await import("@/models/Product")).default;
+      const prod = await Product.findById(product);
+      if (prod && prod.taxes && prod.taxes.toString() === tax) {
+        await Product.findByIdAndUpdate(product, { taxes: null });
+      }
       return Response.json({ data: doc });
     }
   } catch (err) {

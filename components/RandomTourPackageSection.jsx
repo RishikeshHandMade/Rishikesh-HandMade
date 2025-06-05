@@ -47,7 +47,7 @@ const RandomTourPackageSection = () => {
       });
   }, []);
   const [customReview, setcustomReview] = useState([]);
-  console.log(customReview)
+  // console.log(customReview)
   useEffect(() => {
     fetch('/api/saveReviews')
       .then(res => res.json())
@@ -58,7 +58,7 @@ const RandomTourPackageSection = () => {
       });
   }, []);
   const artisanReviews = [...customReview, ...allReviews];
-  console.log(allReviews)
+  // console.log(allReviews)
 
   // Normalize reviews to a standard format
   function normalizeReview(review) {
@@ -178,7 +178,7 @@ const RandomTourPackageSection = () => {
       try {
         const res = await fetch("/api/product");
         const data = await res.json();
-        // console.log("Product API response:", data);
+        console.log("Product API response:", data);
 
         if (data && data.length > 0) {
           setProducts(data);
@@ -233,7 +233,7 @@ const RandomTourPackageSection = () => {
       try {
         const res = await fetch("/api/addFeaturedOffer");
         const data = await res.json();
-        console.log("Featured Offer API response:", data);
+        // console.log("Featured Offer API response:", data);
         if (data && data.length > 0) {
           setFeaturedOffer(data);
         } else {
@@ -250,7 +250,7 @@ const RandomTourPackageSection = () => {
       try {
         const res = await fetch("/api/addNews");
         const data = await res.json();
-        console.log("News API response:", data);
+        // console.log("News API response:", data);
         if (data && data.length > 0) {
           setNews(data);
         } else {
@@ -354,7 +354,7 @@ const RandomTourPackageSection = () => {
                 products.map((item, index) => (
                   <CarouselItem
                     key={index}
-                    className="pl-1  md:basis-1/2 lg:basis-1/4 min-w-0 snap-start"
+                    className="pl-5  md:basis-1/2 lg:basis-1/4 min-w-0 snap-start"
                   >
                     <div className="flex flex-col w-[290px]">
                       {/* Image Section */}

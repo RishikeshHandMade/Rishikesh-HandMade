@@ -7,7 +7,8 @@ import toast from "react-hot-toast"
 const ApplyCoupon = ({ productData, productId }) => {
   const [coupons, setCoupons] = useState([]); // All available coupons
   // Selected coupons: array of objects { couponCode, startDate, endDate, percent, amount }
-  const [selectedCoupons, setSelectedCoupons] = useState([]);
+  // Only one coupon per product
+  const [selectedCoupon, setSelectedCoupon] = useState(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [allProductCoupons, setAllProductCoupons] = useState([]); // All product-coupon mappings
@@ -60,51 +61,45 @@ const ApplyCoupon = ({ productData, productId }) => {
     fetchProducts();
   }, []);
 
-  // When editing, fetch coupons for that product
+  // When editing, fetch coupon for that product
   useEffect(() => {
     if (!editProductId) return;
-    const fetchProductCoupons = async () => {
+    const fetchProductCoupon = async () => {
       try {
         const res = await fetch(`/api/productCoupon?productId=${editProductId}`);
         const data = await res.json();
-        // console.log(data)
-        setSelectedCoupons(Array.isArray(data.coupons) ? data.coupons : []);
+        setSelectedCoupon(data.coupon || null);
       } catch (err) {
-        setSelectedCoupons([]);
+        setSelectedCoupon(null);
       }
     };
-    fetchProductCoupons();
+    fetchProductCoupon();
   }, [editProductId]);
 
-  // Always clear selectedCoupons when exiting edit mode
+  // Always clear selectedCoupon when exiting edit mode
   useEffect(() => {
     if (editProductId === null) {
-      setSelectedCoupons([]);
+      setSelectedCoupon(null);
     }
   }, [editProductId]);
 
   // Add coupon
   // Add coupon with default fields
   const handleSelectCoupon = (couponCode) => {
-    if (!selectedCoupons.some(c => c.couponCode === couponCode)) {
-      // Find coupon details from coupons list
-      const couponObj = coupons.find(c => c.couponCode === couponCode);
-      setSelectedCoupons([
-        ...selectedCoupons,
-        {
-          couponCode,
-          startDate: couponObj?.startDate || '',
-          endDate: couponObj?.endDate || '',
-          percent: couponObj?.percent || '',
-          amount: couponObj?.amount || ''
-        }
-      ]);
-    }
+    // Find coupon details from coupons list
+    const couponObj = coupons.find(c => c.couponCode === couponCode);
+    setSelectedCoupon({
+      couponCode,
+      startDate: couponObj?.startDate || '',
+      endDate: couponObj?.endDate || '',
+      percent: couponObj?.percent || '',
+      amount: couponObj?.amount || ''
+    });
   };
 
   // Remove coupon
-  const handleRemoveCoupon = (couponCode) => {
-    setSelectedCoupons(selectedCoupons.filter(c => c.couponCode !== couponCode));
+  const handleRemoveCoupon = () => {
+    setSelectedCoupon(null);
   };
 
   return (
@@ -279,9 +274,11 @@ const ApplyCoupon = ({ productData, productId }) => {
                     <td className="border p-2 text-center">{prod.title || "N/A"}</td>
                     <td className="border p-2 text-center">
                       <div className="flex flex-wrap gap-1 justify-center">
-                        {row.coupons.map((coupon, i) => (
-                          <Badge key={(coupon.couponCode || '') + '-' + i} variant="secondary">{coupon.couponCode}</Badge>
-                        ))}
+                        {row.coupon ? (
+                          <Badge variant="secondary">{row.coupon.couponCode}</Badge>
+                        ) : (
+                          <span>No coupon</span>
+                        )}
                       </div>
                     </td>
                     <td className="border p-2 text-center">
@@ -296,7 +293,7 @@ const ApplyCoupon = ({ productData, productId }) => {
                           <DialogHeader>
                             <DialogTitle>Delete Coupon Mapping</DialogTitle>
                           </DialogHeader>
-                          <div className="my-4">Are you sure you want to delete coupons for <b>{prod.title || prod.name || row.productId}</b>?</div>
+                          <div className="my-4">Are you sure you want to delete coupon for <b>{prod.title || prod.name || row.productId}</b>?</div>
                           <DialogFooter>
                             <button className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300" onClick={() => setDeleteDialog({ open: false, productId: null })}>Cancel</button>
                             <button className="ml-2 px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700" onClick={async () => {

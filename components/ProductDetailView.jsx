@@ -139,9 +139,9 @@ export default function ProductDetailView({ product }) {
         <h1 className="text-3xl font-bold mb-1">{product.title}</h1>
         <div className="flex items-center gap-2 mb-3">
           <span className="font-semibold flex items-center">
-            {product.reviews[0]?.rating && (
+            {product?.reviews?.rating && (
               <>
-                {[...Array(product.reviews[0]?.rating)].map((_, i) => (
+                {[...Array(product.reviews?.rating)].map((_, i) => (
                   <Star key={i} size={20} className="text-yellow-400 fill-yellow-400" />
                 ))}
               </>

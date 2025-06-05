@@ -72,14 +72,23 @@ const Footer = () => {
                 <div className="flex flex-col  gap-8">
                     <div>
                         <h1 className="font-semibold text-xl flex items-center gap-2"><Phone className="text-blue-600" /> More Inquiry</h1>
-                        <Link href={'tel:+918006000325'} className="my-2 block rounded-full px-5 py-1 font-barlow text-white  ">
-                            +91 8006000325
+                        <Link href={'tel:+917351009107'} className="my-2 block rounded-full px-5 py-1 font-barlow text-white  ">
+                            +91 7351009107
                         </Link>
                     </div>
                     <div>
                         <h1 className="font-semibold text-xl flex items-center gap-2"><Send className="text-blue-600" /> Send Mail</h1>
                         <Link href={'mailto:info@rishikeshhandmade.com'} className="my-2 block rounded-full px-5 py-1 font-barlow text-white ">
-                        Info@rishikeshhandmade.com
+                            Info@rishikeshhandmade.com
+                        </Link>
+                        <Link href={'mailto:rishikeshhandmade@gmail.com'} className="my-2 block rounded-full px-5 py-1 font-barlow text-white ">
+                            rishikeshhandmade@gmail.com
+                        </Link>
+                        <Link href={'mailto:Sale@rishikeshhandmade.com'} className="my-2 block rounded-full px-5 py-1 font-barlow text-white ">
+                            Sale@rishikeshhandmade.com
+                        </Link>
+                        <Link href={'mailto:support@rishikeshhandmade.com'} className="my-2 block rounded-full px-5 py-1 font-barlow text-white ">
+                            support@rishikeshhandmade.com
                         </Link>
                     </div>
                 </div>
@@ -125,7 +134,7 @@ const Footer = () => {
                     </div>
                 </CardContent>
                 <CardFooter className="mt-8 flex flex-col items-start md:w-fit">
-                <div className="w-full h-[1px] bg-gray-400" />
+                    <div className="w-full h-[1px] bg-gray-400" />
                     <div className="flex items-center justify-between font-barlow">
                         <div className="flex flex-col md:flex-row items-start  md:items-center gap-2">
                             <Link href={'/terms-condition'} className="0 !text-sm font-semibold">Terms of Use</Link>

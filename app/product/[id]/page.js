@@ -18,7 +18,7 @@ const ProductDetailPage = async ({ params }) => {
     // Fetch the product by its slug using the API route
     const res = await fetch(apiUrl, { cache: 'no-store' });
     const product = await res.json();
-    // console.log('Fetched product:', product);
+    console.log('Fetched product:', product);
 
     // If product not found, show not found message
     if (!product || product.error) {

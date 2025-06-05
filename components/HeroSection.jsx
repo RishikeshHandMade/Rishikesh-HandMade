@@ -208,11 +208,20 @@ const HeroSection = () => {
                     </div>
                     {/* Details Centered */}
                     <div className="flex flex-col items-center justify-center flex-1 min-w-[300px] py-8 relative h-full">
-                      <h1 className="text-5xl md:text-5xl font-bold text-black leading-tight mb-3">
+                      <h1 className="text-5xl md:text-5xl font-bold text-black leading-tight mb-3 text-center">
                         {banner.title || "No Title"}
                       </h1>
                       <div className="text-xl font-semibold text-black mb-2">Price</div>
-                      <div className="text-3xl font-extrabold text-black mb-4">{banner.price || "0.00"}</div>
+                      <div className="text-3xl font-extrabold text-black mb-4 flex flex-row items-center gap-3">
+                        {banner.coupon && !isNaN(Number(banner.coupon)) && !isNaN(Number(banner.price)) ? (
+                          <>
+                            <span className="line-through text-gray-600">₹{banner.price}</span>
+                            <span className="text-black font-bold">₹{(Number(banner.price) - Number(banner.coupon)).toFixed(2)}</span>
+                          </>
+                        ) : (
+                          <span className="text-black font-bold">₹{banner.price || "0.00"}</span>
+                        )}
+                      </div>
                       <div className="flex gap-3 mb-4 justify-center">
                         <a
                           href={banner.addtoCartLink || '#'}
