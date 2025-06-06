@@ -54,6 +54,7 @@ export function CartProvider({ children }) {
       value={{
         cart,
         wishlist,
+        setCart,
         addToCart,
         removeFromCart,
         updateCartQty,

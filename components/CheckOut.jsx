@@ -73,7 +73,7 @@ const handleOnlinePaymentWithOrder = async (total, cart, customer, setLoading, s
       currency: data.currency,
       name: customer.name || 'Your Company Name',
       description: 'Order payment',
-      image: 'https://example.com/your_logo',
+      image: 'https://rishikeshhandmade.com/logo.png',
       order_id: data.id,
       handler: function (response) {
         (async () => {
@@ -168,11 +168,53 @@ const handleOnlinePaymentWithOrder = async (total, cart, customer, setLoading, s
 import { useRouter } from 'next/navigation';
 
 const CheckOut = () => {
+  // Coupon state
+  const [couponInput, setCouponInput] = useState("");
+  const [loadingCoupon, setLoadingCoupon] = useState(false);
+  const [couponError, setCouponError] = useState("")
+  // Handle coupon application
+  const handleApplyCoupon = async () => {
+    setLoadingCoupon(true);
+    setCouponError("");
+    try {
+      console.log('Applying coupon:', couponInput.trim(), cart);
+      const res = await fetch('/api/discountCoupon/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: couponInput.trim(), cart }),
+      });
+      const data = await res.json();
+      console.log('Coupon API response:', data);
+      if (!data.success || !data.coupon) {
+        setCouponError(data.message || 'Invalid coupon code');
+      } else {
+        // Update cart with discounted prices
+        const updatedCart = cart.map(item => ({
+          ...item,
+          couponApplied: true,
+          couponCode: data.coupon.couponCode,
+          price: Math.round(item.price - (data.coupon.percent ? (item.price * data.coupon.percent) / 100 : data.coupon.amount || 0)),
+          originalPrice: item.originalPrice || item.price,
+        }));
+        console.log('Updated cart:', updatedCart);
+        setCart(updatedCart);
+        setCouponInput("");
+        setCouponError("");
+        toast.success('Coupon applied successfully!', { style: { borderRadius: '10px', border: '2px solid green' } });
+      }
+    } catch (err) {
+      setCouponError('Failed to apply coupon. Please try again.');
+      console.error('Coupon apply error (frontend):', err);
+    } finally {
+      setLoadingCoupon(false);
+    }
+  };
+
   const { data: session, status } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const { cart, updateCartQty, removeFromCart } = useCart();
+  const { cart, setCart, updateCartQty, removeFromCart } = useCart();
   const [shipping, setShipping] = useState('free');
   const [payment, setPayment] = useState('bank');
   const [agree, setAgree] = useState(false);
@@ -320,6 +362,30 @@ const CheckOut = () => {
 
       {/* Order Summary Card */}
       <div className="w-full md:w-[420px] bg-white rounded-lg shadow p-6 self-start">
+  {/* Coupon Input - show only if cart has products and no coupon is applied */}
+  {cart.length > 0 && !cart.some(item => item.couponApplied) && (
+    <div className="mb-4">
+      <label className="block text-sm font-medium mb-1">Have a coupon?</label>
+      <div className="flex gap-2">
+        <input
+          className="border rounded px-3 py-2 flex-1"
+          placeholder="Enter coupon code"
+          value={couponInput}
+          onChange={e => setCouponInput(e.target.value)}
+          disabled={loadingCoupon}
+        />
+        <button
+          className="px-4 py-2 bg-black text-white rounded font-semibold disabled:opacity-60"
+          onClick={handleApplyCoupon}
+          disabled={loadingCoupon || !couponInput.trim()}
+          type="button"
+        >
+          {loadingCoupon ? "Applying..." : "Apply"}
+        </button>
+      </div>
+      {couponError && <div className="text-red-600 text-xs mt-1">{couponError}</div>}
+    </div>
+  )}
         <h3 className="text-lg font-bold mb-4">Your Order</h3>
         <div className="divide-y divide-neutral-200 mb-4">
           {cart.map(item => (

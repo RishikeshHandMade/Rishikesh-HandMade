@@ -6,13 +6,57 @@ import Link from "next/link";
 import { ArrowDown, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import clsx from "clsx";
-
+const staticMenuItems = [
+    {
+        catTitle: "About Us",
+        subCat: [
+            {
+                subCatPackage: [
+                    { title: "About Us", url: "/about-us", active: true },
+                    { title: "Vision & Mission", url: "/vision-mission", active: true },
+                    { title: "Team", url: "/team", active: true },
+                    { title: "What We Do ", url: "/what-we-do", active: true }
+                ],
+                active: true,
+            }
+        ],
+        active: true,
+    },
+    {
+        catTitle: "Our Policy",
+        subCat: [
+            {
+                subCatPackage: [
+                    { title: "Privacy Policy", url: "/privacy-policy", active: true },
+                    { title: "Refund & Cancellation", url: "/refund-cancellation", active: true },
+                    { title: "Shipping Policy", url: "/shipping-policy", active: true },
+                    { title: "Terms & Conditions", url: "/terms-condition", active: true }
+                ],
+                active: true,
+            }
+        ],
+        active: true,
+    },
+    {
+        catTitle: "Contact Us",
+        subCat: [
+            {
+                subCatPackage: [
+                    { title: "", url: "", active: true }
+                ],
+                active: true,
+            }
+        ],
+        active: true,
+    }
+];
 const MenuBar = (props) => {
     const [isOpen, setIsOpen] = useState(false);
     const [openMenu, setOpenMenu] = useState(null);
     const [openFixedMenu, setOpenFixedMenu] = useState(null);
     const [menuItems, setMenuItems] = useState(props.menuItems || []);
     const [fixedMenuItems, setFixedMenuItems] = useState(props.fixedMenuItems || []);
+    const allMenuItems = [...fixedMenuItems, ...staticMenuItems];
     useEffect(() => {
         // Only fetch if menuItems not provided as prop
         if (!props.menuItems) {
@@ -111,9 +155,14 @@ const MenuBar = (props) => {
                     </div>
                 ))}
 
-                {fixedMenuItems.length > 0 && fixedMenuItems.map((cat, index) => (
+                {allMenuItems.length > 0 && allMenuItems.map((cat, index) => (
                     <div key={index} className="border-b">
-                       
+                        {cat.catTitle === "Contact Us" ? (
+                            <Link href="/contact-us" className="w-full block p-3 text-sm font-medium hover:bg-gray-100">
+                                {cat.catTitle}
+                            </Link>
+                        ) : (
+                            <>
                                 <button
                                     onClick={() => toggleFixedMenu(index)}
                                     className="w-full text-left p-3 text-sm font-medium  hover:bg-gray-100"
@@ -143,18 +192,18 @@ const MenuBar = (props) => {
                                             ))}
                                     </ul>
                                 </div>
-                        
-                        
+                            </>
+                        )}
                     </div>
                 ))}
             </div>
 
             {/* Desktop Navigation */}
-            <NavigationMenu.Root className="hidden lg:flex relative justify-center " >
-                <NavigationMenu.List className="flex space-x-2">
+            <NavigationMenu.Root className="hidden lg:flex relative justify-center" >
+                <NavigationMenu.List className="flex space-x-4">
                     {menuItems.map((item, index) => (
                         <NavigationMenu.Item key={index} className="relative flex justify-center">
-                            <NavigationMenu.Trigger className="flex items-center px-4 py-2 hover:bg-blue-300 text-sm font-semibold  data-[state=open]:text-black rounded-md">
+                            <NavigationMenu.Trigger className="flex items-center px-4 py-2 text-sm font-semibold  data-[state=open]:text-black rounded-md">
                                 {item.title} <ArrowDown className="ml-2" size={12} />
                             </NavigationMenu.Trigger>
                             <AnimatePresence>
@@ -165,7 +214,7 @@ const MenuBar = (props) => {
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, y: -10 }}
                                             transition={{ duration: 0.2, ease: "easeInOut" }}
-                                            className="absolute top-full mt-2 -translate-x-1/2 bg-white text-black shadow-lg rounded-md w-44"
+                                            className="absolute top-full mt-2 -translate-x-1/2 bg-white text-black shadow-lg rounded-md w-48"
                                         >
                                             <ul className="grid gap-2 p-2 text-sm">
                                                 {item.subMenu
@@ -175,7 +224,7 @@ const MenuBar = (props) => {
                                                         <li key={subIndex}>
                                                             <NavigationMenu.Link asChild>
                                                                 <Link
-                                                                    className="block px-2 py-2 rounded-md text-sm hover:bg-gray-200"
+                                                                    className="block px-4 py-2 rounded-md"
                                                                     href={`/category/${subItem.url}`}
                                                                 >
                                                                     {subItem.title}
@@ -190,9 +239,14 @@ const MenuBar = (props) => {
                             </AnimatePresence>
                         </NavigationMenu.Item>
                     ))}
-                    {fixedMenuItems.length > 0 && fixedMenuItems.map((cat, index) => (
+                    {allMenuItems.length > 0 && allMenuItems.map((cat, index) => (
                         <NavigationMenu.Item key={index} className="relative flex justify-center">
-                           
+                            {cat.catTitle === "Contact Us" ? (
+                                <Link href="/contact" className="flex items-center px-4 py-2 text-sm font-semibold hover:bg-blue-500 data-[state=open]:bg-blue-300 data-[state=open]:text-black rounded-md">
+                                    {cat.catTitle}
+                                </Link>
+                            ) : (
+                                <>
                                     <NavigationMenu.Trigger className="flex items-center px-4 py-2 text-sm font-semibold hover:bg-blue-500 data-[state=open]:bg-blue-300 data-[state=open]:text-black rounded-md">
                                         {cat.catTitle} <ArrowDown className="ml-2" size={12} />
                                     </NavigationMenu.Trigger>
@@ -238,8 +292,8 @@ const MenuBar = (props) => {
                                             })()}
                                         </NavigationMenu.Content>
                                     </AnimatePresence>
-                                
-                            
+                                </>
+                            )}
                         </NavigationMenu.Item>
                     ))}
                 </NavigationMenu.List>

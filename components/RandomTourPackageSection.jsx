@@ -408,30 +408,30 @@ const RandomTourPackageSection = () => {
                                 toast.success("Removed from wishlist!");
                               } else {
                                 const price = item?.quantity?.variants[0].price;
-const coupon = item.coupon || item.coupons?.coupon;
-let discountedPrice = price;
-let couponApplied = false;
-let couponCode = "";
+                                const coupon = item.coupon || item.coupons?.coupon;
+                                let discountedPrice = price;
+                                let couponApplied = false;
+                                let couponCode = "";
 
-if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
-  discountedPrice = price - (price * coupon.percent) / 100;
-  couponApplied = true;
-  couponCode = coupon.couponCode;
-} else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
-  discountedPrice = price - coupon.amount;
-  couponApplied = true;
-  couponCode = coupon.couponCode;
-}
-addToWishlist({
-  id: item._id,
-  name: item.title,
-  image: item?.gallery?.mainImage || "/placeholder.jpeg",
-  price: Math.round(discountedPrice),
-  originalPrice: price,
-  qty: 1,
-  couponApplied,
-  couponCode: couponApplied ? couponCode : undefined
-});
+                                if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+                                  discountedPrice = price - (price * coupon.percent) / 100;
+                                  couponApplied = true;
+                                  couponCode = coupon.couponCode;
+                                } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+                                  discountedPrice = price - coupon.amount;
+                                  couponApplied = true;
+                                  couponCode = coupon.couponCode;
+                                }
+                                addToWishlist({
+                                  id: item._id,
+                                  name: item.title,
+                                  image: item?.gallery?.mainImage || "/placeholder.jpeg",
+                                  price: Math.round(discountedPrice),
+                                  originalPrice: price,
+                                  qty: 1,
+                                  couponApplied,
+                                  couponCode: couponApplied ? couponCode : undefined
+                                });
                                 toast.success("Added to wishlist!");
                               }
                             }}
@@ -854,7 +854,7 @@ addToWishlist({
                   </p>
                   <Link href="/blogs">
                     <button className="w-full bg-black text-white py-3 font-bold rounded hover:bg-gray-800 transition-colors text-lg">
-                      View More
+                      Read More
                     </button>
                   </Link>
                 </div>

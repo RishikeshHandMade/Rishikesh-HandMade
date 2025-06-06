@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Sparkle, ChevronLeft, ChevronRight } from "lucide-react";
+import { Sparkle, ChevronLeft, ChevronRight, Gift, ShoppingCart, BadgePercent, ShieldCheck } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import Image from "next/image";
@@ -189,79 +189,79 @@ const HeroSection = () => {
   }
 
   return (
-    <section className="bg-[#fcf7f1] relative xl:h-screen h-full w-full px-2 overflow-hidden z-0 group">
+    <section className="bg-[#fcf7f1] relative xl:h-screen h-full w-full px-5 overflow-hidden z-0 group">
       <div className="hidden xl:block w-full h-screen ">
         {/* Carousel for desktop: each slide shows front image, details, back image in a single row */}
 
-        
+
         <div className="w-full">
-  {/* Promo Bar - Top */}
-  <div className="w-full bg-[#faf3eb] border-b border-neutral-200">
-    <div className="flex flex-col md:flex-row items-center justify-between max-w-7xl mx-auto py-2 px-2 gap-2">
-      <div className="flex-1 flex flex-col items-center md:items-start">
-        <span className="font-semibold text-lg md:text-xl">FREE SHIPPING OVER $99*</span>
-        <span className="text-xs text-neutral-600">Plus, two-day delivery on thousands of items.</span>
-      </div>
-      <div className="hidden md:block w-px h-8 bg-neutral-200 mx-6"></div>
-      <div className="flex-1 flex flex-col items-center md:items-end">
-        <span className="font-semibold text-lg md:text-xl">AMAZING VALUE EVERY DAY</span>
-        <span className="text-xs text-neutral-600">Items you love at prices that fit your budget.</span>
-      </div>
-    </div>
-  </div>
-  {/* Feature Icons Row */}
-  <div className="w-full bg-[#f7f7f7] border-b border-neutral-200">
-    <div className="flex flex-wrap md:flex-nowrap items-center justify-between max-w-7xl mx-auto py-3 px-2 gap-4">
-      <div className="flex items-center gap-2 flex-1 min-w-[120px]">
-        <span className="text-xl"><svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="1" y="1" rx="2"/><path d="M16 3v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V3"/></svg></span>
-        <span className="font-semibold text-xs md:text-sm">FREE GIFT WRAPPING</span>
-      </div>
-      <div className="hidden md:block w-px h-6 bg-neutral-200"></div>
-      <div className="flex items-center gap-2 flex-1 min-w-[120px]">
-        <span className="text-xl"><svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3h2l.4 2M7 13h10l1.2-6H6.4"/><circle cx="9" cy="19" r="2"/><circle cx="17" cy="19" r="2"/></svg></span>
-        <span className="font-semibold text-xs md:text-sm">EASY & FREE RETURNS</span>
-      </div>
-      <div className="hidden md:block w-px h-6 bg-neutral-200"></div>
-      <div className="flex items-center gap-2 flex-1 min-w-[120px]">
-        <span className="text-xl"><svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12l2 2 4-4"/></svg></span>
-        <span className="font-semibold text-xs md:text-sm">STUDENT DISCOUNT</span>
-      </div>
-      <div className="hidden md:block w-px h-6 bg-neutral-200"></div>
-      <div className="flex items-center gap-2 flex-1 min-w-[120px]">
-        <span className="text-xl"><svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="1" y="1" rx="2"/><path d="M12 8v4"/><path d="M8 12h8"/></svg></span>
-        <span className="font-semibold text-xs md:text-sm">100% SECURE SHOPPING</span>
-      </div>
-    </div>
-  </div>
-</div>
-<div className="flex flex-col items-center justify-center h-screen w-full relative">
+          {/* Promo Bar - Top */}
+          <div className="w-full bg-[#F9EDE1] border-b border-neutral-200 my-3">
+            <div className="flex flex-col md:flex-row items-center justify-between max-w-7xl mx-auto py-4 px-2 gap-2">
+              <div className="flex-1 flex flex-col items-center md:items-start">
+                <span className="font-bold text-lg md:text-2xl">FREE SHIPPING OVER ₹499*</span>
+                <span className="text-md text-gray-500">Plus, two-day delivery on thousands of items.</span>
+              </div>
+              <div className="hidden md:block w-[1px] h-8 bg-black mx-6"></div>
+              <div className="flex-1 flex flex-col items-center md:items-end">
+                <span className="font-bold text-lg md:text-2xl">AMAZING VALUE EVERY DAY</span>
+                <span className="text-md text-gray-500">Items you love at prices that fit your budget.</span>
+              </div>
+            </div>
+          </div>
+          {/* Feature Icons Row */}
+          <div className="w-full bg-gray-300">
+            <div className="flex flex-wrap md:flex-nowrap items-center justify-between max-w-7xl mx-auto py-4 px-2 gap-4">
+              <div className="flex items-center gap-2 flex-1 min-w-[120px]">
+                <span className="text-xl"><Gift size={25} /></span>
+                <span className="font-bold text-xs md:text-lg ">FREE GIFT WRAPPING</span>
+              </div>
+              <div className="hidden md:block w-[1px] h-6 bg-black"></div>
+              <div className="flex items-center gap-2 flex-1 min-w-[120px]">
+                <span className="text-xl"><ShoppingCart size={25} /></span>
+                <span className="font-bold text-xs md:text-lg ">EASY & FREE RETURNS</span>
+              </div>
+              <div className="hidden md:block w-[1px] h-6 bg-black"></div>
+              <div className="flex items-center gap-2 flex-1 min-w-[120px]">
+                <span className="text-xl"><BadgePercent size={25} /></span>
+                <span className="font-bold text-xs md:text-lg ">STUDENT DISCOUNT</span>
+              </div>
+              <div className="hidden md:block w-[1px] h-6 bg-black"></div>
+              <div className="flex items-center gap-2 flex-1 min-w-[120px]">
+                <span className="text-xl"><ShieldCheck size={25} /></span>
+                <span className="font-bold text-xs md:text-lg ">100% SECURE SHOPPING</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-col items-center justify-center h-screen w-full relative">
           <Carousel className="h-screen w-full" plugins={[plugin.current]} onMouseLeave={plugin.current.reset} setApi={setApi} >
             <CarouselContent className="h-screen">
               {banners.map((banner, index) => (
                 <CarouselItem key={index} className="h-screen flex items-center">
-                  <div className="flex flex-row items-center justify-center w-full mx-auto gap-12 h-full">
+                  <div className="flex flex-row items-center justify-center w-full mx-auto h-full">
                     {/* Front Image */}
                     <div className="flex-1 flex items-center justify-end h-full">
                       <img
                         src={banner.frontImg?.url || banner.frontImg?.url || "/placeholder.jpg"}
                         alt={banner.title ? `${banner.title} Front` : "Front"}
-                        className="object-cover max-w-lg h-full rounded-2xl shadow-lg"
+                        className="object-cover max-w-lg h-full shadow-lg"
                       />
                     </div>
                     {/* Details Centered */}
-                    <div className="flex flex-col items-center justify-center flex-1 min-w-[300px] py-8 relative h-full">
-                      <h1 className="text-5xl md:text-5xl font-bold text-black leading-tight mb-3 text-center">
+                    <div className="bg-[#4B8979] flex flex-col items-center justify-center flex-1 min-w-[300px] py-8 relative h-full">
+                      <h1 className="text-5xl md:text-5xl font-bold text-white leading-tight mb-3 text-center">
                         {banner.title || "No Title"}
                       </h1>
-                      <div className="text-xl font-semibold text-black mb-2">Price</div>
-                      <div className="text-3xl font-extrabold text-black mb-4 flex flex-row items-center gap-3">
+                      <div className="text-xl font-semibold text-white mb-2">Price</div>
+                      <div className="text-3xl font-extrabold text-white mb-4 flex flex-row items-center gap-3">
                         {banner.coupon && !isNaN(Number(banner.coupon)) && !isNaN(Number(banner.price)) ? (
                           <>
-                            <span className="line-through text-gray-600">₹{banner.price}</span>
-                            <span className="text-black font-bold">₹{(Number(banner.price) - Number(banner.coupon)).toFixed(2)}</span>
+                            <span className="line-through text-white">{banner.price}</span>
+                            <span className="text-white font-bold">₹{(Number(banner.price) - Number(banner.coupon)).toFixed(2)}</span>
                           </>
                         ) : (
-                          <span className="text-black font-bold">₹{banner.price || "0.00"}</span>
+                          <span className="text-white font-bold">{banner.price || "0.00"}</span>
                         )}
                       </div>
                       <div className="flex gap-3 mb-4 justify-center">
@@ -277,14 +277,14 @@ const HeroSection = () => {
                           href={banner.viewDetailLink || '#'}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className={`border border-black px-5 py-2 rounded-lg font-semibold hover:bg-gray-100 transition${!banner.viewDetailLink ? ' opacity-50 pointer-events-none' : ''}`}
+                          className={`border border-white px-5 py-2 rounded-lg font-semibold hover:bg-gray-100 transition${!banner.viewDetailLink ? ' opacity-50 pointer-events-none' : ''}`}
                         >
                           VIEW DETAIL
                         </a>
                       </div>
                       <div className="flex flex-col items-center gap-1 mt-1 mb-2">
-                        <div className="text-lg font-bold text-black">{banner.subtitle || "No Subtitle"}</div>
-                        <div className="text-base font-semibold text-black tracking-tight">{banner.subDescription || "No Sub Description"}</div>
+                        <div className="text-lg font-bold text-white">{banner.subtitle || "No Subtitle"}</div>
+                        <div className="text-base font-semibold text-white tracking-tight">{banner.subDescription || "No Sub Description"}</div>
                       </div>
                       {/* More Category Circular Button */}
                       {/* <div className="absolute left-1/2 bottom-[-72px] -translate-x-1/2">
@@ -334,7 +334,7 @@ const HeroSection = () => {
                       <img
                         src={banner.backImg?.url || banner.backImg?.url || "/placeholder.jpg"}
                         alt={banner.title ? `${banner.title} Back` : "Back"}
-                        className="object-cover max-w-lg h-screen rounded-2xl shadow-lg"
+                        className="object-cover max-w-lg h-screen shadow-lg"
                       />
                     </div>
                   </div>
