@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 export async function GET(request, { params }) {
   await connectDB();
-  const { id } = params;
+  const { id } = await params;
   try {
     const blog = await Blog.findById(id);
     if (!blog) {

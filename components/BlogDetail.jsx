@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-
+import RelatedBlogs from './RelatedBlogs';
 // Optionally import your modal component for news quick view
 // import ViewNews from "./ViewNews";
 
@@ -249,6 +249,11 @@ const BlogDetail = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Related Blogs Section */}
+      {blog && blog._id && (
+        <RelatedBlogs excludeId={blog._id} />
       )}
     </>
   );
