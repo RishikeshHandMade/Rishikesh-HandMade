@@ -31,6 +31,37 @@ function slugify(text) {
 }
 
 const RandomTourPackageSection = () => {
+  // ...existing state and hooks
+  const handleAddToCart = (item) => {
+    const price = item?.quantity?.variants[0].price;
+    const coupon = item.coupon || item.coupons?.coupon;
+    let discountedPrice = price;
+    let couponApplied = false;
+    let couponCode = "";
+
+    if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+      discountedPrice = price - (price * coupon.percent) / 100;
+      couponApplied = true;
+      couponCode = coupon.couponCode;
+    } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+      discountedPrice = price - coupon.amount;
+      couponApplied = true;
+      couponCode = coupon.couponCode;
+    }
+
+    addToCart({
+      id: item._id,
+      name: item.title,
+      image: item?.gallery?.mainImage || "/placeholder.jpeg",
+      price: Math.round(discountedPrice),
+      originalPrice: price,
+      qty: 1,
+      couponApplied,
+      couponCode: couponApplied ? couponCode : undefined
+    });
+    toast.success("Added to cart!");
+  };
+
   // ...existing state
   const [showReviewModal, setShowReviewModal] = useState(false);
   const { addToCart, addToWishlist, removeFromWishlist, wishlist } = useCart();
@@ -86,15 +117,6 @@ const RandomTourPackageSection = () => {
 
   const normalizedReviews = artisanReviews.map(normalizeReview);
 
-  const handleAddToCart = (item) => {
-    addToCart({
-      id: item._id,
-      name: item.title,
-      image: item?.gallery?.mainImage || "/RandomTourPackageImages/u1.jpg",
-      price: item?.quantity?.variants[0].price,
-    }, 1);
-    toast.success("Added to cart!");
-  };
 
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -362,7 +384,16 @@ const RandomTourPackageSection = () => {
                         {/* GET 10% OFF Tag */}
                         <div className="absolute top-6 left-4 z-10">
                           <div className="bg-white rounded-full px-4 py-1 text-sm font-bold shadow text-black tracking-tight" style={{ letterSpacing: 0 }}>
-                            GET 10% OFF
+                            {(() => {
+                              const coupon = item.coupon || item.coupons?.coupon;
+                              if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+                                return <>GET {coupon.percent}% OFF</>;
+                              } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+                                return <>GET ₹{coupon.amount} OFF</>;
+                              } else {
+                                return <>GET 10% OFF</>;
+                              }
+                            })()}
                           </div>
                         </div>
                         {/* Heart/Wishlist & Cart Buttons - Top Right */}
@@ -376,13 +407,31 @@ const RandomTourPackageSection = () => {
                                 removeFromWishlist(item._id);
                                 toast.success("Removed from wishlist!");
                               } else {
-                                addToWishlist({
-                                  id: item._id,
-                                  name: item.title,
-                                  image: item?.gallery?.mainImage || "/RandomTourPackageImages/u1.jpg",
-                                  price: item?.quantity?.variants[0].price,
-                                  qty: 1
-                                });
+                                const price = item?.quantity?.variants[0].price;
+const coupon = item.coupon || item.coupons?.coupon;
+let discountedPrice = price;
+let couponApplied = false;
+let couponCode = "";
+
+if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+  discountedPrice = price - (price * coupon.percent) / 100;
+  couponApplied = true;
+  couponCode = coupon.couponCode;
+} else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+  discountedPrice = price - coupon.amount;
+  couponApplied = true;
+  couponCode = coupon.couponCode;
+}
+addToWishlist({
+  id: item._id,
+  name: item.title,
+  image: item?.gallery?.mainImage || "/placeholder.jpeg",
+  price: Math.round(discountedPrice),
+  originalPrice: price,
+  qty: 1,
+  couponApplied,
+  couponCode: couponApplied ? couponCode : undefined
+});
                                 toast.success("Added to wishlist!");
                               }
                             }}
@@ -440,7 +489,33 @@ const RandomTourPackageSection = () => {
                         >
                           {item?.title}
                         </Link>
-                        <span className="font-bold text-xl text-gray-900"> ₹{formatNumeric(item?.quantity?.variants[0].price)}</span>
+                        {(() => {
+                          const price = item?.quantity?.variants[0].price;
+                          const coupon = item.coupon || item.coupons?.coupon;
+                          let discountedPrice = price;
+                          let hasDiscount = false;
+
+                          if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+                            discountedPrice = price - (price * coupon.percent) / 100;
+                            hasDiscount = true;
+                          } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+                            discountedPrice = price - coupon.amount;
+                            hasDiscount = true;
+                          }
+
+                          if (hasDiscount && discountedPrice < price) {
+                            return (
+                              <span>
+                                <del className="text-black font-bold text-xl mr-2">₹{formatNumeric(price)}</del>
+                                <span className="font-bold text-xl text-black px-2">₹{formatNumeric(Math.round(discountedPrice))}</span>
+                              </span>
+                            );
+                          } else {
+                            return (
+                              <span className="font-bold text-xl text-black">₹{formatNumeric(price)}</span>
+                            );
+                          }
+                        })()}
                       </div>
                     </div>
                   </CarouselItem>

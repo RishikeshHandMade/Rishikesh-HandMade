@@ -21,7 +21,7 @@ function hexToColorName(hex) {
 }
 
 function StickyAddToCartBar({ product }) {
-   const { addToCart} = useCart();
+  const { addToCart } = useCart();
   // Extract sizes from variants
   const variants = Array.isArray(product?.quantity?.variants) ? product.quantity.variants : [];
   const [selectedVariantIdx, setSelectedVariantIdx] = useState(0);
@@ -51,9 +51,8 @@ function StickyAddToCartBar({ product }) {
 
   return (
     <div
-      className={`fixed left-0 bottom-0 w-full bg-white shadow-xl z-50 transition-transform duration-300 ${
-        showBar ? "translate-y-0" : "translate-y-full"
-      }`}
+      className={`fixed left-0 bottom-0 w-full bg-white shadow-xl z-50 transition-transform duration-300 ${showBar ? "translate-y-0" : "translate-y-full"
+        }`}
     >
       <div className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
         {/* Product Info */}
@@ -61,7 +60,40 @@ function StickyAddToCartBar({ product }) {
           <img src={product?.gallery?.mainImage || "/placeholder.png"} alt={product?.title} className="w-16 h-16 object-cover rounded" />
           <div>
             <div className="font-semibold text-xl">{product?.title}</div>
-            <div className="font-bold text-md">₹{selectedVariant ? selectedVariant.price : product?.price}</div>
+            {(() => {
+              const coupon = product.coupon || product.coupons?.coupon;
+              const originalPrice = selectedVariant ? selectedVariant.price : product?.price;
+              let discountedPrice = originalPrice;
+              let couponApplied = false;
+              let couponCode = '';
+              let discountLabel = '';
+              if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+                discountedPrice = originalPrice - (originalPrice * coupon.percent) / 100;
+                couponApplied = true;
+                couponCode = coupon.couponCode;
+                discountLabel = `-${coupon.percent}%`;
+              } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+                discountedPrice = originalPrice - coupon.amount;
+                couponApplied = true;
+                couponCode = coupon.couponCode;
+                discountLabel = `-₹${coupon.amount?.toLocaleString('en-IN')}`;
+              }
+              if (couponApplied) {
+                return (
+                  <>
+                    <span className="inline-block border border-red-500 text-red-500 text-xs rounded px-2 py-0.5 font-semibold mb-1">
+                      Coupon Applied: {couponCode} <span className="ml-1">({discountLabel})</span>
+                    </span>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-gray-400 line-through text-lg">₹{originalPrice?.toLocaleString('en-IN')}</span>
+                      <span className="text-xl font-bold text-red-600">₹{Math.round(discountedPrice)?.toLocaleString('en-IN')}</span>
+                    </div>
+                  </>
+                );
+              } else {
+                return <span className="text-xl font-bold">₹{originalPrice?.toLocaleString('en-IN')}</span>;
+              }
+            })()}
           </div>
         </div>
         {/* Options, Quantity, Add to Cart */}

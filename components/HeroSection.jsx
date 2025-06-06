@@ -192,7 +192,49 @@ const HeroSection = () => {
     <section className="bg-[#fcf7f1] relative xl:h-screen h-full w-full px-2 overflow-hidden z-0 group">
       <div className="hidden xl:block w-full h-screen ">
         {/* Carousel for desktop: each slide shows front image, details, back image in a single row */}
-        <div className="flex flex-col items-center justify-center h-screen w-full relative">
+
+        
+        <div className="w-full">
+  {/* Promo Bar - Top */}
+  <div className="w-full bg-[#faf3eb] border-b border-neutral-200">
+    <div className="flex flex-col md:flex-row items-center justify-between max-w-7xl mx-auto py-2 px-2 gap-2">
+      <div className="flex-1 flex flex-col items-center md:items-start">
+        <span className="font-semibold text-lg md:text-xl">FREE SHIPPING OVER $99*</span>
+        <span className="text-xs text-neutral-600">Plus, two-day delivery on thousands of items.</span>
+      </div>
+      <div className="hidden md:block w-px h-8 bg-neutral-200 mx-6"></div>
+      <div className="flex-1 flex flex-col items-center md:items-end">
+        <span className="font-semibold text-lg md:text-xl">AMAZING VALUE EVERY DAY</span>
+        <span className="text-xs text-neutral-600">Items you love at prices that fit your budget.</span>
+      </div>
+    </div>
+  </div>
+  {/* Feature Icons Row */}
+  <div className="w-full bg-[#f7f7f7] border-b border-neutral-200">
+    <div className="flex flex-wrap md:flex-nowrap items-center justify-between max-w-7xl mx-auto py-3 px-2 gap-4">
+      <div className="flex items-center gap-2 flex-1 min-w-[120px]">
+        <span className="text-xl"><svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="1" y="1" rx="2"/><path d="M16 3v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V3"/></svg></span>
+        <span className="font-semibold text-xs md:text-sm">FREE GIFT WRAPPING</span>
+      </div>
+      <div className="hidden md:block w-px h-6 bg-neutral-200"></div>
+      <div className="flex items-center gap-2 flex-1 min-w-[120px]">
+        <span className="text-xl"><svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3h2l.4 2M7 13h10l1.2-6H6.4"/><circle cx="9" cy="19" r="2"/><circle cx="17" cy="19" r="2"/></svg></span>
+        <span className="font-semibold text-xs md:text-sm">EASY & FREE RETURNS</span>
+      </div>
+      <div className="hidden md:block w-px h-6 bg-neutral-200"></div>
+      <div className="flex items-center gap-2 flex-1 min-w-[120px]">
+        <span className="text-xl"><svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12l2 2 4-4"/></svg></span>
+        <span className="font-semibold text-xs md:text-sm">STUDENT DISCOUNT</span>
+      </div>
+      <div className="hidden md:block w-px h-6 bg-neutral-200"></div>
+      <div className="flex items-center gap-2 flex-1 min-w-[120px]">
+        <span className="text-xl"><svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="1" y="1" rx="2"/><path d="M12 8v4"/><path d="M8 12h8"/></svg></span>
+        <span className="font-semibold text-xs md:text-sm">100% SECURE SHOPPING</span>
+      </div>
+    </div>
+  </div>
+</div>
+<div className="flex flex-col items-center justify-center h-screen w-full relative">
           <Carousel className="h-screen w-full" plugins={[plugin.current]} onMouseLeave={plugin.current.reset} setApi={setApi} >
             <CarouselContent className="h-screen">
               {banners.map((banner, index) => (

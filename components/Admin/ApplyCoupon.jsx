@@ -6,7 +6,6 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, Dialo
 import toast from "react-hot-toast"
 const ApplyCoupon = ({ productData, productId }) => {
   const [coupons, setCoupons] = useState([]); // All available coupons
-  // Selected coupons: array of objects { couponCode, startDate, endDate, percent, amount }
   // Only one coupon per product
   const [selectedCoupon, setSelectedCoupon] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -61,7 +60,6 @@ const ApplyCoupon = ({ productData, productId }) => {
     fetchProducts();
   }, []);
 
-  // When editing, fetch coupon for that product
   useEffect(() => {
     if (!editProductId) return;
     const fetchProductCoupon = async () => {
@@ -76,28 +74,18 @@ const ApplyCoupon = ({ productData, productId }) => {
     fetchProductCoupon();
   }, [editProductId]);
 
-  // Always clear selectedCoupon when exiting edit mode
   useEffect(() => {
     if (editProductId === null) {
       setSelectedCoupon(null);
     }
   }, [editProductId]);
 
-  // Add coupon
-  // Add coupon with default fields
   const handleSelectCoupon = (couponCode) => {
-    // Find coupon details from coupons list
-    const couponObj = coupons.find(c => c.couponCode === couponCode);
     setSelectedCoupon({
       couponCode,
-      startDate: couponObj?.startDate || '',
-      endDate: couponObj?.endDate || '',
-      percent: couponObj?.percent || '',
-      amount: couponObj?.amount || ''
     });
   };
 
-  // Remove coupon
   const handleRemoveCoupon = () => {
     setSelectedCoupon(null);
   };
@@ -121,73 +109,26 @@ const ApplyCoupon = ({ productData, productId }) => {
               <SelectValue placeholder={loading ? 'Loading...' : 'Select coupon'} />
             </SelectTrigger>
             <SelectContent>
-              {coupons.length === 0 && (
+              {(Array.isArray(coupons) && coupons.length === 0) && (
                 <div className="p-2 text-gray-400">No coupons found</div>
               )}
-              {coupons.map(coupon => (
-                <SelectItem key={coupon._id} value={coupon.couponCode} disabled={selectedCoupons.includes(coupon.couponCode)}>
+              {(Array.isArray(coupons) ? coupons : []).map(coupon => (
+                <SelectItem key={coupon._id} value={coupon.couponCode} disabled={selectedCoupon?.couponCode === coupon.couponCode}>
                   {coupon.couponCode} {coupon.percent ? `(${coupon.percent}% off)` : coupon.amount ? `(-₹${coupon.amount})` : ''}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          {selectedCoupons.length > 0 && (
+          {selectedCoupon && (
             <div className="flex flex-col gap-2 mt-2">
-              {selectedCoupons.map((c, idx) => (
-                <div key={c.couponCode + '-' + idx} className="flex flex-wrap items-center gap-2 border p-2 rounded bg-gray-50">
-                  <Badge key={c.couponCode + '-' + idx} variant="secondary" className="flex items-center gap-1 pr-1">
-                    {c.couponCode}
-                    <button className="ml-1" onClick={() => handleRemoveCoupon(c.couponCode)}>
-                      <X size={12} />
-                    </button>
-                  </Badge>
-                  <input
-                    type="date"
-                    className="border rounded px-1 py-0.5 text-xs"
-                    value={c.startDate ? c.startDate.slice(0,10) : ''}
-                    onChange={e => {
-                      const v = e.target.value;
-                      setSelectedCoupons(selectedCoupons.map((sc, i) => i === idx ? { ...sc, startDate: v } : sc));
-                    }}
-                    title="Start Date"
-                  />
-                  <input
-                    type="date"
-                    className="border rounded px-1 py-0.5 text-xs"
-                    value={c.endDate ? c.endDate.slice(0,10) : ''}
-                    onChange={e => {
-                      const v = e.target.value;
-                      setSelectedCoupons(selectedCoupons.map((sc, i) => i === idx ? { ...sc, endDate: v } : sc));
-                    }}
-                    title="End Date"
-                  />
-                  <input
-                    type="number"
-                    className="border rounded px-1 py-0.5 text-xs w-16"
-                    placeholder="Percent"
-                    value={c.percent}
-                    onChange={e => {
-                      const v = e.target.value;
-                      setSelectedCoupons(selectedCoupons.map((sc, i) => i === idx ? { ...sc, percent: v } : sc));
-                    }}
-                    min={0}
-                    max={100}
-                    title="Percent Discount"
-                  />
-                  <input
-                    type="number"
-                    className="border rounded px-1 py-0.5 text-xs w-16"
-                    placeholder="Amount"
-                    value={c.amount}
-                    onChange={e => {
-                      const v = e.target.value;
-                      setSelectedCoupons(selectedCoupons.map((sc, i) => i === idx ? { ...sc, amount: v } : sc));
-                    }}
-                    min={0}
-                    title="Amount Discount"
-                  />
-                </div>
-              ))}
+              <div className="flex flex-wrap items-center gap-2 border p-2 rounded bg-gray-50">
+                <Badge variant="secondary" className="flex items-center gap-1 pr-1">
+                  {selectedCoupon.couponCode}
+                  <button className="ml-1" onClick={handleRemoveCoupon}>
+                    <X size={12} />
+                  </button>
+                </Badge>
+              </div>
             </div>
           )}
         </div>
@@ -198,37 +139,44 @@ const ApplyCoupon = ({ productData, productId }) => {
             onClick={async () => {
               setSaving(true);
               try {
-                // Validate coupons before sending
-                const couponsPayload = selectedCoupons.map(c => ({
-                  couponCode: c.couponCode,
-                  startDate: c.startDate,
-                  endDate: c.endDate,
-                  percent: c.percent ? Number(c.percent) : undefined,
-                  amount: c.amount ? Number(c.amount) : undefined
-                }));
-                const payload = { productId: editProductId || productId, coupons: couponsPayload };
+                // Validate coupon before sending
+                const couponObj = coupons.find(c => c.couponCode === selectedCoupon.couponCode) || {};
+                const couponPayload = {
+                  couponCode: selectedCoupon.couponCode,
+                  startDate: couponObj.startDate,
+                  endDate: couponObj.endDate,
+                  percent: couponObj.percent,
+                  amount: couponObj.amount
+                };
+                const payload = { productId: editProductId || productId, coupon: couponPayload };
                 const res = await fetch('/api/productCoupon', {
                   method: editProductId ? 'PATCH' : 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(payload)
+                  body: JSON.stringify(payload),
                 });
                 const data = await res.json();
                 if (res.ok) {
                   toast.success('Coupons saved!');
                   setEditProductId(null);
-                  setSelectedCoupons([]);
-                  // Refresh table
-                  const allRes = await fetch('/api/productCoupon');
-                  setAllProductCoupons(await allRes.json());
+                  setSelectedCoupon(null);
+                  // Refresh table after update or create
+                  try {
+                    const res2 = await fetch('/api/productCoupon');
+                    const data2 = await res2.json();
+                    setAllProductCoupons(Array.isArray(data2) ? data2 : []);
+                  } catch {
+                    setAllProductCoupons([]);
+                  }
+                  // Defensive: clear form after creating new coupon
+                  if (!editProductId) {
+                    setSelectedCoupon(null);
+                  }
 
-                } else if (res.status === 409) {
-                  toast.error(data.error || 'Coupons for this product already exist.');
-                  // Do not clear the form
                 } else {
-                  toast.error(data.error || 'Failed to save coupons');
+                  toast.error(data.error || 'Failed to save coupon');
                 }
               } catch (err) {
-                toast.error('Failed to save coupons');
+                toast.error('Failed to save coupon');
               } finally {
                 setSaving(false);
               }
@@ -241,7 +189,7 @@ const ApplyCoupon = ({ productData, productId }) => {
               className="ml-2 px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
               onClick={() => {
                 setEditProductId(null);
-                setSelectedCoupons([]);
+                setSelectedCoupon(null);
               }}
             >
               Cancel
@@ -263,10 +211,10 @@ const ApplyCoupon = ({ productData, productId }) => {
               </tr>
             </thead>
             <tbody>
-              {allProductCoupons.length === 0 && (
+              {/* {(Array.isArray(allProductCoupons) && allProductCoupons.length === 0) && (
                 <tr><td colSpan={4} className="text-center py-2">No data</td></tr>
-              )}
-              {allProductCoupons.map((row, idx) => {
+              )} */}
+              {(Array.isArray(allProductCoupons) ? allProductCoupons : []).map((row, idx) => {
                 const prod = products.find(p => p._id === row.productId) || {};
                 return (
                   <tr key={row.productId}>
@@ -277,7 +225,7 @@ const ApplyCoupon = ({ productData, productId }) => {
                         {row.coupon ? (
                           <Badge variant="secondary">{row.coupon.couponCode}</Badge>
                         ) : (
-                          <span>No coupon</span>
+                          <span className="text-gray-400">No coupon</span>
                         )}
                       </div>
                     </td>
@@ -293,40 +241,54 @@ const ApplyCoupon = ({ productData, productId }) => {
                           <DialogHeader>
                             <DialogTitle>Delete Coupon Mapping</DialogTitle>
                           </DialogHeader>
-                          <div className="my-4">Are you sure you want to delete coupon for <b>{prod.title || prod.name || row.productId}</b>?</div>
+                          <div className="my-4">Are you sure you want to delete coupons for <b>{prod.title || prod.name || row.productId}</b>?</div>
                           <DialogFooter>
                             <button className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300" onClick={() => setDeleteDialog({ open: false, productId: null })}>Cancel</button>
-                            <button className="ml-2 px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700" onClick={async () => {
-                              try {
-                                const res = await fetch('/api/productCoupon', {
-                                  method: 'DELETE',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ productId: row.productId })
-                                });
-                                if (res.ok) {
-                                  toast.success('Deleted!');
-                                  setAllProductCoupons(allProductCoupons.filter(r => r.productId !== row.productId));
-                                } else {
-                                  toast.error('Delete failed');
+                            <button
+                              className="ml-2 px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-60"
+                              disabled={saving}
+                              onClick={async () => {
+                                setSaving(true);
+                                try {
+                                  const res = await fetch('/api/productCoupon', {
+                                    method: 'DELETE',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ productId: row.productId })
+                                  });
+                                  const data = await res.json();
+                                  if (res.ok) {
+                                    toast.success('Coupon mapping deleted!');
+                                    setDeleteDialog({ open: false, productId: null });
+                                    // Refresh table
+                                    const res2 = await fetch('/api/productCoupon');
+                                    const data2 = await res2.json();
+                                    setAllProductCoupons(Array.isArray(data2) ? data2 : []);
+                                  } else {
+                                    toast.error(data.error || 'Failed to delete coupon mapping');
+                                  }
+                                } catch (err) {
+                                  toast.error('Failed to delete coupon mapping');
+                                } finally {
+                                  setSaving(false);
                                 }
-                              } catch {
-                                toast.error('Delete failed');
-                              } finally {
-                                setDeleteDialog({ open: false, productId: null });
-                              }
-                            }}>Delete</button>
+                              }}
+                            >
+                              {saving ? 'Deleting...' : 'Delete'}
+                            </button>
                           </DialogFooter>
                         </DialogContent>
                       </Dialog>
                     </td>
                   </tr>
-                );
-              })}
+                )
+              }
+              )}
             </tbody>
           </table>
         </div>
       </div>
     </div>
+
   );
 }
 

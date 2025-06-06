@@ -63,15 +63,49 @@ export default function QuickViewProductCard({ product, onClose }) {
         {/* Description */}
         <p className="text-gray-600 mb-4">{product?.description || "No Description"}</p>
         {/* Price & Quantity */}
+        <div className="flex flex-col gap-1 mb-2">
+          {/* Coupon badge and price display */}
+          {(() => {
+            const coupon = product.coupon || product.coupons?.coupon;
+            const originalPrice = product?.quantity?.variants[0].price;
+            let discountedPrice = originalPrice;
+            let couponApplied = false;
+            let couponCode = '';
+            let discountLabel = '';
+            if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+              discountedPrice = originalPrice - (originalPrice * coupon.percent) / 100;
+              couponApplied = true;
+              couponCode = coupon.couponCode;
+              discountLabel = `-${coupon.percent}%`;
+            } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+              discountedPrice = originalPrice - coupon.amount;
+              couponApplied = true;
+              couponCode = coupon.couponCode;
+              discountLabel = `-₹${formatNumeric(coupon.amount)}`;
+            }
+            if (couponApplied) {
+              return (
+                <>
+                  <span className="inline-block border border-red-500 text-red-500 text-xs rounded px-2 py-0.5 font-semibold mb-1">
+                    Coupon Applied: {couponCode} <span className="ml-1">({discountLabel})</span>
+                  </span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-gray-400 line-through text-lg">₹{formatNumeric(originalPrice)}</span>
+                    <span className="text-2xl font-bold text-red-600">₹{formatNumeric(Math.round(discountedPrice))}</span>
+                  </div>
+                </>
+              );
+            } else {
+              return (
+                <span className="text-2xl font-bold">₹{formatNumeric(originalPrice)}</span>
+              );
+            }
+          })()}
+        </div>
         <div className="flex items-center gap-4 mb-4">
           <div className="flex flex-col">
-            <span className="font-bold">Price</span>
-            <span className="text-2xl font-bold mr-2"> ₹{formatNumeric(product?.quantity?.variants[0].price) || "N/A"}</span>
-            {/* <span className="text-gray-400 line-through">${product.originalPrice || "132.17"}</span> */}
-          </div>
-          <div className="flex items-center gap-2 flex-col">
             <span className="font-bold">Quantity</span>
-            <div className="flex gap-2">
+            <div className="flex gap-2 mt-1">
               <button className="border px-4 py-2 rounded-full text-xl" onClick={() => setQuantity(q => Math.max(1, q - 1))}>-</button>
               <span className="px-4 py-2 rounded-md border">{quantity}</span>
               <button className="border px-4 py-2 rounded-full text-xl" onClick={() => setQuantity(q => q + 1)}>+</button>
@@ -82,34 +116,71 @@ export default function QuickViewProductCard({ product, onClose }) {
         <div className="flex gap-2 mb-4 w-full">
           <button
             className="bg-black text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-800 w-1/2"
-            onClick={() => addToCart({
-              id: product._id,
-              name: product.title,
-              image: product?.gallery?.mainImage || "/placeholder.png",
-              price: product?.quantity?.variants[0].price,
-            }, quantity)}
+            onClick={() => {
+              const coupon = product.coupon || product.coupons?.coupon;
+              const originalPrice = product?.quantity?.variants[0].price;
+              let discountedPrice = originalPrice;
+              let couponApplied = false;
+              let couponCode = '';
+              if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+                discountedPrice = originalPrice - (originalPrice * coupon.percent) / 100;
+                couponApplied = true;
+                couponCode = coupon.couponCode;
+              } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+                discountedPrice = originalPrice - coupon.amount;
+                couponApplied = true;
+                couponCode = coupon.couponCode;
+              }
+              addToCart({
+                id: product._id,
+                name: product.title,
+                image: product?.gallery?.mainImage || "/placeholder.png",
+                price: couponApplied ? Math.round(discountedPrice) : originalPrice,
+                originalPrice,
+                couponApplied,
+                couponCode,
+              }, quantity);
+            }}
           >ADD TO CART</button>
           <button
             className="border border-black px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 w-1/2 flex items-center gap-2"
-            onClick={() => addToWishlist({
-              id: product._id,
-              name: product.title,
-              image: product?.gallery?.mainImage || "/placeholder.png",
-              price: product?.quantity?.variants[0].price,
-              qty: quantity
-            })}
+            onClick={() => {
+              const coupon = product.coupon || product.coupons?.coupon;
+              const originalPrice = product?.quantity?.variants[0].price;
+              let discountedPrice = originalPrice;
+              let couponApplied = false;
+              let couponCode = '';
+              if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+                discountedPrice = originalPrice - (originalPrice * coupon.percent) / 100;
+                couponApplied = true;
+                couponCode = coupon.couponCode;
+              } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+                discountedPrice = originalPrice - coupon.amount;
+                couponApplied = true;
+                couponCode = coupon.couponCode;
+              }
+              addToWishlist({
+                id: product._id,
+                name: product.title,
+                image: product?.gallery?.mainImage || "/placeholder.png",
+                price: couponApplied ? Math.round(discountedPrice) : originalPrice,
+                originalPrice,
+                couponApplied,
+                couponCode,
+                qty: quantity
+              });
+            }}
           ><Heart />Add To Wishlist</button>
         </div>
         {/* Divider */}
         <hr className="my-1" />
         {/* Info Rows */}
-        {/* <div className="text-sm mb-1"><span className="font-bold">SKU:</span> {product.sku || "PRT584E63A"}</div> */}
-        {/* <div className="text-sm mb-1">
-    <span className="font-bold">Category:</span>
-    {Array.isArray(product.categoryTag?.tags) && product.categoryTag.tags.length > 0
-      ? product.categoryTag.tags.join(', ')
-      : (product.category || "Dresses, Jeans, Swimwear, Summer, Clothing")}
-  </div> */}
+        <div className="text-sm mb-1">
+          <span className="font-bold">Category:</span>
+          {Array.isArray(product.categoryTag?.tags) && product.categoryTag.tags.length > 0
+            ? product.categoryTag.tags.join(', ')
+            : (product.category || "Dresses, Jeans, Swimwear, Summer, Clothing")}
+        </div>
         <div className="text-sm mb-1">
           <span className="font-bold">Tags:</span>
           {Array.isArray(product.categoryTag?.tags) && product.categoryTag.tags.length > 0 ? (

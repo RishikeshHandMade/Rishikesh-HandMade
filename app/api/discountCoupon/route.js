@@ -5,7 +5,13 @@ export async function GET(req) {
   await connectDB();
   try {
     const discounts = await Discount.find();
-    return Response.json(discounts);
+    // Ensure all coupons have startDate and endDate
+    const normalized = discounts.map(coupon => ({
+      ...coupon.toObject(),
+      startDate: coupon.startDate || null,
+      endDate: coupon.endDate || null
+    }));
+    return Response.json(normalized);
   } catch (err) {
     return Response.json({ error: 'Failed to fetch discounts' }, { status: 500 });
   }
