@@ -81,12 +81,12 @@ function StickyAddToCartBar({ product }) {
               if (couponApplied) {
                 return (
                   <>
-                    <span className="inline-block border border-red-500 text-red-500 text-xs rounded px-2 py-0.5 font-semibold mb-1">
+                    <span className="inline-block border border-green-500 text-green-500 text-xs rounded px-2 py-0.5 font-semibold mb-1">
                       Coupon Applied: {couponCode} <span className="ml-1">({discountLabel})</span>
                     </span>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-gray-400 line-through text-lg">₹{originalPrice?.toLocaleString('en-IN')}</span>
-                      <span className="text-xl font-bold text-red-600">₹{Math.round(discountedPrice)?.toLocaleString('en-IN')}</span>
+                      <span className="text-gray-600 line-through text-lg">₹{originalPrice?.toLocaleString('en-IN')}</span>
+                      <span className="text-xl font-bold text-black">₹{Math.round(discountedPrice)?.toLocaleString('en-IN')}</span>
                     </div>
                   </>
                 );
@@ -152,14 +152,31 @@ function StickyAddToCartBar({ product }) {
                 toast.error("Please select a variant.");
                 return;
               }
-              // Add to cart with relevant details
+              // Calculate discount and coupon info
+              const coupon = product.coupon || product.coupons?.coupon;
+              const originalPrice = selectedVariant.price;
+              let discountedPrice = originalPrice;
+              let couponApplied = false;
+              let couponCode = '';
+              if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+                discountedPrice = originalPrice - (originalPrice * coupon.percent) / 100;
+                couponApplied = true;
+                couponCode = coupon.couponCode;
+              } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+                discountedPrice = originalPrice - coupon.amount;
+                couponApplied = true;
+                couponCode = coupon.couponCode;
+              }
               addToCart({
                 id: product._id,
                 name: product.title,
                 image: product.gallery?.mainImage || "/placeholder.png",
-                price: selectedVariant.price,
+                price: Math.round(discountedPrice),
+                originalPrice: originalPrice,
                 size: selectedVariant.size,
                 color: selectedVariant.color,
+                couponApplied,
+                couponCode: couponApplied ? couponCode : undefined
               }, quantity);
               toast.success("Added to cart!");
             }}

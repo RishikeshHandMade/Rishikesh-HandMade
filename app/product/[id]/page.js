@@ -41,10 +41,10 @@ const ProductDetailPage = async ({ params }) => {
        );
        if (fbtRes.ok) {
            frequentlyBoughtTogether = await fbtRes.json();
-           console.log('Fetched frequently bought together products:', frequentlyBoughtTogether);
+        //    console.log('Fetched frequently bought together products:', frequentlyBoughtTogether);
        }
    } catch (error) {
-       console.error('Error fetching frequently bought together products:', error);
+    //    console.error('Error fetching frequently bought together products:', error);
    }
 
     // Fetch related products only if we have a valid product
@@ -64,7 +64,7 @@ const ProductDetailPage = async ({ params }) => {
             // console.log('Fetched related products:', relatedProducts);
         }
     } catch (error) {
-        console.error('Error fetching related products:', error);
+    //    console.error('Error fetching related products:', error);
         // Don't throw the error, just show the product without related items
     }
 

@@ -148,8 +148,12 @@ export default function ProductDetailView({ product }) {
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
+                { product.gallery.subImages.length > 5 && (
+                  <>
+                  <CarouselPrevious />
+                  <CarouselNext />
+                  </>
+                )}
               </Carousel>
             </div>
           </div>
@@ -180,8 +184,8 @@ export default function ProductDetailView({ product }) {
         <div className="mb-4">
           {hasDiscount && (
             <div className="flex items-center gap-2 mb-1">
-              <del className="text-gray-400 text-lg mr-2">₹{formatNumeric(selectedVariant.price)}</del>
-              <span className="font-bold text-xl text-red-600">₹{formatNumeric(Math.round(discountedPrice))}</span>
+              <del className="text-gray-600 font-semibold text-lg mr-2">₹{formatNumeric(selectedVariant.price)}</del>
+              <span className="font-bold text-xl text-black">₹{formatNumeric(Math.round(discountedPrice))}</span>
               <span className="border border-green-500 text-green-700 px-2 py-0.5 rounded text-xs font-semibold bg-green-50">Coupon Applied: {couponText}</span>
             </div>
           )}

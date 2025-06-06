@@ -55,7 +55,7 @@ const CategoryPage = async ({ params }) => {
   // products is now an array of full product objects
   const products = Array.isArray(categoryData.products) ? categoryData.products : [];
   const visibleProducts = products.filter(prod => prod.active !== false);
-  // console.log(visibleProducts)
+  console.log(visibleProducts)
   const categoryInfo = await getCategoryInfo(categoryData);
 
   // Fetch category advertisement banner
@@ -153,6 +153,8 @@ const CategoryPage = async ({ params }) => {
                         name: item.title,
                         image: item.gallery?.mainImage,
                         price: (item.quantity && Array.isArray(item.quantity.variants) && item.quantity.variants.length > 0 ? item.quantity.variants[0].price : 0),
+                        originalPrice: item.quantity?.originalPrice,
+                        coupon: item.coupon,
                       }}
                     />
                   ))}

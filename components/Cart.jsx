@@ -98,7 +98,7 @@ export default function Cart({ open, onClose, initialTab = "cart" }) {
                   {tab === "cart" ? (
                     <button onClick={() => removeFromCart(item.id)} className="text-neutral-400 hover:text-red-500"><X size={18} /></button>
                   ) : (
-                    <button onClick={() => { removeFromWishlist(item.id); removeFromCart(item.id); }} className="text-neutral-400 hover:text-red-500"><X size={18} /></button>
+                    <button onClick={() => removeFromWishlist(item.id)} className="text-neutral-400 hover:text-red-500"><X size={18} /></button>
                   )}
                 </div>
               </div>

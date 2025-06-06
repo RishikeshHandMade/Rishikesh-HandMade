@@ -32,6 +32,7 @@ export const GET = async (req, { params }) => {
             const productDocs = await Product.find({ _id: { $in: productIds } })
                 .populate({ path: 'gallery' })
                 .populate('quantity')
+                .populate('coupons')
                 .lean();
             submenu.products = productDocs;
             // console.log('After population:', submenu.products);

@@ -107,12 +107,40 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
                   <div className="flex items-center justify-between gap-1">
                     <span className="text-base font-semibold truncate" title={product.name || product.title || product.packageName}>{product.name || product.title || product.packageName}</span>
 
-                    <span className="text-lg font-bold ">
-                    ₹{product.quantity?.variants[0].price || '00'}
-                      {/* {product.quantity?.variants[0].price?.priceRange
-                        ? `₹${product.quantity?.variants[0].price.minPrice?.toFixed(2)} - ₹${product.quantity?.variants[0].price.maxPrice?.toFixed(2)}`
-                        : `₹${(product.quantity?.variants[0].price.price ?? product.quantity?.variants[0].price.minPrice ?? 0).toFixed(2)}`} */}
-                    </span>
+                    {(() => {
+                      const price = product.quantity?.variants?.[0]?.price || product.price || product.minPrice || 0;
+                      const coupon = product.coupon || product.coupons?.coupon;
+                      let discountedPrice = price;
+                      let couponApplied = false;
+                      let couponCode = '';
+                      let discountLabel = '';
+                      if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+                        discountedPrice = price - (price * coupon.percent) / 100;
+                        couponApplied = true;
+                        couponCode = coupon.couponCode;
+                        discountLabel = `-${coupon.percent}%`;
+                      } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+                        discountedPrice = price - coupon.amount;
+                        couponApplied = true;
+                        couponCode = coupon.couponCode;
+                        discountLabel = `-₹${coupon.amount?.toLocaleString('en-IN')}`;
+                      }
+                      if (couponApplied) {
+                        return (
+                          <>
+                            {/* <span className="inline-block border border-green-500 text-green-500 text-xs rounded px-2 py-0.5 font-semibold mb-1 mr-2">
+                              Coupon Applied: {couponCode} <span className="ml-1">({discountLabel})</span>
+                            </span> */}
+                            <div className="flex items-center gap-1">
+                              <span className="text-gray-600 line-through text-lg mr-2">₹{price?.toLocaleString('en-IN')}</span>
+                              <span className="text-xl font-bold text-black">₹{Math.round(discountedPrice)?.toLocaleString('en-IN')}</span>
+                            </div>
+                          </>
+                        );
+                      } else {
+                        return <span className="text-xl font-bold text-black">₹{price?.toLocaleString('en-IN')}</span>;
+                      }
+                    })()}
                   </div>
                 </div>
                 {/* <button className="mt-5 border border-black text-black py-2 rounded-lg w-full hover:bg-gray-100 text-sm font-bold transition-colors">
@@ -129,11 +157,43 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
           ))}
         </div>
         {/* Summary - Sticky on desktop */}
-        <div className="flex flex-col gap-4 min-w-[200px] border rounded-2xl p-8 shadow-lg items-center md:sticky md:top-24 md:self-start w-full md:w-auto">
+        <div className="flex flex-col gap-4 min-w-[200px] border rounded-2xl p-10 shadow-lg items-center md:sticky md:top-24 md:self-start w-full md:w-auto">
           <div className="text-base text-gray-700 font-semibold mb-1">Price Total:</div>
-          <div className="flex gap-2 items-center mb-2">
-            <span className="text-2xl font-bold text-black">₹{total.toFixed(2)}</span>
-          </div>
+          {(() => {
+              let originalTotal = 0;
+              let discountedTotal = 0;
+              let anyDiscount = false;
+              displayProducts.forEach((product, idx) => {
+                if (!selected[idx]) return;
+                const price = product.quantity?.variants?.[0]?.price || product.price || product.minPrice || 0;
+                const coupon = product.coupon || product.coupons?.coupon;
+                let discountedPrice = price;
+                if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+                  discountedPrice = price - (price * coupon.percent) / 100;
+                  anyDiscount = true;
+                } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+                  discountedPrice = price - coupon.amount;
+                  anyDiscount = true;
+                }
+                originalTotal += price;
+                discountedTotal += discountedPrice;
+              });
+              if (anyDiscount) {
+                return (
+                  <div className="flex gap-2 items-center mb-2">
+                    <span className="text-gray-600 line-through text-lg">₹{originalTotal.toLocaleString('en-IN')}</span>
+                    <span className="text-2xl font-bold text-black">₹{Math.round(discountedTotal).toLocaleString('en-IN')}</span>
+                  </div>
+                );
+              } else {
+                return (
+                  <div className="flex gap-2 items-center mb-2">
+                    <span className="text-2xl font-bold text-black">₹{originalTotal.toLocaleString('en-IN')}</span>
+                  </div>
+                );
+              }
+            })()}
+
            <button
             className="bg-black text-white w-full py-3 rounded-lg font-bold text-base mb-2 hover:bg-gray-900 transition"
             onClick={() => {
@@ -142,11 +202,28 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
               displayProducts.forEach((p, i) => {
                 if (selected[i]) {
                   // Use similar logic as ProductDetailView
+                  const price = p.quantity?.variants?.[0]?.price || p.price || p.minPrice || 0;
+                  const coupon = p.coupon || p.coupons?.coupon;
+                  let discountedPrice = price;
+                  let couponApplied = false;
+                  let couponCode = '';
+                  if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+                    discountedPrice = price - (price * coupon.percent) / 100;
+                    couponApplied = true;
+                    couponCode = coupon.couponCode;
+                  } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+                    discountedPrice = price - coupon.amount;
+                    couponApplied = true;
+                    couponCode = coupon.couponCode;
+                  }
                   addToCart({
                     id: p._id || p.id,
                     name: p.title || p.name,
                     image: (p.gallery?.mainImage) || (p.image?.url) || p.image || "/RandomTourPackageImages/u1.jpg",
-                    price: (p.quantity?.variants?.[0]?.price) || p.price || p.minPrice || 0,
+                    price: Math.round(discountedPrice),
+                    originalPrice: price,
+                    couponApplied,
+                    couponCode: couponApplied ? couponCode : undefined
                   }, 1);
                   added++;
                 }
@@ -158,7 +235,7 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
               }
             }}
           >ADD ALL TO CART</button>
-          <div className="text-xs text-center text-gray-700">Get a 10% discount buying these products together</div>
+          {/* <div className="text-xs text-center text-gray-700">Get a 10% discount buying these products together</div> */}
         </div>
       </div>
     </div>

@@ -13,11 +13,28 @@ function RelatedProductsCarousel({ products }) {
   const safeProducts = Array.isArray(products) ? products : [];
   const { addToCart, addToWishlist, removeFromWishlist, wishlist } = useCart();
   const handleAddToCart = (p) => {
+    const price = p?.quantity?.variants?.[0]?.price || 0;
+    const coupon = p.coupon || p.coupons?.coupon;
+    let discountedPrice = price;
+    let couponApplied = false;
+    let couponCode = '';
+    if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+      discountedPrice = price - (price * coupon.percent) / 100;
+      couponApplied = true;
+      couponCode = coupon.couponCode;
+    } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+      discountedPrice = price - coupon.amount;
+      couponApplied = true;
+      couponCode = coupon.couponCode;
+    }
     addToCart({
       id: p._id,
       name: p.title,
       image: p?.gallery?.mainImage || "/RandomTourPackageImages/u1.jpg",
-      price: p?.quantity?.variants[0].price,
+      price: Math.round(discountedPrice),
+      originalPrice: price,
+      couponApplied,
+      couponCode: couponApplied ? couponCode : undefined
     }, 1);
     toast.success("Added to cart!");
   };
@@ -38,10 +55,17 @@ function RelatedProductsCarousel({ products }) {
                   className="rounded-2xl flex flex-col justify-between w-72 min-w-[270px] p-0 relative overflow-hidden"
                 >
                   {/* Discount badge */}
-                  <div className="absolute left-4 top-4 z-20">
-                    <span className="bg-white text-black font-semibold text-xs px-4 py-1 rounded-full shadow">
-                      GET 20% OFF
-                    </span>
+                  <div className="absolute left-4 top-4 z-20 bg-white rounded-full px-4 py-1 text-sm font-bold text-black tracking-tight">
+                    {(() => {
+                      const coupon = p.coupon || p.coupons?.coupon;
+                      if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+                        return <>GET {coupon.percent}% OFF</>;
+                      } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+                        return <>GET ₹{coupon.amount} OFF</>;
+                      } else {
+                        return <>GET 10% OFF</>;
+                      }
+                    })()}
                   </div>
                   {/* Icons top right, stacked */}
                   <div className="absolute top-6 right-6 z-10 flex flex-col gap-4 items-end">
@@ -54,12 +78,29 @@ function RelatedProductsCarousel({ products }) {
                           removeFromWishlist(p._id);
                           toast.success("Removed from wishlist!");
                         } else {
+                          const price = p?.quantity?.variants?.[0]?.price || 0;
+                          const coupon = p.coupon || p.coupons?.coupon;
+                          let discountedPrice = price;
+                          let couponApplied = false;
+                          let couponCode = '';
+                          if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+                            discountedPrice = price - (price * coupon.percent) / 100;
+                            couponApplied = true;
+                            couponCode = coupon.couponCode;
+                          } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+                            discountedPrice = price - coupon.amount;
+                            couponApplied = true;
+                            couponCode = coupon.couponCode;
+                          }
                           addToWishlist({
                             id: p._id,
                             name: p.title,
                             image: p?.gallery?.mainImage || "/RandomTourPackageImages/u1.jpg",
-                            price: p?.quantity?.variants[0].price,
-                            qty: 1
+                            price: Math.round(discountedPrice),
+                            originalPrice: price,
+                            qty: 1,
+                            couponApplied,
+                            couponCode: couponApplied ? couponCode : undefined
                           });
                           toast.success("Added to wishlist!");
                         }
@@ -92,7 +133,7 @@ function RelatedProductsCarousel({ products }) {
                     </Button>
                   </div>
                   {/* Image */}
-                  <div className="w-full aspect-[3/4] relative bg-[#f6eaea] flex items-center justify-center">
+                  <div className="w-full aspect-[3/4] relative flex items-center justify-center">
                     <Image
                       src={p.gallery?.mainImage || '/placeholder-image.jpg'}
                       alt={p.title || 'Product Image'}
@@ -105,16 +146,43 @@ function RelatedProductsCarousel({ products }) {
                   {/* Bottom section: name and price */}
                   <div className="flex flex-row items-center justify-between w-full px-5 py-4">
                     <div className="flex-1 min-w-0">
-                    <Link
-                          href={`/product/${p._id}`}
-                          className="font-bold hover:underline text-xl text-gray-900 leading-tight max-w-[200px] truncate cursor-pointer"
-                        >
-                          {p?.title}
-                        </Link>
+                      <Link
+                        href={`/product/${p._id}`}
+                        className="font-bold hover:underline text-xl text-gray-900 leading-tight max-w-[200px] truncate cursor-pointer"
+                      >
+                        {p?.title}
+                      </Link>
                     </div>
-                    <div className="ml-4 text-xl font-bold text-black whitespace-nowrap">
-                      ₹{p.quantity?.variants[0].price || '00'}
-                    </div>
+                    {(() => {
+                      const price = p?.quantity?.variants?.[0]?.price || 0;
+                      const coupon = p.coupon || p.coupons?.coupon;
+                      let discountedPrice = price;
+                      let couponApplied = false;
+                      let couponCode = '';
+                      if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+                        discountedPrice = price - (price * coupon.percent) / 100;
+                        couponApplied = true;
+                        couponCode = coupon.couponCode;
+                      } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+                        discountedPrice = price - coupon.amount;
+                        couponApplied = true;
+                        couponCode = coupon.couponCode;
+                      }
+                      if (couponApplied) {
+                        return (
+                          <div className="ml-4 whitespace-nowrap flex gap-2">
+                            <span className="text-gray-600 line-through text-lg">₹{price?.toLocaleString('en-IN')}</span>
+                            <span className="text-xl font-bold text-black">₹{Math.round(discountedPrice)?.toLocaleString('en-IN')}</span>
+                          </div>
+                        );
+                      } else {
+                        return (
+                          <div className="ml-4 text-xl font-bold text-black whitespace-nowrap">
+                            ₹{price?.toLocaleString('en-IN')}
+                          </div>
+                        );
+                      }
+                    })()}
                   </div>
                 </div>
               </CarouselItem>

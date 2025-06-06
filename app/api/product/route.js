@@ -95,6 +95,7 @@ export async function GET(req) {
         .populate('reviews')
         .populate('quantity')
         .populate('coupons');
+        
       if (!product) {
         return new Response(JSON.stringify({ error: 'Product not found' }), { status: 404 });
       }
