@@ -90,6 +90,11 @@ const artisanSchema = new mongoose.Schema({
       required: true,
       trim: true
     },
+    pincode: {
+      type: String,
+      required: true,
+      trim: true
+    },
     state: {
       type: String,
       required: true,

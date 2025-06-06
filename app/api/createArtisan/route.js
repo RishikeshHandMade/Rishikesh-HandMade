@@ -37,7 +37,7 @@ export async function POST(req) {
     // Validate required fields
     if (!data.title || !data.firstName || !data.lastName || !data.fatherHusbandType || !data.fatherHusbandTitle || !data.fatherHusbandName || 
         !data.fatherHusbandLastName || !data.shgName || !data.artisanNumber || !data.yearsOfExperience || 
-        !data.callNumber || !data.address || !data.city || !data.state) {
+        !data.callNumber || !data.address || !data.city || !data.pincode || !data.state) {
       return new Response(JSON.stringify({ message: 'Missing required fields' }), { status: 400 });
     }
 
@@ -64,6 +64,7 @@ export async function POST(req) {
       address: {
         fullAddress: data.address,
         city: data.city,
+        pincode: data.pincode,
         state: data.state
       },
       profileImage: (typeof profileImage === 'object' && profileImage !== null && profileImage.url && profileImage.key)
@@ -163,44 +164,6 @@ export async function PATCH(req) {
     return new Response(JSON.stringify({ message: 'Error updating artisan', error: error.message }), { status: 500 });
   }
 }
-
-
-// export async function DELETE(req) {
-//   try {
-//     await connectDB();
-//     const { id } = await req.json();
-//     const artisan = await Artisan.findById(id);
-//     if (!artisan) {
-//       return new Response(JSON.stringify({ message: 'Artisan not found' }), { status: 404 });
-//     }
-//     // Delete the image from Uploadthing if key exists
-//     if (artisan.profileImage?.key) {
-//       try {
-//         await deleteFileFromUploadthing(artisan.profileImage.key);
-//       } catch (err) {
-//         console.error('Uploadthing deletion failed:', err.message);
-//       }
-//     }
-//     await Artisan.findByIdAndDelete(id);
-//     return new Response(JSON.stringify({ message: 'Artisan profile deleted successfully' }), { status: 200 });
-//   } catch (error) {
-//     return new Response(JSON.stringify({ error: error.message || "Internal Server Error" }), { status: 500 });
-//   }
-
-
-//     const updatedArtisan = await Artisan.findByIdAndUpdate(id, { $set: updateFields }, { new: true });
-//     // Ensure profileImage is always an object if present
-//     if (updatedArtisan && updatedArtisan.profileImage && typeof updatedArtisan.profileImage === 'string') {
-//       updatedArtisan.profileImage = { url: updatedArtisan.profileImage, key: '' };
-//     }
-//     if (!updatedArtisan) {
-//       // console.log('PATCH error: Artisan not found for id', id);
-//       return new Response(JSON.stringify({ message: 'Artisan not found' }), { status: 404 });
-//     }
-//     // console.log('PATCH update successful:', updatedArtisan);
-//     return new Response(JSON.stringify({ message: 'Artisan profile updated successfully', artisan: updatedArtisan }), { status: 200 });
-// }
-
 
 export async function DELETE(req) {
   try {

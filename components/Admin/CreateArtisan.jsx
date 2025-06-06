@@ -119,8 +119,6 @@ const CreateArtisan = () => {
       // console.error('No Cloudinary key found for image:', uploadedImage);
     }
   };
-
-
   // Backend image upload handler for file input
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
@@ -231,6 +229,7 @@ const CreateArtisan = () => {
       email: data.email,
       address: data.address,
       city: data.city,
+      pincode: data.pincode,
       state: data.state,
       profileImage:
         uploadedImage && uploadedImage.url && uploadedImage.key
@@ -340,6 +339,7 @@ const CreateArtisan = () => {
       email: artisan.contact?.email || "",
       address: artisan.address?.fullAddress || "",
       city: artisan.address?.city || "",
+      city: artisan.address?.pincode || "",
       state: artisan.address?.state || "",
       profileImage: artisan.profileImage || "",
     });
@@ -365,6 +365,7 @@ const CreateArtisan = () => {
     setValue("email", artisan.contact?.email || "");
     setValue("address", artisan.address?.fullAddress || "");
     setValue("city", artisan.address?.city || "");
+    setValue("pincode", artisan.address?.pincode || "");
     setValue("state", artisan.address?.state || "");
     setSelectedImage(artisan.profileImage?.url || "");
     // Ensure uploadedImage is set for editing (needed for Cloudinary removal)
@@ -429,6 +430,7 @@ const CreateArtisan = () => {
       address: {
         fullAddress: formData.address || "",
         city: formData.city || "",
+        pincode:formData.pincode||"",
         state: formData.state || "",
       },
       ...(uploadedImage && uploadedImage.url && uploadedImage.key
@@ -736,6 +738,11 @@ const CreateArtisan = () => {
                 {...register("city", { required: "City is required" })}
               />
               {renderError("city")}
+              <Input
+                placeholder="Pincode"
+                {...register("pincode", { required: "Pincode is required" })}
+              />
+              {renderError("pincode")}
               <Select
                 value={watch("state") || ""}
                 onValueChange={(val) =>
@@ -790,7 +797,7 @@ const CreateArtisan = () => {
             </Button>
           )}
         </div>
-        {/* Right: Image Upload with UploadThing */}
+        {/* Right: Image Upload with Cloudinary */}
         <div className="relative border rounded-lg p-4 mb-4 h-[400px] flex flex-col items-center justify-center gap-4">
           <input
             type="file"
@@ -1039,6 +1046,12 @@ const CreateArtisan = () => {
                     <div className="font-semibold text-gray-800">City</div>
                     <div className="text-gray-600">
                       {selectedUser.address?.city || "-"}
+                    </div>
+                  </div>
+                  <div className="bg-white p-3 rounded shadow-sm w-1/2">
+                    <div className="font-semibold text-gray-800">Pincode</div>
+                    <div className="text-gray-600">
+                      {selectedUser.address?.pincode || "-"}
                     </div>
                   </div>
                   <div className="bg-white p-3 rounded shadow-sm w-1/2">
@@ -1334,6 +1347,14 @@ const CreateArtisan = () => {
                 <Input
                   name="city"
                   value={editForm.city || ""}
+                  onChange={handleEditFormChange}
+                />
+              </div>
+              <div>
+                <label className="font-semibold">Pincode</label>
+                <Input
+                  name="pincode"
+                  value={editForm.pincode || ""}
                   onChange={handleEditFormChange}
                 />
               </div>

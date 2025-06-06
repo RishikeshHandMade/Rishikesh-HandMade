@@ -259,7 +259,8 @@ const ArtisanDetails = ({ artisan }) => {
                 <span key={i} className="bg-gray-200 rounded-full px-5 py-1 text-base font-semibold tracking-tight border border-gray-300">{spec}</span>
               ))}
             </div>
-            <div className="font-bold mt-2 text-2xl">Address: <span className="font-normal text-md">{artisan.address?.fullAddress || 'Yamkeshwar, Mohan Chatti, Bairagarh, Uttarakhand'}</span></div>
+            <div className="font-bold mt-2 text-2xl">Pincode: <span className="font-normal text-md">{artisan.address?.pincode || 'No Pincode'}</span></div>
+            <div className="font-bold mt-2 text-2xl">Address: <span className="font-normal text-md">{artisan.address?.fullAddress || 'No Address'}</span></div>
             <div className="flex items-center gap-5 mt-2 mb-2">
               <div className='flex items-center gap-2 mt-2 mb-2 px-4 border-r-4 border-black'>
                 {/* Email icon */}
