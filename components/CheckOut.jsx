@@ -339,16 +339,6 @@ const CheckOut = () => {
               <input className="border rounded px-3 py-2 w-full" required value={email} onChange={e => setEmail(e.target.value)} />
             </div>
           </div>
-          <div className="flex gap-6 items-center">
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" className="accent-black" />
-              Create an account?
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" className="accent-black" />
-              Ship to different address?
-            </label>
-          </div>
           <div>
             <label className="block text-sm mb-1">Order notes (optional)</label>
             <textarea className="border rounded px-3 py-2 w-full" rows={3} placeholder="Notes about your order, e.g. special notes for delivery." value={orderNotes} onChange={e => setOrderNotes(e.target.value)} />

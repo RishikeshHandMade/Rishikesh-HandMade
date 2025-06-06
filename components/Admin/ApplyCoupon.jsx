@@ -16,7 +16,7 @@ const ApplyCoupon = ({ productData, productId }) => {
   const [deleteDialog, setDeleteDialog] = useState({ open: false, productId: null });
   const productTitle = productData?.title || "";
   // Fetch available coupons and product's applied coupons
-  useEffect(() => {
+   useEffect(() => {
     const fetchCoupons = async () => {
       setLoading(true);
       try {
@@ -58,7 +58,7 @@ const ApplyCoupon = ({ productData, productId }) => {
 
     fetchCoupons();
     fetchProducts();
-  }, []);
+ }, []);
 
   useEffect(() => {
     if (!editProductId) return;

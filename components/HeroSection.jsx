@@ -208,14 +208,34 @@ const HeroSection = () => {
                       </h1>
                       <div className="text-xl font-semibold text-black mb-2">Price</div>
                       <div className="text-3xl font-extrabold text-black mb-4 flex flex-row items-center gap-3">
-                        {banner.coupon && !isNaN(Number(banner.coupon)) && !isNaN(Number(banner.price)) ? (
-                          <>
-                            <span className="line-through text-gray-600">₹{banner.price}</span>
-                            <span className="text-black font-bold">₹{(Number(banner.price) - Number(banner.coupon)).toFixed(2)}</span>
-                          </>
-                        ) : (
-                          <span className="text-black font-bold">₹{banner.price || "0.00"}</span>
-                        )}
+                        {/* Discounted price logic: couponAmount > couponPercent > coupon (as number) > just price */}
+                        {(() => {
+                          // Remove ₹ and commas from price for calculation
+                          const priceNum = Number((banner.price || '').replace(/[^\d.]/g, ''));
+                          let discounted = priceNum;
+                          let hasDiscount = false;
+                          if (!isNaN(priceNum) && priceNum > 0) {
+                            if (banner.couponAmount && !isNaN(Number(banner.couponAmount)) && Number(banner.couponAmount) > 0) {
+                              discounted = priceNum - Number(banner.couponAmount);
+                              hasDiscount = true;
+                            } else if (banner.couponPercent && !isNaN(Number(banner.couponPercent)) && Number(banner.couponPercent) > 0) {
+                              discounted = priceNum - (priceNum * Number(banner.couponPercent)) / 100;
+                              hasDiscount = true;
+                            }
+                          }
+                          if (hasDiscount && discounted < priceNum) {
+                            return (
+                              <span>
+                                <del className="text-black font-bold text-3xl mr-2">₹{priceNum.toLocaleString()}</del>
+                                <span className="font-bold text-3xl text-black px-2">₹{Math.round(discounted)}</span>
+                              </span>
+                            );
+                          } else {
+                            return (
+                              <span className="font-bold text-3xl text-black">₹{priceNum ? priceNum.toLocaleString() : "0.00"}</span>
+                            );
+                          }
+                        })()}
                       </div>
                       <div className="flex gap-3 mb-4 justify-center">
                         <a

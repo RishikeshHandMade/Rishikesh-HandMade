@@ -15,13 +15,26 @@ export async function GET() {
 
 export async function POST(req) {
     try {
-        const { title, price, coupon, addtoCartLink, viewDetailLink, subtitle, subDescription, frontImg, backImg, order } = await req.json();
+        const { title, price, coupon, couponCode, couponAmount, couponPercent, addtoCartLink, viewDetailLink, subtitle, subDescription, frontImg, backImg, order } = await req.json();
 
         // Find the highest order number
         const lastBanner = await HeroBanner.findOne().sort({ order: -1 });
         const nextOrder = lastBanner ? lastBanner.order + 1 : 1; // Auto-increment order
 
-        const newBanner = new HeroBanner({ title, price, coupon, addtoCartLink, viewDetailLink, subtitle, subDescription, order: nextOrder, frontImg, backImg });
+        const newBanner = new HeroBanner({
+            title,
+            price,
+            coupon: couponCode || coupon || '',
+            couponAmount,
+            couponPercent,
+            addtoCartLink,
+            viewDetailLink,
+            subtitle,
+            subDescription,
+            order: nextOrder,
+            frontImg,
+            backImg
+        });
         await newBanner.save();
         return NextResponse.json(newBanner, { status: 201 });
     } catch (error) {
@@ -31,8 +44,25 @@ export async function POST(req) {
 
 export async function PATCH(req) {
     try {
-        const { id, title, price, coupon, addtoCartLink, viewDetailLink, subtitle, subDescription, frontImg, backImg, order } = await req.json();
-        const updatedBanner = await HeroBanner.findByIdAndUpdate(id, { title, price, coupon, addtoCartLink, viewDetailLink, subtitle, subDescription, order, frontImg, backImg }, { new: true });
+        const { id, title, price, coupon, couponCode, couponAmount, couponPercent, addtoCartLink, viewDetailLink, subtitle, subDescription, frontImg, backImg, order } = await req.json();
+        const updatedBanner = await HeroBanner.findByIdAndUpdate(
+            id,
+            {
+                title,
+                price,
+                coupon: couponCode || coupon || '',
+                couponAmount,
+                couponPercent,
+                addtoCartLink,
+                viewDetailLink,
+                subtitle,
+                subDescription,
+                order,
+                frontImg,
+                backImg
+            },
+            { new: true }
+        );
         return NextResponse.json(updatedBanner, { status: 200 });
     } catch (error) {
         return NextResponse.json({ error: "Failed to update banner" }, { status: 500 });

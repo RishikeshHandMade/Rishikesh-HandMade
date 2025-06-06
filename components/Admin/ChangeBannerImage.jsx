@@ -4,13 +4,13 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '../ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Image from "next/image";
 import toast from "react-hot-toast";
 
 import { PencilIcon, Trash2Icon } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+// import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useRef } from "react";
 import { UploadIcon } from "lucide-react";
 
@@ -18,6 +18,9 @@ const ChangeBannerImage = () => {
     const fileInputRef = useRef(null);
     const [banners, setBanners] = useState([]);
     const [editBanner, setEditBanner] = useState(null);
+    const [coupons, setCoupons] = useState([]);
+    const [loadingCoupons, setLoadingCoupons] = useState(false);
+    // const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         title: "",
         price: "",
@@ -30,6 +33,24 @@ const ChangeBannerImage = () => {
         backImg: { url: "", key: "" },
         order: 1,
     });
+    console.log(coupons)
+
+    useEffect(() => {
+        const fetchCoupons = async () => {
+            setLoadingCoupons(true);
+            try {
+                // Fetch all available coupons
+                const res = await fetch('/api/discountCoupon');
+                const data = await res.json();
+                if (Array.isArray(data)) setCoupons(data);
+            } catch (err) {
+                // handle error
+            } finally {
+                setLoadingCoupons(false);
+            }
+        };
+        fetchCoupons();
+    }, []);
 
     // Fetch banners and determine the next order number
     useEffect(() => {
@@ -89,10 +110,24 @@ const ChangeBannerImage = () => {
         if (!formData.backImg?.url || !formData.backImg?.key) return toast.error("Please upload a back image");
         try {
             const method = editBanner ? "PATCH" : "POST";
+            // Find the selected coupon object
+            let couponObj = null;
+            if (formData.coupon) {
+                couponObj = coupons.find(c => c.couponCode === formData.coupon);
+            }
+            // Compose payload with coupon details
+            const payload = {
+                ...formData,
+                id: editBanner,
+                couponCode: formData.coupon || '',
+                couponAmount: couponObj?.amount || null,
+                couponPercent: couponObj?.percent || null,
+            };
+            console.log("Submitting banner form data:", payload); // Debug: see exactly what is sent
             const response = await fetch("/api/addBanner", {
                 method,
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...formData, id: editBanner }),
+                body: JSON.stringify(payload),
             });
 
             const data = await response.json();
@@ -125,6 +160,8 @@ const ChangeBannerImage = () => {
             toast.error("Something went wrong");
         }
     };
+
+
 
     const handleEdit = (banner) => {
         setEditBanner(banner._id);
@@ -296,9 +333,27 @@ const ChangeBannerImage = () => {
                     <div className="flex-1">
                         <Label>Price</Label>
                         <Input name="price" placeholder="Enter price" value={formData.price} onChange={handleInputChange} />
-                    </div>   <div className="flex-1">
-                        <Label>Coupon Code</Label>
-                        <Input name="coupon" placeholder="Enter coupon code" value={formData.coupon} onChange={handleInputChange} />
+                    </div>
+                    <div className="flex-1">
+                        <Label>Coupon</Label>
+                        <Select
+                            value={formData.coupon}
+                            onValueChange={val => setFormData(prev => ({ ...prev, coupon: val }))}
+                        >
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder={loadingCoupons ? 'Loading...' : 'Select coupon'} />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {(Array.isArray(coupons) && coupons.length === 0) && (
+                                    <div className="p-2 text-gray-400">No coupons found</div>
+                                )}
+                                {(Array.isArray(coupons) ? coupons : []).map(coupon => (
+                                    <SelectItem key={coupon._id} value={coupon.couponCode} disabled={formData.coupon === coupon.couponCode}>
+                                        {coupon.couponCode} {coupon.percent ? `(${coupon.percent}% off)` : coupon.amount ? `(-₹${coupon.amount})` : ''}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
                 </div>
 
@@ -323,9 +378,35 @@ const ChangeBannerImage = () => {
                     <Input name="order" placeholder="Enter order" type="number" value={formData.order} readOnly className="bg-gray-100 cursor-not-allowed" />
                 </div>
 
-                <Button type="submit" className="bg-blue-600 hover:bg-blue-500">
-                    {editBanner ? "Update Banner" : "Add Banner"}
-                </Button>
+                <div className="flex gap-2">
+                    <Button type="submit" className="bg-blue-600 hover:bg-blue-500">
+                        {editBanner ? "Update Banner" : "Add Banner"}
+                    </Button>
+                    {editBanner && (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="border-red-500 text-red-600 hover:bg-red-50"
+                            onClick={() => {
+                                setEditBanner(null);
+                                setFormData({
+                                    title: "",
+                                    price: "",
+                                    coupon: "",
+                                    addtoCartLink: "",
+                                    viewDetailLink: "",
+                                    subtitle: "",
+                                    subDescription: "",
+                                    order: banners.length + 1,
+                                    frontImg: { url: "", key: "" },
+                                    backImg: { url: "", key: "" },
+                                });
+                            }}
+                        >
+                            Cancel Edit
+                        </Button>
+                    )}
+                </div>
             </form>
 
             <h2 className="text-2xl font-bold mt-10 mb-4">Existing Banners</h2>
