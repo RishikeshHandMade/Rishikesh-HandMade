@@ -35,7 +35,7 @@ export async function GET(req, { params }) {
       .populate('quantity')
       .populate('coupons')
       .populate('taxes');
-    if (!product) {
+    if (!product || !product.active) {
       return new Response(JSON.stringify({ error: 'Product not found' }), { status: 404 });
     }
     return new Response(JSON.stringify(product), { status: 200 });
@@ -49,8 +49,8 @@ export async function DELETE(req, { params }) {
     await connectDB();
     const { id } = await params;
     // Find the product to get the artisan reference before deleting
-    const product = await Product.findById(id);
-    if (!product) {
+    const product = await Product.findById(id).populate('artisan');
+    if (!product || !product.active) {
       return new Response(JSON.stringify({ error: 'Product not found' }), { status: 404 });
     }
     // Remove the product reference from the artisan's products array

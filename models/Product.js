@@ -6,6 +6,7 @@ const ProductSchema = new mongoose.Schema({
   category: { type: mongoose.Schema.Types.ObjectId, ref: 'MenuBar' }, // or ref: 'SubMenu' if you have such a model
   artisan: { type: mongoose.Schema.Types.ObjectId, ref: 'Artisan' },
   isDirect: { type: Boolean, default: false },
+  active: { type: Boolean, default: true },
   size: { type: mongoose.Schema.Types.ObjectId, ref: 'Size' },
   color: { type: mongoose.Schema.Types.ObjectId, ref: 'Color' },
   price: { type: mongoose.Schema.Types.ObjectId, ref: 'Price' },

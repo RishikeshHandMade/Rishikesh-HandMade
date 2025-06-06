@@ -6,6 +6,8 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import toast from 'react-hot-toast';
 import { Copy, QrCode } from "lucide-react";
 import ProductQrModal from "./ProductQrModal";
+import { Switch } from "../ui/switch";
+import { Label } from "../ui/label";
 
 
 const ProductProfile = ({ id }) => {
@@ -96,6 +98,30 @@ const ProductProfile = ({ id }) => {
         navigator.clipboard.writeText(text);
         toast.success('URL copied!');
     }
+    // Toggle product active status for direct products
+    const toggleSwitch = async (productId, currentActive, isDirect) => {
+        if (!isDirect) {
+            toast.error('Only direct products can be toggled.');
+            return;
+        }
+        try {
+            const response = await fetch('/api/admin/website-manage/addPackage', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pkgId: productId, active: !currentActive }),
+            });
+            const result = await response.json();
+            if (response.ok) {
+                setProducts(prev => prev.map(prod => prod._id === productId ? { ...prod, active: !currentActive } : prod));
+                toast.success(`Product is now ${!currentActive ? 'active' : 'inactive'}`);
+            } else {
+                toast.error(result.message || 'Failed to update product status.');
+            }
+        } catch (error) {
+            toast.error('Failed to update product status.');
+        }
+    }
+
     return (
         <>
             <form className="flex flex-col items-center justify-center gap-8 my-20 bg-gray-200 w-full max-w-xl md:max-w-3xl mx-auto p-4 rounded-lg" onSubmit={async e => {
@@ -182,25 +208,33 @@ const ProductProfile = ({ id }) => {
             {/* Product Table copied inline */}
             <div className="mt-10 flex flex-col items-center">
                 <h3 className="text-xl font-semibold mb-4">Product List</h3>
-                <table className="border border-gray-300 rounded-lg overflow-hidden" style={{ width: '60%' }}>
-                    <thead className="bg-gray-100">
-                        <tr>
-                            <th className="py-2 px-4">S.No.</th>
-                            <th className="py-2 px-4">Product Name</th>
-                            <th className="py-2 px-4">Product URL</th>
-                            <th className="py-2 px-4">Product QR</th>
-                            <th className="py-2 px-4">Action</th>
+                <table className="w-full border-2 border-blue-600 rounded-lg">
+                    <thead>
+                        <tr className="bg-blue-200">
+                            <th className="py-2 px-4 text-center">Title</th>
+                            <th className="py-2 px-4 text-center">Artisan</th>
+                            <th className="py-2 px-4 text-center">Code</th>
+                            <th className="py-2 px-4 text-center">URL</th>
+                            <th className="py-2 px-4 text-center">QR</th>
+                            <th className="py-2 px-4 text-center">Active</th>
+                            <th className="py-2 px-4 text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {products.map((prod, idx) => (
                             <tr key={prod._id} className="border-t">
-                                <td className="py-2 px-4 text-center">{idx + 1}</td>
+                                <td className="py-2 px-4 text-center">{prod.title}</td>
                                 <td className="py-2 px-4 text-center">
+                                    {prod.artisan && typeof prod.artisan === 'object'
+                                        ? `${prod.artisan.firstName || ''} ${prod.artisan.lastName || ''}`.trim()
+                                        : prod.artisan || ''}
+                                </td>
+                                <td className="py-2 px-4 text-center">{prod.code}</td>
+                                {/* <td className="py-2 px-4 text-center">
                                     <div className="flex flex-col items-center">
                                         <span>{prod.title}</span>
                                     </div>
-                                </td>
+                                </td> */}
                                 <td className="py-2 px-4 text-center">
                                     {/* Product URL Copy Button Only */}
                                     {prod.title && (() => {
@@ -239,6 +273,20 @@ const ProductProfile = ({ id }) => {
                                             </div>
                                         );
                                     })()}
+                                </td>
+                                <td className="py-2 px-4 text-center">
+                                    <div className="flex flex-col items-center gap-1">
+                                        <Switch
+                                            id={`switch-${prod._id}`}
+                                            checked={prod.active}
+                                            onCheckedChange={() => toggleSwitch(prod._id, prod.active, prod.isDirect)}
+                                            className={`rounded-full transition-colors ${prod.active ? "!bg-green-500" : "!bg-red-500"}`}
+                                            disabled={!prod.isDirect}
+                                        />
+                                        <Label htmlFor={`switch-${prod._id}`} className="text-black text-xs">
+                                            {prod.active ? "ON" : "OFF"}
+                                        </Label>
+                                    </div>
                                 </td>
                                 <td className="py-2 px-4">
                                     <div className="flex gap-2 justify-center">

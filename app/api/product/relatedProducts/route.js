@@ -41,6 +41,7 @@ export async function GET(request) {
         $in: submenu.products,
         $ne: new mongoose.Types.ObjectId(productId)
       },
+      active: true,
       isDirect: false
     })
     .populate([

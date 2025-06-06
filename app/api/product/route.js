@@ -76,7 +76,7 @@ export async function GET(req) {
         .populate('quantity')
         .populate('coupons')
         .populate('taxes');
-      if (!product) {
+      if (!product || !product.active) {
         return new Response(JSON.stringify({ error: 'Product not found' }), { status: 404 });
       }
       return new Response(JSON.stringify(product), { status: 200 });
@@ -84,6 +84,7 @@ export async function GET(req) {
       // Fallback to slug search
       const product = await Product.findOne({ slug: name })
         .populate('artisan')
+
         // .populate('size')
         // .populate('color')
         .populate('price')
@@ -95,7 +96,7 @@ export async function GET(req) {
         .populate('reviews')
         .populate('quantity')
         .populate('coupons');
-        
+
       if (!product) {
         return new Response(JSON.stringify({ error: 'Product not found' }), { status: 404 });
       }
@@ -105,6 +106,8 @@ export async function GET(req) {
       let filter = {};
       if (isDirectParam === 'true') filter.isDirect = true;
       if (isDirectParam === 'false') filter.isDirect = false;
+      // Always filter for active products
+      filter.active = true;
       const products = await Product.find(filter)
         .populate('artisan')
         // .populate('size')

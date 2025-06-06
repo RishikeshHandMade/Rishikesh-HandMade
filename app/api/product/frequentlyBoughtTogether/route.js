@@ -20,7 +20,8 @@ export async function GET(request) {
     const fbtProducts = await Product.find({
       _id: { $ne: new mongoose.Types.ObjectId(productId) },
       category: currentProduct.category,
-      isDirect: false
+      isDirect: false,
+      active: true
     })
       .populate([
         'gallery',

@@ -9,9 +9,10 @@ import { useEffect, useState } from "react"
 import toast from "react-hot-toast"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import Link from "next/link"
-import { Loader2, Pencil, Trash2 } from "lucide-react"
+import { Loader2, Pencil, Trash2, QrCode, Copy } from "lucide-react"
 import { Switch } from "../ui/switch"
 import { Label } from "../ui/label"
+import ProductQrModal from "./ProductQrModal";
 
 const generateCode = () => {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -23,6 +24,50 @@ const generateCode = () => {
 };
 
 const AddProduct = ({ id }) => {
+    // QR Modal state
+    const [qrModalOpen, setQrModalOpen] = useState(false);
+    const [qrModalUrl, setQrModalUrl] = useState("");
+    const [qrModalTitle, setQrModalTitle] = useState("");
+
+    // Slugify utility (copied from ProductProfile)
+    function slugify(str) {
+        return str
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '')
+            .replace(/-+/g, '-');
+    }
+
+    // Copy to clipboard helper
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text);
+        toast.success('URL copied!');
+    }
+
+    // Toggle product active status
+    const toggleSwitch = async (productId, currentActive, isDirect) => {
+        if (isDirect) {
+            toast.error('Only non-direct products can be toggled.');
+            return;
+        }
+        try {
+            const response = await fetch('/api/admin/website-manage/addPackage', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pkgId: productId, active: !currentActive }),
+            });
+            const result = await response.json();
+            if (response.ok) {
+                setProducts(prev => prev.map(prod => prod._id === productId ? { ...prod, active: !currentActive } : prod));
+                toast.success(`Product is now ${!currentActive ? 'active' : 'inactive'}`);
+            } else {
+                toast.error(result.message || 'Failed to update product status.');
+            }
+        } catch (error) {
+            toast.error('Failed to update product status.');
+        }
+    }
+
     const { handleSubmit, register, setValue, reset } = useForm();
     const subMenuId = id;
     const [productCode, setProductCode] = useState("");
@@ -34,7 +79,6 @@ const AddProduct = ({ id }) => {
     const [title, setTitle] = useState("");
     const [order, setOrder] = useState(1);
     const [active, setActive] = useState(true);
-    // console.log(products)
 
     useEffect(() => {
         setLoading(true);
@@ -104,7 +148,7 @@ const AddProduct = ({ id }) => {
                 code: productCode,
                 artisan,
                 order,
-                active,
+                active: typeof active === 'boolean' ? active : true, // always true by default
                 isDirect: !subMenuId,
                 ...(subMenuId ? { subMenuId, category: subMenuId } : {})
             };
@@ -122,7 +166,7 @@ const AddProduct = ({ id }) => {
                 if (subMenuId) {
                     const res = await fetch(`/api/getSubMenuById/${subMenuId}`);
                     const data = await res.json();
-                    console.log('Fetched after create:', data);
+                    // console.log('Fetched after create:', data);
                     if (Array.isArray(data.products)) {
                         setProducts(data.products);
                         if (data.products.length === 0) {
@@ -135,7 +179,7 @@ const AddProduct = ({ id }) => {
                 } else {
                     const res = await fetch('/api/product?isDirect=true');
                     const data = await res.json();
-                    console.log('Fetched after create:', data);
+                    // console.log('Fetched after create:', data);
                     if (Array.isArray(data)) {
                         setProducts(data);
                         if (data.length === 0) {
@@ -214,52 +258,89 @@ const AddProduct = ({ id }) => {
                         </Select>
                     </div>
                 </div>
-                <Button type="submit" className="bg-blue-600 hover:bg-blue-500">Add Package</Button>
+                <Button type="submit" className="bg-blue-600 hover:bg-blue-500">Add Product</Button>
             </form>
 
             <div className="bg-blue-100 p-4 rounded-lg shadow max-w-5xl mx-auto w-full overflow-x-auto lg:overflow-visible text-center">
                 <Table className="w-full min-w-max lg:min-w-0">
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="text-center !text-black w-1/3">Package Name</TableHead>
-                            <TableHead className="text-center !text-black w-1/3">Order</TableHead>
-                            <TableHead className="w-1/3 !text-black text-center">Action</TableHead>
+                            <TableHead className="text-center !text-black w-1/6">Order</TableHead>
+                            <TableHead className="text-center !text-black w-1/4">Product Name</TableHead>
+                            <TableHead className="text-center !text-black w-1/6">QR</TableHead>
+                            <TableHead className="text-center !text-black w-1/6">URL</TableHead>
+                            <TableHead className="w-1/6 !text-black text-center">Action</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {products && products.length > 0 ? (
-                            products.map((prod, index) => (
-                                <TableRow key={prod._id}>
-                                    <TableCell className="border font-semibold border-blue-600">{prod.title}</TableCell>
-                                    <TableCell className="border font-semibold border-blue-600">{index + 1}</TableCell>
-                                    <TableCell className="border font-semibold border-blue-600">
-                                        <div className="flex items-center justify-center gap-6">
-                                            <Button size="icon" variant="outline" asChild>
-                                                <Link href={`/admin/add_direct_product/${prod._id}`}>
-                                                    <Pencil className="w-4 h-4" />
-                                                </Link>
-                                            </Button>
-                                            <Button size="icon" disabled={isLoading} onClick={() => deletePackage(prod._id)} variant="destructive">
-                                                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                                            </Button>
-                                            <div className="flex items-center gap-2">
-                                                {/* <Switch
-                                                    id={`switch-${prod._id}`}
-                                                    checked={prod.active}
-                                                    onCheckedChange={() => toggleSwitch(prod._id, prod.active)}
-                                                    className={`rounded-full transition-colors ${prod.active ? "!bg-green-500" : "!bg-red-500"}`}
-                                                />
-                                                <Label htmlFor={`switch-${prod._id}`} className="text-black">
-                                                    {prod.active ? "ON" : "OFF"}
-                                                </Label> */}
+                            products.map((prod, index) => {
+                                const url = typeof window !== 'undefined' ? `${window.location.origin}/product/${slugify(prod._id)}` : '';
+                                return (
+                                    <TableRow key={prod._id}>
+                                        <TableCell className="border font-semibold border-blue-600">{index + 1}</TableCell>
+                                        <TableCell className="border font-semibold border-blue-600">{prod.title}</TableCell>
+                                        <TableCell className="border font-semibold border-blue-600">
+                                            <div className="flex items-center justify-center gap-2">
+                                                {/* Copy URL Button */}
+                                                <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    onClick={() => copyToClipboard(url)}
+                                                    disabled={!url}
+                                                    title="Copy Product URL"
+                                                >
+                                                    <Copy className="w-4 h-4" />
+                                                </Button>
                                             </div>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))
+                                        </TableCell>
+                                        <TableCell className="border font-semibold border-blue-600">
+                                            <div className="flex items-center justify-center gap-2">
+                                                {/* QR Code Button */}
+                                                <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    onClick={() => {
+                                                        setQrModalUrl(url);
+                                                        setQrModalTitle(prod.title);
+                                                        setQrModalOpen(true);
+                                                    }}
+                                                    title="View QR & Download"
+                                                >
+                                                    <QrCode className="w-6 h-6" />
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="border font-semibold border-blue-600">
+                                            <div className="flex items-center justify-center gap-6">
+                                                <Button size="icon" variant="outline" asChild>
+                                                    <Link href={`/admin/add_direct_product/${prod._id}`}>
+                                                        <Pencil className="w-4 h-4" />
+                                                    </Link>
+                                                </Button>
+                                                <Button size="icon" disabled={isLoading} onClick={() => deletePackage(prod._id)} variant="destructive">
+                                                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                                                </Button>
+                                                <div className="flex items-center gap-2">
+                                                    <Switch
+                                                        id={`switch-${prod._id}`}
+                                                        checked={prod.active}
+                                                        onCheckedChange={() => toggleSwitch(prod._id, prod.active, prod.isDirect)}
+                                                        className={`rounded-full transition-colors ${prod.active ? "!bg-green-500" : "!bg-red-500"}`}
+                                                        disabled={prod.isDirect}
+                                                    />
+                                                    <Label htmlFor={`switch-${prod._id}`} className="text-black">
+                                                        {prod.active ? "ON" : "OFF"}
+                                                    </Label>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })
                         ) : (
                             <TableRow>
-                                <TableCell colSpan="3" className="text-center border font-semibold border-blue-600">
+                                <TableCell colSpan="4" className="text-center border font-semibold border-blue-600">
                                     No packages available.
                                 </TableCell>
                             </TableRow>
@@ -267,9 +348,15 @@ const AddProduct = ({ id }) => {
                     </TableBody>
                 </Table>
             </div>
+            {/* QR Modal for viewing/downloading QR code */}
+            <ProductQrModal
+                open={qrModalOpen}
+                onOpenChange={setQrModalOpen}
+                qrUrl={qrModalUrl}
+                productTitle={qrModalTitle}
+            />
         </>
     )
 
 }
 export default AddProduct
-

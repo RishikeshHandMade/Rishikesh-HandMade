@@ -46,6 +46,7 @@ export async function POST(req) {
             code: body.code,
             artisan: body.artisan,
             isDirect: false,
+            active: typeof body.active === 'boolean' ? body.active : true, // default true for category products
             // Save subMenuId as category if present
             ...(body.subMenuId ? { category: body.subMenuId } : {})
         });
@@ -134,6 +135,15 @@ export async function PATCH(req) {
         // Find the current product and its artisan
         const oldProduct = await Product.findById(pkgId);
         const oldArtisanId = oldProduct?.artisan?.toString();
+
+        // If trying to update 'active', allow for both direct and non-direct products
+        if (updateFields.hasOwnProperty('active')) {
+            const product = await Product.findById(pkgId);
+            if (!product) {
+                return NextResponse.json({ message: "Product not found" }, { status: 404 });
+            }
+            // No restriction on isDirect; allow update
+        }
 
         // Update the product
         const updatedProduct = await Product.findByIdAndUpdate(pkgId, updateFields, { new: true });
