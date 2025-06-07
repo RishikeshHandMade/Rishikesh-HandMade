@@ -15,111 +15,94 @@ const CartDetails = () => {
       {cart.length === 0 ? (
         <div className="text-center text-gray-500 py-8">Your cart is empty.</div>
       ) : (
-        <div className="flex gap-8">
-          {/* Left side - Products */}
-          <div className="flex-1">
-            <div className="grid grid-cols-[2fr,1fr,1fr,1fr,auto] gap-4 border-b pb-4 mb-4">
-              <div className="font-medium">Product</div>
-              <div className="font-medium text-center">Price</div>
-              <div className="font-medium text-center">Quantity</div>
-              <div className="font-medium text-center">Subtotal</div>
-              <div></div> {/* Empty header for remove button */}
-            </div>
-
-            <div className="space-y-4">
-              {cart.map(item => (
-                <div key={item.id} className="grid grid-cols-[2fr,1fr,1fr,1fr,auto] gap-4 items-center">
-                  <div className="flex items-center gap-4">
-                    <img src={item.image} alt={item.name} className="w-16 h-16 rounded object-cover" />
-                    <span className="font-medium">{item.name}</span>
-                  </div>
-                  <div className="text-center">₹{item.price.toFixed(2)}</div>
-                  <div className="flex items-center justify-center gap-2">
-                    <button 
-                      onClick={() => updateCartQty(item.id, Math.max(1, item.qty - 1))} 
-                      className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center"
-                    >
-                      -
-                    </button>
-                    <span className="w-8 text-center">{item.qty}</span>
-                    <button 
-                      onClick={() => updateCartQty(item.id, item.qty + 1)} 
-                      className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center"
-                    >
-                      +
-                    </button>
-                  </div>
-                  <div className="text-center font-medium">₹{(item.price * item.qty).toFixed(2)}</div>
-                  <button 
-                    onClick={() => removeFromCart(item.id)} 
-                    className="p-2 rounded-full hover:bg-gray-100"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
-
-              <div className="border-t pt-6 mt-6">
-                <div className="flex justify-between items-center mb-4">
-                  <input 
-                    type="text" 
-                    placeholder="Coupon Code" 
-                    className="border rounded px-4 py-2 w-48"
-                  />
-                  <button className="px-6 py-2 bg-black text-white rounded font-medium">
-                    Apply Coupon
-                  </button>
-                  <button className="px-6 py-2 bg-black text-white rounded font-medium">
-                    UPDATE CART
-                  </button>
-                </div>
-              </div>
+        <div className="flex flex-col md:flex-row gap-8">
+          {/* Left side - Cart Table */}
+          <div className="w-full md:w-2/3">
+            <h2 className="text-2xl font-bold mb-2">Cart</h2>
+            <table className="w-full border-collapse rounded-lg overflow-hidden shadow text-xs md:text-base">
+              <thead>
+                <tr className="bg-blue-200 text-black">
+                  <th className="p-2 border">Product</th>
+                  <th className="p-2 border">Price</th>
+                  <th className="p-2 border">Quantity</th>
+                  <th className="p-2 border">Subtotal</th>
+                  <th className="p-2 border">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {cart.map((item, idx) => (
+                  <tr key={item.id} className={idx % 2 === 0 ? "bg-orange-100" : "bg-gray-100"}>
+                    <td className="p-2 border text-center">
+                      <div className="flex items-center gap-3">
+                        <img src={item.image} alt={item.name} className="w-16 h-16 rounded object-cover" />
+                        <span className="font-medium">{item.name}</span>
+                      </div>
+                    </td>
+                    <td className="p-2 border text-center">₹{item.price.toFixed(2)}</td>
+                    <td className="p-2 border text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => updateCartQty(item.id, Math.max(1, item.qty - 1))}
+                          className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center"
+                        >-</button>
+                        <span className="w-8 text-center">{item.qty}</span>
+                        <button
+                          onClick={() => updateCartQty(item.id, item.qty + 1)}
+                          className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center"
+                        >+</button>
+                      </div>
+                    </td>
+                    <td className="p-2 border text-center font-medium">₹{(item.price * item.qty).toFixed(2)}</td>
+                    <td className="p-2 border text-center">
+                      <button
+                        onClick={() => removeFromCart(item.id)}
+                        className="bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 text-xl flex items-center justify-center"
+                      >×</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="flex flex-col md:flex-row gap-4 mt-4 items-center">
+              <input
+                type="text"
+                placeholder="Coupon Code"
+                className="border border-blue-400 bg-blue-100 px-4 py-2 rounded w-48"
+              />
+              <button className="px-6 py-2 bg-blue-500 text-white rounded font-bold text-xs">Apply Coupon</button>
+              <button className="px-6 py-2 bg-black text-white rounded font-bold text-xs">UPDATE CART</button>
+              <Link href="/shop" className="ml-auto text-green-700 font-semibold">Continue Shopping &gt;&gt;</Link>
             </div>
           </div>
 
-          {/* Right side - Cart Total */}
-          <div className="w-[400px]">
-            <h3 className="text-xl font-bold mb-4">Cart Total</h3>
-            <div className="bg-gray-50 p-6 rounded">
-              <div className="border rounded-lg p-4 mb-4 bg-white">
-                <div className="text-sm font-medium">Bank Offer 5% Cashback</div>
-              </div>
-              <div className="border rounded-lg p-4 mb-4 bg-white flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0z" stroke="currentColor" strokeWidth="2"/>
-                    <path d="M15 9.5L11 13.5L9 11.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  <div className="text-sm font-medium">Enjoy The Product</div>
-                </div>
-                <div className="text-sm">FREE</div>
-              </div>
-              <div className="border rounded-lg p-4 mb-4 bg-white">
-                <div className="flex items-center gap-2">
-                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0z" stroke="currentColor" strokeWidth="2"/>
-                    <path d="M12 8v4l2 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  <div className="text-sm font-medium">Enjoy The Product</div>
-                </div>
-                <div className="text-sm text-gray-500 mt-2">Lorem ipsum is simply dummy text of the printing and typesetting</div>
-              </div>
-              <div className="flex items-center gap-2 mb-4 text-sm">
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                <div>You will save ₹504 on this order</div>
-              </div>
-              <div className="flex justify-between items-center font-bold text-lg border-t pt-4">
-                <div>Total</div>
-                <div>₹{subtotal.toFixed(2)}</div>
-              </div>
-              <Link href="/checkout" className="block mt-4">
-                <button className="w-full py-3 bg-black text-white rounded font-medium">
-                  PLACE ORDER
-                </button>
-              </Link>
+          {/* Right side - Cart Summary */}
+          <div className="w-full md:w-1/3 bg-white border border-gray-300 rounded-lg shadow p-6 flex flex-col gap-4 mt-8 md:mt-0">
+            <h3 className="text-lg font-bold mb-2">Order Summary</h3>
+            <div className="border rounded-lg p-4 mb-2 bg-blue-50 text-blue-900 font-medium text-sm">Bank Offer: 5% Cashback</div>
+            <div className="flex justify-between mb-1 text-sm">
+              <span>Subtotal</span>
+              <span>₹{subtotal.toFixed(2)}</span>
             </div>
+            <div className="flex justify-between mb-1 text-sm">
+              <span>Shipping</span>
+              <span>FREE</span>
+            </div>
+            <div className="flex items-center gap-2 mb-2 text-xs text-green-700">
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <div>You will save ₹504 on this order</div>
+            </div>
+            <div className="flex justify-between items-center font-bold text-base border-t pt-3 mb-3">
+              <span>Total</span>
+              <span>₹{subtotal.toFixed(2)}</span>
+            </div>
+            <Link href="/checkout" className="block">
+              <button className="w-full py-3 bg-black text-white rounded font-bold text-base">
+                PLACE ORDER
+              </button>
+            </Link>
+            <div className="text-xs text-gray-500 mt-2">Your personal data will be used to process your order, support your experience throughout this website, and for other purposes described in our privacy policy.</div>
           </div>
         </div>
       )}
