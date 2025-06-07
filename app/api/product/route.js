@@ -64,7 +64,7 @@ export async function GET(req) {
       // Find by MongoDB _id
       const product = await Product.findById(id)
         .populate('artisan')
-        // .populate('size')
+        .populate('size')
         // .populate('color')
         .populate('price')
         .populate('gallery')
@@ -84,8 +84,7 @@ export async function GET(req) {
       // Fallback to slug search
       const product = await Product.findOne({ slug: name })
         .populate('artisan')
-
-        // .populate('size')
+        .populate('size')
         // .populate('color')
         .populate('price')
         .populate('gallery')

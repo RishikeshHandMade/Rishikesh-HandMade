@@ -25,8 +25,8 @@ const ProductDescription = ({ productData, productId }) => {
     try {
       const res = await fetch('/api/productDescription');
       const data = await res.json();
-      if (res.ok && data.infos) {
-        setAllDescriptions(data.infos);
+      if (res.ok && data.descriptions) {
+        setAllDescriptions(data.descriptions);
       } else {
         setAllDescriptions([]);
       }
@@ -99,7 +99,7 @@ const ProductDescription = ({ productData, productId }) => {
   const handleEdit = (desc) => {
     setEditMode(true);
     setEditId(desc.product?._id || desc.product);
-    setOverview(desc.info);
+    setOverview(desc.overview);
   };
 
   // Delete handlers

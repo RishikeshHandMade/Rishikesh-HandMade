@@ -2,42 +2,42 @@ import { NextResponse } from 'next/server';
 import connectDB from "@/lib/connectDB";
 import Description from '@/models/Description';
 import Product from '@/models/Product';
-// POST: Add or update overview for a product
-export async function POST(req) {
+
+// POST: Add or update overview for a productexport async function POST(req) {
   await connectDB();
   try {
     const { productId, overview } = await req.json();
     if (!productId || !overview) {
       return NextResponse.json({ error: 'Missing productId or overview' }, { status: 400 });
     }
-    let infoDoc = await Description.findOne({ product: productId });
-    if (infoDoc) {
-      infoDoc.overview = overview;
-      await infoDoc.save();
+    let descDoc = await Description.findOne({ product: productId });
+    if (descDoc) {
+      descDoc.overview = overview;
+      await descDoc.save();
     } else {
-      infoDoc = await Description.create({ product: productId, overview });
+      descDoc = await Description.create({ product: productId, overview });
     }
-    // Optionally link Info to Product
-    await Product.findByIdAndUpdate(productId, { description: infoDoc._id });
-    return NextResponse.json({ success: true, info: infoDoc });
+    // Link Description to Product
+    await Product.findByIdAndUpdate(productId, { description: descDoc._id });
+    return NextResponse.json({ success: true, description: descDoc });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
 
-// GET: Get info for a product or all products
+// GET: Get description for a product or all products
 export async function GET(req) {
   await connectDB();
   try {
     const { searchParams } = new URL(req.url);
     const productId = searchParams.get('productId');
     if (productId) {
-      const infoDoc = await Description.findOne({ product: productId }).populate('product', 'title');
-      return NextResponse.json({ info: infoDoc });
+      const descDoc = await Description.findOne({ product: productId }).populate('product', 'title');
+      return NextResponse.json({ description: descDoc });
     } else {
       // Return all product descriptions with product name
-      const infoDocs = await Description.find({}).populate('product', 'title');
-      return NextResponse.json({ infos: infoDocs });
+      const descDocs = await Description.find({}).populate('product', 'title');
+      return NextResponse.json({ descriptions: descDocs });
     }
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
@@ -52,18 +52,22 @@ export async function PATCH(req) {
     if (!productId || !overview) {
       return NextResponse.json({ error: 'Missing productId or overview' }, { status: 400 });
     }
-    const infoDoc = await Description.findOneAndUpdate(
+    const descDoc = await Description.findOneAndUpdate(
       { product: productId },
       { overview },
       { new: true }
     );
-    return NextResponse.json({ info: infoDoc });
+    // Ensure Product.description is set
+    if (descDoc) {
+      await Product.findByIdAndUpdate(productId, { description: descDoc._id });
+    }
+    return NextResponse.json({ description: descDoc });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
 
-// DELETE: Remove info by productId
+// DELETE: Remove description by productId
 export async function DELETE(req) {
   await connectDB();
   try {
@@ -72,7 +76,7 @@ export async function DELETE(req) {
       return NextResponse.json({ error: 'Missing productId' }, { status: 400 });
     }
     await Description.findOneAndDelete({ product: productId });
-    await Product.findByIdAndUpdate(productId, { info: null });
+    await Product.findByIdAndUpdate(productId, { $unset: { description: "" } });
     return NextResponse.json({ success: true });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });

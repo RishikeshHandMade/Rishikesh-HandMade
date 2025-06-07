@@ -7,6 +7,7 @@ import '@/models/Gallery';
 import '@/models/Video';
 import '@/models/Description';
 import '@/models/Info';
+import '@/models/Size';
 import '@/models/CategoryTag';
 import '@/models/ProductReview';
 import '@/models/ProductTax';
@@ -23,8 +24,8 @@ export async function GET(req, { params }) {
     // Strictly fetch by MongoDB _id
     const product = await Product.findById(id)
       .populate('artisan')
-      // .populate('size')
-      // .populate('color')
+      .populate('size')
+      // .populate('color') 
       .populate('price')
       .populate('gallery')
       .populate('video')

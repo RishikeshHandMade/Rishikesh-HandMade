@@ -35,28 +35,29 @@ const ProductVideo = ({ productData, productId }) => {
     'Discover more about this product. Get inspired and connect with us for more details!';
 
   return (
-    <div className="w-full px-10 mx-auto py-4">
+    <div className="w-full px-10 mx-auto py-10">
       {videos.map((video, idx) => {
         const videoId = getYouTubeId(video.url);
         const isEven = idx % 2 === 1;
         return (
           <div
             key={video.url}
-            className="flex flex-col md:flex-row items-center justify-center mb-10 md:mb-16"
+            className="flex flex-col md:flex-row items-stretch justify-center mb-8 gap-5 w-full h-[350px]"
             style={{ flexDirection: isEven ? 'row-reverse' : 'row' }}
           >
             {/* Video */}
-            <div className="md:w-1/2 w-full flex justify-center p-6">
+            <div className="md:w-1/2 w-full bg-white border border-gray-200 flex items-center justify-center h-[350px]">
               {videoId ? (
                 <iframe
                   width="100%"
-                  height="315"
+                  height="100%"
                   src={`https://www.youtube.com/embed/${videoId}`}
                   title="YouTube video player"
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
-                  className="rounded shadow-md w-full max-w-md md:max-w-full"
+                  className="rounded shadow-md w-full h-full"
+                  style={{ minHeight: 315, aspectRatio: '1/1' }}
                 />
               ) : (
                 <div className="w-full h-64 bg-gray-200 flex items-center justify-center text-gray-500">
@@ -65,7 +66,8 @@ const ProductVideo = ({ productData, productId }) => {
               )}
             </div>
             {/* Description */}
-            <div className="md:w-1/2 w-full flex flex-col items-center justify-center p-6 border border-gray-200 bg-white min-h-[315px] text-start">
+            <div className="md:w-1/2 w-full bg-white border border-gray-200 p-4 flex flex-col items-center justify-center h-[350px] text-start px-6">
+              <h2 className="font-bold text-2xl mb-4">{video.title || "Product Video"}</h2>
               <p className="mb-6 text-gray-700 text-base md:text-lg">{video.description || 'Discover more about this product. Get inspired and connect with us for more details!'}</p>
               <button
                 className="bg-black text-white px-6 py-3 rounded font-semibold hover:bg-gray-800 transition"

@@ -238,7 +238,7 @@ export default function ProductDetailView({ product }) {
               </button>
             ))}
             {/* Size Chart Link/Button */}
-            {product?.size?.sizeChartUrl && (
+            {product?.size?.sizeChartUrl?.url && (
               <>
                 <span
                   className="ml-3 underline text-blue-600 cursor-pointer hover:text-blue-800 text-sm"
@@ -257,7 +257,7 @@ export default function ProductDetailView({ product }) {
                       >
                         &times;
                       </button>
-                      <img src={product?.size?.sizeChartUrl} alt="Size Chart" className="w-full h-auto rounded-lg" />
+                      <img src={product?.size?.sizeChartUrl?.url} alt="Size Chart" className="w-full h-auto rounded-lg" />
                     </div>
                   </div>
                 )}
