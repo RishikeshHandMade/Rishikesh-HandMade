@@ -134,7 +134,7 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, se
           </Button>
         </div>
         <Image
-          src={pkg?.gallery?.mainImage || "/RandomTourPackageImages/u1.jpg"}
+          src={pkg?.gallery?.mainImage?.url || "/product.jpeg"}
           alt={pkg?.title || "Tour package image"}
           width={400}
           height={500}

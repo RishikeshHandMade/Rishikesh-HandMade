@@ -30,7 +30,7 @@ function RelatedProductsCarousel({ products }) {
     addToCart({
       id: p._id,
       name: p.title,
-      image: p?.gallery?.mainImage || "/RandomTourPackageImages/u1.jpg",
+      image: p?.gallery?.mainImage?.url || "/product.jpeg",
       price: Math.round(discountedPrice),
       originalPrice: price,
       couponApplied,
@@ -63,7 +63,7 @@ function RelatedProductsCarousel({ products }) {
                       } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
                         return <>GET ₹{coupon.amount} OFF</>;
                       } else {
-                        return <>GET 10% OFF</>;
+                        return <>No Discount</>;
                       }
                     })()}
                   </div>
@@ -95,7 +95,7 @@ function RelatedProductsCarousel({ products }) {
                           addToWishlist({
                             id: p._id,
                             name: p.title,
-                            image: p?.gallery?.mainImage || "/RandomTourPackageImages/u1.jpg",
+                            image: p?.gallery?.mainImage?.url || "/product.jpeg",
                             price: Math.round(discountedPrice),
                             originalPrice: price,
                             qty: 1,
@@ -135,7 +135,7 @@ function RelatedProductsCarousel({ products }) {
                   {/* Image */}
                   <div className="w-full aspect-[3/4] relative flex items-center justify-center">
                     <Image
-                      src={p.gallery?.mainImage || '/placeholder-image.jpg'}
+                      src={p.gallery?.mainImage?.url || '/placeholder-image.jpg'}
                       alt={p.title || 'Product Image'}
                       fill
                       className="object-cover rounded-2xl"

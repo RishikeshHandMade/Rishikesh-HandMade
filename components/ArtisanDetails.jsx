@@ -584,7 +584,7 @@ const ArtisanDetails = ({ artisan }) => {
                     </div>
                     {/* Main Product Image */}
                     <img
-                      src={Array.isArray(product.gallery) ? product.gallery[0]?.mainImage : product.gallery?.mainImage || "/placeholder.jpeg"}
+                      src={Array.isArray(product.gallery) ? product.gallery[0]?.mainImage?.url : product.gallery?.mainImage?.url || "/placeholder.jpeg"}
                       alt={product.title}
                       className="object-cover w-full h-full rounded-3xl transition-transform duration-300 group-hover/image:scale-105"
                     />
@@ -599,12 +599,12 @@ const ArtisanDetails = ({ artisan }) => {
                     </div>
                   </div>
                   {/* Name and Price Section (plain, separate box) */}
-                  <div className="w-full flex flex-col items-start px-4 hover:underline py-4 mt-0 bg-transparent">
+                  <div className="w-full flex justify-between items-center px-4 hover:underline py-4 mt-0 bg-transparent">
                     <span className="font-semibold text-xl leading-tight max-w-[180px] truncate cursor-pointer mb-1" style={{ color: 'inherit' }}>
                       {product.title}
                     </span>
                     {product.quantity?.variants?.[0]?.price && (
-                      <span className="font-medium text-base mt-0" style={{ color: 'inherit' }}>
+                      <span className="font-medium text-lg mt-0" style={{ color: 'inherit' }}>
                         ₹{product.quantity.variants[0].price}
                       </span>
                     )}

@@ -49,26 +49,12 @@ const ProductGallery = ({ productData, productId }) => {
     let mainImageKey = null;
     let subImageKeys = [];
     if (galleryToDelete) {
-      // Try to extract the Cloudinary public_id key from the main and sub images
-      // Assume mainImage and subImages are stored as { url, key } or string URL
-      if (galleryToDelete.mainImage && typeof galleryToDelete.mainImage === 'object' && galleryToDelete.mainImage.key) {
+      // Use new schema: mainImage and subImages are objects with url and key
+      if (galleryToDelete.mainImage && galleryToDelete.mainImage.key) {
         mainImageKey = galleryToDelete.mainImage.key;
-      } else if (galleryToDelete.mainImage && typeof galleryToDelete.mainImage === 'string') {
-        // Try to parse key from URL (Cloudinary public_id is usually after last '/' and before extension)
-        const urlParts = galleryToDelete.mainImage.split('/');
-        const lastPart = urlParts[urlParts.length - 1];
-        mainImageKey = lastPart.split('.')[0];
       }
       if (Array.isArray(galleryToDelete.subImages)) {
-        subImageKeys = galleryToDelete.subImages.map(img => {
-          if (img && typeof img === 'object' && img.key) return img.key;
-          if (typeof img === 'string') {
-            const urlParts = img.split('/');
-            const lastPart = urlParts[urlParts.length - 1];
-            return lastPart.split('.')[0];
-          }
-          return null;
-        }).filter(Boolean);
+        subImageKeys = galleryToDelete.subImages.map(img => img && img.key ? img.key : null).filter(Boolean);
       }
     }
     try {
@@ -219,12 +205,18 @@ const ProductGallery = ({ productData, productId }) => {
       return;
     }
     // Prepare mainImage and subImages for Gallery model
-    if (!selectedMainImage || !selectedMainImage.url) {
+    if (!selectedMainImage || !selectedMainImage.url || !selectedMainImage.key) {
       toast.error('Please upload a main image');
       return;
     }
-    const mainImage = selectedMainImage.url;
-    const subImages = selectedSubImages.map(img => img.url);
+    // Use full {url, key} objects for both
+    const mainImage = {
+      url: selectedMainImage.url,
+      key: selectedMainImage.key
+    };
+    const subImages = selectedSubImages
+      .filter(img => img.url && img.key)
+      .map(img => ({ url: img.url, key: img.key }));
     try {
       // Check if gallery exists for this product
       const resGallery = await fetch(`/api/productGallery?productId=${productId}`);
@@ -450,7 +442,7 @@ const ProductGallery = ({ productData, productId }) => {
                       <td className="border px-2 py-1 text-center">{gallery.product && gallery.product.title ? gallery.product.title : 'N/A'}</td>
                       <td className="border px-2 py-1 text-center">
                         <div className="flex justify-center items-center">
-                          <img src={gallery.mainImage} alt="main" width={100} />
+                          <img src={gallery.mainImage && gallery.mainImage.url ? gallery.mainImage.url : ''} alt="main" width={100} />
                         </div>
                       </td>
                       <td className="border px-2 py-1 text-center">

@@ -57,7 +57,7 @@ function StickyAddToCartBar({ product }) {
       <div className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
         {/* Product Info */}
         <div className="flex items-center  gap-4">
-          <img src={product?.gallery?.mainImage || "/placeholder.png"} alt={product?.title} className="w-16 h-16 object-cover rounded" />
+          <img src={product?.gallery?.mainImage?.url || "/placeholder.png"} alt={product?.title} className="w-16 h-16 object-cover rounded" />
           <div>
             <div className="font-semibold text-xl">{product?.title}</div>
             {(() => {

@@ -10,13 +10,26 @@ const ApplyCoupon = ({ productData, productId }) => {
   const [selectedCoupon, setSelectedCoupon] = useState(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [allProductCoupons, setAllProductCoupons] = useState([]); // All product-coupon mappings
+  const [productCouponEntries, setProductCouponEntries] = useState([]); // Only this product's coupon mapping
   const [products, setProducts] = useState([]); // All products
   const [editProductId, setEditProductId] = useState(null); // For editing
   const [deleteDialog, setDeleteDialog] = useState({ open: false, productId: null });
   const productTitle = productData?.title || "";
-  // Fetch available coupons and product's applied coupons
-   useEffect(() => {
+  // Fetch only this product's coupon mapping
+  useEffect(() => {
+    const fetchProductCouponEntries = async () => {
+      if (!productId) return;
+      try {
+        const res = await fetch(`/api/productCoupon?productId=${productId}`);
+        const data = await res.json();
+        if (res.ok && data && data.productId) setProductCouponEntries([data]);
+        else setProductCouponEntries([]);
+      } catch {
+        setProductCouponEntries([]);
+      }
+    };
+    fetchProductCouponEntries();
+
     const fetchCoupons = async () => {
       setLoading(true);
       try {
@@ -39,7 +52,7 @@ const ApplyCoupon = ({ productData, productId }) => {
         const data = await res.json();
         setAllProductCoupons(Array.isArray(data) ? data : []);
       } catch (err) {
-        setAllProductCoupons([]);
+        
       }
     };
 
@@ -163,9 +176,9 @@ const ApplyCoupon = ({ productData, productId }) => {
                   try {
                     const res2 = await fetch('/api/productCoupon');
                     const data2 = await res2.json();
-                    setAllProductCoupons(Array.isArray(data2) ? data2 : []);
+                    
                   } catch {
-                    setAllProductCoupons([]);
+                    
                   }
                   // Defensive: clear form after creating new coupon
                   if (!editProductId) {
@@ -197,9 +210,9 @@ const ApplyCoupon = ({ productData, productId }) => {
           )}
         </div>
       </div>
-      {/* Table of all product-coupon mappings */}
+      {/* Table of this product's coupon mapping only */}
       <div className="mt-10 w-[80%] mx-auto" >
-        <h3 className="font-semibold mb-2">All Product Coupons</h3>
+        <h3 className="font-semibold mb-2">Product Coupon</h3>
         <div className="overflow-x-auto">
           <table className="min-w-full border text-sm">
             <thead>
@@ -211,77 +224,79 @@ const ApplyCoupon = ({ productData, productId }) => {
               </tr>
             </thead>
             <tbody>
-              {/* {(Array.isArray(allProductCoupons) && allProductCoupons.length === 0) && (
-                <tr><td colSpan={4} className="text-center py-2">No data</td></tr>
-              )} */}
-              {(Array.isArray(allProductCoupons) ? allProductCoupons : []).map((row, idx) => {
-                const prod = products.find(p => p._id === row.productId) || {};
-                return (
-                  <tr key={row.productId}>
-                    <td className="border p-2 text-center">{idx + 1}</td>
-                    <td className="border p-2 text-center">{prod.title || "N/A"}</td>
-                    <td className="border p-2 text-center">
-                      <div className="flex flex-wrap gap-1 justify-center">
-                        {row.coupon ? (
-                          <Badge variant="secondary">{row.coupon.couponCode}</Badge>
-                        ) : (
-                          <span className="text-gray-400">No coupon</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="border p-2 text-center">
-                      <button className="mr-2 text-blue-600 hover:underline border rounded-2 border-blue-600 p-1 font-semibold" title="Edit" onClick={() => {
-                        setEditProductId(row.productId);
-                      }}>Edit</button>
-                      <Dialog open={deleteDialog.open && deleteDialog.productId === row.productId} onOpenChange={open => setDeleteDialog({ open, productId: open ? row.productId : null })}>
-                        <DialogTrigger asChild>
-                          <button className="text-red-600 hover:underline border rounded-2 border-red-600 p-1 font-semibold" title="Delete" onClick={() => setDeleteDialog({ open: true, productId: row.productId })}>Delete</button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Delete Coupon Mapping</DialogTitle>
-                          </DialogHeader>
-                          <div className="my-4">Are you sure you want to delete coupons for <b>{prod.title || prod.name || row.productId}</b>?</div>
-                          <DialogFooter>
-                            <button className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300" onClick={() => setDeleteDialog({ open: false, productId: null })}>Cancel</button>
-                            <button
-                              className="ml-2 px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-60"
-                              disabled={saving}
-                              onClick={async () => {
-                                setSaving(true);
-                                try {
-                                  const res = await fetch('/api/productCoupon', {
-                                    method: 'DELETE',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ productId: row.productId })
-                                  });
-                                  const data = await res.json();
-                                  if (res.ok) {
-                                    toast.success('Coupon mapping deleted!');
-                                    setDeleteDialog({ open: false, productId: null });
-                                    // Refresh table
-                                    const res2 = await fetch('/api/productCoupon');
-                                    const data2 = await res2.json();
-                                    setAllProductCoupons(Array.isArray(data2) ? data2 : []);
-                                  } else {
-                                    toast.error(data.error || 'Failed to delete coupon mapping');
+              {productCouponEntries.length === 0 ? (
+                <tr><td colSpan={4} className="text-center py-2">No coupon for this product</td></tr>
+              ) : (
+                productCouponEntries.map((row, idx) => {
+                  const prod = products.find(p => p._id === row.productId) || {};
+                  return (
+                    <tr key={row.productId}>
+                      <td className="border p-2 text-center">{idx + 1}</td>
+                      <td className="border p-2 text-center">{prod.title || "N/A"}</td>
+                      <td className="border p-2 text-center">
+                        <div className="flex flex-wrap gap-1 justify-center">
+                          {row.coupon ? (
+                            <Badge variant="secondary">{row.coupon.couponCode}</Badge>
+                          ) : (
+                            <span className="text-gray-400">No coupon</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="border p-2 text-center">
+                        <button className="mr-2 text-blue-600 bg-blue-600 hover:bg-blue-700 text-white border rounded-2 px-2 py-1 rounded font-semibold" title="Edit" onClick={() => {
+                          setEditProductId(row.productId);
+                        }}>Edit</button>
+                        <Dialog open={deleteDialog.open && deleteDialog.productId === row.productId} onOpenChange={open => setDeleteDialog({ open, productId: open ? row.productId : null })}>
+                          <DialogTrigger asChild>
+                            <button className="text-red-600 bg-red-600 hover:bg-red-700 text-white border rounded-2 px-2 py-1 rounded font-semibold" title="Delete" onClick={() => setDeleteDialog({ open: true, productId: row.productId })}>Delete</button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Delete Coupon</DialogTitle>
+                            </DialogHeader>
+                            <div className="my-4">Are you sure you want to delete coupons for <b>{prod.title || prod.name || row.productId}</b>?</div>
+                            <DialogFooter>
+                              <button className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300" onClick={() => setDeleteDialog({ open: false, productId: null })}>Cancel</button>
+                              <button
+                                className="ml-2 px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-60"
+                                disabled={saving}
+                                onClick={async () => {
+                                  setSaving(true);
+                                  try {
+                                    const res = await fetch('/api/productCoupon', {
+                                      method: 'DELETE',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({ productId: row.productId })
+                                    });
+                                    const data = await res.json();
+                                    if (res.ok) {
+                                      toast.success('Coupon deleted!');
+                                      setDeleteDialog({ open: false, productId: null });
+                                      // Refresh table
+                                      // Re-fetch only this product's coupon
+                                      const res2 = await fetch(`/api/productCoupon?productId=${productId}`);
+                                      const data2 = await res2.json();
+                                      if (res2.ok && data2 && data2.productId) setProductCouponEntries([data2]);
+                                      else setProductCouponEntries([]);
+                                    } else {
+                                      toast.error(data.error || 'Failed to delete coupon');
+                                    }
+                                  } catch (err) {
+                                    toast.error('Failed to delete coupon');
+                                  } finally {
+                                    setSaving(false);
                                   }
-                                } catch (err) {
-                                  toast.error('Failed to delete coupon mapping');
-                                } finally {
-                                  setSaving(false);
-                                }
-                              }}
-                            >
-                              {saving ? 'Deleting...' : 'Delete'}
-                            </button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
-                    </td>
-                  </tr>
-                )
-              }
+                                }}
+                              >
+                                {saving ? 'Deleting...' : 'Delete'}
+                              </button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                      </td>
+                    </tr>
+                  )
+                })
               )}
             </tbody>
           </table>

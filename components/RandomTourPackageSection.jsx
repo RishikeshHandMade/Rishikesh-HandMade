@@ -463,7 +463,7 @@ const RandomTourPackageSection = () => {
                           </Button>
                         </div>
                         <Image
-                          src={item?.gallery?.mainImage || "/RandomTourPackageImages/u1.jpg"}
+                          src={item?.gallery?.mainImage?.url || "/RandomTourPackageImages/u1.jpg"}
                           alt={item?.title || "Tour package image"}
                           width={400}
                           height={500}

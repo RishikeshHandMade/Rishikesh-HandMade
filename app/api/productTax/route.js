@@ -66,6 +66,8 @@ export async function DELETE(req) {
     if (tax === '__all__') {
       // Remove all taxes for product
       await ProductTax.deleteOne({ product });
+      // Also update the Product model to remove the tax reference
+      await Product.findByIdAndUpdate(product, { taxes: null });
       return Response.json({ success: true });
     } else {
       // Remove a single tax from the array

@@ -213,7 +213,6 @@ const ProductProfile = ({ id }) => {
                         <tr className="bg-blue-200">
                             <th className="py-2 px-4 text-center">Title</th>
                             <th className="py-2 px-4 text-center">Artisan</th>
-                            <th className="py-2 px-4 text-center">Code</th>
                             <th className="py-2 px-4 text-center">URL</th>
                             <th className="py-2 px-4 text-center">QR</th>
                             <th className="py-2 px-4 text-center">Active</th>
@@ -229,7 +228,7 @@ const ProductProfile = ({ id }) => {
                                         ? `${prod.artisan.firstName || ''} ${prod.artisan.lastName || ''}`.trim()
                                         : prod.artisan || ''}
                                 </td>
-                                <td className="py-2 px-4 text-center">{prod.code}</td>
+                                {/* <td className="py-2 px-4 text-center">{prod.code}</td> */}
                                 {/* <td className="py-2 px-4 text-center">
                                     <div className="flex flex-col items-center">
                                         <span>{prod.title}</span>
