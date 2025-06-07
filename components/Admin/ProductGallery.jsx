@@ -24,6 +24,54 @@ const ProductGallery = ({ productData, productId }) => {
     setEditMainImage(gallery.mainImage);
     setEditSubImages(gallery.subImages || []);
   };
+   // Remove uploaded main image before save
+   const handleRemoveMainImageUpload = async () => {
+    if (selectedMainImage && selectedMainImage.key) {
+      toast.loading('Deleting main image from Cloudinary...', { id: 'cloud-delete-main' });
+      try {
+        const res = await fetch('/api/cloudinary', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ publicId: selectedMainImage.key }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          toast.success('Main image deleted from Cloudinary!', { id: 'cloud-delete-main' });
+        } else {
+          toast.error('Cloudinary error: ' + (data.error || 'Failed to delete main image'), { id: 'cloud-delete-main' });
+        }
+      } catch (err) {
+        toast.error('Failed to delete main image from Cloudinary (network or server error)', { id: 'cloud-delete-main' });
+      }
+    }
+    setSelectedMainImage(null);
+    if (imageInputRef.current) imageInputRef.current.value = '';
+  };
+
+  // Remove uploaded sub image before save
+  const handleRemoveSubImageUpload = async (idx) => {
+    const img = selectedSubImages[idx];
+    if (img && img.key) {
+      toast.loading('Deleting sub image from Cloudinary...', { id: 'cloud-delete-sub' });
+      try {
+        const res = await fetch('/api/cloudinary', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ publicId: img.key }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          toast.success('Sub image deleted from Cloudinary!', { id: 'cloud-delete-sub' });
+        } else {
+          toast.error('Cloudinary error: ' + (data.error || 'Failed to delete sub image'), { id: 'cloud-delete-sub' });
+        }
+      } catch (err) {
+        toast.error('Failed to delete sub image from Cloudinary (network or server error)', { id: 'cloud-delete-sub' });
+      }
+    }
+    setSelectedSubImages(prev => prev.filter((_, i) => i !== idx));
+  };
+
 
   // Delete modal state
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -115,8 +163,13 @@ const ProductGallery = ({ productData, productId }) => {
   const [loadingGalleries, setLoadingGalleries] = useState(false);
 
   const [editGallery, setEditGallery] = useState(null);
-  const [editMainImage, setEditMainImage] = useState("");
-  const [editSubImages, setEditSubImages] = useState([]);
+  const [editMainImage, setEditMainImage] = useState(null); // should be {url, key} or null
+  const [editSubImages, setEditSubImages] = useState([]); // should be array of {url, key}
+
+  // When entering edit mode, set edit images as objects
+  // Only declare handleEditGallery once
+
+
 
   // Fetch galleries for this product
   useEffect(() => {
@@ -217,6 +270,8 @@ const ProductGallery = ({ productData, productId }) => {
     const subImages = selectedSubImages
       .filter(img => img.url && img.key)
       .map(img => ({ url: img.url, key: img.key }));
+
+   
     try {
       // Check if gallery exists for this product
       const resGallery = await fetch(`/api/productGallery?productId=${productId}`);
@@ -301,6 +356,7 @@ const ProductGallery = ({ productData, productId }) => {
             <Input
               type="text"
               className="form-control"
+              placeholder="Product Name"
               value={productTitle}
               disabled
               readOnly
@@ -310,22 +366,21 @@ const ProductGallery = ({ productData, productId }) => {
             <label className="font-semibold">Product Main Photo</label>
             <div className="border rounded p-4 bg-gray-50">
               <div className="text-center">
-                {(editGallery ? editMainImage : selectedMainImage?.url) ? (
+                {(editGallery ? editMainImage?.url : selectedMainImage?.url) ? (
                   <div className="relative mb-3 inline-block">
                     <img
-                      src={editGallery ? editMainImage : selectedMainImage.url}
+                      src={editGallery ? editMainImage?.url : selectedMainImage.url}
                       alt="Preview"
                       className="rounded object-contain mx-auto"
-                      style={{ maxHeight: '100px', display: 'block' }}
+                      style={{ maxHeight: '150px', display: 'block' }}
                     />
                     <button
                       type="button"
-                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full px-2 py-1"
+                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full px-2"
                       onClick={() => {
                         if (editGallery) setEditMainImage("");
                         else {
-                          setSelectedMainImage(null);
-                          if (imageInputRef.current) imageInputRef.current.value = '';
+                          handleRemoveMainImageUpload();
                         }
                       }}
                     >
@@ -371,13 +426,28 @@ const ProductGallery = ({ productData, productId }) => {
               <div className="flex flex-wrap gap-2 mb-3">
                 {(editGallery ? editSubImages : selectedSubImages).length > 0 ? (
                   (editGallery ? editSubImages : selectedSubImages).map((img, idx) => (
-                    <div key={img.key || idx} className="relative inline-block">
+                    <div key={img.key || idx} className="relative inline-block group">
                       <img
-                        src={editGallery ? img : img.url}
+                        src={img.url}
                         alt={`Sub ${idx + 1}`}
                         className="rounded object-contain"
-                        style={{ maxHeight: '60px', maxWidth: '60px', display: 'block' }}
+                        style={{ maxHeight: '100px', maxWidth: '100px', display: 'block' }}
                       />
+                      <button
+                        type="button"
+                        className="absolute top-0 right-0 bg-red-500 text-white rounded-full px-2 text-md opacity-80 hover:opacity-100 group-hover:opacity-100"
+                        style={{ transform: 'translate(40%,-40%)' }}
+                        onClick={() => {
+                          if (editGallery) {
+                            setEditSubImages(editSubImages.filter((s, i) => i !== idx));
+                          } else {
+                            handleRemoveSubImageUpload(idx);
+                          }
+                        }}
+                        aria-label={`Remove sub image ${idx + 1}`}
+                      >
+                        ×
+                      </button>
                     </div>
                   ))
                 ) : (
@@ -467,14 +537,14 @@ const ProductGallery = ({ productData, productId }) => {
               <div>
                 <div className="mb-4">
                   <div className="font-semibold text-gray-800 mb-1">Main Image</div>
-                  <img src={viewGallery.mainImage} alt="main" className="mx-auto rounded border" width={200} />
+                  <img src={viewGallery.mainImage?.url} alt="main" className="mx-auto rounded border" width={200} />
                 </div>
                 <div className="mb-4">
                   <div className="font-semibold text-gray-800 mb-1">Sub Images</div>
                   <div className="flex flex-wrap gap-2 justify-center">
                     {viewGallery.subImages && viewGallery.subImages.length > 0 ? (
-                      viewGallery.subImages.map((url, i) => (
-                        <img key={i} src={url} alt={`sub-${i}`} width={60} className="rounded border" />
+                      viewGallery.subImages.map((img, i) => (
+                        <img key={i} src={img.url} alt={`sub-${i}`} width={60} className="rounded border" />
                       ))
                     ) : (
                       <span className="text-gray-400">No sub images</span>

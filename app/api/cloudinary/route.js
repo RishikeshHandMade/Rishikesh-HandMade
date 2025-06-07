@@ -44,8 +44,9 @@ export async function DELETE(req) {
       return NextResponse.json({ error: 'Missing publicId' }, { status: 400 });
     }
     const result = await cloudinary.uploader.destroy(publicId);
+    console.log('Cloudinary destroy called for publicId:', publicId, 'result:', result);
     if (result.result !== 'ok') {
-      return NextResponse.json({ error: 'Failed to delete image from Cloudinary' }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to delete image from Cloudinary', cloudinaryResult: result }, { status: 500 });
     }
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {

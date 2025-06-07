@@ -211,11 +211,10 @@ const ApplyCoupon = ({ productData, productId }) => {
         </div>
       </div>
       {/* Table of this product's coupon mapping only */}
-      <div className="mt-10 w-[80%] mx-auto" >
+      <div className="mt-10 w-[80%] mx-auto overflow-x-auto" >
         <h3 className="font-semibold mb-2">Product Coupon</h3>
-        <div className="overflow-x-auto">
-          <table className="min-w-full border text-sm">
-            <thead>
+        <table className="min-w-full border text-sm">
+          <thead>
               <tr className="bg-gray-100">
                 <th className="border p-2">S.No</th>
                 <th className="border p-2">Product Name</th>
@@ -302,7 +301,7 @@ const ApplyCoupon = ({ productData, productId }) => {
           </table>
         </div>
       </div>
-    </div>
+  
 
   );
 }

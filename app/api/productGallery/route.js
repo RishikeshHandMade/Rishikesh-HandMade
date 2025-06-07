@@ -6,7 +6,7 @@ export async function POST(req) {
   await connectDB();
   try {
     const { productId, mainImage, subImages } = await req.json();
-    console.log('API DEBUG received subImages:', subImages);
+    // console.log('API DEBUG received subImages:', subImages);
     if (!productId || !mainImage) {
       return new Response(JSON.stringify({ error: 'Missing or invalid productId/mainImage' }), { status: 400 });
     }
