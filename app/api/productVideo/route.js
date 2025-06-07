@@ -5,7 +5,7 @@ import Product from '@/models/Product';
 export async function POST(req) {
   await connectDB();
   try {
-    const { productId, videoUrl } = await req.json();
+    const { productId, videoUrl, videoDescription } = await req.json();
     if (!productId || !videoUrl) {
       return Response.json({ error: 'Missing productId or videoUrl' }, { status: 400 });
     }
@@ -15,10 +15,10 @@ export async function POST(req) {
       if (videoDoc.videos.length >= 10) {
         return Response.json({ error: 'Max 10 videos allowed.' }, { status: 400 });
       }
-      videoDoc.videos.push(videoUrl);
+      videoDoc.videos.push({ url: videoUrl, description: videoDescription || '' });
       await videoDoc.save();
     } else {
-      videoDoc = await Video.create({ product: productId, videos: [videoUrl] });
+      videoDoc = await Video.create({ product: productId, videos: [{ url: videoUrl, description: videoDescription || '' }] });
     }
     // Always link videoDoc to Product
     await Product.findByIdAndUpdate(productId, { video: videoDoc._id });
@@ -67,7 +67,7 @@ export async function PATCH(req) {
 export async function DELETE(req) {
   await connectDB();
   try {
-    const { productId, videoUrl } = await req.json();
+    const { productId, videoUrl, videoDescription } = await req.json();
     if (!productId || !videoUrl) {
       return Response.json({ error: 'Missing productId or videoUrl' }, { status: 400 });
     }
@@ -75,8 +75,14 @@ export async function DELETE(req) {
     if (!videoDoc) {
       return Response.json({ error: 'Video document not found' }, { status: 404 });
     }
-    videoDoc.videos = videoDoc.videos.filter(url => url !== videoUrl);
+    videoDoc.videos = videoDoc.videos.filter(v => v.url !== videoUrl);
     await videoDoc.save();
+    // If no videos left, remove video ref from Product and delete Video doc
+    if (videoDoc.videos.length === 0) {
+      await Product.findByIdAndUpdate(productId, { $unset: { video: "" } });
+      await Video.deleteOne({ _id: videoDoc._id });
+      return Response.json({ success: true, video: null });
+    }
     return Response.json({ success: true, video: videoDoc });
   } catch (err) {
     return Response.json({ error: err.message }, { status: 500 });

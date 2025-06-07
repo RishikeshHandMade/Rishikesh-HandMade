@@ -24,8 +24,8 @@ const ProductGallery = ({ productData, productId }) => {
     setEditMainImage(gallery.mainImage);
     setEditSubImages(gallery.subImages || []);
   };
-   // Remove uploaded main image before save
-   const handleRemoveMainImageUpload = async () => {
+  // Remove uploaded main image before save
+  const handleRemoveMainImageUpload = async () => {
     if (selectedMainImage && selectedMainImage.key) {
       toast.loading('Deleting main image from Cloudinary...', { id: 'cloud-delete-main' });
       try {
@@ -76,6 +76,7 @@ const ProductGallery = ({ productData, productId }) => {
   // Delete modal state
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState(null);
+  const [deletingGalleryId, setDeletingGalleryId] = useState(null);
 
   // Open delete modal
   const openDeleteModal = (id) => {
@@ -92,6 +93,7 @@ const ProductGallery = ({ productData, productId }) => {
   // Confirm delete
   const confirmDelete = async () => {
     if (!deleteTargetId) return;
+    setDeletingGalleryId(deleteTargetId);
     // Find the gallery to delete in state (to get image keys)
     const galleryToDelete = galleries.find(g => g._id === deleteTargetId);
     let mainImageKey = null;
@@ -121,8 +123,6 @@ const ProductGallery = ({ productData, productId }) => {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ publicId: mainImageKey })
-          }).then(async r => {
-            if (!r.ok) toast.error('Failed to delete main image from Cloudinary');
           });
         }
         if (subImageKeys.length > 0) {
@@ -131,8 +131,6 @@ const ProductGallery = ({ productData, productId }) => {
               method: 'DELETE',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ publicId: key })
-            }).then(async r => {
-              if (!r.ok) toast.error('Failed to delete a sub image from Cloudinary');
             });
           });
         }
@@ -144,6 +142,7 @@ const ProductGallery = ({ productData, productId }) => {
     } finally {
       setShowDeleteModal(false);
       setDeleteTargetId(null);
+      setDeletingGalleryId(null);
     }
   };
 
@@ -190,7 +189,7 @@ const ProductGallery = ({ productData, productId }) => {
 
   const handleMainImageUpload = async (event) => {
     const file = event.target.files[0];
-    if (!file) return;
+    if (!file) return; // Do nothing if no file is selected (prevents false error toast)
     setImageUploading(true);
     try {
       const formData = new FormData();
@@ -207,7 +206,7 @@ const ProductGallery = ({ productData, productId }) => {
       toast.error('Main image upload failed');
     } finally {
       setImageUploading(false);
-      if (imageInputRef.current) imageInputRef.current.value = '';
+      if (file && imageInputRef.current) imageInputRef.current.value = '';
     }
   };
 
@@ -219,9 +218,8 @@ const ProductGallery = ({ productData, productId }) => {
   };
 
   const handleSubImagesUpload = async (event) => {
-    console.log('DEBUG handleSubImagesUpload called');
     const files = Array.from(event.target.files);
-    if (!files.length) return;
+    if (!files.length) return; // Do nothing if no files are selected (prevents false error toast)
     // Check if adding these files would exceed 10 sub images
     if (selectedSubImages.length + files.length > 10) {
       toast.error('You can only add up to 10 sub images.');
@@ -247,7 +245,7 @@ const ProductGallery = ({ productData, productId }) => {
       toast.error('Sub image upload failed');
     } finally {
       setSubImagesUploading(false);
-      if (subImagesInputRef.current) subImagesInputRef.current.value = '';
+      if (files.length && subImagesInputRef.current) subImagesInputRef.current.value = '';
     }
   };
 
@@ -271,7 +269,7 @@ const ProductGallery = ({ productData, productId }) => {
       .filter(img => img.url && img.key)
       .map(img => ({ url: img.url, key: img.key }));
 
-   
+
     try {
       // Check if gallery exists for this product
       const resGallery = await fetch(`/api/productGallery?productId=${productId}`);
@@ -518,7 +516,14 @@ const ProductGallery = ({ productData, productId }) => {
                       <td className="border px-2 py-1 text-center">
                         <Button type="button" onClick={() => handleViewGallery(gallery)} className="bg-green-500 text-white px-2 py-1 mr-2">View</Button>
                         <Button type="button" onClick={() => handleEditGallery(gallery)} className="bg-blue-500 text-white px-2 py-1 mr-2">Edit</Button>
-                        <Button type="button" onClick={() => handleDeleteGallery(gallery)} className="bg-red-500 text-white px-2 py-1">Delete</Button>
+                        {deletingGalleryId === gallery._id ? (
+                          <Button type="button" disabled className="bg-red-500 text-white px-2 py-1 flex items-center justify-center">
+                            <svg className="animate-spin h-4 w-4 mr-1 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+                            Deleting...
+                          </Button>
+                        ) : (
+                          <Button type="button" onClick={() => handleDeleteGallery(gallery)} className="bg-red-500 text-white px-2 py-1">Delete</Button>
+                        )}
                       </td>
                     </tr>
                   ))

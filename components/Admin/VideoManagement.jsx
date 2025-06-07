@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog";
+import { Textarea } from '../ui/textarea';
 const VideoManagement = ({ productData, productId }) => {
   const [videoUrl, setVideoUrl] = useState("");
   const productTitle = productData?.title || "";
@@ -14,16 +15,20 @@ const VideoManagement = ({ productData, productId }) => {
 
 
   // Table and modal/dialog states
-  const [videos, setVideos] = useState([]);
+  const [videos, setVideos] = useState([]); // [{ url, description }]
   const [products, setProducts] = useState([]);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
+  const [videoDescription, setVideoDescription] = useState("");
 
   const handleSubmit = async (e) => {
+    // Helper for edit mode
+    const isSameVideo = (v, url) => typeof v === 'object' ? v.url === url : v === url;
     e.preventDefault();
+    console.log(productId);
     if (!videoUrl || !productId) {
       toast.error('Please provide a video URL and valid product.');
       return;
@@ -32,8 +37,10 @@ const VideoManagement = ({ productData, productId }) => {
     try {
       let res, data;
       if (isEditMode && editTargetUrl) {
-        // PATCH request to update video URL (send full array)
-        const updatedVideos = videos.map(v => (v === editTargetUrl ? videoUrl : v));
+        // PATCH request to update video (url/description)
+        const updatedVideos = videos.map(v =>
+          isSameVideo(v, editTargetUrl) ? { url: videoUrl, description: videoDescription } : v
+        );
         res = await fetch('/api/productVideo', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -48,21 +55,25 @@ const VideoManagement = ({ productData, productId }) => {
           setIsEditMode(false);
           setEditTargetUrl(null);
           setVideoUrl("");
+          setVideoDescription("");
         }
       } else {
         // POST request to add new video
         res = await fetch('/api/productVideo', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productId, videoUrl })
+          body: JSON.stringify({ productId, videoUrl, videoDescription })
         });
         data = await res.json();
         if (!res.ok || data.error) {
           toast.error(data.error || 'Failed to save video');
         } else {
           toast.success('Video saved successfully!');
-          setVideos([...videos, videoUrl]);
+          setVideos([...videos, { url: videoUrl, description: videoDescription }]);
           setVideoUrl("");
+          setVideoDescription("");
+          setIsEditMode(false);
+          setEditTargetUrl(null);
         }
       }
     } catch (err) {
@@ -85,7 +96,7 @@ const VideoManagement = ({ productData, productId }) => {
         const res = await fetch(`/api/productVideo?productId=${productId}`);
         const data = await res.json();
         if (data && data.video && Array.isArray(data.video.videos)) {
-          setVideos(data.video.videos);
+          setVideos(data.video.videos.map(v => typeof v === 'string' ? { url: v, description: '' } : v));
         } else {
           setVideos([]);
         }
@@ -103,8 +114,9 @@ const VideoManagement = ({ productData, productId }) => {
   };
 
   // View handler
-  const handleView = (videoUrl) => {
-    setSelectedVideo({ videoUrl, productName: getProductName(productId) });
+  const handleView = (videoObj) => {
+    setSelectedVideo({ ...videoObj, productName: getProductName(productId) });
+    setVideoDescription(videoObj.description || '');
     setShowViewModal(true);
   };
 
@@ -112,16 +124,17 @@ const VideoManagement = ({ productData, productId }) => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editTargetUrl, setEditTargetUrl] = useState(null);
 
-  const handleEdit = (videoUrl) => {
-    setVideoUrl(videoUrl);
+  const handleEdit = (videoObj) => {
+    setVideoUrl(videoObj.url);
+    setVideoDescription(videoObj.description || '');
     setIsEditMode(true);
-    setEditTargetUrl(videoUrl);
+    setEditTargetUrl(videoObj.url);
   };
 
 
   // Delete handler
-  const handleDelete = (videoUrl) => {
-    setDeleteTarget(videoUrl);
+  const handleDelete = (videoObj) => {
+    setDeleteTarget(videoObj.url);
     setShowDeleteDialog(true);
   };
 
@@ -140,7 +153,7 @@ const VideoManagement = ({ productData, productId }) => {
         toast.error(data.error || 'Failed to delete video');
       } else {
         toast.success('Video deleted successfully!');
-        setVideos(videos.filter(url => url !== deleteTarget));
+        setVideos(videos.filter(v => v.url !== deleteTarget));
         setShowDeleteDialog(false);
         setDeleteTarget(null);
       }
@@ -174,6 +187,26 @@ const VideoManagement = ({ productData, productId }) => {
                     <label className="form-label">Product Video URL</label>
                     <div className="input-group">
                       <Input type="text" className="form-control" placeholder="Youtube URL" value={videoUrl} onChange={e => setVideoUrl(e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="mb-4">
+                    <label className="form-label">Product Video Description</label>
+                    <div className="input-group">
+                      <Textarea
+                        rows={5}
+                        className="form-control"
+                        placeholder="Description (Min 100 words)"
+                        value={videoDescription}
+                        onChange={e => {
+                          const value = e.target.value;
+                          const wordCount = value.trim().split(/\s+/).length;
+                          if (wordCount > 100) {
+                            toast.error('Description cannot exceed 100 words.');
+                            return;
+                          }
+                          setVideoDescription(value);
+                        }}
+                      />
                     </div>
                   </div>
                   <div className="text-center">
@@ -212,8 +245,8 @@ const VideoManagement = ({ productData, productId }) => {
                           <TableCell colSpan={4} className="text-center">No videos found.</TableCell>
                         </TableRow>
                       ) : (
-                        videos.map((url, idx) => (
-                          <TableRow key={url}>
+                        videos.map((video, idx) => (
+                          <TableRow key={video.url}>
                             <TableCell className="text-center">{idx + 1}</TableCell>
                             <TableCell className="text-center">{getProductName(productId)}</TableCell>
                             <TableCell className="text-center">
@@ -222,14 +255,18 @@ const VideoManagement = ({ productData, productId }) => {
                                   <TooltipTrigger asChild>
                                     <span className="text-blue-600 underline cursor-pointer">Link</span>
                                   </TooltipTrigger>
-                                  <TooltipContent>{url}</TooltipContent>
+                                  <TooltipContent>
+                                    <div>{video.url}</div>
+                                    {/* <div className="text-xs text-gray-500 mt-1">{video.description}</div> */}
+                                  </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
+                              {/* <div className="text-xs text-gray-500 mt-1">{video.description}</div> */}
                             </TableCell>
                             <TableCell className="text-center">
-                              <Button variant="outline" size="sm" onClick={() => handleView(url)} title="View">View</Button>{' '}
-                              <Button variant="outline" size="sm" onClick={() => handleEdit(url)} title="Edit">Edit</Button>{' '}
-                              <Button variant="destructive" size="sm" onClick={() => handleDelete(url)} title="Delete">Delete</Button>
+                              <Button variant="outline" size="sm" onClick={() => handleView(video)} title="View">View</Button>{' '}
+                              <Button variant="outline" size="sm" onClick={() => handleEdit(video)} title="Edit">Edit</Button>{' '}
+                              <Button variant="destructive" size="sm" onClick={() => handleDelete(video)} title="Delete">Delete</Button>
                             </TableCell>
                           </TableRow>
                         ))
@@ -255,7 +292,11 @@ const VideoManagement = ({ productData, productId }) => {
           </div>
           <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
             <div className="font-semibold text-gray-800">YouTube URL</div>
-            <a href={selectedVideo?.videoUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{selectedVideo?.videoUrl}</a>
+            <a href={selectedVideo?.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{selectedVideo?.url}</a>
+          </div>
+          <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
+            <div className="font-semibold text-gray-800">Description</div>
+            <div className="text-gray-600 h-32 overflow-y-auto">{selectedVideo?.description}</div>
           </div>
         </DialogContent>
       </Dialog>

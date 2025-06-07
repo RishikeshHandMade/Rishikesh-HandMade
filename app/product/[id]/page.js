@@ -7,6 +7,7 @@ import RelatedProductsCarousel from "@/components/RelatedProductsCarousel";
 import StickyAddToCartBar from "@/components/StickyAddToCartBar"
 import ProductDetailView from "@/components/ProductDetailView";
 import ProductInfoTabs from "@/components/ProductInfoTabs";
+import ProductVideo from "@/components/ProductVideo";
 
 const ProductDetailPage = async ({ params }) => {
     // Get the product slug from the URL and decode it
@@ -76,6 +77,9 @@ const ProductDetailPage = async ({ params }) => {
             <div className="w-full px-4 py-8 flex flex-col">
                 <div className="space-y-4">
                     <ProductDetailView product={product} />
+                </div>
+                <div className="space-y-4">
+                        <ProductVideo productData={product} productId={product._id} />
                 </div>
                 <div className="space-y-4">
                         <ProductInfoTabs product={product} />
