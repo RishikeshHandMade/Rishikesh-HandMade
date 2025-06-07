@@ -6,7 +6,6 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Label } from "../ui/label";
 import toast from "react-hot-toast"
 import { Dialog, DialogContent, DialogHeader, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogTrigger, AlertDialogContent } from '@/components/ui/alert-dialog';
 import { Trash2, Plus } from "lucide-react";
 const QuantityManagement = ({ productData, productId }) => {
   // Remove a row by index, but always keep at least one row
@@ -143,7 +142,8 @@ const QuantityManagement = ({ productData, productId }) => {
   const handleDelete = async () => {
     if (!deleteDialog.id) return;
     try {
-      const res = await fetch(`/api/productQuantity?id=${deleteDialog.id}`, { method: 'DELETE' });
+      // Include productId in the DELETE request so backend can clear Product.quantity
+      const res = await fetch(`/api/productQuantity?id=${deleteDialog.id}&productId=${productId}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete');
       toast.success('Deleted successfully');
       setDeleteDialog({ open: false, id: null });
@@ -329,14 +329,24 @@ const QuantityManagement = ({ productData, productId }) => {
                   </Dialog>
                   {/* Edit Button */}
                   <Button size="sm" className="bg-yellow-500 text-white" onClick={() => handleEdit(q)}>
-               Edit
+                    Edit
                   </Button>
                   {/* Delete Dialog Trigger */}
-                  <AlertDialog open={deleteDialog.open && deleteDialog.id === q._id} onOpenChange={open => setDeleteDialog(open ? { open: true, id: q._id } : { open: false, id: null })}>
-                    <AlertDialogTrigger asChild>
+                  <Dialog open={deleteDialog.open && deleteDialog.id === q._id} onOpenChange={open => setDeleteDialog(open ? { open: true, id: q._id } : { open: false, id: null })}>
+                    <DialogTrigger asChild>
                       <Button size="sm" className="bg-red-500 text-white">Delete</Button>
-                    </AlertDialogTrigger>
-                  </AlertDialog>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Delete Quantity</DialogTitle>
+                      </DialogHeader>
+                      <p>Are you sure you want to delete this quantity record?</p>
+                      <div className="flex gap-4 mt-4 justify-end">
+                        <Button variant="secondary" onClick={() => setDeleteDialog({ open: false, id: null })}>Cancel</Button>
+                        <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </td>
               </tr>
             ))}

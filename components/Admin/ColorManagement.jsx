@@ -332,7 +332,7 @@ const ColorManagement = ({ productData, productId }) => {
                       )}
                     </div>
                   </div>
-                  <div className="mb-4">
+                  <div className="mb-4 ">
                     <label className="font-semibold text-lg ">Choose from Color List</label>
                     <Button style={{ marginBottom: 10, marginLeft: 10 }} onClick={() => setShowAddColorModal(true)} type="button">Add Color</Button>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 10, marginTop: 10, height: 300, overflowY: 'auto', border: "1px solid #ccc", padding: "10px" }}>
@@ -436,8 +436,7 @@ const ColorManagement = ({ productData, productId }) => {
                 <th style={{ padding: 8, border: '1px solid #ddd' }}>Product Name</th>
                 <th style={{ padding: 8, border: '1px solid #ddd' }}>Hex / Color Name</th>
                 {/* <th style={{ padding: 8, border: '1px solid #ddd' }}>Active</th> */}
-                <th style={{ padding: 8, border: '1px solid #ddd' }}>Edit</th>
-                <th style={{ padding: 8, border: '1px solid #ddd' }}>Delete</th>
+                <th style={{ padding: 8, border: '1px solid #ddd' }}>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -448,7 +447,7 @@ const ColorManagement = ({ productData, productId }) => {
                 <tr key={row._id} style={{ borderBottom: '1px solid #eee' }}>
                   <td style={{ padding: 8, border: '1px solid #ddd' }}>{idx + 1}</td>
                   <td style={{ padding: 8, border: '1px solid #ddd' }}>{row.product?.title || '-'}</td>
-                  <td style={{ padding: 8, border: '1px solid #ddd' }}>
+                  <td style={{ padding: 8, border: '1px solid #ddd'  }}>
                     {row.colors.map((c, i) => (
                       <span key={i} style={{ marginRight: 8, display: 'inline-block' }}>
                         {c.hex ? (
@@ -462,13 +461,8 @@ const ColorManagement = ({ productData, productId }) => {
                       </span>
                     ))}
                   </td>
-                  {/* <td style={{ padding: 8, border: '1px solid #ddd' }}>
-                    <Switch checked={!!row.active} onCheckedChange={checked => handleSwitch(row._id, checked)} />
-                  </td> */}
-                  <td style={{ padding: 8, border: '1px solid #ddd' }}>
-                    <button onClick={() => handleEditRow(row)} style={{ background: '#1976d2', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 12px', cursor: 'pointer' }}>Edit</button>
-                  </td>
-                  <td style={{ padding: 8, border: '1px solid #ddd' }}>
+                  <td style={{ padding: 8, border: '1px solid #ddd', display: 'flex', gap: 8, justifyContent: 'center' }}>
+                    <Button onClick={() => handleEditRow(row)} style={{ background: '#1976d2', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 12px', cursor: 'pointer' }}>Edit</Button>
                     <Button variant="destructive" onClick={() => openDeleteModal(row._id)}>
                       Delete
                     </Button>
