@@ -86,6 +86,13 @@ export async function DELETE(req) {
     infoDoc.info.splice(index, 1);
     await infoDoc.markModified('info');
     await infoDoc.save();
+
+    // If no sections left, delete Info doc and unset from Product
+    if (infoDoc.info.length === 0) {
+      await Info.deleteOne({ _id: infoDoc._id });
+      await Product.findByIdAndUpdate(productId, { $unset: { info: "" } });
+      return Response.json({ success: true, info: null });
+    }
     // console.log('After delete/save:', infoDoc.info);
     return Response.json({ success: true, info: infoDoc });
   } catch (err) {

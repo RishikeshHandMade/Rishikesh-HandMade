@@ -8,7 +8,7 @@ const Boxes = () => {
     <div className="w-full px-2">
     {/* Promo Bar - Top */}
     <div className="w-full bg-[#F9EDE1] border-b border-neutral-200 my-3">
-      <div className="flex flex-col md:flex-row items-center justify-between max-w-7xl mx-auto py-4 px-2 gap-2">
+      <div className="flex flex-col md:flex-row items-center justify-between max-w-5xl mx-auto py-4 px-2 gap-2">
         <div className="flex-1 flex flex-col items-center md:items-start">
           <span className="font-bold text-lg md:text-2xl">FREE SHIPPING OVER ₹2999*</span>
           <span className="text-md text-gray-500">Plus, two-day delivery on thousands of items.</span>
@@ -21,7 +21,7 @@ const Boxes = () => {
       </div>
     </div>
     {/* Feature Icons Row */}
-    <div className="w-full bg-gray-300">
+    <div className="w-full bg-gray-200">
       <div className="flex flex-wrap md:flex-nowrap items-center justify-between max-w-7xl mx-auto py-4 px-2 gap-4">
         <div className="flex items-center gap-2 flex-1 min-w-[120px]">
           <span className="text-xl"><Gift size={25} /></span>

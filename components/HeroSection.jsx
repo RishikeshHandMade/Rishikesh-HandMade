@@ -192,7 +192,7 @@ const HeroSection = () => {
             <CarouselContent className="h-screen">
               {banners.map((banner, index) => (
                 <CarouselItem key={index} className="h-screen flex items-center">
-                  <div className="flex flex-row items-center justify-center w-full mx-auto gap-12 h-full">
+                  <div className="flex flex-row items-center justify-center w-full mx-auto h-full">
                     {/* Front Image */}
                     <div className="flex-1 flex items-center justify-end h-full">
                       <img
@@ -202,12 +202,12 @@ const HeroSection = () => {
                       />
                     </div>
                     {/* Details Centered */}
-                    <div className="flex flex-col items-center justify-center flex-1 min-w-[300px] py-8 relative h-full">
-                      <h1 className="text-5xl md:text-5xl font-bold text-black leading-tight mb-3 text-center">
+                    <div className="bg-[#4C8979] flex flex-col items-center justify-center flex-1 min-w-[300px] py-8 relative h-full">
+                      <h1 className="text-5xl md:text-5xl font-bold text-white leading-tight mb-3 text-center">
                         {banner.title || "No Title"}
                       </h1>
-                      <div className="text-xl font-semibold text-black mb-2">Price</div>
-                      <div className="text-3xl font-extrabold text-black mb-4 flex flex-row items-center gap-3">
+                      <div className="text-xl font-semibold text-white mb-2">Price</div>
+                      <div className="text-3xl font-extrabold text-white mb-4 flex flex-row items-center gap-3">
                         {/* Discounted price logic: couponAmount > couponPercent > coupon (as number) > just price */}
                         {(() => {
                           // Remove ₹ and commas from price for calculation
@@ -226,13 +226,13 @@ const HeroSection = () => {
                           if (hasDiscount && discounted < priceNum) {
                             return (
                               <span>
-                                <del className="text-black font-bold text-3xl mr-2">₹{priceNum.toLocaleString()}</del>
-                                <span className="font-bold text-3xl text-black px-2">₹{Math.round(discounted)}</span>
+                                <del className="text-white font-bold text-3xl mr-2">₹{priceNum.toLocaleString()}</del>
+                                <span className="font-bold text-3xl text-white px-2">₹{Math.round(discounted)}</span>
                               </span>
                             );
                           } else {
                             return (
-                              <span className="font-bold text-3xl text-black">₹{priceNum ? priceNum.toLocaleString() : "0.00"}</span>
+                              <span className="font-bold text-3xl text-white">₹{priceNum ? priceNum.toLocaleString() : "0.00"}</span>
                             );
                           }
                         })()}
@@ -242,7 +242,7 @@ const HeroSection = () => {
                           href={banner.addtoCartLink || '#'}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className={`bg-black text-white px-5 py-2 rounded-lg font-semibold hover:bg-gray-800 transition${!banner.addtoCartLink ? ' opacity-50 pointer-events-none' : ''}`}
+                          className={`bg-white text-black px-5 py-2 rounded-lg font-bold hover:bg-gray-800 transition${!banner.addtoCartLink ? ' opacity-50 pointer-events-none' : ''}`}
                         >
                           ADD TO CART
                         </a>
@@ -250,14 +250,14 @@ const HeroSection = () => {
                           href={banner.viewDetailLink || '#'}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className={`border border-black px-5 py-2 rounded-lg font-semibold hover:bg-gray-100 transition${!banner.viewDetailLink ? ' opacity-50 pointer-events-none' : ''}`}
+                          className={`bg-white text-black px-5 py-2 rounded-lg font-bold hover:bg-gray-100 transition${!banner.viewDetailLink ? ' opacity-50 pointer-events-none' : ''}`}
                         >
                           VIEW DETAIL
                         </a>
                       </div>
                       <div className="flex flex-col items-center gap-1 mt-1 mb-2">
-                        <div className="text-lg font-bold text-black">{banner.subtitle || "No Subtitle"}</div>
-                        <div className="text-base font-semibold text-black tracking-tight">{banner.subDescription || "No Sub Description"}</div>
+                        <div className="text-lg font-bold text-white">{banner.subtitle || "No Subtitle"}</div>
+                        <div className="text-base font-semibold text-white tracking-tight">{banner.subDescription || "No Sub Description"}</div>
                       </div>
                       {/* More Category Circular Button */}
                       {/* <div className="absolute left-1/2 bottom-[-72px] -translate-x-1/2">

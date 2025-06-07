@@ -17,7 +17,7 @@ export default function ProductDetailView({ product }) {
   const router = useRouter();
   const [showShareBox, setShowShareBox] = React.useState(false);
   const [productUrl, setProductUrl] = React.useState("");
-console.log(product)
+
   React.useEffect(() => {
     if (typeof window !== "undefined" && product && product._id) {
       setProductUrl(window.location.origin + "/product/" + product._id);
@@ -116,7 +116,7 @@ console.log(product)
         <div className="w-full flex justify-center mb-4">
           <div className="relative w-[400px] h-[400px] flex items-center justify-center rounded-xl overflow-hidden">
             <Image
-              src={selectedImage || product.gallery?.mainImage?.url || '/placeholder.jpeg'}
+              src={selectedImage || product.gallery?.mainImage?.url || '/placeholder.png'}
               alt={product.title}
               fill
               style={{ objectFit: 'contain' }}
@@ -130,7 +130,7 @@ console.log(product)
             <div className="relative">
               <Carousel className="w-full">
                 <CarouselContent>
-                  {[product.gallery.mainImage?.url, ...product.gallery.subImages.map(img => img.url)].filter(Boolean).map((img, idx) => (
+                {[product.gallery.mainImage?.url, ...product.gallery.subImages.map(img => img.url)].filter(Boolean).map((img, idx) => (
                     <CarouselItem key={idx} className="flex justify-center basis-1/5 max-w-[20%] min-w-0">
                       <button
                         className={`rounded-lg border-2 ${selectedImage === img ? 'border-black' : 'border-gray-200'} focus:outline-none focus:ring-2 focus:ring-black`}
@@ -290,7 +290,7 @@ console.log(product)
         </div>
         {/* SKU, Tags, etc. */}
         <div className="mb-4">
-          <div className="text-md mb-1"><span className="font-bold text-md">Category:</span> Dresses, Jeans, Summer, Clothing</div>
+          {/* <div className="text-md mb-1"><span className="font-bold text-md">Category:</span> Dresses, Jeans, Summer, Clothing</div> */}
           <div className="text-md"><span className="font-bold ">Tags:</span> {(product?.categoryTag?.tags && product?.categoryTag?.tags.length > 0) ? product.categoryTag.tags.join(', ') : 'No tags'}</div>
         </div>
       </div>

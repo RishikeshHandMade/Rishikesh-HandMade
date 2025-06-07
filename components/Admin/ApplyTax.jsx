@@ -226,26 +226,35 @@ const ApplyTax = ({ productData, productId }) => {
                   <th className="border px-3 py-2">Action</th>
                 </tr>
               </thead>
-              {loading ? (
-                <div className="text-gray-500">Loading...</div>
-              ) : (
-                <tbody>
-                  {taxTable.length === 0 && (
-                    <tr><td colSpan={4} className="text-center py-2">No tax data for this product</td></tr>
-                  )}
-                  {taxTable.length > 0 && taxTable.map((row) => (
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan="4" className="text-center py-4 text-gray-500">
+                      Loading...
+                    </td>
+                  </tr>
+                ) : taxTable.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" className="text-center py-2">
+                      No tax data for this product
+                    </td>
+                  </tr>
+                ) : (
+                  taxTable.map((row) => (
                     <tr key={row._id}>
                       <td className="border px-3 py-2 text-center">{row.product?.title || row.product}</td>
                       <td className="border px-3 py-2 text-center">{row.cgst}</td>
                       <td className="border px-3 py-2 text-center">{row.sgst}</td>
                       <td className="border px-3 py-2 text-center">
                         <button
+                          type="button"
                           className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded"
                           onClick={() => handleEditTax(row)}
                         >
                           Edit
                         </button>
                         <button
+                          type="button"
                           className="bg-red-500 hover:bg-red-600 ml-2 text-white px-2 py-1 rounded"
                           onClick={() => handleDeleteTax(row)}
                         >
@@ -253,9 +262,9 @@ const ApplyTax = ({ productData, productId }) => {
                         </button>
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              )}
+                  ))
+                )}
+              </tbody>
             </table>
           </div>
         </div>

@@ -3,7 +3,13 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/connectDB';
 import Product from '@/models/Product';
 import MenuBar from '@/models/MenuBar';
+import Size from '@/models/Size';
+import Color from '@/models/Color';
 import mongoose from 'mongoose';
+
+// Ensure models are registered
+import '@/models/Size';
+import '@/models/Color';
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -46,8 +52,8 @@ export async function GET(request) {
     })
     .populate([
       'gallery',
-      'color',
-      'size',
+      { path: 'color', model: 'Color' },
+      { path: 'size', model: 'Size' },
       'price',
       'video',
       'description',

@@ -468,7 +468,7 @@ const SizeManagement = ({ productData, productId }) => {
                 ]);
                 setSizeChart(null);
                 setSizeChartPreview(null);
-                setSizeChartUrl("");
+                setSizeChartObj({ url: '', key: '' });
                 setSizeInputMethod('optionals');
               }}>
                 Cancel
