@@ -8,159 +8,63 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 
 const ColorManagement = ({ productData, productId }) => {
   // All hooks must be inside this function!
-  const [COLOR_LIST, setColorList] = useState([
-    { hex: "#FF0000", name: "Red" },
-    { hex: "#00FF00", name: "Green" },
-    { hex: "#0000FF", name: "Blue" },
-    { hex: "#FFFF00", name: "Yellow" },
-    { hex: "#FFA500", name: "Orange" },
-    { hex: "#800080", name: "Purple" },
-    { hex: "#FFC0CB", name: "Pink" },
-    { hex: "#000000", name: "Black" },
-    { hex: "#FFFFFF", name: "White" },
-    { hex: "#808080", name: "Gray" },
-    { hex: "#A52A2A", name: "Brown" },
-    { hex: "#8B4513", name: "Saddle Brown" },
-    { hex: "#D2B48C", name: "Tan" },
-    { hex: "#FFD700", name: "Gold" },
-    { hex: "#008080", name: "Teal" },
-    { hex: "#00CED1", name: "Dark Turquoise" },
-    { hex: "#4682B4", name: "Steel Blue" },
-    { hex: "#000080", name: "Navy" },
-    { hex: "#B22222", name: "Firebrick" },
-    { hex: "#228B22", name: "Forest Green" },
-    { hex: "#F5DEB3", name: "Wheat" },
-    { hex: "#E9967A", name: "Dark Salmon" },
-    { hex: "#C0C0C0", name: "Silver" },
-    { hex: "#F0E68C", name: "Khaki" },
-    { hex: "#BDB76B", name: "Dark Khaki" },
-    { hex: "#DC143C", name: "Crimson" },
-    { hex: "#F0F8FF", name: "Aliceblue" },
-    { hex: "#FAEBD7", name: "Antiquewhite" },
-    { hex: "#00FFFF", name: "Aqua" },
-    { hex: "#7FFFD4", name: "Aquamarine" },
-    { hex: "#F0FFFF", name: "Azure" },
-    { hex: "#F5F5DC", name: "Beige" },
-    { hex: "#FFE4C4", name: "Bisque" },
-    { hex: "#FFEBCD", name: "Blanchedalmond" },
-    { hex: "#8A2BE2", name: "Blueviolet" },
-    { hex: "#DEB887", name: "Burlywood" },
-    { hex: "#5F9EA0", name: "Cadetblue" },
-    { hex: "#7FFF00", name: "Chartreuse" },
-    { hex: "#D2691E", name: "Chocolate" },
-    { hex: "#FF7F50", name: "Coral" },
-    { hex: "#6495ED", name: "Cornflowerblue" },
-    { hex: "#FFF8DC", name: "Cornsilk" },
-    { hex: "#008B8B", name: "Darkcyan" },
-    { hex: "#B8860B", name: "Darkgoldenrod" },
-    { hex: "#A9A9A9", name: "Darkgray" },
-    { hex: "#006400", name: "Darkgreen" },
-    { hex: "#8B008B", name: "Darkmagenta" },
-    { hex: "#556B2F", name: "Darkolivegreen" },
-    { hex: "#FF8C00", name: "Darkorange" },
-    { hex: "#9932CC", name: "Darkorchid" },
-    { hex: "#8B0000", name: "Darkred" },
-    { hex: "#8FBC8F", name: "Darkseagreen" },
-    { hex: "#483D8B", name: "Darkslateblue" },
-    { hex: "#2F4F4F", name: "Darkslategray" },
-    { hex: "#9400D3", name: "Darkviolet" },
-    { hex: "#FF1493", name: "Deeppink" },
-    { hex: "#00BFFF", name: "Deepskyblue" },
-    { hex: "#696969", name: "Dimgray" },
-    { hex: "#1E90FF", name: "Dodgerblue" },
-    { hex: "#FFFAF0", name: "Floralwhite" },
-    { hex: "#FF00FF", name: "Fuchsia" },
-    { hex: "#DCDCDC", name: "Gainsboro" },
-    { hex: "#F8F8FF", name: "Ghostwhite" },
-    { hex: "#DAA520", name: "Goldenrod" },
-    { hex: "#ADFF2F", name: "Greenyellow" },
-    { hex: "#F0FFF0", name: "Honeydew" },
-    { hex: "#FF69B4", name: "Hotpink" },
-    { hex: "#CD5C5C", name: "Indianred" },
-    { hex: "#4B0082", name: "Indigo" },
-    { hex: "#FFFFF0", name: "Ivory" },
-    { hex: "#E6E6FA", name: "Lavender" },
-    { hex: "#FFF0F5", name: "Lavenderblush" },
-    { hex: "#7CFC00", name: "Lawngreen" },
-    { hex: "#FFFACD", name: "Lemonchiffon" },
-    { hex: "#ADD8E6", name: "Lightblue" },
-    { hex: "#F08080", name: "Lightcoral" },
-    { hex: "#E0FFFF", name: "Lightcyan" },
-    { hex: "#D3D3D3", name: "Lightgray" },
-    { hex: "#90EE90", name: "Lightgreen" },
-    { hex: "#FFB6C1", name: "Lightpink" },
-    { hex: "#FFA07A", name: "Lightsalmon" },
-    { hex: "#20B2AA", name: "Lightseagreen" },
-    { hex: "#87CEFA", name: "Lightskyblue" },
-    { hex: "#778899", name: "Lightslategray" },
-    { hex: "#B0C4DE", name: "Lightsteelblue" },
-    { hex: "#FFFFE0", name: "Lightyellow" },
-    { hex: "#32CD32", name: "Limegreen" },
-    { hex: "#FAF0E6", name: "Linen" },
-    { hex: "#800000", name: "Maroon" },
-    { hex: "#66CDAA", name: "Mediumaquamarine" },
-    { hex: "#0000CD", name: "Mediumblue" },
-    { hex: "#BA55D3", name: "Mediumorchid" },
-    { hex: "#9370DB", name: "Mediumpurple" },
-    { hex: "#3CB371", name: "Mediumseagreen" },
-    { hex: "#7B68EE", name: "Mediumslateblue" },
-    { hex: "#00FA9A", name: "Mediumspringgreen" },
-    { hex: "#48D1CC", name: "Mediumturquoise" },
-    { hex: "#C71585", name: "Mediumvioletred" },
-    { hex: "#191970", name: "Midnightblue" },
-    { hex: "#F5FFFA", name: "Mintcream" },
-    { hex: "#FFE4E1", name: "Mistyrose" },
-    { hex: "#FFE4B5", name: "Moccasin" },
-    { hex: "#FFDEAD", name: "Navajowhite" },
-    { hex: "#FDF5E6", name: "Oldlace" },
-    { hex: "#808000", name: "Olive" },
-    { hex: "#6B8E23", name: "Olivedrab" },
-    { hex: "#FF4500", name: "Orangered" },
-    { hex: "#DA70D6", name: "Orchid" },
-    { hex: "#EEE8AA", name: "Palegoldenrod" },
-    { hex: "#98FB98", name: "Palegreen" },
-    { hex: "#AFEEEE", name: "Paleturquoise" },
-    { hex: "#DB7093", name: "Palevioletred" },
-    { hex: "#FFEFD5", name: "Papayawhip" },
-    { hex: "#FFDAB9", name: "Peachpuff" },
-    { hex: "#CD853F", name: "Peru" },
-    { hex: "#DDA0DD", name: "Plum" },
-    { hex: "#B0E0E6", name: "Powderblue" },
-    { hex: "#663399", name: "Rebeccapurple" },
-    { hex: "#BC8F8F", name: "Rosybrown" },
-    { hex: "#4169E1", name: "Royalblue" },
-    { hex: "#FA8072", name: "Salmon" },
-    { hex: "#F4A460", name: "Sandybrown" },
-    { hex: "#2E8B57", name: "Seagreen" },
-    { hex: "#FFF5EE", name: "Seashell" },
-    { hex: "#A0522D", name: "Sienna" },
-    { hex: "#87CEEB", name: "Skyblue" },
-    { hex: "#6A5ACD", name: "Slateblue" },
-    { hex: "#708090", name: "Slategray" },
-    { hex: "#FFFAFA", name: "Snow" },
-    { hex: "#FAFAD2", name: "Lightgoldenrodyellow" },
-  ]);
+  const [COLOR_LIST, setColorList] = useState([]);
+
+  // Fetch color list from backend on mount
+  useEffect(() => {
+    const fetchColors = async () => {
+      try {
+        const res = await fetch('/api/colorList');
+        if (!res.ok) throw new Error('Failed to fetch colors');
+        const data = await res.json();
+        setColorList(data); // Expecting [{name, hex}, ...]
+      } catch (err) {
+        toast.error('Failed to load color list');
+      }
+    };
+    fetchColors();
+  }, []);
 
   const [showAddColorModal, setShowAddColorModal] = useState(false);
   const [newColorName, setNewColorName] = useState("");
   const [newColorHex, setNewColorHex] = useState("");
 
-  const handleSaveNewColor = () => {
+  const handleSaveNewColor = async () => {
     if (!newColorName || !/^#[0-9A-Fa-f]{6}$/.test(newColorHex)) return;
-    // Prevent duplicates
+    // Prevent duplicates in current list
     if (COLOR_LIST.some(c => c.hex.toLowerCase() === newColorHex.toLowerCase())) {
       setShowAddColorModal(false);
       setNewColorName("");
       setNewColorHex("");
+      toast.error("Color already exists");
       return;
     }
-    const updated = [{ name: newColorName, hex: newColorHex }, ...COLOR_LIST];
-    setColorList(updated);
-    setSelectedHexes([newColorHex]); // Select the new color for immediate use
-    setShowAddColorModal(false);
-    setNewColorName("");
-    setNewColorHex("");
-    toast.success("New color added!");
+    // Add to DB
+    try {
+      const res = await fetch('/api/colorList', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newColorName, hex: newColorHex })
+      });
+      if (res.status === 409) {
+        toast.error("Color with this name or hex already exists in DB");
+        setShowAddColorModal(false);
+        setNewColorName("");
+        setNewColorHex("");
+        return;
+      }
+      if (!res.ok) throw new Error('Failed to add color');
+      const dbColor = await res.json();
+      const updated = [{ name: dbColor.name, hex: dbColor.hex }, ...COLOR_LIST];
+      setColorList(updated);
+      setSelectedHexes([dbColor.hex]); // Select the new color for immediate use
+      setShowAddColorModal(false);
+      setNewColorName("");
+      setNewColorHex("");
+      toast.success("New color added!");
+    } catch (err) {
+      toast.error("Failed to add color");
+    }
   };
 
   // Multiple color selection
