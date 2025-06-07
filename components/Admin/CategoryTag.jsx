@@ -26,7 +26,7 @@ const CategoryTag = ({ productData, productId }) => {
   // Table state
   const [categoryRows, setCategoryRows] = useState([]); // [{ product, productName, tags, categoryTagId }]
   const [editRow, setEditRow] = useState(null); // { product, tags, categoryTagId }
-
+  console.log(categoryRows)
   const [productTitle, setProductTitle] = useState("")
   useEffect(() => {
     if (!productData && productId) {
@@ -49,10 +49,26 @@ const CategoryTag = ({ productData, productId }) => {
   }, [productData, productId]);
 
   const productName = productData?.title || productTitle || "";
-  // Fetch all products and all tags on mount
+  // Fetch only the current product's category tags and all tags on mount or when product changes
   useEffect(() => {
-    fetchCategoryRows();
-    // Fetch all tags from Tag model
+    if (!productId) return;
+    // Fetch category tags for this product only
+    fetch(`/api/productCategory?product=${productId}`)
+      .then(res => res.json())
+      .then(data => {
+        // Only set a single row for the current product
+        if (data && data.success && data.data && Array.isArray(data.data.tags) && data.data.tags.length > 0) {
+          setCategoryRows([{
+            product: productId,
+            productName: productData?.title || productTitle || "",
+            tags: data.data.tags,
+            categoryTagId: data.data._id
+          }]);
+        } else {
+          setCategoryRows([]); // No row if no category data
+        }
+      });
+    // Fetch all tags from Tag model (for suggestions)
     fetch("/api/productTag")
       .then(res => res.json())
       .then(data => {
@@ -60,7 +76,11 @@ const CategoryTag = ({ productData, productId }) => {
           setTags(data.tags.map(tag => tag.name));
         }
       });
-  }, []);
+  }, [productId, productData, productTitle]);
+
+  // Remove ALL code that sets or merges categoryRows with multiple products
+  // categoryRows should always be an array with at most one object for the current product
+
   // Tag input and add logic with suggestions
   const handleTagInputChange = (e) => {
     setNewTagInput(e.target.value);
@@ -113,39 +133,6 @@ const CategoryTag = ({ productData, productId }) => {
   const tagSuggestions = tags.filter(tag =>
     newTagInput && tag.toLowerCase().includes(newTagInput.toLowerCase()) && !selectedTags.includes(tag)
   );
-  
-  // Fetch all category tags and products for the table
-  const fetchCategoryRows = async () => {
-    try {
-      const productsRes = await fetch("/api/product");
-      const products = await productsRes.json();
-      if (!Array.isArray(products)) return;
-      // For each product, fetch its category tag
-      const rows = await Promise.all(products.map(async (p) => {
-        let tags = [];
-        let categoryTagId = null;
-        try {
-          const catRes = await fetch(`/api/productCategory?product=${p._id}`);
-          const catJson = await catRes.json();
-          if (catJson?.data && catJson.data.tags) {
-            tags = catJson.data.tags;
-            categoryTagId = catJson.data._id;
-          }
-        } catch { }
-        return {
-          product: p._id,
-          productName: p.title,
-          tags,
-          categoryTagId
-        };
-      }));
-      setCategoryRows(rows);
-    } catch { }
-  };
-
-  useEffect(() => {
-    fetchCategoryRows();
-  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -176,7 +163,21 @@ const CategoryTag = ({ productData, productId }) => {
       const json = await res.json();
       if (res.ok) {
         toast.success(editRow ? "Category updated!" : "Category created!");
-        await fetchCategoryRows();
+        // Re-fetch category tags for the current product only
+        fetch(`/api/productCategory?product=${productToSend}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.success && data.data && Array.isArray(data.data.tags) && data.data.tags.length > 0) {
+              setCategoryRows([{
+                product: productToSend,
+                productName: productData?.title || productTitle || "",
+                tags: data.data.tags,
+                categoryTagId: data.data._id
+              }]);
+            } else {
+              setCategoryRows([]);
+            }
+          });
         setSelectedTags([]);
         setTags([]);
         setEditRow(null);
@@ -302,7 +303,7 @@ const CategoryTag = ({ productData, productId }) => {
                       }}>Cancel</button>
                     </div>
                   ) : (
-                    <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded mt-4 w-48 ">Create</button>
+                    <button type="submit" className="bg-red-600 text-white px-4 py-2 rounded mt-4 w-48 font-bold">Create</button>
                   )}
                 </div>
               </div>
@@ -311,15 +312,14 @@ const CategoryTag = ({ productData, productId }) => {
           {/* Category Tag Table */}
 
           <div className="mt-8">
-            <h4 className="mb-2 font-bold text-center">All Product Categories</h4>
+            <h4 className="mb-2 font-bold text-center">Category Tags for: {productData?.title || productTitle || "Current Product"}</h4>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>S.No</TableHead>
                   <TableHead>Product Name</TableHead>
                   <TableHead>Category Tags</TableHead>
-                  <TableHead>Edit</TableHead>
-                  <TableHead>Delete</TableHead>
+                  <TableHead>Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -336,9 +336,7 @@ const CategoryTag = ({ productData, productId }) => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Button size="sm" variant="outline" type="button" onClick={() => handleEdit(row)}>Edit</Button>
-                      </TableCell>
-                      <TableCell>
+                        <Button size="sm" variant="default" className="bg-yellow-500 text-white px-3 py-1 rounded mr-2" type="button" onClick={() => handleEdit(row)}>Edit</Button>
                         <Button size="sm" variant="destructive" type="button" onClick={() => { setShowDeleteDialog(true); setRowToDelete(row); }}>Delete</Button>
                       </TableCell>
                     </TableRow>

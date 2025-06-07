@@ -89,6 +89,8 @@ export async function DELETE(req) {
     if (tag === "__all__") {
       // Delete the entire category tag document for this product
       const deleted = await CategoryTag.findOneAndDelete({ product });
+      // Unset the category/tag reference in Product
+      await Product.findByIdAndUpdate(product, { $unset: { category: "" } });
       return Response.json({ success: true, data: deleted });
     } else {
       // Remove a single tag from the tags array
@@ -97,6 +99,10 @@ export async function DELETE(req) {
         { $pull: { tags: tag } },
         { new: true }
       );
+      // If tags array is now empty, unset the category/tag reference in Product
+      if (updated && Array.isArray(updated.tags) && updated.tags.length === 0) {
+        await Product.findByIdAndUpdate(product, { $unset: { category: "" } });
+      }
       return Response.json({ success: true, data: updated });
     }
   } catch (error) {

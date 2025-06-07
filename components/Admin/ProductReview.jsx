@@ -112,7 +112,7 @@ const ProductReview = ({ productData, productId }) => {
       const res = await fetch('/api/productReviews', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reviewId: deleteTargetId })
+        body: JSON.stringify({ reviewId: deleteTargetId, productId })
       });
       const data = await res.json();
       if (res.ok && data.success) {

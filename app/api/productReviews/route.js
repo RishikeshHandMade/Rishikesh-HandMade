@@ -62,10 +62,13 @@ export async function PATCH(req) {
 export async function DELETE(req) {
   await connectDB();
   try {
-    const { reviewId } = await req.json();
-    if (!reviewId) {
-      return NextResponse.json({ error: 'Missing reviewId' }, { status: 400 });
+    const { reviewId, productId } = await req.json();
+    if (!reviewId || !productId) {
+      return NextResponse.json({ error: 'Missing reviewId or productId' }, { status: 400 });
     }
+    // Remove review reference from Product
+    await Product.findByIdAndUpdate(productId, { $pull: { reviews: reviewId } });
+    // Delete the review itself
     await ProductReview.findByIdAndDelete(reviewId);
     return NextResponse.json({ success: true });
   } catch (err) {
