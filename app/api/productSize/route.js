@@ -1,6 +1,7 @@
 import connectDB from "@/lib/connectDB";
 import Size from '@/models/Size';
 import Product from '@/models/Product';
+import { deleteFileFromCloudinary } from '@/utils/cloudinary';
 
 // Create a new size and link it to the product
 export async function POST(req) {
@@ -22,7 +23,7 @@ export async function POST(req) {
     product,
     {
       size: sizeDoc._id,
-      $set: { sizes: sizes || [], sizeChartUrl: sizeChartUrl || '', sizeStyle1: sizeStyle1 || '' }
+      $set: { sizes: sizes || [], sizeChartUrl: sizeChartUrl || { url: '', key: '' }, sizeStyle1: sizeStyle1 || '' }
     },
     { new: true }
   );
@@ -61,7 +62,7 @@ export async function PATCH(req) {
     await Product.findByIdAndUpdate(
       product,
       {
-        $set: { sizes: sizes || [], sizeChartUrl: sizeChartUrl || '', sizeStyle1: sizeStyle1 || '' }
+        $set: { sizes: sizes || [], sizeChartUrl: sizeChartUrl || { url: '', key: '' }, sizeStyle1: sizeStyle1 || '' }
       },
       { new: true }
     );
@@ -81,7 +82,28 @@ export async function DELETE(req) {
   if (!sizeDoc) {
     return new Response(JSON.stringify({ error: 'Size not found' }), { status: 404 });
   }
+  // Delete size chart image from Cloudinary if present
+  if (sizeDoc.sizeChartUrl) {
+    try {
+      let key = '';
+      if (typeof sizeDoc.sizeChartUrl === 'object' && sizeDoc.sizeChartUrl.key) {
+        key = sizeDoc.sizeChartUrl.key;
+      } else if (typeof sizeDoc.sizeChartUrl === 'string' && sizeDoc.sizeChartUrl) {
+        // Legacy: extract from URL
+        const urlParts = sizeDoc.sizeChartUrl.split('/upload/');
+        if (urlParts.length === 2) {
+          key = urlParts[1].replace(/\.[^/.]+$/, "");
+        }
+      }
+      if (key) {
+        await deleteFileFromCloudinary(key);
+      }
+    } catch (err) {
+      console.error('Cloudinary deletion failed (sizeChart):', err.message);
+    }
+  }
   // Remove reference from Product
   await Product.findByIdAndUpdate(sizeDoc.product, { $unset: { size: 1 } });
   return new Response(JSON.stringify({ message: 'Size deleted' }), { status: 200 });
 }
+

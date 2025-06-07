@@ -55,7 +55,7 @@ const SizeManagement = ({ productData, productId }) => {
   const fileInputRef = useRef(null);
   const [sizeChart, setSizeChart] = useState(null);
   const [sizeChartPreview, setSizeChartPreview] = useState(null);
-  const [sizeChartUrl, setSizeChartUrl] = useState("");
+  const [sizeChartObj, setSizeChartObj] = useState({ url: '', key: '' });
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [optionals, setOptionals] = useState([
@@ -89,6 +89,7 @@ const SizeManagement = ({ productData, productId }) => {
     setSizeChart(file);
     if (file) {
       setUploading(true);
+      toast.loading('Uploading image to Cloudinary...', { id: 'cloud-upload' });
       // Preview
       const reader = new FileReader();
       reader.onloadend = () => setSizeChartPreview(reader.result);
@@ -102,27 +103,47 @@ const SizeManagement = ({ productData, productId }) => {
           body: formData
         });
         const data = await res.json();
-        if (res.ok && data.url) {
-          setSizeChartUrl(data.url);
+        if (res.ok && data.url && data.key) {
+          setSizeChartObj({ url: data.url, key: data.key });
+          toast.success('Image uploaded!', { id: 'cloud-upload' });
         } else {
-          window.toast && toast.error('Cloudinary upload failed: ' + (data.error || 'Unknown error'));
+          toast.error('Cloudinary upload failed: ' + (data.error || 'Unknown error'), { id: 'cloud-upload' });
         }
       } catch (err) {
-        window.toast && toast.error('Cloudinary upload error: ' + err.message);
+        toast.error('Cloudinary upload error: ' + err.message, { id: 'cloud-upload' });
       } finally {
         setUploading(false);
       }
     } else {
       setSizeChartPreview(null);
-      setSizeChartUrl("");
+      setSizeChartObj({ url: '', key: '' });
     }
   };
 
-  const handleRemoveImage = () => {
+  const handleRemoveImage = async () => {
+    // Remove from UI immediately
     setSizeChart(null);
     setSizeChartPreview(null);
-    setSizeChartUrl("");
-    // Optionally: call API to delete from cloudinary
+    const prevKey = sizeChartObj.key;
+    setSizeChartObj({ url: '', key: '' });
+    if (prevKey) {
+      toast.loading('Deleting image from Cloudinary...', { id: 'cloud-delete' });
+      try {
+        const res = await fetch('/api/cloudinary', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ publicId: prevKey }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          toast.success('Image deleted from Cloudinary!', { id: 'cloud-delete' });
+        } else {
+          toast.error('Cloudinary error: ' + (data.error || 'Failed to delete image from Cloudinary'), { id: 'cloud-delete' });
+        }
+      } catch (err) {
+        toast.error('Failed to delete image from Cloudinary (network or server error)', { id: 'cloud-delete' });
+      }
+    }
   };
 
   const handleOptionalChange = (idx) => {
@@ -165,7 +186,7 @@ const SizeManagement = ({ productData, productId }) => {
       const sizeData = {
         product: productId,
         sizes: sizesToSend,
-        sizeChartUrl: sizeChartUrl || undefined
+        sizeChartUrl: sizeChartObj
       };
       let res, data;
       if (!editId && existing && existing._id) {
@@ -207,7 +228,7 @@ const SizeManagement = ({ productData, productId }) => {
         ]);
         setSizeChart(null);
         setSizeChartPreview(null);
-        setSizeChartUrl("");
+        setSizeChartObj({ url: '', key: '' });
         setEditId(null);
         setSizeInputMethod('optionals');
         await fetchSizeEntries();
@@ -224,8 +245,8 @@ const SizeManagement = ({ productData, productId }) => {
   // Edit size entry
   const handleEdit = (entry) => {
     setEditId(entry._id);
-    setSizeChartUrl(entry.sizeChartUrl || "");
-    setSizeChartPreview(entry.sizeChartUrl || null);
+    setSizeChartObj(entry.sizeChartUrl || { url: '', key: '' });
+    setSizeChartPreview((entry.sizeChartUrl && entry.sizeChartUrl.url) ? entry.sizeChartUrl.url : null);
     if (entry.sizes && entry.sizes.length > 0) {
       // Detect if optionals or custom: if all labels are among optionals, treat as optionals
       const optionLabels = ["L", "M", "XL", "XXL"];
@@ -475,12 +496,12 @@ const SizeManagement = ({ productData, productId }) => {
                     <td className="px-3 py-2 text-center">{entry.sizes.map(s => s.label).join(', ')}</td>
                     <td className="px-3 py-2 text-center">{["L", "M", "XL", "XXL"].every(l => entry.sizes.some(s => s.label === l)) ? 'Optionals' : 'Custom'}</td>
                     <td className="px-3 py-2 text-center">
-                      {entry.sizeChartUrl ? (
+                      {entry.sizeChartUrl && entry.sizeChartUrl.url ? (
                         <button
                           type="button"
                           className="text-blue-600 underline"
                           onClick={() => {
-                            setModalImage(entry.sizeChartUrl);
+                            setModalImage(entry.sizeChartUrl.url);
                             setModalOpen(true);
                           }}
                         >

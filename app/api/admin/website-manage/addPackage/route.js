@@ -21,10 +21,10 @@ export async function POST(req) {
         if (existingProduct) {
             // If already linked to submenu, skip push
             if (!body.isDirect && body.subMenuId) {
-                const menuBarDoc = await MenuBar.findOne({ "subMenu._id": new mongoose.Types.ObjectId(body.subMenuId) });
+                const menuBarDoc = await MenuBar.findOne({ "subMenu._id": body.subMenuId });
                 // console.log("[EXISTING PRODUCT] MenuBar doc for submenu:", JSON.stringify(menuBarDoc, null, 2));
                 const updateResult = await MenuBar.updateOne(
-                    { "subMenu._id": new mongoose.Types.ObjectId(body.subMenuId), "subMenu.products": { $ne: existingProduct._id } },
+                    { "subMenu._id": body.subMenuId, "subMenu.products": { $ne: existingProduct._id } },
                     { $push: { "subMenu.$.products": existingProduct._id } }
                 );
                 if (updateResult.matchedCount === 0) {
@@ -46,7 +46,6 @@ export async function POST(req) {
             code: body.code,
             artisan: body.artisan,
             isDirect: false,
-            active: typeof body.active === 'boolean' ? body.active : true, // default true for category products
             // Save subMenuId as category if present
             ...(body.subMenuId ? { category: body.subMenuId } : {})
         });
@@ -61,10 +60,10 @@ export async function POST(req) {
 
         // Step 3: Link new product to submenu
         if (!body.isDirect && body.subMenuId) {
-            const menuBarDoc = await MenuBar.findOne({ "subMenu._id": new mongoose.Types.ObjectId(body.subMenuId) });
+            const menuBarDoc = await MenuBar.findOne({ "subMenu._id": body.subMenuId });
             console.log("[NEW PRODUCT] MenuBar doc for submenu:", JSON.stringify(menuBarDoc, null, 2));
             const updateResult = await MenuBar.updateOne(
-                { "subMenu._id": new mongoose.Types.ObjectId(body.subMenuId), "subMenu.products": { $ne: newProduct._id } },
+                { "subMenu._id": body.subMenuId, "subMenu.products": { $ne: newProduct._id } },
                 { $push: { "subMenu.$.products": newProduct._id } }
             );
             if (updateResult.matchedCount === 0) {
@@ -135,15 +134,6 @@ export async function PATCH(req) {
         // Find the current product and its artisan
         const oldProduct = await Product.findById(pkgId);
         const oldArtisanId = oldProduct?.artisan?.toString();
-
-        // If trying to update 'active', allow for both direct and non-direct products
-        if (updateFields.hasOwnProperty('active')) {
-            const product = await Product.findById(pkgId);
-            if (!product) {
-                return NextResponse.json({ message: "Product not found" }, { status: 404 });
-            }
-            // No restriction on isDirect; allow update
-        }
 
         // Update the product
         const updatedProduct = await Product.findByIdAndUpdate(pkgId, updateFields, { new: true });

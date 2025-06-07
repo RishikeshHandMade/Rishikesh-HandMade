@@ -1,6 +1,6 @@
 import connectDB from '@/lib/connectDB';
 import Color from '@/models/Color';
-const Product = require('@/models/Product');
+import Product from '@/models/Product';
 
 // GET /api/productColor/list - List all color entries with product title
 export async function GET(req) {
@@ -9,7 +9,7 @@ export async function GET(req) {
   const productId = searchParams.get('product');
   try {
     if (productId) {
-      const color = await Color.findOne({ product: productId });
+      const color = await Color.findOne({ product: productId }).populate('product', 'title');
       return Response.json(color);
     } else {
       const all = await Color.find().populate('product', 'title');
