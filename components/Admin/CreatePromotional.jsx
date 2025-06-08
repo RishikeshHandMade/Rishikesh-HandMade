@@ -429,7 +429,7 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
               <TableRow>
                 <TableCell colSpan={4} className="text-center py-6">Loading...</TableCell>
               </TableRow>
-            ) : reviews.length > 0 ? (
+            ) : reviews?.length > 0 ? (
               reviews.map((review, idx) => (
                 <TableRow key={review._id} className="hover:bg-gray-200 transition">
                   <TableCell className="px-4 py-3 font-medium">{idx + 1}</TableCell>
@@ -455,7 +455,7 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
                         setDate(dateToInputValue(review.date));
                         setRating(review.rating || 0);
                         setSelectedArtisan(review.artisan || '');
-                        setUploadedImageUrl(review.imageUrl || review.image || '');
+                        setUploadedImageUrl(review.image?.url || '');
                         setIsEditing(true);
                       }}>Edit</Button>
                       <Button size="sm" variant="destructive" onClick={() => {

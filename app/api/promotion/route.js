@@ -4,7 +4,7 @@ let Promotion, Artisan;
 try {
   Promotion = mongoose.model('Promotion');
 } catch {
-  Promotion = require('@/models/Promotion').default;
+  Promotion = require('@/models/Promotion');
 }
 try {
   Artisan = mongoose.model('Artisan');
