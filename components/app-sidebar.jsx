@@ -92,6 +92,12 @@ const data = {
     },
     { divider: true },
     {
+      name: "Shipping Charges",
+      url: "/admin/shipping_charges",
+      icon: Plus
+    },
+    { divider: true },
+    {
       name: "Promotional Banner",
       url: "/admin/promotional_banner",
       icon: Image

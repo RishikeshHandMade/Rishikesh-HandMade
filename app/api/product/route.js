@@ -80,6 +80,14 @@ export async function GET(req) {
       if (!product || !product.active) {
         return new Response(JSON.stringify({ error: 'Product not found' }), { status: 404 });
       }
+      // Ensure taxes is populated
+      if (product.taxes && typeof product.taxes === 'object' && product.taxes._id) {
+        // Already populated
+      } else if (product.taxes) {
+        const TaxModel = (await import('@/models/ProductTax')).default;
+        const taxDoc = await TaxModel.findById(product.taxes);
+        product.taxes = taxDoc;
+      }
       return new Response(JSON.stringify(product), { status: 200 });
     } else if (name) {
       // Fallback to slug search
@@ -95,10 +103,19 @@ export async function GET(req) {
         .populate('categoryTag')
         .populate('reviews')
         .populate('quantity')
-        .populate('coupons');
+        .populate('coupons')
+        .populate('taxes');
 
       if (!product) {
         return new Response(JSON.stringify({ error: 'Product not found' }), { status: 404 });
+      }
+      // Ensure taxes is populated
+      if (product.taxes && typeof product.taxes === 'object' && product.taxes._id) {
+        // Already populated
+      } else if (product.taxes) {
+        const TaxModel = (await import('@/models/ProductTax')).default;
+        const taxDoc = await TaxModel.findById(product.taxes);
+        product.taxes = taxDoc;
       }
       return new Response(JSON.stringify(product), { status: 200 });
     } else {
@@ -108,7 +125,7 @@ export async function GET(req) {
       if (isDirectParam === 'false') filter.isDirect = false;
       // Always filter for active products
       filter.active = true;
-      const products = await Product.find(filter)
+      let products = await Product.find(filter)
         .populate('artisan')
         // .populate('size')
         // .populate('color')
@@ -120,7 +137,23 @@ export async function GET(req) {
         .populate('categoryTag')
         .populate('reviews')
         .populate('quantity')
-        .populate('coupons');
+        .populate('coupons')
+        .populate('taxes');
+
+      // Ensure taxes is populated for all products
+      const TaxModel = (await import('@/models/ProductTax')).default;
+      products = await Promise.all(products.map(async (product) => {
+        if (product.taxes && typeof product.taxes === 'object' && product.taxes._id) {
+          return product;
+        } else if (product.taxes) {
+          const taxDoc = await TaxModel.findById(product.taxes);
+          product = product.toObject();
+          product.taxes = taxDoc;
+          return product;
+        }
+        return product;
+      }));
+
       return new Response(JSON.stringify(products), { status: 200 });
     }
   } catch (error) {

@@ -14,6 +14,8 @@ import ProductTax from '@/models/ProductTax';
 import ProductCoupons from '@/models/ProductCoupons';
 import Quantity from '@/models/Quantity';
 import Color from '@/models/Color';
+// import Tax from '@/models/ProductTax';
+
 import { deleteFileFromCloudinary } from '@/utils/cloudinary';
 export async function GET(req, { params }) {
   try {
@@ -23,7 +25,7 @@ export async function GET(req, { params }) {
       id = decodeURIComponent(id);
     } catch (e) {}
     // Strictly fetch by MongoDB _id
-    const product = await Product.findById(id)
+    let product = await Product.findById(id)
       .populate('artisan')
       .populate('size')
       // .populate('color') 
@@ -39,6 +41,15 @@ export async function GET(req, { params }) {
       .populate('taxes');
     if (!product || !product.active) {
       return new Response(JSON.stringify({ error: 'Product not found' }), { status: 404 });
+    }
+    // If taxes is still an ID, force populate
+    if (product.taxes && typeof product.taxes === 'object' && product.taxes._id) {
+      // Already populated
+    } else if (product.taxes) {
+      const TaxModel = (await import('@/models/ProductTax')).default;
+      const taxDoc = await TaxModel.findById(product.taxes);
+      product = product.toObject();
+      product.taxes = taxDoc;
     }
     return new Response(JSON.stringify(product), { status: 200 });
   } catch (error) {

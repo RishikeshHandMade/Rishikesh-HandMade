@@ -30,9 +30,13 @@ export function CartProvider({ children }) {
     setCart(prev => {
       const idx = prev.findIndex(i => i.id === item.id);
       if (idx > -1) {
-        // Already in cart, update qty
+        // Already in cart, update qty and all fields
         const updated = [...prev];
-        updated[idx].qty += qty;
+        updated[idx] = {
+          ...updated[idx],
+          ...item,
+          qty: updated[idx].qty + qty,
+        };
         return updated;
       }
       return [...prev, { ...item, qty }];

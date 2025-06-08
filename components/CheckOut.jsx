@@ -1,6 +1,7 @@
 "use client"
 import React, { useState } from 'react';
 import { useCart } from "../context/CartContext";
+import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 
 const shippingOptions = [
@@ -9,7 +10,6 @@ const shippingOptions = [
 ];
 
 const paymentOptions = [
-  { label: 'Direct bank transfer', value: 'bank' },
   { label: 'Cash on delivery', value: 'cod' },
   { label: 'Online Payment', value: 'online' },
 ];
@@ -168,6 +168,26 @@ const handleOnlinePaymentWithOrder = async (total, cart, customer, setLoading, s
 import { useRouter } from 'next/navigation';
 
 const CheckOut = () => {
+  const { cart: contextCart, setCart, updateCartQty, removeFromCart } = useCart();
+  const [cart, setLocalCart] = useState([]);
+
+  // On mount, get cart from localStorage if present, else use context
+  useEffect(() => {
+    const stored = typeof window !== "undefined" ? localStorage.getItem("checkoutCart") : null;
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        setLocalCart(parsed);
+        setCart(parsed); // set context cart ONCE if localStorage cart is used
+      } catch {
+        setLocalCart(contextCart);
+      }
+      localStorage.removeItem("checkoutCart");
+    } else {
+      setLocalCart(contextCart);
+    }
+  }, []);
+
   // Coupon state
   const [couponInput, setCouponInput] = useState("");
   const [loadingCoupon, setLoadingCoupon] = useState(false);
@@ -177,14 +197,12 @@ const CheckOut = () => {
     setLoadingCoupon(true);
     setCouponError("");
     try {
-      console.log('Applying coupon:', couponInput.trim(), cart);
       const res = await fetch('/api/discountCoupon/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: couponInput.trim(), cart }),
       });
       const data = await res.json();
-      console.log('Coupon API response:', data);
       if (!data.success || !data.coupon) {
         setCouponError(data.message || 'Invalid coupon code');
       } else {
@@ -196,8 +214,9 @@ const CheckOut = () => {
           price: Math.round(item.price - (data.coupon.percent ? (item.price * data.coupon.percent) / 100 : data.coupon.amount || 0)),
           originalPrice: item.originalPrice || item.price,
         }));
-        console.log('Updated cart:', updatedCart);
-        setCart(updatedCart);
+        setLocalCart(updatedCart);
+        setCart(updatedCart); // keep context in sync
+        localStorage.setItem("checkoutCart", JSON.stringify(updatedCart));
         setCouponInput("");
         setCouponError("");
         toast.success('Coupon applied successfully!', { style: { borderRadius: '10px', border: '2px solid green' } });
@@ -210,11 +229,12 @@ const CheckOut = () => {
     }
   };
 
+
   const { data: session, status } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const { cart, setCart, updateCartQty, removeFromCart } = useCart();
+
   const [shipping, setShipping] = useState('free');
   const [payment, setPayment] = useState('bank');
   const [agree, setAgree] = useState(false);
@@ -352,59 +372,72 @@ const CheckOut = () => {
 
       {/* Order Summary Card */}
       <div className="w-full md:w-[420px] bg-white rounded-lg shadow p-6 self-start">
-  {/* Coupon Input - show only if cart has products and no coupon is applied */}
-  {cart.length > 0 && !cart.some(item => item.couponApplied) && (
-    <div className="mb-4">
-      <label className="block text-sm font-medium mb-1">Have a coupon?</label>
-      <div className="flex gap-2">
-        <input
-          className="border rounded px-3 py-2 flex-1"
-          placeholder="Enter coupon code"
-          value={couponInput}
-          onChange={e => setCouponInput(e.target.value)}
-          disabled={loadingCoupon}
-        />
-        <button
-          className="px-4 py-2 bg-black text-white rounded font-semibold disabled:opacity-60"
-          onClick={handleApplyCoupon}
-          disabled={loadingCoupon || !couponInput.trim()}
-          type="button"
-        >
-          {loadingCoupon ? "Applying..." : "Apply"}
-        </button>
-      </div>
-      {couponError && <div className="text-red-600 text-xs mt-1">{couponError}</div>}
-    </div>
-  )}
+        {/* Coupon Input - show only if cart has products and no coupon is applied */}
+        {cart.length > 0 && !cart.some(item => item.couponApplied) && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1">Have a coupon?</label>
+            <div className="flex gap-2">
+              <input
+                className="border rounded px-3 py-2 flex-1"
+                placeholder="Enter coupon code"
+                value={couponInput}
+                onChange={e => setCouponInput(e.target.value)}
+                disabled={loadingCoupon}
+              />
+              <button
+                className="px-4 py-2 bg-black text-white rounded font-semibold disabled:opacity-60"
+                onClick={handleApplyCoupon}
+                disabled={loadingCoupon || !couponInput.trim()}
+                type="button"
+              >
+                {loadingCoupon ? "Applying..." : "Apply"}
+              </button>
+            </div>
+            {couponError && <div className="text-red-600 text-xs mt-1">{couponError}</div>}
+          </div>
+        )}
         <h3 className="text-lg font-bold mb-4">Your Order</h3>
         <div className="divide-y divide-neutral-200 mb-4">
           {cart.map(item => (
             <div key={item.id} className="flex items-center gap-3 py-3">
-              <img src={item.image} alt={item.name} className="w-12 h-12 rounded object-cover border" />
+              <img src={item.image?.url} alt={item.name} className="w-12 h-12 rounded object-cover border" />
               <div className="flex-1">
-                <div className="font-medium text-sm leading-tight">{item.name}</div>
+                <div className="flex justify-between items-center w-full">
+                  <div>
+                    <div className="font-medium text-md leading-tight">{item.name}</div>
+                    {/* <div className="text-xs text-gray-500">Base: ₹{item.originalPrice ?? item.price}</div> */}
+                  </div>
+                  {item.couponApplied ? (
+                    <div className="text-md text-black font-semibold text-right min-w-[110px]">₹{item.price}</div>
+                  ) : null}
+                </div>
               </div>
-              <div className="text-sm font-semibold">₹{(item.price * item.qty).toFixed(2)}</div>
             </div>
           ))}
         </div>
-        <div className="flex justify-between text-sm mb-2">
+        <div className="flex justify-between items-center font-bold text-base border-t pt-3 mb-1">
           <span>Subtotal</span>
           <span>₹{subtotal.toFixed(2)}</span>
         </div>
-        <div className="mb-2">
-          <div className="font-medium mb-1">Shipping</div>
-          {shippingOptions.map(opt => (
-            <label key={opt.value} className="flex items-center gap-2 text-sm mb-1">
-              <input type="radio" name="shipping" checked={shipping === opt.value} onChange={() => setShipping(opt.value)} className="accent-black" />
-              {opt.label} {opt.cost > 0 && (<span className="ml-1">₹{opt.cost}</span>)}
-            </label>
-          ))}
+        <div className="flex justify-between items-center text-sm mb-1">
+          <span>CGST %</span>
+          <span>{cart.map(item => item.cgst ?? 0).join(', ')}</span>
         </div>
-        <div className="flex justify-between items-center font-bold text-base border-t pt-3 mb-3">
+        <div className="flex justify-between items-center text-sm mb-3">
+          <span>SGST %</span>
+          <span>{cart.map(item => item.sgst ?? 0).join(', ')}</span>
+        </div>
+        <div className="flex justify-between items-center font-bold text-base border-t pt-2 mb-3">
           <span>Total</span>
-          <span>₹{total.toFixed(2)}</span>
+          <span>₹{cart.reduce((sum, item) => {
+            const price = item.price;
+            const cgst = item.cgst ? (price * item.cgst / 100) : 0;
+            const sgst = item.sgst ? (price * item.sgst / 100) : 0;
+            const qty = item.qty ?? 1;
+            return sum + ((price + cgst + sgst) * qty);
+          }, 0).toFixed(2)}</span>
         </div>
+        
         <div className="mb-3">
           <div className="font-medium mb-1">Payment</div>
           {paymentOptions.map(opt => (
@@ -413,79 +446,14 @@ const CheckOut = () => {
               {opt.label}
             </label>
           ))}
-          {/* <label className="flex items-center gap-2 text-sm mb-1">
-            <input type="radio" name="payment" className="accent-black" disabled />
-            <span className="flex items-center gap-1">Paypal <img src="https://www.paypalobjects.com/webstatic/icon/pp258.png" alt="Paypal" className="w-8 inline" /> <span className="text-neutral-400">What's Paypal?</span></span>
-          </label> */}
         </div>
         <div className="flex items-start gap-2 mb-4">
           <input type="checkbox" checked={agree} onChange={e => setAgree(e.target.checked)} className="accent-black mt-1" />
-          <span className="text-xs">I have read and agree to the website terms and conditions</span>
+          <span className="text-s">I have read and agree to the website terms and conditions</span>
         </div>
 
       </div>
     </div>
   );
-  //                 </div>
-  //                 <div className="flex flex-col items-end gap-2">
-  //                   <span className="font-semibold">₹{(item.price * item.qty).toFixed(2)}</span>
-  //                   <button onClick={() => removeFromCart(item.id)} className="text-neutral-400 hover:text-red-500">Remove</button>
-  //                 </div>
-  //               </div>
-  //             ))}
-  //             <div className="flex justify-between text-lg font-semibold mt-6">
-  //               <span>Subtotal:</span>
-  //               <span>₹{subtotal.toFixed(2)}</span>
-  //             </div>
-  //           </div>
-  //         )}
-  //       </div>
-  //       <div className="w-full md:w-1/3 bg-white rounded-lg shadow p-6 flex flex-col gap-4">
-  //         <h3 className="text-xl font-bold mb-2">Shipping Options</h3>
-  //         {shippingOptions.map(opt => (
-  //           <label key={opt.value} className="flex items-center gap-2 mb-2">
-  //             <input type="radio" name="shipping" value={opt.value} checked={shipping === opt.value} onChange={() => setShipping(opt.value)} />
-  //             {opt.label} {opt.cost > 0 && <span className="text-gray-500">(+₹{opt.cost})</span>}
-  //           </label>
-  //         ))}
-  //         <h3 className="text-xl font-bold mt-4 mb-2">Payment Options</h3>
-  //         {paymentOptions.map(opt => (
-  //           <label key={opt.value} className="flex items-center gap-2 mb-2">
-  //             <input type="radio" name="payment" value={opt.value} checked={payment === opt.value} onChange={() => setPayment(opt.value)} />
-  //             {opt.label}
-  //           </label>
-  //         ))}
-  //         <div className="flex justify-between text-lg font-semibold mt-6">
-  //           <span>Total:</span>
-  //           <span>₹{total.toFixed(2)}</span>
-  //         </div>
-  //         <label className="flex items-center gap-2 mt-4">
-  //           <input type="checkbox" checked={agree} onChange={() => setAgree(a => !a)} />
-  //           I agree to the terms and conditions
-  //         </label>
-  //         <button
-  //           className="w-full mt-4 py-2 bg-black text-white rounded-lg font-semibold disabled:opacity-50"
-  //           disabled={!agree || cart.length === 0}
-  //           onClick={async (e) => {
-  //             e.preventDefault();
-  //             if (payment === "online") {
-  //               // Demo customer details, replace with real form data if available
-  //               const customer = {
-  //                 name: "Demo User",
-  //                 email: "demo@email.com",
-  //                 phone: "9999999999",
-  //                 address: "Demo Address"
-  //               };
-  //               await handleOnlinePayment(total, cart, customer);
-  //             } else {
-  //               alert("Order placed with payment method: " + payment);
-  //             }
-  //           }}
-  //         >
-  //           Place Order
-  //         </button>
-  //       </div>
-  //     </div>
-  //   );
-};
+}
 export default CheckOut;

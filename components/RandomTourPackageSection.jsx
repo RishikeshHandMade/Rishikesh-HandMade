@@ -57,7 +57,13 @@ const RandomTourPackageSection = () => {
       originalPrice: price,
       qty: 1,
       couponApplied,
-      couponCode: couponApplied ? couponCode : undefined
+      couponCode: couponApplied ? couponCode : undefined,
+      productCode: item.code || item.productCode || '',
+      discountPercent: coupon && typeof coupon.percent === 'number' ? coupon.percent : undefined,
+      discountAmount: coupon && typeof coupon.amount === 'number' ? coupon.amount : undefined,
+      cgst: (item.taxes && item.taxes.cgst) || item.cgst || (item.tax && item.tax.cgst) || 0,
+      sgst: (item.taxes && item.taxes.sgst) || item.sgst || (item.tax && item.tax.sgst) || 0,
+      quantity: item.quantity || {},
     });
     toast.success("Added to cart!");
   };
