@@ -5,7 +5,8 @@ import Product from '@/models/Product';
 export async function GET(req) {
   await connectDB();
   const { searchParams } = new URL(req.url);
-  const productId = searchParams.get('productId');
+  // Accept both 'product' and 'productId' for compatibility
+  const productId = searchParams.get('product') || searchParams.get('productId');
   let result;
   if (productId) {
     result = await Quantity.findOne({ product: productId });

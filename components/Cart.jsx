@@ -82,7 +82,7 @@ export default function Cart({ open, onClose, initialTab = "cart" }) {
           <div className="flex-1 overflow-y-auto px-6 pt-4 pb-2">
             {(tab === "cart" ? cart : wishlist).map(item => (
               <div key={item.id} className="flex items-center gap-4 py-4 border-b border-neutral-200 last:border-b-0">
-                <img src={item.image} alt={item.name} className="w-20 h-20 rounded-lg object-cover border" />
+                <img src={item.image?.url} alt={item.name} className="w-20 h-20 rounded-lg object-cover border" />
                 <div className="flex-1">
                   <div className="font-semibold text-base leading-tight mb-1">{item.name}</div>
                   {tab === "cart" && (

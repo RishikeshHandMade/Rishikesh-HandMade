@@ -56,12 +56,18 @@ const QuantityManagement = ({ productData, productId }) => {
   const [editMode, setEditMode] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState({ open: false, id: null });
 
-  // Fetch all quantity records
+  // Fetch quantity records for the current product only
   const fetchQuantities = async () => {
+    if (!productId) return;
     try {
-      const res = await fetch('/api/productQuantity');
+      const res = await fetch(`/api/productQuantity?product=${productId}`);
       const data = await res.json();
-      setAllQuantities(Array.isArray(data) ? data : []);
+      // If API returns a single object, wrap in array for consistency
+      if (res.ok && data && (Array.isArray(data) ? data.length : data._id)) {
+        setAllQuantities(Array.isArray(data) ? data : [data]);
+      } else {
+        setAllQuantities([]);
+      }
     } catch {
       setAllQuantities([]);
     }
@@ -166,9 +172,8 @@ const QuantityManagement = ({ productData, productId }) => {
             className="mb-4 w-80 font-black text-center border-gray-300"
             value={productName}
             disabled
-            readOnly
+            // {productName ? {} : { border: '2px solid red', color: 'red' }}
             placeholder={productName ? "Product Name" : "Product Name not found"}
-            style={productName ? {} : { border: '2px solid red', color: 'red' }}
           />
           {!productName && (
             <div style={{ color: 'red', marginTop: '4px', fontWeight: 'bold' }}>

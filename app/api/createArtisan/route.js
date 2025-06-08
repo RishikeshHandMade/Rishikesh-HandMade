@@ -1,7 +1,21 @@
 import connectDB from "@/lib/connectDB";
 import mongoose from 'mongoose';
 import Artisan from '@/models/Artisan';
-import '@/models/ArtisanPlugin'; // Ensures ArtisanPlugin is registered for population
+import '@/models/ArtisanStory';
+import '@/models/ArtisanCertificate';
+import '@/models/ArtisanPlugin';
+import '@/models/ArtisanBanner';
+import '@/models/ArtisanBlog';
+import '@/models/Product';
+import '@/models/Gallery'; // For product gallery deletion
+import '@/models/Video';
+import '@/models/Description';
+import '@/models/Info';
+import '@/models/CategoryTag';
+import '@/models/Quantity';
+import '@/models/ProductCoupons';
+import '@/models/ProductReview';
+// Ensures all subcomponent models are registered for cascading delete
 import { addSpecializationIfNotExists } from "@/lib/specialization";
 import { deleteFileFromCloudinary } from "@/utils/cloudinary";
 export async function POST(req) {
@@ -149,7 +163,7 @@ export async function DELETE(req) {
     if (!artisan) {
       return new Response(JSON.stringify({ message: 'Artisan not found' }), { status: 404 });
     }
-    // Delete the image from Cloudinary if key exists (from request or document)
+    // Delete the artisan's profile image from Cloudinary
     const imageKey = artisan.profileImage?.key;
     if (imageKey) {
       try {
@@ -158,9 +172,75 @@ export async function DELETE(req) {
         console.error('Cloudinary deletion failed:', err.message);
       }
     }
+
+    // Cascade delete subcomponents and their images
+    const modelsToDelete = [
+      { name: 'ArtisanStory', field: 'artisan', imageField: 'images' },
+      { name: 'ArtisanCertificate', field: 'artisan', imageField: 'imageUrl' },
+      { name: 'ArtisanPlugin', field: 'artisan' },
+      { name: 'ArtisanBanner', field: 'artisan', imageField: 'image' },
+      { name: 'ArtisanBlog', field: 'artisan', imageField: 'images' },
+      { name: 'Product', field: 'artisan' },
+    ];
+
+    for (const modelDef of modelsToDelete) {
+      let Model;
+      try {
+        Model = require(`@/models/${modelDef.name}`).default || require(`@/models/${modelDef.name}`);
+      } catch (e) {
+        try { Model = require(`@/models/${modelDef.name}`); } catch (e2) { continue; }
+      }
+      // Find related docs
+      const docs = await Model.find({ [modelDef.field]: id });
+      for (const doc of docs) {
+        // Delete images from Cloudinary if present
+        if (modelDef.imageField && doc[modelDef.imageField]) {
+          // Handle array or object
+          const img = doc[modelDef.imageField];
+          if (Array.isArray(img)) {
+            for (const i of img) {
+              if (i?.key) {
+                try { await deleteFileFromCloudinary(i.key); } catch (e) { console.error('Cloudinary deletion failed:', e.message); }
+              }
+            }
+          } else if (img?.key) {
+            try { await deleteFileFromCloudinary(img.key); } catch (e) { console.error('Cloudinary deletion failed:', e.message); }
+          }
+        }
+        // Special case: Product galleries
+        if (modelDef.name === 'Product' && doc.gallery) {
+          let Gallery;
+          try {
+            Gallery = require('@/models/Gallery').default || require('@/models/Gallery');
+          } catch (e) { Gallery = null; }
+          if (Gallery) {
+            const galleryDoc = await Gallery.findById(doc.gallery);
+            if (galleryDoc) {
+              // Delete main image
+              if (galleryDoc.mainImage?.key) {
+                try { await deleteFileFromCloudinary(galleryDoc.mainImage.key); } catch (e) { console.error('Cloudinary deletion failed:', e.message); }
+              }
+              // Delete sub images
+              if (Array.isArray(galleryDoc.subImages)) {
+                for (const subImg of galleryDoc.subImages) {
+                  if (subImg?.key) {
+                    try { await deleteFileFromCloudinary(subImg.key); } catch (e) { console.error('Cloudinary deletion failed:', e.message); }
+                  }
+                }
+              }
+              await Gallery.findByIdAndDelete(doc.gallery);
+            }
+          }
+        }
+        await Model.findByIdAndDelete(doc._id);
+      }
+    }
+
+    // Finally, delete the artisan
     await Artisan.findByIdAndDelete(id);
-    return new Response(JSON.stringify({ message: 'Artisan profile deleted successfully' }), { status: 200 });
+    return new Response(JSON.stringify({ message: 'Artisan and all related data deleted successfully' }), { status: 200 });
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message || "Internal Server Error" }), { status: 500 });
   }
 }
+

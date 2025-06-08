@@ -15,6 +15,11 @@ export default function EditArtisan({ artisan }) {
   const [artisanToDelete, setArtisanToDelete] = useState(null);
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState([]);
+
+  // Filter states
+  const [filterName, setFilterName] = useState('');
+  const [filterNumber, setFilterNumber] = useState('');
+  const [filterPhone, setFilterPhone] = useState('');
   const handleDeleteClick = (artisan) => {
     setArtisanToDelete(artisan);
     setShowDeleteModal(true);
@@ -62,8 +67,55 @@ export default function EditArtisan({ artisan }) {
     fetchUsers();
   }, []);
 
+  // Filtered users
+  const filteredUsers = users.filter(artisan => {
+    const matchesName = `${artisan.firstName} ${artisan.lastName}`.toLowerCase().includes(filterName.toLowerCase());
+    const matchesNumber = !filterNumber || (artisan.artisanNumber || '').toLowerCase().includes(filterNumber.toLowerCase());
+    const matchesPhone = !filterPhone || (artisan.phoneNumber || '').toLowerCase().includes(filterPhone.toLowerCase());
+    return matchesName && matchesNumber && matchesPhone;
+  });
+
   return (
     <div className="w-full">
+      {/* Filter Section */}
+      <div className="flex flex-wrap gap-4 mb-4 items-end bg-gray-50 p-4 rounded-lg border border-gray-200">
+        <div>
+          <label className="block text-sm font-medium mb-1">Name</label>
+          <input
+            type="text"
+            value={filterName}
+            onChange={e => setFilterName(e.target.value)}
+            className="border rounded px-2 py-1"
+            placeholder="Search by name"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Artisan Number</label>
+          <input
+            type="text"
+            value={filterNumber}
+            onChange={e => setFilterNumber(e.target.value)}
+            className="border rounded px-2 py-1"
+            placeholder="Search by number"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Phone Number</label>
+          <input
+            type="text"
+            value={filterPhone}
+            onChange={e => setFilterPhone(e.target.value)}
+            className="border rounded px-2 py-1"
+            placeholder="Search by phone"
+          />
+        </div>
+        <button
+          className="ml-4 px-3 py-1 bg-gray-300 rounded"
+          onClick={() => { setFilterName(''); setFilterNumber(''); setFilterPhone(''); }}
+        >
+          Reset Filters
+        </button>
+      </div>
       <div className="bg-white shadow-lg rounded-xl p-6 mt-6 w-full overflow-x-auto">
         <Table className="min-w-full divide-y divide-gray-200">
           <TableHeader>
@@ -80,12 +132,12 @@ export default function EditArtisan({ artisan }) {
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-6">Loading...</TableCell>
               </TableRow>
-            ) : users.length === 0 ? (
+            ) : filteredUsers.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-6">No artisans found.</TableCell>
               </TableRow>
             ) : (
-              users.map((artisan, idx) => (
+              filteredUsers.map((artisan, idx) => (
                 <TableRow key={artisan._id} className="hover:bg-gray-200 transition">
                   <TableCell className="px-4 py-3 font-medium">{idx + 1}</TableCell>
                   <TableCell className="px-4 py-3">{artisan.firstName} {artisan.lastName}</TableCell>

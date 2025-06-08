@@ -19,14 +19,15 @@ const ProductDescription = ({ productData, productId }) => {
 
   const [loading, setLoading] = useState(false);
 
-  // Fetch all descriptions
-  const fetchAllDescriptions = async () => {
+  // Fetch only the current product's description
+  const fetchProductDescription = async () => {
+    if (!productId) return setAllDescriptions([]);
     setTableLoading(true);
     try {
-      const res = await fetch('/api/productDescription');
+      const res = await fetch(`/api/productDescription?product=${productId}`);
       const data = await res.json();
-      if (res.ok && data.descriptions) {
-        setAllDescriptions(data.descriptions);
+      if (res.ok && data.description) {
+        setAllDescriptions(data.description ? [data.description] : []);
       } else {
         setAllDescriptions([]);
       }
@@ -38,8 +39,8 @@ const ProductDescription = ({ productData, productId }) => {
   };
 
   useEffect(() => {
-    fetchAllDescriptions();
-  }, []);
+    fetchProductDescription();
+  }, [productId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

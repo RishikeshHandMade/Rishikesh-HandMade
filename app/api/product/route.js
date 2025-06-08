@@ -13,6 +13,7 @@ import ProductReview from '@/models/ProductReview';
 import Quantity from '@/models/Quantity';
 import ProductCoupons from '@/models/ProductCoupons';
 import ProductTax from '@/models/ProductTax';
+import { deleteFileFromCloudinary } from '@/utils/cloudinary';
 
 export async function POST(req) {
   try {

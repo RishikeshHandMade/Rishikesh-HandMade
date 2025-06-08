@@ -30,7 +30,7 @@ export async function GET(req) {
   await connectDB();
   try {
     const { searchParams } = new URL(req.url);
-    const productId = searchParams.get('productId');
+    const productId = searchParams.get('product') || searchParams.get('productId');
     if (productId) {
       const descDoc = await Description.findOne({ product: productId }).populate('product', 'title');
       return NextResponse.json({ description: descDoc });

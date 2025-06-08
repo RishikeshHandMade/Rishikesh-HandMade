@@ -144,7 +144,7 @@ const ArtisanDashboard = () => {
   return (
     <div className="flex" style={{ minHeight: '85vh', background: '#f8f9fa', padding: '20px' }}>
       {/* Sidebar */}
-      <div style={{ minWidth: 240, border: '1px solid #ced4da', borderRadius: '8px', background: '#fff', height: '100%', overflowY: 'auto', padding: '15px' }} className="me-4 shadow-sm">
+      <div className="h-fit me-4" style={{ border: '1px solid #ced4da', borderRadius: '8px', background: '#fff', overflowY: 'auto', padding: '15px' }}>
         <div className="flex flex-col gap-2">
           {sectionTitles.map(section => (
             <div
@@ -159,7 +159,7 @@ const ArtisanDashboard = () => {
       </div>
       {/* Main Content */}
       <div className="flex-1" style={{ border: '1px solid #ced4da', borderRadius: '8px', background: '#fff', padding: '20px', height: '100%', overflowY: 'auto' }}>
-        <h2 className="mb-4 text-center" style={{ fontWeight: 600 }}>{activeKey}</h2>
+        <h2 className="mb-4 text-center text-xl" style={{ fontWeight: 600 }}>{activeKey}</h2>
 
 
 

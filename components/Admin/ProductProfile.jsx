@@ -4,6 +4,7 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import toast from 'react-hot-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog";
 import { Copy, QrCode } from "lucide-react";
 import ProductQrModal from "./ProductQrModal";
 import { Switch } from "../ui/switch";
@@ -65,7 +66,7 @@ const ProductProfile = ({ id }) => {
         if (res.ok) {
             const newProduct = await res.json();
             setTitle(""); setCode(""); setArtisan("");
-            setProducts(prev => [newProduct, ...prev]);
+            setRefreshTable(r => !r);
             toast.success('Direct product saved!');
         } else {
             const err = await res.json();
@@ -80,11 +81,35 @@ const ProductProfile = ({ id }) => {
             .then(data => setProducts(Array.isArray(data) ? data : []));
     }, [refreshTable]);
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this product?')) return;
-        await fetch(`/api/product/${id}`, { method: 'DELETE' });
-        setProducts(products => products.filter(p => p._id !== id));
+    // Modal state for deletion
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+
+    const handleDelete = (id) => {
+        setDeleteTarget(id);
+        setShowDeleteModal(true);
     };
+
+    const cancelDelete = () => {
+        setShowDeleteModal(false);
+        setDeleteTarget(null);
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteTarget) return;
+        const res = await fetch(`/api/product/${deleteTarget}`, { method: 'DELETE' });
+        if (res.ok) {
+            setProducts(products => products.filter(p => p._id !== deleteTarget));
+            toast.success('Product deleted successfully');
+        } else {
+            const err = await res.json().catch(() => ({}));
+            toast.error('Failed to delete product: ' + (err.error || 'Unknown error'));
+        }
+        setShowDeleteModal(false);
+        setDeleteTarget(null);
+    };
+
+
     // Slugify utility
     function slugify(str) {
         return str
@@ -151,7 +176,8 @@ const ProductProfile = ({ id }) => {
                         }
                         toast.error(err.error || 'Failed to update');
                     }
-                } else {
+                }
+                 else {
                     // Create mode
                     const createdProduct = await handleSubmit(e);
                     // If product created and subMenuId exists, link product to submenu
@@ -208,9 +234,9 @@ const ProductProfile = ({ id }) => {
             {/* Product Table copied inline */}
             <div className="mt-10 flex flex-col items-center">
                 <h3 className="text-xl font-semibold mb-4">Product List</h3>
-                <table className="w-full border-2 border-blue-600 rounded-lg">
+                <table className="w-full border border-black rounded-lg">
                     <thead>
-                        <tr className="bg-blue-200">
+                        <tr className="bg-gray-200">
                             <th className="py-2 px-4 text-center">Title</th>
                             <th className="py-2 px-4 text-center">Artisan</th>
                             <th className="py-2 px-4 text-center">URL</th>
@@ -306,10 +332,14 @@ const ProductProfile = ({ id }) => {
                                             Edit
                                         </button>
                                         <button
-                                            className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-800"
+                                            className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-800 flex items-center gap-2"
                                             onClick={() => handleDelete(prod._id)}
+                                            disabled={deleteTarget === prod._id && loading}
                                         >
                                             Delete
+                                            {deleteTarget === prod._id && loading && (
+                                                <span className="ml-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block"></span>
+                                            )}
                                         </button>
                                     </div>
                                 </td>
@@ -325,6 +355,20 @@ const ProductProfile = ({ id }) => {
                 qrUrl={qrModalUrl}
                 productTitle={qrModalTitle}
             />
+
+            {/* Delete Product Modal */}
+            <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Delete Product</DialogTitle>
+                    </DialogHeader>
+                    <p>Are you sure you want to delete this product?</p>
+                    <DialogFooter>
+                        <Button variant="secondary" onClick={cancelDelete}>Cancel</Button>
+                        <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
     );
 }
