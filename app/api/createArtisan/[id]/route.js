@@ -7,6 +7,16 @@ import "@/models/ArtisanCertificate";
 import "@/models/ArtisanPlugin";
 import "@/models/Product";
 import "@/models/ArtisanBanner";
+import "@/models/Gallery";
+import "@/models/Video";
+import "@/models/Description";
+import "@/models/Info";
+import "@/models/CategoryTag";
+import "@/models/Quantity";
+import "@/models/ProductCoupons";
+import "@/models/ProductReview";
+
+
 import Artisan from '@/models/Artisan';
 
 export async function GET(req, { params }) {

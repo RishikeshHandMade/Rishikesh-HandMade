@@ -11,7 +11,7 @@ let Artisan;
 try {
   Artisan = mongoose.model('Artisan');
 } catch {
-  Artisan = require('@/models/Artisan');
+  Artisan = require('@/models/Artisan').default;
 }
 // GET all certificates or by artisan
 export async function GET(req) {

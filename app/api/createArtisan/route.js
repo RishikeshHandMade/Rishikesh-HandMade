@@ -4,30 +4,6 @@ import Artisan from '@/models/Artisan';
 import '@/models/ArtisanPlugin'; // Ensures ArtisanPlugin is registered for population
 import { addSpecializationIfNotExists } from "@/lib/specialization";
 import { deleteFileFromCloudinary } from "@/utils/cloudinary";
-// Helper to normalize form data
-function normalizeFormData(body) {
-  const normalized = {};
-  for (const key in body) {
-    if (Array.isArray(body[key])) {
-      normalized[key] = body[key][0];
-    } else {
-      normalized[key] = body[key];
-    }
-  }
-  if (normalized.yearsOfExperience) {
-    normalized.yearsOfExperience = Number(normalized.yearsOfExperience);
-  }
-  if (typeof normalized.specializations === 'string') {
-    try {
-      normalized.specializations = JSON.parse(normalized.specializations);
-    } catch {}
-  }
-  if (!Array.isArray(normalized.specializations)) {
-    normalized.specializations = normalized.specializations ? [normalized.specializations] : [];
-  }
-  return normalized;
-}
-
 export async function POST(req) {
   try {
     await connectDB();

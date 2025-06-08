@@ -18,7 +18,7 @@ const sectionTitles = [
 const boxStyle = {
   border: '1px solid #ced4da',
   borderRadius: '8px',
-  padding: '10px',
+  padding: '15px',
   background: '#f8f9fa',
   minHeight: '100px',
   display: 'flex',
@@ -53,9 +53,7 @@ const ArtisanDashboard = () => {
   const [deleteModal, setDeleteModal] = useState({ show: false, type: '', id: null });
   const [catalogLoading, setCatalogLoading] = useState(false);
   const [products, setProducts] = useState([]);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [showProductModal, setShowProductModal] = useState(false);
-  // console.log(products)
+  console.log(stories)
   useEffect(() => {
     async function fetchAll() {
       setLoading(true);
@@ -75,8 +73,8 @@ const ArtisanDashboard = () => {
           setProducts(Array.isArray(artisan.products) ? artisan.products : []);
           setPromotions(Array.isArray(artisan.promotions) ? artisan.promotions : []);
           setBlogs(Array.isArray(artisan.artisanBlogs) ? artisan.artisanBlogs : []);
-          setStories(Array.isArray(artisan.artisanStories) ? artisan.artisanStories : []);
-          setSocialPlugin(Array.isArray(artisan.socialPlugin) ? artisan.socialPlugin : []);
+          setStories(artisan.artisanStories ? artisan.artisanStories : null);
+          setSocialPlugin(artisan.socialPlugin ? artisan.socialPlugin : null);
           setCertificates(Array.isArray(artisan.certificates) ? artisan.certificates : []);
         }
       } catch (e) {
@@ -139,7 +137,7 @@ const ArtisanDashboard = () => {
   if (!artisan) return (
     <div className="flex flex-col items-center justify-center my-10">
       <div className="text-center text-lg mb-2">Artisan not found.</div>
-      <Button href="/admin/createArtisan" className="inline-block mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">Create New Artisan</Button>
+      <Button href="/admin/create_artisan" className="inline-block mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">Create New Artisan</Button>
     </div>
   );
 
@@ -176,7 +174,7 @@ const ArtisanDashboard = () => {
             <div style={boxStyle}><b>Email: &nbsp;</b> {artisan.contact?.email || artisan.email || 'N/A'}</div>
             <div style={boxStyle}><b>Years of Experience: &nbsp;</b> {artisan.yearsOfExperience || 'N/A'}</div>
             <div style={boxStyle}><b>Specializations: &nbsp;</b> {artisan.specializations && artisan.specializations.length > 0 ? artisan.specializations.join(', ') : 'N/A'}</div>
-            <div style={boxStyle} className='max-h-24 overflow-y-auto'><b>Address: &nbsp;</b><span className="text-gray-600 p-2">{artisan.address ? artisan.address.fullAddress : 'N/A'}</span></div>
+            <div style={boxStyle}><b>Address: &nbsp;</b><span className="text-gray-600 pt-5 max-h-24 overflow-y-auto">{artisan.address ? artisan.address.fullAddress : 'N/A'}</span></div>
             <div style={boxStyle}><b>City: &nbsp;</b> {artisan.address?.city || 'N/A'}</div>
             <div style={boxStyle}><b>Pincode: &nbsp;</b> {artisan.address?.pincode || 'N/A'}</div>
             <div style={boxStyle}><b>State: &nbsp;</b> {artisan.address?.state || 'N/A'}</div>
@@ -199,7 +197,7 @@ const ArtisanDashboard = () => {
                 <div key={promotion._id || idx} className="relative bg-white rounded-xl shadow-lg p-6 flex flex-col items-start min-h-[260px]">
                   {/* Promotion Image */}
                   <img
-                    src={promotion.image || '/promotion-placeholder.png'}
+                    src={promotion.image?.url || '/promotion-placeholder.png'}
                     alt={promotion.title || 'Promotion Image'}
                     style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '8px', marginBottom: '10px' }}
                     onError={e => { e.target.onerror = null; e.target.src = '/promotion-placeholder.png'; }}
@@ -298,35 +296,27 @@ const ArtisanDashboard = () => {
         {/* Artisan Story Section */}
         {activeKey === 'Artisan Story' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {stories.length === 0 ? (
-              <div className="col-span-3 text-center">No stories found for this artisan.</div>
-            ) : (
-              stories.map((story, idx) => (
-                <div key={story._id || idx} className="relative bg-white rounded-xl shadow-lg p-6 flex flex-col items-start min-h-[260px]">
-                  {/* Story Image */}
-                  <img
-                    src={
-                      Array.isArray(story.image)
-                        ? (typeof story.image[0] === 'object' && story.image[0] !== null
-                          ? story.image[0].url
-                          : story.image[0])
-                        : (story.image?.url || story.image || '/story-placeholder.png')
-                    }
-                    alt={story.title || 'Story Image'}
-                    style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '8px', marginBottom: '10px' }}
-                    onError={e => { e.target.onerror = null; e.target.src = '/story-placeholder.png'; }}
-                  />
-                  {/* Story Title at top */}
-                  <div className="font-semibold mb-1">{story.title || 'Untitled Story'}</div>
-                  {/* Story Snippet */}
-                  <div className="text-gray-700 mb-2" style={{ flexGrow: 1, minHeight: '60px', maxHeight: '70px', overflowY: 'auto' }} dangerouslySetInnerHTML={{ __html: story.shortDescription || 'No description available.' }} />
-                  {/* View, Delete Buttons */}
-                  <div className="flex gap-2 mt-2 self-end">
-                    <Button size="sm" variant="default" onClick={() => { setSelectedStory(story); setShowStoryModal(true); }}>View</Button>
-                    <Button size="sm" variant="destructive" onClick={() => handleDelete('story', story._id)}>Delete</Button>
-                  </div>
+            {stories ? (
+              <div className="relative bg-white rounded-xl shadow-lg p-6 flex flex-col items-start min-h-[260px]">
+                {/* Story Image */}
+                <img
+                  src={stories.images?.url || '/story-placeholder.png'}
+                  alt={stories.title || 'Story Image'}
+                  style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '8px', marginBottom: '10px' }}
+                  onError={e => { e.target.onerror = null; e.target.src = '/story-placeholder.png'; }}
+                />
+                {/* Story Title at top */}
+                <div className="font-semibold mb-1">{stories.title || 'Untitled Story'}</div>
+                {/* Story Snippet */}
+                <div className="text-gray-700 mb-2" style={{ flexGrow: 1, minHeight: '60px', maxHeight: '70px', overflowY: 'auto' }} dangerouslySetInnerHTML={{ __html: stories.shortDescription || 'No description available.' }} />
+                {/* View, Delete Buttons */}
+                <div className="flex gap-2 mt-2 self-end">
+                  <Button size="sm" variant="default" onClick={() => { setSelectedStory(stories); setShowStoryModal(true); }}>View</Button>
+                  <Button size="sm" variant="destructive" onClick={() => handleDelete('story', stories._id)}>Delete</Button>
                 </div>
-              ))
+              </div>
+            ) : (
+              <div className="col-span-3 text-center">No stories found for this artisan.</div>
             )}
           </div>
         )}
@@ -335,32 +325,32 @@ const ArtisanDashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
             <div style={boxStyle}>
               <b>Facebook: &nbsp;</b>
-              <a href={socialPlugin[0]?.facebook} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
-                {socialPlugin[0]?.facebook || "Not Avaliable"}
+              <a href={socialPlugin?.facebook} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
+                {socialPlugin?.facebook || "Not Avaliable"}
               </a>
             </div>
             <div style={boxStyle}>
               <b>Instagram: &nbsp;</b>
-              <a href={socialPlugin[0]?.instagram} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
-                {socialPlugin[0]?.instagram|| "Not Avaliable"}
+              <a href={socialPlugin?.instagram} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
+                {socialPlugin?.instagram || "Not Avaliable"}
               </a>
             </div>
             <div style={boxStyle}>
               <b>Youtube: &nbsp;</b>
-              <a href={socialPlugin[0]?.youtube} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
-                {socialPlugin[0]?.youtube|| "Not Avaliable"}
+              <a href={socialPlugin?.youtube} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
+                {socialPlugin?.youtube || "Not Avaliable"}
               </a>
             </div>
             <div style={boxStyle}>
               <b>Google: &nbsp;</b>
-              <a href={socialPlugin[0]?.google} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
-                {socialPlugin[0]?.google || "Not Avaliable"}
+              <a href={socialPlugin?.google} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
+                {socialPlugin?.google || "Not Avaliable"}
               </a>
             </div>
             <div style={boxStyle}>
               <b>Website: &nbsp;</b>
-              <a href={socialPlugin[0]?.website} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
-                {socialPlugin[0]?.website || "Not Avaliable"}
+              <a href={socialPlugin?.website} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
+                {socialPlugin?.website || "Not Avaliable"}
               </a>
             </div>
           </div>
@@ -539,22 +529,13 @@ const ArtisanDashboard = () => {
                 <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 max-h-32 overflow-y-auto">
                   <div className="font-semibold text-gray-800">Images</div>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {Array.isArray(selectedStory.image) && selectedStory.image.length > 0 ? (
-                      selectedStory.image.map((url, idx) => {
-                        console.log(url);
-                        if (typeof url !== 'string' || !url.trim() || url === 'undefined') {
-                          return null;
-                        }
-                        return (
-                          <img
-                            key={url + idx}
-                            src={url}
-                            alt={`Story Image ${idx + 1}`}
-                            className="w-28 h-20 object-cover rounded"
-                            onError={e => { e.target.style.display = 'none'; }}
-                          />
-                        );
-                      })
+                    {selectedStory.images && selectedStory.images.url ? (
+                      <img
+                        src={selectedStory.images.url}
+                        alt="Story Image"
+                        className="w-28 h-20 object-cover rounded"
+                        onError={e => { e.target.style.display = 'none'; }}
+                      />
                     ) : (
                       <span className="text-gray-400">No images</span>
                     )}
