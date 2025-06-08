@@ -91,27 +91,42 @@ const Blogs = () => {
         fileInputRef.current?.click();
     };
 
-    const removeImage = (index) => {
-        setSelectedImages(prevImages => {
-            const updatedImages = prevImages.filter((_, i) => i !== index);
-            URL.revokeObjectURL(prevImages[index].url);
-            return updatedImages;
-        });
+    const handleRemoveImage = async (index) => {
+        const img = selectedImages[index];
+        let deletedFromCloudinary = false;
+        // Show loading toast before any UI update
+        if (img.key) {
+            toast.loading('Deleting image from Cloudinary...', { id: 'cloud-delete-blog' });
+            try {
+                const res = await fetch('/api/cloudinary', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ publicId: img.key })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    deletedFromCloudinary = true;
+                    toast.success('Image deleted from Cloudinary!', { id: 'cloud-delete-blog' });
+                } else {
+                    toast.error('Cloudinary error: ' + (data.error || 'Failed to delete image from Cloudinary'), { id: 'cloud-delete-blog' });
+                }
+            } catch (err) {
+                toast.error('Failed to delete image from Cloudinary (network or server error)', { id: 'cloud-delete-blog' });
+            }
+        } else {
+            toast.error('No valid Cloudinary key found for this image. It may be a legacy or local-only image.', { id: 'cloud-delete-blog' });
+        }
+        // Remove from UI only after toast and Cloudinary attempt
+        setSelectedImages(prevImages => prevImages.filter((_, i) => i !== index));
     };
+
     // Fetch artisans and reviews
     // On mount, fetch all blogs from /api/blogs
     useEffect(() => {
         fetchBlogs();
     }, []);
 
-    useEffect(() => {
-        // fetchBlogs(selectedArtisan || artisanId);
-        return () => {
-            selectedImages.forEach(image => {
-                URL.revokeObjectURL(image.url);
-            });
-        };
-    }, []);
+
 
     const handleEdit = (blog) => {
         setEditMode(true);
@@ -305,7 +320,7 @@ const Blogs = () => {
                                                                     <button
                                                                         type="button"
                                                                         className="absolute top-2 right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center"
-                                                                        onClick={() => removeImage(index)}
+                                                                        onClick={() => handleRemoveImage(index)}
                                                                     >
                                                                         ×
                                                                     </button>

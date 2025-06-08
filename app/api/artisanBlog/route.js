@@ -1,6 +1,11 @@
 import connectDB from "@/lib/connectDB";
 import mongoose from 'mongoose';
-const Artisan = require('@/models/Artisan');
+let Artisan;
+try {
+  Artisan = mongoose.model('Artisan');
+} catch {
+  Artisan = require('@/models/Artisan').default;
+}
 let ArtisanBlog;
 try {
   ArtisanBlog = mongoose.model('ArtisanBlog');
@@ -79,6 +84,8 @@ export async function PATCH(req) {
   }
 }
 
+import { deleteFileFromCloudinary } from '@/utils/cloudinary';
+
 export async function DELETE(req) {
   try {
     await connectDB();
@@ -87,16 +94,34 @@ export async function DELETE(req) {
     if (!blog) {
       return new Response(JSON.stringify({ message: 'Blog not found' }), { status: 404 });
     }
+    // Delete all blog images from Cloudinary if present
+    if (blog.images && Array.isArray(blog.images)) {
+      for (const img of blog.images) {
+        let key = '';
+        if (typeof img === 'object' && img.key) {
+          key = img.key;
+        } else if (typeof img === 'string' && img) {
+          // Legacy: extract from URL
+          const urlParts = img.split('/upload/');
+          if (urlParts.length === 2) {
+            key = urlParts[1].replace(/\.[^/.]+$/, "");
+          }
+        }
+        if (key) {
+          try {
+            await deleteFileFromCloudinary(key);
+          } catch (err) {
+            console.error('Failed to delete blog image from Cloudinary:', err.message);
+          }
+        }
+      }
+    }
     await ArtisanBlog.findByIdAndDelete(id);
     // Remove blog._id from artisan's blogs array
-    if (blog.artisan) {
-      const Artisan = require('@/models/Artisan');
-      await Artisan.findByIdAndUpdate(
-        blog.artisan,
-        { $pull: { artisanBlogs: blog._id } },
-        { new: true }
-      );
-    }
+    await Artisan.findByIdAndUpdate(
+      blog.artisan,
+      { $pull: { artisanBlogs: blog._id } },
+    );
     return new Response(JSON.stringify({ message: 'Blog deleted successfully' }), { status: 200 });
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message || "Internal Server Error" }), { status: 500 });

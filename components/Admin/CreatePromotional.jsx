@@ -36,7 +36,6 @@ function dateToInputValue(date) {
 import { useRef } from 'react';
 
 const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
-  const [uploadedImageUrl, setUploadedImageUrl] = useState("");
   const [imageUploading, setImageUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [imageObj, setImageObj] = useState({ url: '', key: '' }); // { url, key }
@@ -352,54 +351,40 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
         <div className="mb-4">
           <label className="block font-semibold mb-1">Thumb Image</label>
           <div className="border rounded p-4 text-center">
-            {imagePreview ? (
-              <div className="relative inline-block mb-3">
-                <img
-                  src={imagePreview}
-                  alt="Promotion Preview"
-                  className="w-56 h-36 object-cover rounded mx-auto"
-                />
-                <button
-                  type="button"
-                  className="absolute top-2 right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center"
-                  onClick={handleRemoveImageUpload}
-                >
-                  ×
-                </button>
-              </div>
-            ) : (
-              <div className="upload-placeholder cursor-pointer flex flex-col items-center">
-                <img src="/upload-img.png" width="50" alt="Upload" className="mb-2" />
-                <h5 className="mb-1">Browse Image</h5>
-                <p className="text-gray-500">From Drive</p>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  ref={fileInputRef}
-                  onChange={handleImageChange}
-                />
-                <button
-                  type="button"
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-                  onClick={() => fileInputRef.current.click()}
-                  disabled={imageUploading}
-                >
-                  Browse Image
-                </button>
-                {imageUploading && (
-                  <div className="mt-2 w-full max-w-xs mx-auto">
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div
-                        className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
-                        style={{ width: `${uploadProgress}%` }}
-                      ></div>
-                    </div>
-                    <p className="text-sm text-center mt-1">Uploading...</p>
-                  </div>
-                )}
-              </div>
+            {imagePreview && (
+              <img src={imagePreview} alt="Promotion Preview" className="w-32 h-32 object-cover rounded border mx-auto mb-2" />
             )}
+            <div className="upload-placeholder cursor-pointer flex flex-col items-center">
+              <img src="/upload-img.png" width="50" alt="Upload" className="mb-2" />
+              <h5 className="mb-1">Browse Image</h5>
+              <p className="text-gray-500">From Drive</p>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                ref={fileInputRef}
+                onChange={handleImageChange}
+              />
+              <button
+                type="button"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                onClick={() => fileInputRef.current.click()}
+                disabled={imageUploading}
+              >
+                Browse Image
+              </button>
+              {imageUploading && (
+                <div className="mt-2 w-full max-w-xs mx-auto">
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div
+                      className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-sm text-center mt-1">Uploading...</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
         <div className="flex justify-center gap-4 mt-6">
@@ -455,7 +440,16 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
                         setDate(dateToInputValue(review.date));
                         setRating(review.rating || 0);
                         setSelectedArtisan(review.artisan || '');
-                        setUploadedImageUrl(review.image?.url || '');
+                        if (review.image && typeof review.image === 'object') {
+                          setImageObj({ url: review.image.url || '', key: review.image.key || '' });
+                          setImagePreview(review.image.url || null);
+                        } else if (typeof review.image === 'string') {
+                          setImageObj({ url: review.image, key: '' });
+                          setImagePreview(review.image);
+                        } else {
+                          setImageObj({ url: '', key: '' });
+                          setImagePreview(null);
+                        }
                         setIsEditing(true);
                       }}>Edit</Button>
                       <Button size="sm" variant="destructive" onClick={() => {
