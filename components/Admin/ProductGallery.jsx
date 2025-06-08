@@ -189,7 +189,7 @@ const ProductGallery = ({ productData, productId }) => {
 
   const handleMainImageUpload = async (event) => {
     const file = event.target.files[0];
-    if (!file) return; // Do nothing if no file is selected (prevents false error toast)
+    if (!file) return;
     setImageUploading(true);
     try {
       const formData = new FormData();
@@ -200,7 +200,11 @@ const ProductGallery = ({ productData, productId }) => {
       });
       if (!res.ok) throw new Error('Image upload failed');
       const result = await res.json();
-      setSelectedMainImage({ url: result.url, key: result.key });
+      if (editGallery) {
+        setEditMainImage({ url: result.url, key: result.key });
+      } else {
+        setSelectedMainImage({ url: result.url, key: result.key });
+      }
       toast.success('Main image uploaded successfully');
     } catch (err) {
       toast.error('Main image upload failed');
@@ -219,9 +223,10 @@ const ProductGallery = ({ productData, productId }) => {
 
   const handleSubImagesUpload = async (event) => {
     const files = Array.from(event.target.files);
-    if (!files.length) return; // Do nothing if no files are selected (prevents false error toast)
-    // Check if adding these files would exceed 10 sub images
-    if (selectedSubImages.length + files.length > 10) {
+    if (!files.length) return;
+    // Determine current sub images state based on edit mode
+    const currentSubImages = editGallery ? editSubImages : selectedSubImages;
+    if (currentSubImages.length + files.length > 10) {
       toast.error('You can only add up to 10 sub images.');
       return;
     }
@@ -239,7 +244,11 @@ const ProductGallery = ({ productData, productId }) => {
         const result = await res.json();
         uploaded.push({ url: result.url, key: result.key });
       }
-      setSelectedSubImages(prev => [...prev, ...uploaded]);
+      if (editGallery) {
+        setEditSubImages(prev => [...prev, ...uploaded]);
+      } else {
+        setSelectedSubImages(prev => [...prev, ...uploaded]);
+      }
       toast.success('Sub image(s) uploaded successfully');
     } catch (err) {
       toast.error('Sub image upload failed');
@@ -300,20 +309,25 @@ const ProductGallery = ({ productData, productId }) => {
       if (imageInputRef.current) imageInputRef.current.value = '';
       if (subImagesInputRef.current) subImagesInputRef.current.value = '';
       // Refresh galleries table
-      fetch(`/api/productGallery?productId=${productId}`)
-        .then(async res => {
-          if (!res.ok) return setGalleries([]);
-          const data = await res.json();
-          if (Array.isArray(data)) {
-            setGalleries(data.filter(g => g.product && g.product._id === productId));
-          } else {
-            setGalleries([]);
-          }
-        })
-        .catch(() => setGalleries([]));
+      refreshGalleries();
     } catch (err) {
       toast.error('Failed to save gallery');
     }
+  };
+
+  // Utility to refresh galleries table
+  const refreshGalleries = () => {
+    fetch(`/api/productGallery?productId=${productId}`)
+      .then(async res => {
+        if (!res.ok) return setGalleries([]);
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setGalleries(data.filter(g => g.product && g.product._id === productId));
+        } else {
+          setGalleries([]);
+        }
+      })
+      .catch(() => setGalleries([]));
   };
 
   // Edit handler for updating an existing gallery
@@ -338,6 +352,7 @@ const ProductGallery = ({ productData, productId }) => {
       if (!apiRes.ok) throw new Error('Failed to update gallery');
       toast.success('Product gallery updated successfully');
       setEditGallery(null);
+      refreshGalleries();
     } catch (err) {
       toast.error('Failed to update gallery');
     }

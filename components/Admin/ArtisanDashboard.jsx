@@ -176,8 +176,9 @@ const ArtisanDashboard = () => {
             <div style={boxStyle}><b>Email: &nbsp;</b> {artisan.contact?.email || artisan.email || 'N/A'}</div>
             <div style={boxStyle}><b>Years of Experience: &nbsp;</b> {artisan.yearsOfExperience || 'N/A'}</div>
             <div style={boxStyle}><b>Specializations: &nbsp;</b> {artisan.specializations && artisan.specializations.length > 0 ? artisan.specializations.join(', ') : 'N/A'}</div>
-            <div style={boxStyle} className='max-h-24 overflow-y-auto py-1'><b>Address: &nbsp;</b>{artisan.address ? artisan.address.fullAddress : 'N/A'}</div>
+            <div style={boxStyle} className='max-h-24 overflow-y-auto'><b>Address: &nbsp;</b><span className="text-gray-600 p-2">{artisan.address ? artisan.address.fullAddress : 'N/A'}</span></div>
             <div style={boxStyle}><b>City: &nbsp;</b> {artisan.address?.city || 'N/A'}</div>
+            <div style={boxStyle}><b>Pincode: &nbsp;</b> {artisan.address?.pincode || 'N/A'}</div>
             <div style={boxStyle}><b>State: &nbsp;</b> {artisan.address?.state || 'N/A'}</div>
             <div className="col-span-2 text-center"><div style={{ ...boxStyle, background: '#fff', display: 'flex', justifyContent: 'center' }}>
               {artisan.profileImage?.url ? (
@@ -239,7 +240,7 @@ const ArtisanDashboard = () => {
                   {/* Image Section */}
                   <div className="w-full h-48 bg-gray-100">
                     <img
-                      src={product.gallery?.mainImage || '/placeholder.jpeg'}
+                      src={product.gallery?.mainImage?.url || '/placeholder.jpeg'}
                       alt={product.title || 'Product Image'}
                       className="w-full h-full object-cover rounded-xl"
                       onError={e => { e.target.onerror = null; e.target.src = '/placeholder.jpeg'; }}

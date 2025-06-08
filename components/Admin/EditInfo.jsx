@@ -75,8 +75,8 @@ const EditInfo = () => {
       {artisanDetails && (
         <div className="mb-4 p-4 bg-blue-50 rounded shadow flex gap-8 items-center">
           <div>
-            <div className="font-bold text-lg">{artisanDetails.title} {artisanDetails.firstName} {artisanDetails.lastName}</div>
-            <div className="text-gray-600 text-sm">Artisan Number: {artisanDetails.artisanNumber}</div>
+            <div className="font-bold text-lg">Artisan Name: {artisanDetails.title} {artisanDetails.firstName} {artisanDetails.lastName}</div>
+            <div className="font-semibold text-md">Artisan Number: {artisanDetails.artisanNumber}</div>
           </div>
         </div>
       )}

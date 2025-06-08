@@ -130,7 +130,7 @@ const Header = () => {
                 onClick={() => { setInitialCartTab('wishlist'); setIsCartOpen(true); }}
                 aria-label="Open Wishlist"
               >
-                <Heart size={26} />
+                <Heart size={20} />
                 {wishlist.length > 0 && (
                   <span className="absolute -top-1 -right-1 bg-pink-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
                     {wishlist.length}
@@ -143,7 +143,7 @@ const Header = () => {
                 onClick={() => { setInitialCartTab('cart'); setIsCartOpen(true); }}
                 aria-label="Open Cart"
               >
-                <ShoppingCart size={26} />
+                <ShoppingCart size={20} />
                 {cart.length > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
                     {cart.length}

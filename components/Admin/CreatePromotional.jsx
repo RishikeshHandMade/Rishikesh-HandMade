@@ -39,6 +39,8 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
   const [uploadedImageUrl, setUploadedImageUrl] = useState("");
   const [imageUploading, setImageUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [imageObj, setImageObj] = useState({ url: '', key: '' }); // { url, key }
+  const [imagePreview, setImagePreview] = useState(null);
   const fileInputRef = useRef();
 
   // Handler for file input change
@@ -56,7 +58,8 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
       });
       if (!res.ok) throw new Error("Image upload failed");
       const result = await res.json();
-      setUploadedImageUrl(result.url); // Single source of truth
+      setImageObj({ url: result.url, key: result.key });
+      setImagePreview(result.url);
       toast.success("Image uploaded successfully");
     } catch (err) {
       toast.error("Image upload failed");
@@ -66,18 +69,28 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
     }
   };
 
-  // Certificate-style handlers
-  const handleUploadComplete = (res) => {
-    if (res && res.length > 0) {
-      setUploadedImageUrl(res[0].url);
-      toast.success('Image uploaded successfully');
+  // Handler to remove uploaded image and delete from Cloudinary
+  const handleRemoveImageUpload = async () => {
+    if (imageObj && imageObj.key) {
+      toast.loading('Deleting image from Cloudinary...', { id: 'cloud-delete-promo' });
+      try {
+        const res = await fetch('/api/cloudinary', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ publicId: imageObj.key }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          toast.success('Image deleted from Cloudinary!', { id: 'cloud-delete-promo' });
+        } else {
+          toast.error('Cloudinary error: ' + (data.error || 'Failed to delete image'), { id: 'cloud-delete-promo' });
+        }
+      } catch (err) {
+        toast.error('Failed to delete image from Cloudinary (network or server error)', { id: 'cloud-delete-promo' });
+      }
     }
-  };
-  const handleUploadError = (err) => {
-    toast.error('Image upload failed');
-  };
-  const removeImage = () => {
-    setUploadedImageUrl("");
+    setImageObj({ url: '', key: '' });
+    setImagePreview(null);
   };
 
   // Modal state for view, edit, delete
@@ -100,7 +113,7 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
         date: date ? new Date(date).getTime() : undefined,
         rating,
         artisan: selectedArtisan,
-        image: uploadedImageUrl,
+        image: imageObj,
       };
       const res = await fetch('/api/promotion', {
         method: 'PATCH',
@@ -127,7 +140,8 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
     setDate('');
     setRating(0);
     setSelectedArtisan(artisanId || '');
-    setUploadedImageUrl('');
+    setImageObj({ url: '', key: '' });
+    setImagePreview(null);
     // Remove focus from any input to prevent validation errors
     setTimeout(() => {
       if (document.activeElement) document.activeElement.blur();
@@ -136,8 +150,10 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
   };
 
   // Handler for deleting
+  const [deleting, setDeleting] = useState(false);
   const handleDeletePromotion = async () => {
     if (!selectedPromotion) return;
+    setDeleting(true);
     try {
       const res = await fetch('/api/promotion', {
         method: 'DELETE',
@@ -151,8 +167,11 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
       toast.success('Promotion deleted!');
     } catch (err) {
       toast.error('Failed to delete promotion');
+    } finally {
+      setDeleting(false);
     }
   };
+
 
   // Replace these with real data fetching and state logic
   const [title, setTitle] = useState('');
@@ -167,9 +186,9 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
   // Dialog/modal states
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [reviewToDelete, setReviewToDelete] = useState(null);
-
+// console.log(reviews)
   // Fetch artisans and reviews
-  useEffect(() => {
+
     async function fetchArtisansAndPromotions() {
       // If artisanDetails is present, use it directly
       if (artisanDetails) {
@@ -200,13 +219,14 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
         setLoadingReviews(true);
         const res = await fetch((artisanDetails?._id || artisanId) ? `/api/promotion?artisanId=${artisanDetails?._id || artisanId}` : '/api/promotion');
         const data = await res.json();
-        setReviews(data);
+        setReviews(data.promotions);
       } catch (err) {
         toast.error('Failed to fetch promotions');
       } finally {
         setLoadingReviews(false);
       }
     }
+    useEffect(() => {
     fetchArtisansAndPromotions();
   }, [artisanId, artisanDetails]);
 
@@ -224,8 +244,9 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
         createdBy,
         date: date ? new Date(date).getTime() : undefined,
         artisan: selectedArtisan,
-        image: uploadedImageUrl,
+        image: imageObj,
       };
+      // console.log("imageObj before submit:", imageObj);
       const res = await fetch('/api/promotion', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -239,11 +260,12 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
         setRating(0);
         setCreatedBy('');
         setDate('');
-        setUploadedImageUrl("");
+        setImageObj({ url: '', key: '' });
+        setImagePreview(null);
         // Refresh reviews
         const promoRes = await fetch(selectedArtisan ? `/api/promotion?artisanId=${selectedArtisan}` : '/api/promotion');
         const promos = await promoRes.json();
-        setReviews(promos);
+        setReviews(promos.promotions);
       } else {
         toast.error(data?.error || 'Failed to save promotion');
       }
@@ -330,17 +352,17 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
         <div className="mb-4">
           <label className="block font-semibold mb-1">Thumb Image</label>
           <div className="border rounded p-4 text-center">
-            {uploadedImageUrl ? (
+            {imagePreview ? (
               <div className="relative inline-block mb-3">
                 <img
-                  src={uploadedImageUrl}
+                  src={imagePreview}
                   alt="Promotion Preview"
                   className="w-56 h-36 object-cover rounded mx-auto"
                 />
                 <button
                   type="button"
                   className="absolute top-2 right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center"
-                  onClick={removeImage}
+                  onClick={handleRemoveImageUpload}
                 >
                   ×
                 </button>
@@ -412,8 +434,8 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
                 <TableRow key={review._id} className="hover:bg-gray-200 transition">
                   <TableCell className="px-4 py-3 font-medium">{idx + 1}</TableCell>
                   <TableCell className="px-4 py-3">
-                    {(review.imageUrl || review.image) ? (
-                      <img src={review.imageUrl || review.image} alt="Promotion" className="w-12 h-12 object-cover rounded border" />
+                    {(review.image?.url || review.image) ? (
+                      <img src={review.image?.url || review.image} alt="Promotion" className="w-12 h-12 object-cover rounded border" />
                     ) : (
                       <span className="text-gray-400">No Image</span>
                     )}
@@ -484,10 +506,10 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
                   <div className="font-semibold text-gray-800">Short Description</div>
                   <div className="text-gray-600">{selectedPromotion.shortDescription}</div>
                 </div>
-                {(selectedPromotion.imageUrl || selectedPromotion.image) && (
+                {(selectedPromotion.image?.url || selectedPromotion.image?.key) && (
                   <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
                     <div className="font-semibold text-gray-800">Image</div>
-                    <img src={selectedPromotion.imageUrl || selectedPromotion.image} alt="Promotion" className="w-24 h-24 object-cover rounded border mt-2" />
+                    <img src={selectedPromotion.image?.url || "No Image"} alt="Promotion" className="w-24 h-24 object-cover rounded border mt-2" />
                   </div>
                 )}
               </div>
@@ -507,8 +529,14 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
               </DialogHeader>
               <p>Are you sure you want to delete this promotion?</p>
               <DialogFooter>
-                <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
-                <Button variant="destructive" onClick={handleDeletePromotion}>Delete</Button>
+                <Button variant="secondary" onClick={() => setShowDeleteModal(false)} disabled={deleting}>Cancel</Button>
+                <Button variant="destructive" onClick={handleDeletePromotion} disabled={deleting}>
+                  {deleting ? (
+                    <span className="flex items-center"><svg className="animate-spin mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>Deleting...</span>
+                  ) : (
+                    'Delete'
+                  )}
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>

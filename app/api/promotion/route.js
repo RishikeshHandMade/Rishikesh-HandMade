@@ -4,12 +4,12 @@ let Promotion, Artisan;
 try {
   Promotion = mongoose.model('Promotion');
 } catch {
-  Promotion = require('@/models/Promotion');
+  Promotion = require('@/models/Promotion').default;
 }
 try {
   Artisan = mongoose.model('Artisan');
 } catch {
-  Artisan = require('@/models/Artisan');
+  Artisan = require('@/models/Artisan').default;
 }
 
 export async function GET(req) {
@@ -38,8 +38,10 @@ export async function POST(req) {
     await connectDB();
     const data = await req.json();
     const { title, shortDescription, rating, createdBy, date, artisan, image } = data;
+    if (!title || !shortDescription || !createdBy || !date || !artisan || !image || !image.url || !image.key) {
+      return new Response(JSON.stringify({ success: false, error: 'Missing required fields' }), { status: 400 });
+    }
     const dateTimestamp = date ? new Date(date).getTime() : Date.now();
-    // Create the promotion
     const promotion = await Promotion.create({
       title,
       shortDescription,
@@ -47,7 +49,7 @@ export async function POST(req) {
       createdBy,
       date: dateTimestamp,
       artisan,
-      image
+      image: { url: image.url, key: image.key }
     });
     // Update the artisan to include this promotion
     await Artisan.findByIdAndUpdate(
@@ -83,17 +85,20 @@ export async function PATCH(req) {
       });
     }
     // Update promotion fields
+    const update = {
+      title,
+      shortDescription,
+      rating,
+      createdBy,
+      date: dateTimestamp,
+      artisan
+    };
+    if (image && image.url && image.key) {
+      update.image = { url: image.url, key: image.key };
+    }
     const updatedPromotion = await Promotion.findByIdAndUpdate(
       id,
-      {
-        title,
-        shortDescription,
-        rating,
-        createdBy,
-        date: dateTimestamp,
-        artisan,
-        image
-      },
+      update,
       { new: true }
     );
     return new Response(JSON.stringify({ success: true, promotion: updatedPromotion }), { status: 200 });
@@ -102,17 +107,30 @@ export async function PATCH(req) {
   }
 }
 
+import { deleteFileFromCloudinary } from '@/utils/cloudinary';
+
 export async function DELETE(req) {
   try {
     await connectDB();
     const { id } = await req.json();
-    const promotion = await Promotion.findByIdAndDelete(id);
+    const promotion = await Promotion.findById(id);
     if (!promotion) return new Response(JSON.stringify({ success: false, message: 'Promotion not found' }), { status: 404 });
+    // Delete the image from Cloudinary if it exists
+    if (promotion.image?.key) {
+      try {
+        await deleteFileFromCloudinary(promotion.image.key);
+      } catch (err) {
+        // Log and continue deletion
+        console.error('Failed to delete promotion image from Cloudinary:', err.message);
+      }
+    }
     // Remove from artisan
     await Artisan.findByIdAndUpdate(
       promotion.artisan,
       { $pull: { promotions: promotion._id } }
     );
+    // Delete the promotion from database
+    await Promotion.findByIdAndDelete(id);
     return new Response(JSON.stringify({ success: true, message: 'Promotion deleted' }), { status: 200 });
   } catch (err) {
     return new Response(JSON.stringify({ success: false, error: err.message }), { status: 500 });

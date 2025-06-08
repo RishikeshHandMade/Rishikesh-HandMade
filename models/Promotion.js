@@ -7,7 +7,10 @@ const PromotionSchema = new Schema({
   rating: { type: Number, required: true },
   createdBy: { type: String, required: true },
   date: { type: Number, required: true },
-  image: { type: String },
+  image: {
+    url: { type: String },
+    key: { type: String }
+  },
   artisan: { type: Schema.Types.ObjectId, ref: 'Artisan', required: true }
 }, {
   timestamps: true
