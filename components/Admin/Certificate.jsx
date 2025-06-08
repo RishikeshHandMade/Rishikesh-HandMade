@@ -10,7 +10,42 @@ const Certificate = ({ artisanId, artisanDetails = null }) => {
   const [uploadedImage, setUploadedImage] = useState(null); // { url, key }
   const [imageUploading, setImageUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [removingImage, setRemovingImage] = useState(false);
   const fileInputRef = useRef();
+
+  // Remove image from Cloudinary
+  const handleRemoveImage = async () => {
+    if (!selectedImage || !selectedImage.key) {
+      toast.error('No valid Cloudinary key found for this image.', { id: 'cloud-delete-certificate' });
+      setSelectedImage(null);
+      setUploadedImage(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+    setRemovingImage(true);
+    toast.loading('Deleting image from Cloudinary...', { id: 'cloud-delete-certificate' });
+    try {
+      const res = await fetch('/api/cloudinary', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ publicId: selectedImage.key })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success('Image deleted from Cloudinary!', { id: 'cloud-delete-certificate' });
+        setSelectedImage(null);
+        setUploadedImage(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      } else {
+        toast.error('Cloudinary error: ' + (data.error || 'Failed to delete image from Cloudinary'), { id: 'cloud-delete-certificate' });
+      }
+    } catch (err) {
+      toast.error('Failed to delete image from Cloudinary (network or server error)', { id: 'cloud-delete-certificate' });
+    } finally {
+      setRemovingImage(false);
+    }
+  };
+
 
   // Handler for file input change
   const handleImageChange = async (e) => {
@@ -138,7 +173,7 @@ const Certificate = ({ artisanId, artisanDetails = null }) => {
   };
   const removeImage = () => {
     setSelectedImage(null);
-};
+  };
   const handleEdit = (certificate) => {
     setCertificateName(certificate.title || '');
     setYearOfIssue(certificate.issueDate || '');
@@ -353,19 +388,27 @@ const Certificate = ({ artisanId, artisanDetails = null }) => {
                       </div>
                     )}
                     {selectedImage && (
-                      <div className="text-center mt-3">
-                        <button
-                          type="button"
-                          className="bg-red-600 text-white px-4 py-2 rounded"
-                          onClick={removeImage}
-                        >
-                          Remove Image
-                        </button>
-                      </div>
-                    )}
+  <div className="flex justify-center mt-3">
+    <button
+      type="button"
+      className="bg-red-600 text-white px-4 py-2 rounded flex items-center justify-center gap-2"
+      onClick={handleRemoveImage}
+      disabled={removingImage}
+    >
+      {removingImage && (
+        <svg className="animate-spin h-4 w-4 mr-1 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+        </svg>
+      )}
+      Remove Image
+    </button>
+  </div>
+)}
+
                   </div>
-                </div>
-                <div className="text-center">
+                  <div className="text-center mt-3">
+
                   {isEditMode && (
                     <button type="button" className="bg-gray-400 text-white px-5 py-2 rounded mr-2" onClick={handleCancelEdit} disabled={loading}>
                       Cancel
@@ -374,6 +417,7 @@ const Certificate = ({ artisanId, artisanDetails = null }) => {
                   <button type="submit" className="bg-red-600 text-white px-5 py-2 rounded" disabled={loading}>
                     {loading ? 'Saving...' : (isEditMode ? 'Update' : 'Data Save')}
                   </button>
+                  </div>
                 </div>
               </form>
             </div>

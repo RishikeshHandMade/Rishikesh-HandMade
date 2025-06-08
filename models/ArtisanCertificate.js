@@ -11,7 +11,8 @@ const ArtisanCertificateSchema = new mongoose.Schema({
   issueDate: { type: String }, // Year of issue
   issuedBy: { type: String }, // Certificate issued from
   description: { type: String }, // Specialization or description
-  imageUrl: { type: String }, // Certificate image URL
+  imageUrl:  { url: String, 
+    key: String }, // Certificate image URL
 }, {
   timestamps: true
 });

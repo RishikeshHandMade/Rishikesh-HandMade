@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 const SocialPlugins = ({ artisanId, artisanDetails = null }) => {
   const [artisans, setArtisans] = useState([]);
   const [plugins, setPlugins] = useState([]);
+  // console.log(plugins)
   const [selectedArtisan, setSelectedArtisan] = useState(artisanId || '');
   const [formData, setFormData] = useState({
     facebook: '',
@@ -42,11 +43,13 @@ const SocialPlugins = ({ artisanId, artisanDetails = null }) => {
       
       const data = await res.json();
       if (data.success) {
-        setPlugins(data.plugins || []);
-      } else {
-        console.error('API Error:', data.message);
-        toast.error(data.message || 'Failed to fetch plugins');
-        setPlugins([]);
+        if (data.plugins) {
+          setPlugins(data.plugins);
+        } else if (data.plugin) {
+          setPlugins(data.plugin ? [data.plugin] : []);
+        } else {
+          setPlugins([]);
+        }
       }
     } catch (error) {
       console.error('Fetch Error:', error);

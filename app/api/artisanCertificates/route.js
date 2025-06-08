@@ -79,17 +79,28 @@ export async function PUT(req) {
 }
 
 // DELETE a certificate
+import { deleteFileFromCloudinary } from '@/utils/cloudinary';
+
 export async function DELETE(req) {
   await connectDB();
   try {
     const { id } = await req.json();
-    const deleted = await ArtisanCertificate.findByIdAndDelete(id);
-    if (!deleted) return NextResponse.json({ success: false, message: 'Certificate not found' }, { status: 404 });
+    const certificate = await ArtisanCertificate.findById(id);
+    if (!certificate) return NextResponse.json({ success: false, message: 'Certificate not found' }, { status: 404 });
+    // Delete certificate image from Cloudinary if present
+    if (certificate.image && typeof certificate.image === 'object' && certificate.image.key) {
+      try {
+        await deleteFileFromCloudinary(certificate.image.key);
+      } catch (err) {
+        console.error('Failed to delete certificate image from Cloudinary:', err.message);
+      }
+    }
+    await ArtisanCertificate.findByIdAndDelete(id);
     // Remove certificate _id from artisan's certificates array
-    if (deleted.artisan) {
+    if (certificate.artisan) {
       await Artisan.findByIdAndUpdate(
-        deleted.artisan,
-        { $pull: { certificates: deleted._id } },
+        certificate.artisan,
+        { $pull: { certificates: certificate._id } },
         { new: true }
       );
     }
