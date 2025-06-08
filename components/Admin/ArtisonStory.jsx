@@ -47,10 +47,39 @@ const ArtisonStory = ({ artisanId, artisanDetails = null }) => {
     }
   };
 
-  const removeImage = () => {
-    setSelectedImage(null);
-    if (imageInputRef.current) imageInputRef.current.value = '';
+  const [removingImage, setRemovingImage] = useState(false);
+
+  const handleRemoveImage = async () => {
+    if (!selectedImage || !selectedImage.key) {
+      toast.error('No valid Cloudinary key found for this image.', { id: 'cloud-delete-story' });
+      setSelectedImage(null);
+      if (imageInputRef.current) imageInputRef.current.value = '';
+      return;
+    }
+    setRemovingImage(true);
+    toast.loading('Deleting image from Cloudinary...', { id: 'cloud-delete-story' });
+    try {
+      const res = await fetch('/api/cloudinary', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ publicId: selectedImage.key })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success('Image deleted from Cloudinary!', { id: 'cloud-delete-story' });
+        setSelectedImage(null);
+        if (imageInputRef.current) imageInputRef.current.value = '';
+      } else {
+        toast.error('Cloudinary error: ' + (data.error || 'Failed to delete image from Cloudinary'), { id: 'cloud-delete-story' });
+      }
+    } catch (err) {
+      toast.error('Failed to delete image from Cloudinary (network or server error)', { id: 'cloud-delete-story' });
+    } finally {
+      setRemovingImage(false);
+    }
   };
+
+
 
   const [stories, setStories] = useState([]);
   const [showViewModal, setShowViewModal] = useState(false);
@@ -100,9 +129,10 @@ const fetchStories = async () => {
     setShortDescription(story.shortDescription);
     setLongDescription(story.longDescription || '');
     setSelectedArtisan(story.artisan?._id || '');
-    setSelectedImage(story.image ? { url: story.image } : null);
+    setSelectedImage(story.images ? { url: story.images.url, key: story.images.key } : null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
 
   const handleDeleteStory = (story) => {
     setShowDeleteModal(true);
@@ -143,7 +173,7 @@ const fetchStories = async () => {
       title,
       shortDescription,
       longDescription,
-      image: selectedImage?.url || '',
+      images: selectedImage ? { url: selectedImage.url, key: selectedImage.key } : undefined,
       artisan: artisanDetails?._id || selectedArtisan,
     };
 
@@ -302,7 +332,7 @@ const fetchStories = async () => {
                         <button
                           type="button"
                           className="absolute top-2 right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center"
-                          onClick={removeImage}
+                          onClick={handleRemoveImage}
                         >
                           ×
                         </button>
@@ -344,9 +374,16 @@ const fetchStories = async () => {
                       <div className="text-center mt-3">
                         <button
                           type="button"
-                          className="bg-red-600 text-white px-4 py-2 rounded"
-                          onClick={removeImage}
+                          className="bg-red-600 text-white px-4 py-2 rounded flex items-center justify-center gap-2"
+                          onClick={handleRemoveImage}
+                          disabled={removingImage}
                         >
+                          {removingImage && (
+                            <svg className="animate-spin h-4 w-4 mr-1 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                            </svg>
+                          )}
                           Remove Image
                         </button>
                       </div>
@@ -409,12 +446,13 @@ const fetchStories = async () => {
                       <TableRow key={group.artisan._id}>
                         <TableCell className="py-2 px-3 border-b text-center">{idx + 1}</TableCell>
                         <TableCell className="py-2 px-3 border-b text-center">
-                          {group.stories[0] && group.stories[0].image ? (
+                          {group.stories[0] && group.stories[0].images && group.stories[0].images.url ? (
                             <div className="w-16 h-16 rounded-lg overflow-hidden border flex items-center justify-center bg-white mx-auto">
                               <img
-                                src={group.stories[0].image}
+                                src={group.stories[0].images.url}
                                 alt="Story"
                                 className="w-full h-full object-cover mx-auto"
+                                onError={e => { e.target.onerror = null; e.target.src = '/placeholder.png'; }}
                               />
                             </div>
                           ) : (
@@ -474,7 +512,11 @@ const fetchStories = async () => {
             </div>
             <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
               <div className="font-semibold text-gray-800">Image</div>
-              <div className="text-gray-600"><img src={selectedStory.image} alt="Story" className="w-56 h-36 object-cover rounded mt-2" /></div>
+              {selectedStory.images && selectedStory.images.url ? (
+                <div className="text-gray-600"><img src={selectedStory.images.url} alt="Story" className="w-56 h-36 object-cover rounded mt-2" onError={e => { e.target.onerror = null; e.target.src = '/placeholder.png'; }} /></div>
+              ) : (
+                <div className="w-56 h-36 flex items-center justify-center bg-gray-200 rounded text-gray-400">No Image</div>
+              )}
             </div>
             <button className="mt-4 bg-blue-600 text-white px-4 py-2 rounded" onClick={() => setShowViewModal(false)}>Close</button>
           </div>

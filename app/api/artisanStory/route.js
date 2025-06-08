@@ -30,7 +30,18 @@ export async function POST(req) {
     if (existing) {
       return NextResponse.json({ success: false, message: 'An artisan story already exists for this artisan.' }, { status: 400 });
     }
-    const story = await ArtisanStory.create(body);
+    // Ensure images is an object with url and key (if provided)
+    let images = undefined;
+    if (body.images && typeof body.images === 'object') {
+      images = {
+        url: body.images.url || '',
+        key: body.images.key || ''
+      };
+    }
+    const story = await ArtisanStory.create({
+      ...body,
+      images
+    });
     // Push story _id to artisan's artisanStories array
     if (story.artisan) {
       await Artisan.findByIdAndUpdate(
@@ -50,7 +61,15 @@ export async function PUT(req) {
   try {
     const body = await req.json();
     const { _id, ...updateData } = body;
-    const updated = await ArtisanStory.findByIdAndUpdate(_id, updateData, { new: true });
+    // Ensure images is an object with url and key (if provided)
+    let images = undefined;
+    if (updateData.images && typeof updateData.images === 'object') {
+      images = {
+        url: updateData.images.url || '',
+        key: updateData.images.key || ''
+      };
+    }
+    const updated = await ArtisanStory.findByIdAndUpdate(_id, { ...updateData, images }, { new: true });
     if (updateData.artisan) {
       const existing = await ArtisanStory.findOne({ artisan: updateData.artisan, _id: { $ne: _id } });
       if (existing) {
@@ -64,16 +83,27 @@ export async function PUT(req) {
   }
 }
 
+import { deleteFileFromCloudinary } from '@/utils/cloudinary';
+
 export async function DELETE(req) {
   await connectDB();
   try {
     const { id } = await req.json();
-    const deleted = await ArtisanStory.findByIdAndDelete(id);
-    if (!deleted) return NextResponse.json({ success: false, message: 'Story not found' }, { status: 404 });
+    const story = await ArtisanStory.findById(id);
+    if (!story) return NextResponse.json({ success: false, message: 'Story not found' }, { status: 404 });
+    // Delete story image from Cloudinary if present
+    if (story.images && typeof story.images === 'object' && story.images.key) {
+      try {
+        await deleteFileFromCloudinary(story.images.key);
+      } catch (err) {
+        console.error('Failed to delete story image from Cloudinary:', err.message);
+      }
+    }
+    await ArtisanStory.findByIdAndDelete(id);
     // Remove story _id from artisan's artisanStories field
-    if (deleted.artisan) {
+    if (story.artisan) {
       await Artisan.findByIdAndUpdate(
-        deleted.artisan,
+        story.artisan,
         { $set: { artisanStories: null } },
         { new: true }
       );

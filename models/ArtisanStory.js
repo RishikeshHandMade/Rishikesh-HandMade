@@ -18,10 +18,8 @@ const artisanStorySchema = new mongoose.Schema({
     type: String,
     required: false
   },
-  image: {
-    type: String, // URL to the image
-    required: false
-  },
+  images: { url: String, 
+    key: String },
   createdAt: {
     type: Date,
     default: Date.now
