@@ -20,31 +20,6 @@ export async function GET(req) {
     }
 }
 
-// POST/PUT: Upsert (one banner per artisan)
-// export async function POST(req) {
-//     await connectDB();
-//     const { artisanId, images } = await req.json();
-//     if (!artisanId || !images || !Array.isArray(images) || images.length === 0) {
-//         return NextResponse.json({ success: false, message: 'artisanId and images are required' }, { status: 400 });
-//     }
-//     try {
-//         let banner = await ArtisanBanner.findOne({ artisan: artisanId });
-//         if (banner) {
-//             banner.images = images;
-//             banner.updatedAt = new Date();
-//             await banner.save();
-//         } else {
-//             banner = await ArtisanBanner.create({ artisan: artisanId, images });
-//         }
-//         await Artisan.findByIdAndUpdate(artisanId, { artisanBanner: banner._id });
-//         return NextResponse.json({ success: true, banner });
-//     } catch (err) {
-//         return NextResponse.json({ success: false, message: err.message }, { status: 500 });
-//     }
-// }
-
-
-
 // CREATE a new banner
 export async function POST(req) {
     await connectDB();
@@ -85,16 +60,31 @@ export async function PUT(req) {
 }
 
 // DELETE a certificate
+import { deleteFileFromCloudinary } from '@/utils/cloudinary';
+
 export async function DELETE(req) {
     await connectDB();
     try {
         const { id } = await req.json();
-        const deleted = await ArtisanBanner.findByIdAndDelete(id);
-        if (!deleted) return NextResponse.json({ success: false, message: 'Banner not found' }, { status: 404 });
+        const banner = await ArtisanBanner.findById(id);
+        if (!banner) return NextResponse.json({ success: false, message: 'Banner not found' }, { status: 404 });
+        // Delete all images from Cloudinary if present
+        if (Array.isArray(banner.images)) {
+            for (const img of banner.images) {
+                if (img && img.key) {
+                    try {
+                        await deleteFileFromCloudinary(img.key);
+                    } catch (err) {
+                        console.error('Failed to delete banner image from Cloudinary:', err.message);
+                    }
+                }
+            }
+        }
+        await ArtisanBanner.findByIdAndDelete(id);
         // Remove the banner reference from the artisan
-        if (deleted.artisan) {
+        if (banner.artisan) {
             await Artisan.findByIdAndUpdate(
-                deleted.artisan,
+                banner.artisan,
                 { $unset: { artisanBanner: 1 } },
                 { new: true }
             );
@@ -105,20 +95,3 @@ export async function DELETE(req) {
     }
 }
 
-// DELETE banner by id
-// export async function DELETE(req) {
-//     await connectDB();
-//     const { id } = await req.json();
-//     if (!id) {
-//         return NextResponse.json({ success: false, message: 'Banner id required' }, { status: 400 });
-//     }
-//     try {
-//         const banner = await ArtisanBanner.findByIdAndDelete(id);
-//         if (banner && banner.artisan) {
-//             await Artisan.findByIdAndUpdate(banner.artisan, { $unset: { artisanBanner: 1 } });
-//         }
-//         return NextResponse.json({ success: true });
-//     } catch (err) {
-//         return NextResponse.json({ success: false, message: err.message }, { status: 500 });
-//     }
-// }

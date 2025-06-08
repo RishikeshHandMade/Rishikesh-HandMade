@@ -95,9 +95,40 @@ const ArtisanBanner = ({ artisanId, artisanDetails = null }) => {
   const handleUploadError = (err) => {
     toast.error('Image upload failed');
   };
-  const removeImage = () => {
-    setSelectedImage(null);
-};
+  const [removingImage, setRemovingImage] = useState(false);
+  // Remove image from Cloudinary
+  const handleRemoveImage = async () => {
+    if (!selectedImage || !selectedImage.key) {
+      toast.error('No valid Cloudinary key found for this image.', { id: 'cloud-delete-banner' });
+      setSelectedImage(null);
+      setUploadedImage(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+    setRemovingImage(true);
+    toast.loading('Deleting image from Cloudinary...', { id: 'cloud-delete-banner' });
+    try {
+      const res = await fetch('/api/cloudinary', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ publicId: selectedImage.key })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success('Image deleted from Cloudinary!', { id: 'cloud-delete-banner' });
+        setSelectedImage(null);
+        setUploadedImage(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      } else {
+        toast.error('Cloudinary error: ' + (data.error || 'Failed to delete image from Cloudinary'), { id: 'cloud-delete-banner' });
+      }
+    } catch (err) {
+      toast.error('Failed to delete image from Cloudinary (network or server error)', { id: 'cloud-delete-banner' });
+    } finally {
+      setRemovingImage(false);
+    }
+  };
+
   const handleEdit = (banner) => {
     setSelectedArtisan(banner.artisan ? banner.artisan._id : '');
     setSelectedImage(
@@ -119,6 +150,11 @@ const ArtisanBanner = ({ artisanId, artisanDetails = null }) => {
     // Frontend validation
     if (!selectedArtisan) {
       toast.error("Please select an artisan.");
+      setLoading(false);
+      return;
+    }
+    if (!selectedImage || !selectedImage.url) {
+      toast.error("Please upload a banner image first.");
       setLoading(false);
       return;
     }
@@ -237,7 +273,7 @@ const ArtisanBanner = ({ artisanId, artisanDetails = null }) => {
                         <button
                           type="button"
                           className="absolute top-2 right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center"
-                          onClick={removeImage}
+                          onClick={handleRemoveImage}
                         >
                           ×
                         </button>
@@ -280,7 +316,7 @@ const ArtisanBanner = ({ artisanId, artisanDetails = null }) => {
                         <button
                           type="button"
                           className="bg-red-600 text-white px-4 py-2 rounded"
-                          onClick={removeImage}
+                          onClick={handleRemoveImage}
                         >
                           Remove Image
                         </button>
