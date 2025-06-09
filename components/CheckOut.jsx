@@ -111,35 +111,16 @@ const handleOnlinePaymentWithOrder = async (total, cart, customer, setLoading, s
     <div class="header">
       <h2>Thank you for your order!</h2>
       <p>Hello, ${customer.name}</p>
-      <p>Your payment for order <b>${verificationResponse.data.orderId || verificationResponse.data._id || ''}</b> was successful.</p>
-    </div>
-    <table>
-      <tr><th>Amount</th><td>₹${(verificationResponse.data.amount / 100).toFixed(2)}</td></tr>
-      <tr><th>Payment ID</th><td>${verificationResponse.data.paymentId || verificationResponse.data.razorpay_payment_id || ''}</td></tr>
-      <tr><th>Order ID</th><td>${verificationResponse.data.orderId || verificationResponse.data._id || ''}</td></tr>
-      <tr><th>Email</th><td>${customer.email}</td></tr>
-      <tr><th>Mobile</th><td>${customer.phone}</td></tr>
-      <tr><th>Date</th><td>${new Date().toLocaleString()}</td></tr>
-    </table>
-    <div style="margin-top: 24px; text-align:center;">
-      <a href="https://rishikeshhandmade.com/profile/orders" style="display:inline-block;background:#10B981;color:#fff;text-decoration:none;padding:12px 25px;border-radius:4px;font-weight:bold;">View Your Account</a>
-    </div>
-    <div class="footer">
-      <p>If you have any questions, email <a href="mailto:info@rishikeshhandmade.com">info@rishikeshhandmade.com</a></p>
-      <p>&copy; ${new Date().getFullYear()} Rishikesh HandMade. All rights reserved.</p>
     </div>
   </div>
 </body>
 </html>`
                 });
-              } catch (error) {
-                console.error('Error sending email:', error);
-              }
+              } catch (e) { /* handle email error */ }
               // Redirect to confirmation page with router
-              if (routerInstance && (verificationResponse.data.orderId || verificationResponse.data._id)) {
-                routerInstance.push(`/checkout/orderConfirmed/${verificationResponse.data.orderId || verificationResponse.data._id}`);
-              } else if (routerInstance) {
-                routerInstance.push(`/checkout/orderConfirmed`);
+              const orderId = verificationResponse.data.orderId || verificationResponse.data._id;
+              if (routerInstance && orderId) {
+                routerInstance.push(`/dashboard?orderId=${orderId}`);
               }
               toast.success('Payment successful! Check your email for details.', {
                 style: { borderRadius: '10px', border: '2px solid green' },
@@ -165,6 +146,7 @@ const handleOnlinePaymentWithOrder = async (total, cart, customer, setLoading, s
   }
   setLoading(false);
 };
+
 import { useRouter } from 'next/navigation';
 
 const CheckOut = () => {

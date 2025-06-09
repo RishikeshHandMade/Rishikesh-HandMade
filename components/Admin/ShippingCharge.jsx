@@ -2,6 +2,9 @@
 import React, { useState } from 'react';
 import { statesIndia } from '../../lib/IndiaStates';
 
+// Unwrap the states array from the imported JSON
+const stateDistrictData = statesIndia[0].states;
+
 
 const shippingLabels = [
   'Per Piece',
@@ -10,8 +13,6 @@ const shippingLabels = [
 const ShippingCharge = () => {
   const [selectedState, setSelectedState] = useState('');
   const [districts, setDistricts] = useState([]);
-  const [districtLoading, setDistrictLoading] = useState(false);
-  const [districtError, setDistrictError] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [pinCode, setPinCode] = useState('');
   const [charges, setCharges] = useState([
@@ -24,28 +25,12 @@ const ShippingCharge = () => {
   };
 
   // Handle state change
-  const handleStateChange = async (e) => {
+  const handleStateChange = (e) => {
     const state = e.target.value;
     setSelectedState(state);
     setSelectedDistrict('');
-    setDistricts([]);
-    setDistrictError('');
-    if (!state) return;
-    setDistrictLoading(true);
-    try {
-      // For demo: use a public endpoint for districts. Replace with your own API key if needed.
-      // We'll use https://api.api-ninjas.com/v1/indian_cities?state={state} as an example (no API key needed for demo)
-      const res = await fetch(`https://api.api-ninjas.com/v1/indian_cities?state=${encodeURIComponent(state)}`);
-      if (!res.ok) throw new Error('Failed to fetch districts');
-      const data = await res.json();
-      const uniqueDistricts = Array.from(new Set(data.map(city => city.district))).filter(Boolean);
-      setDistricts(uniqueDistricts);
-    } catch (err) {
-      setDistrictError('Could not load districts.');
-      setDistricts([]);
-    } finally {
-      setDistrictLoading(false);
-    }
+    const found = stateDistrictData.find(s => s.state === state);
+    setDistricts(found ? found.districts : []);
   };
 
   // Handle charge amount/label change
@@ -63,8 +48,8 @@ const ShippingCharge = () => {
           onChange={handleStateChange}
         >
           <option value="">Select</option>
-          {statesIndia.map(state => (
-            <option value={state} key={state}>{state}</option>
+          {stateDistrictData.map(state => (
+            <option value={state.state} key={state.state}>{state.state}</option>
           ))}
         </select>
       </div>
@@ -74,20 +59,12 @@ const ShippingCharge = () => {
           className="col-span-2 bg-blue-900 text-white font-bold text-lg px-6 py-2 rounded focus:outline-none"
           value={selectedDistrict}
           onChange={e => setSelectedDistrict(e.target.value)}
-          disabled={districtLoading || !!districtError || !districts.length}
+          disabled={!districts.length}
         >
-          {districtLoading ? (
-            <option>Loading...</option>
-          ) : districtError ? (
-            <option>{districtError}</option>
-          ) : (
-            <>
-              <option value="">Select</option>
-              {districts.map(dist => (
-                <option value={dist} key={dist}>{dist}</option>
-              ))}
-            </>
-          )}
+          <option value="">Select</option>
+          {districts.map(dist => (
+            <option value={dist} key={dist}>{dist}</option>
+          ))}
         </select>
       </div>
       <div className="grid grid-cols-3 gap-4 items-center mb-4">

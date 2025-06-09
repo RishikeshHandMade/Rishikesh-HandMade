@@ -89,42 +89,69 @@ const Header = () => {
         <div className="flex flex-row justify-center items-center gap-4">
           <div className="items-center z-50 gap-4 flex">
             <div className="flex items-center gap-3">
+              
               <div className="relative">
-                {status === "loading" ? (
-                  <Loader2 className="animate-spin text-blue-600" size={36} />
-                ) : isUser ? (
-                  <>
-                    {/* Profile Picture Button */}
-                    <button
-                      onClick={() => setIsProfileOpen(!isProfileOpen)}
-                      className="focus:outline-none border-dashed border-4 border-blue-600 rounded-full"
-                    >
-                      <Image
-                        src={session.user.image || "/user.png"}
-                        alt="Profile"
-                        width={44}
-                        height={44}
-                        className="rounded-full cursor-pointer"
-                      />
-                    </button>
+              {status === "loading" ? (
+                <Loader2 className="animate-spin text-blue-600" size={36} />
+              ) : isUser ? (
+                <>
+                  {/* Profile Picture Button */}
+                  <button
+                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+                    className="focus:outline-none border-dashed border-4 border-blue-600 rounded-full"
+                  >
+                    <Image
+                      src={session.user.image || "/user.png"}
+                      alt="Profile"
+                      width={44}
+                      height={44}
+                      className="rounded-full cursor-pointer"
+                    />
+                  </button>
 
-
-                  </>
-                ) : (
-                  <div className="relative">
-                    <button onClick={() => setIsAuthDropdownOpen(!isAuthDropdownOpen)} className="font-medium flex items-center px-2 py-2">
-                      <User2Icon size={25} className="mr-2 cursor-pointer" onClick={e => { e.stopPropagation(); setIsAuthDropdownOpen(!isAuthDropdownOpen); }} aria-label="Open Account Dropdown" />
-                    </button>
-                    {isAuthDropdownOpen && (
-                      <div className="absolute top-12 right-0 mt-2 w-48 text-black bg-white shadow-lg rounded-lg border">
-                        <Link href="/sign-in" onClick={() => setIsAuthDropdownOpen(false)} className="block px-4 py-2 hover:bg-blue-100">Sign In</Link>
-                        <Link href="/sign-up" onClick={() => setIsAuthDropdownOpen(false)} className="block px-4 py-2 hover:bg-blue-100">Create Account</Link>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            
+                  {/* Dropdown Menu */}
+                  {isProfileOpen && (
+                    <div className="absolute top-14 right-0 mt-2 w-fit text-black bg-white shadow-lg rounded-lg border z-50">
+                      <p className="px-4 pt-2 text-sm font-bold text-gray-700">{session.user.name}</p>
+                      <p className="px-4 pb-2 text-sm text-gray-700">{session.user.email}</p>
+                      <div className="h-px bg-gray-200" />
+                      <Link
+                        href="/dashboard"
+                        className="flex items-center rounded-lg w-full text-left px-4 py-2 hover:bg-blue-100"
+                        onClick={() => setIsProfileOpen(false)}
+                      >
+                        <User2Icon size={20} className="mr-2" /> Dashboard
+                      </Link>
+                      <Link
+                        href={`/account/${session.user.id}`}
+                        className="flex items-center rounded-lg w-full text-left px-4 py-2 hover:bg-blue-100"
+                        onClick={() => setIsProfileOpen(false)}
+                      >
+                        <User2Icon size={20} className="mr-2" /> My Account
+                      </Link>
+                      <button
+                        className="flex items-center rounded-lg w-full text-red-600 text-left px-4 py-2 hover:bg-blue-100"
+                        onClick={() => signOut()}
+                      >
+                        <LogOutIcon size={20} className="mr-2" /> Sign Out
+                      </button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="relative">
+                  <button onClick={() => setIsAuthDropdownOpen(!isAuthDropdownOpen)} className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-800">
+                    Account <ChevronDown className="ml-2" size={16} />
+                  </button>
+                  {isAuthDropdownOpen && (
+                    <div className="absolute top-12 right-0 mt-2 w-48 text-black bg-white shadow-lg rounded-lg border">
+                      <Link href="/sign-in" onClick={() => setIsAuthDropdownOpen(false)} className="block px-4 py-2 hover:bg-blue-100">Sign In</Link>
+                      <Link href="/sign-up" onClick={() => setIsAuthDropdownOpen(false)} className="block px-4 py-2 hover:bg-blue-100">Create Account</Link>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
               <button
                 className="relative p-2 rounded-full hover:bg-neutral-100 transition"
                 onClick={() => { setInitialCartTab('wishlist'); setIsCartOpen(true); }}
@@ -191,68 +218,7 @@ const Header = () => {
             <div className="text-right">
               <LanguageSelector />
             </div>
-            <div className="relative">
-              {status === "loading" ? (
-                <Loader2 className="animate-spin text-blue-600" size={36} />
-              ) : isUser ? (
-                <>
-                  {/* Profile Picture Button */}
-                  <button
-                    onClick={() => setIsProfileOpen(!isProfileOpen)}
-                    className="focus:outline-none border-dashed border-4 border-blue-600 rounded-full"
-                  >
-                    <Image
-                      src={session.user.image || "/user.png"}
-                      alt="Profile"
-                      width={44}
-                      height={44}
-                      className="rounded-full cursor-pointer"
-                    />
-                  </button>
-
-                  {/* Dropdown Menu */}
-                  {isProfileOpen && (
-                    <div className="absolute top-14 right-0 mt-2 w-fit text-black bg-white shadow-lg rounded-lg border z-50">
-                      <p className="px-4 pt-2 text-sm font-bold text-gray-700">{session.user.name}</p>
-                      <p className="px-4 pb-2 text-sm text-gray-700">{session.user.email}</p>
-                      <div className="h-px bg-gray-200" />
-                      <Link
-                        href="/profile"
-                        className="flex items-center rounded-lg w-full text-left px-4 py-2 hover:bg-blue-100"
-                        onClick={() => setIsProfileOpen(false)}
-                      >
-                        <User2Icon size={20} className="mr-2" /> Profile
-                      </Link>
-                      <Link
-                        href={`/account/${session.user.id}`}
-                        className="flex items-center rounded-lg w-full text-left px-4 py-2 hover:bg-blue-100"
-                        onClick={() => setIsProfileOpen(false)}
-                      >
-                        <User2Icon size={20} className="mr-2" /> My Account
-                      </Link>
-                      <button
-                        className="flex items-center rounded-lg w-full text-red-600 text-left px-4 py-2 hover:bg-blue-100"
-                        onClick={() => signOut()}
-                      >
-                        <LogOutIcon size={20} className="mr-2" /> Sign Out
-                      </button>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="relative">
-                  <button onClick={() => setIsAuthDropdownOpen(!isAuthDropdownOpen)} className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-800">
-                    Account <ChevronDown className="ml-2" size={16} />
-                  </button>
-                  {isAuthDropdownOpen && (
-                    <div className="absolute top-12 right-0 mt-2 w-48 text-black bg-white shadow-lg rounded-lg border">
-                      <Link href="/sign-in" onClick={() => setIsAuthDropdownOpen(false)} className="block px-4 py-2 hover:bg-blue-100">Sign In</Link>
-                      <Link href="/sign-up" onClick={() => setIsAuthDropdownOpen(false)} className="block px-4 py-2 hover:bg-blue-100">Create Account</Link>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+           
           </div>
         </div>
       </div>
