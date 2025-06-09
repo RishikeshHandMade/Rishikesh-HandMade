@@ -1,8 +1,9 @@
 "use client";
+import React from "react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
 import Profile from "./Profile";
 import OrderConfirm from "./OrderConfirm";
@@ -71,7 +72,14 @@ function SectionContent({ section, orderId, onViewOrder, onBackHome, showOrderDe
 
 const Dashboard = () => {
     const { data: session, status } = useSession();
-    const [activeSection, setActiveSection] = useState("dashboard");
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const orderId = searchParams.get("orderId");
+    // Extract section from URL: /dashboard/:section
+    const pathParts = pathname.split("/");
+    const sectionFromUrl = pathParts[2] || "dashboard";
+    const [activeSection, setActiveSection] = useState(sectionFromUrl);
     const [showOrderDetail, setShowOrderDetail] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
     const user = session?.user || {
@@ -79,9 +87,11 @@ const Dashboard = () => {
         email: "user@example.com",
         image: "/placeholder.jpeg",
     };
-    const router = useRouter();
-    const searchParams = useSearchParams();
-    const orderId = searchParams.get("orderId");
+
+    // Sync activeSection with URL
+    React.useEffect(() => {
+        setActiveSection(sectionFromUrl);
+    }, [sectionFromUrl]);
 
     const handleViewOrder = (order) => {
         setSelectedOrder(order);
@@ -98,7 +108,7 @@ const Dashboard = () => {
     if (status === "loading") return <div>Loading...</div>;
     // Sidebar + Main content layout
     return (
-        <div className="flex min-h-screen px-10 bg-[#fcf7f1]">
+        <div className="flex min-h-screen px-15 bg-[#fcf7f1]">
             {/* Sidebar */}
             <aside className="w-[300px] bg-white rounded-2xl shadow-lg m-6 flex-shrink-0">
                 <div className="flex flex-col items-center py-8 border-b">
@@ -140,7 +150,7 @@ const Dashboard = () => {
                 </nav>
             </aside>
             {/* Main Content */}
-            <main className="flex-1 bg-white rounded-2xl shadow-lg m-6 p-8">
+            <main className="flex-1 bg-[#fdf6ee] rounded-2xl shadow-lg m-6 p-8">
                 <SectionContent
                     section={activeSection}
                     orderId={orderId}
