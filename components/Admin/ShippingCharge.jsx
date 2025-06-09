@@ -43,7 +43,7 @@ const ShippingCharge = () => {
       <div className="grid grid-cols-3 gap-4 items-center mb-4">
         <label className="font-bold text-lg col-span-1">Select State</label>
         <select
-          className="col-span-2 bg-blue-900 text-white font-bold text-lg px-6 py-2 rounded focus:outline-none"
+          className="col-span-2 bg-blue-100 text-black font-bold text-lg px-6 py-2 rounded focus:outline-none"
           value={selectedState}
           onChange={handleStateChange}
         >
@@ -56,7 +56,7 @@ const ShippingCharge = () => {
       <div className="grid grid-cols-3 gap-4 items-center mb-4">
         <label className="font-bold text-lg col-span-1">Type Dist. Name</label>
         <select
-          className="col-span-2 bg-blue-900 text-white font-bold text-lg px-6 py-2 rounded focus:outline-none"
+          className="col-span-2 bg-blue-100 text-black font-bold text-lg px-6 py-2 rounded focus:outline-none"
           value={selectedDistrict}
           onChange={e => setSelectedDistrict(e.target.value)}
           disabled={!districts.length}
@@ -70,7 +70,7 @@ const ShippingCharge = () => {
       <div className="grid grid-cols-3 gap-4 items-center mb-4">
         <label className="font-bold text-lg col-span-1">Type Pin Code</label>
         <input
-          className="col-span-2 bg-orange-500 text-white font-bold text-lg px-6 py-2 rounded placeholder-white focus:outline-none"
+          className="col-span-2 bg-orange-100 text-black font-bold text-lg px-6 py-2 rounded placeholder-black focus:outline-none"
           placeholder="Type Here"
           value={pinCode}
           onChange={e => setPinCode(e.target.value.replace(/[^0-9]/g, ''))}
@@ -88,14 +88,14 @@ const ShippingCharge = () => {
             <div className="grid grid-cols-2 gap-2 mb-2" key={idx}>
               <input
                 type="number"
-                className="bg-green-500 text-white font-bold text-lg px-4 py-2 rounded placeholder-white focus:outline-none"
+                className="bg-green-500 text-black font-bold text-lg px-4 py-2 rounded placeholder-black focus:outline-none"
                 placeholder="Amount"
                 value={row.amount}
                 onChange={e => handleChargeChange(idx, 'amount', e.target.value)}
               />
               <input
                 type="text"
-                className="bg-green-500 text-white font-bold text-lg px-4 py-2 rounded placeholder-white focus:outline-none"
+                className="bg-green-500 text-black font-bold text-lg px-4 py-2 rounded placeholder-black focus:outline-none"
                 placeholder="Label"
                 value={row.label}
                 onChange={e => handleChargeChange(idx, 'label', e.target.value)}
@@ -103,14 +103,14 @@ const ShippingCharge = () => {
             </div>
           ))}
           <button
-            className="bg-blue-900 text-white font-bold px-6 py-2 mt-2 rounded hover:bg-blue-800"
+            className="bg-blue-500 text-black font-bold px-6 py-2 mt-2 rounded hover:bg-blue-800"
             type="button"
             onClick={addChargeRow}
           >Add More</button>
         </div>
       </div>
       <div className="flex justify-center mt-8">
-        <button className="bg-blue-900 text-white font-bold text-lg px-16 py-3 rounded hover:bg-blue-800">Data Save</button>
+        <button className="bg-red-500 text-black font-bold text-lg px-16 py-3 rounded hover:bg-blue-800">Data Save</button>
       </div>
     </div>
   );
