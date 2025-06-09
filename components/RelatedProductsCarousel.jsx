@@ -9,6 +9,7 @@ import { Button } from "./ui/button";
 import Link from "next/link";
 import Autoplay from "embla-carousel-autoplay";
 function RelatedProductsCarousel({ products }) {
+  // console.log(products)
   // Ensure products is always an array
   const safeProducts = Array.isArray(products) ? products : [];
   const { addToCart, addToWishlist, removeFromWishlist, wishlist } = useCart();
@@ -30,12 +31,19 @@ function RelatedProductsCarousel({ products }) {
     addToCart({
       id: p._id,
       name: p.title,
-      image: p?.gallery?.mainImage?.url || "/product.jpeg",
+      image: p?.gallery?.mainImage || "/product.jpeg",
       price: Math.round(discountedPrice),
       originalPrice: price,
+      qty: 1,
       couponApplied,
-      couponCode: couponApplied ? couponCode : undefined
-    }, 1);
+      couponCode: couponApplied ? couponCode : undefined,
+      productCode: p.code || p.productCode || '',
+      discountPercent: coupon && typeof coupon.percent === 'number' ? coupon.percent : undefined,
+      discountAmount: coupon && typeof coupon.amount === 'number' ? coupon.amount : undefined,
+      cgst: (p.taxes && p.taxes.cgst) || p.cgst || (p.tax && p.tax.cgst) || 0,
+      sgst: (p.taxes && p.taxes.sgst) || p.sgst || (p.tax && p.tax.sgst) || 0,
+      quantity: p.quantity || {},
+    });
     toast.success("Added to cart!");
   };
   // If no products, don't render the component
@@ -95,7 +103,7 @@ function RelatedProductsCarousel({ products }) {
                           addToWishlist({
                             id: p._id,
                             name: p.title,
-                            image: p?.gallery?.mainImage?.url || "/product.jpeg",
+                            image: p?.gallery?.mainImage || "/product.jpeg",
                             price: Math.round(discountedPrice),
                             originalPrice: price,
                             qty: 1,

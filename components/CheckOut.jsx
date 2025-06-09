@@ -379,7 +379,7 @@ const CheckOut = () => {
             id="saveAddress"
             checked={saveAddress}
             onChange={e => setSaveAddress(e.target.checked)}
-            className="accent-black"
+            className="mr-2 accent-pink-600 w-4 h-4"
           />
           <label htmlFor="saveAddress" className="text-sm select-none">Save this address to my account</label>
         </div>
@@ -457,13 +457,13 @@ const CheckOut = () => {
           <div className="font-medium mb-1">Payment</div>
           {paymentOptions.map(opt => (
             <label key={opt.value} className="flex items-center gap-2 text-sm mb-1">
-              <input type="radio" name="payment" checked={payment === opt.value} onChange={() => setPayment(opt.value)} className="accent-black" />
+              <input type="radio" name="payment" checked={payment === opt.value} onChange={() => setPayment(opt.value)} className="mr-2 accent-pink-600 w-4 h-4" />
               {opt.label}
             </label>
           ))}
         </div>
         <div className="flex items-start gap-2 mb-4">
-          <input type="checkbox" checked={agree} onChange={e => setAgree(e.target.checked)} className="accent-black mt-1" />
+          <input type="checkbox" checked={agree} onChange={e => setAgree(e.target.checked)} className="mr-2 accent-pink-600 w-4 h-4 mt-2" />
           <span className="text-s">I have read and agree to the website terms and conditions</span>
         </div>
 

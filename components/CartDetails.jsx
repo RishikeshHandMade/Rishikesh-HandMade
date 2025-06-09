@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 
 const CartDetails = () => {
   const { cart, updateCartQty, removeFromCart } = useCart();
+  console.log(cart)
   const router = useRouter();
 
   // Handler for checkout navigation
@@ -18,32 +19,32 @@ const CartDetails = () => {
   };
 
   const [promoCode, setPromoCode] = React.useState("");
-const [promoError, setPromoError] = React.useState("");
-const [termsChecked, setTermsChecked] = React.useState(false);
-const [shippingCharges] = React.useState(0); // You can update this logic as needed
+  const [promoError, setPromoError] = React.useState("");
+  const [termsChecked, setTermsChecked] = React.useState(false);
+  const [shippingCharges] = React.useState(0); // You can update this logic as needed
 
-const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+  const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
 
-// Calculate final amount (with coupon/discount)
-const finalAmount = cart.reduce((sum, item) => {
-  let afterDiscount = item.price;
-  if (item.discountPercent) afterDiscount = item.price * (1 - item.discountPercent / 100);
-  else if (item.discountAmount) afterDiscount = item.price - item.discountAmount;
-  return sum + (afterDiscount * item.qty);
-}, 0) + shippingCharges;
+  // Calculate final amount (with coupon/discount)
+  const finalAmount = cart.reduce((sum, item) => {
+    let afterDiscount = item.price;
+    if (item.discountPercent) afterDiscount = item.price * (1 - item.discountPercent / 100);
+    else if (item.discountAmount) afterDiscount = item.price - item.discountAmount;
+    return sum + (afterDiscount * item.qty);
+  }, 0) + shippingCharges;
 
-// Coupon apply handler
-const handleApplyPromo = () => {
-  setPromoError("");
-  if (cart.some(item => item.couponApplied)) {
-    setPromoError("A coupon is already applied to one or more products. Remove it to apply a new code.");
-    return;
-  }
-  // Here you would call an API to validate/apply the coupon and update cart context accordingly.
-  // For demo, we'll just show success and simulate discount for all items.
-  // TODO: Replace with real coupon logic
-  setPromoError("Coupon application logic not implemented. Integrate with backend.");
-};
+  // Coupon apply handler
+  const handleApplyPromo = () => {
+    setPromoError("");
+    if (cart.some(item => item.couponApplied)) {
+      setPromoError("A coupon is already applied to one or more products. Remove it to apply a new code.");
+      return;
+    }
+    // Here you would call an API to validate/apply the coupon and update cart context accordingly.
+    // For demo, we'll just show success and simulate discount for all items.
+    // TODO: Replace with real coupon logic
+    // setPromoError("Coupon application logic not implemented. Integrate with backend.");
+  };
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => { setMounted(true); }, []);
   if (!mounted) return null;
@@ -59,7 +60,17 @@ const handleApplyPromo = () => {
     if (item.discountAmount) return (item.price - item.discountAmount);
     return item.price;
   };
-  const getAmount = (item) => getAfterDiscount(item) * item.qty;
+  const getAmount = (item) => {
+  const afterDiscount = getAfterDiscount(item);
+  const cgstPercent = Number(item.cgst) || 0;
+  const sgstPercent = Number(item.sgst) || 0;
+  // Calculate tax values
+  const cgstAmount = (afterDiscount * cgstPercent) / 100;
+  const sgstAmount = (afterDiscount * sgstPercent) / 100;
+  // Total for one item
+  const totalPerItem = afterDiscount + cgstAmount + sgstAmount;
+  return totalPerItem * item.qty;
+};
 
   // UI
   return (
@@ -158,14 +169,14 @@ const handleApplyPromo = () => {
                 {promoError && <div className="text-xs text-red-600 mt-1">{promoError}</div>}
               </div>
               {/* Show CGST/SGST for all products */}
-              <div className="flex justify-between items-center mb-1 text-md">
+              {/* <div className="flex justify-between items-center mb-1 text-md">
                 <span>CGST %</span>
                 <span>{cart.map(item => item.cgst ?? 0).join(', ')}</span>
               </div>
               <div className="flex justify-between items-center mb-1 text-md">
                 <span>SGST %</span>
                 <span>{cart.map(item => item.sgst ?? 0).join(', ')}</span>
-              </div>
+              </div> */}
               <div className="text-xs text-red-600 mb-2">Note : If discount promo code already applied extra additional coupon not applicable</div>
               <div className="flex justify-between items-center mb-1 text-sm">
                 <span>Shipping Charges</span>

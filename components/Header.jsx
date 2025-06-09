@@ -122,13 +122,13 @@ const Header = () => {
                       >
                         <User2Icon size={20} className="mr-2" /> Dashboard
                       </Link>
-                      <Link
+                      {/* <Link
                         href={`/account/${session.user.id}`}
                         className="flex items-center rounded-lg w-full text-left px-4 py-2 hover:bg-blue-100"
                         onClick={() => setIsProfileOpen(false)}
                       >
                         <User2Icon size={20} className="mr-2" /> My Account
-                      </Link>
+                      </Link> */}
                       <button
                         className="flex items-center rounded-lg w-full text-red-600 text-left px-4 py-2 hover:bg-blue-100"
                         onClick={() => signOut()}

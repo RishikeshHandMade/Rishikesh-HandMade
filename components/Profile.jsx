@@ -21,8 +21,8 @@ const Profile = () => {
       postalCode: "",
       country: "India",
       dateOfBirth: "",
-      newPassword: "",
-      confirmPassword: "",
+      // newPassword: "",
+      // confirmPassword: "",
     },
   });
 
@@ -50,8 +50,8 @@ const Profile = () => {
             postalCode: data.postalCode || "",
             country: data.country === "India" ? "India" : "",
             dateOfBirth: data.dateOfBirth ? data.dateOfBirth.slice(0, 10) : "",
-            newPassword: "",
-            confirmPassword: "",
+            // newPassword: "",
+            // confirmPassword: "",
           });
           setNewsletter(!!data.newsletter);
         } else {
@@ -65,10 +65,10 @@ const Profile = () => {
   }, [session?.user?.email]);
 
   const onSubmit = async (data) => {
-    if (data.newPassword && data.newPassword !== data.confirmPassword) {
-      toast.error("Passwords do not match", { style: { borderRadius: "10px", border: "2px solid red" } });
-      return;
-    }
+    // if (data.newPassword && data.newPassword !== data.confirmPassword) {
+    //   toast.error("Passwords do not match", { style: { borderRadius: "10px", border: "2px solid red" } });
+    //   return;
+    // }
     data.name = `${data.firstName} ${data.lastName}`;
     data.newsletter = newsletter;
     try {
@@ -91,7 +91,7 @@ const Profile = () => {
   const user = session?.user || {
     name: "John Doe",
     email: "johndoe@example.com",
-    image: "https://randomuser.me/api/portraits/men/32.jpg",
+    image: "/placeholder.jpeg",
   };
 
   return (
@@ -104,7 +104,7 @@ const Profile = () => {
             alt="avatar"
             className="w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover"
           />
-          <button className="absolute -top-2 -left-2 bg-pink-600 text-white w-8 h-8 rounded-full flex items-center justify-center border-4 border-[#fcf7f1] shadow"><svg xmlns='http://www.w3.org/2000/svg' className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13h3l8-8a2.828 2.828 0 00-4-4l-8 8v3h3z" /></svg></button>
+          {/* <button className="absolute -top-2 -left-2 bg-pink-600 text-white w-8 h-8 rounded-full flex items-center justify-center border-4 border-[#fcf7f1] shadow"><svg xmlns='http://www.w3.org/2000/svg' className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13h3l8-8a2.828 2.828 0 00-4-4l-8 8v3h3z" /></svg></button> */}
         </div>
         <div>
           <div className="text-2xl font-bold mb-1">{user.name}</div>
@@ -173,16 +173,16 @@ const Profile = () => {
             <option value="India">India</option>
           </select>
         </div>
-        {/* New Password */}
+        {/* New Password
         <div>
           <label className="block mb-1 font-medium text-[15px]">New password (leave blank to leave unchanged)</label>
           <input type="password" {...form.register("newPassword")} className="w-full border rounded-lg px-4 py-2 bg-white focus:outline-pink-600" />
         </div>
         {/* Confirm New Password */}
-        <div>
+        {/* <div>
           <label className="block mb-1 font-medium text-[15px]">Confirm new password</label>
           <input type="password" {...form.register("confirmPassword")} className="w-full border rounded-lg px-4 py-2 bg-white focus:outline-pink-600" />
-        </div>
+        </div>  */}
         {/* Newsletter */}
         <div className="col-span-2 flex items-center mt-2">
           <input
