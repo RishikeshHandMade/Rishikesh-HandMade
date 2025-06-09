@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import Profile from "./Admin/Profile";
+import Profile from "./Profile";
 import OrderConfirm from "./OrderConfirm";
 import OrderDetail from "./OrderDetail";
 import AllOrders from "./AllOrders";

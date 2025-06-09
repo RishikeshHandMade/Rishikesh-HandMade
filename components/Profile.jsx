@@ -1,0 +1,213 @@
+"use client"
+import React, { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useSession } from "next-auth/react";
+import toast from "react-hot-toast";
+import { statesIndia } from "@/lib/IndiaStates";
+
+const Profile = () => {
+  const { data: session } = useSession();
+  const [newsletter, setNewsletter] = useState(false);
+
+  const form = useForm({
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      address: "",
+      city: "",
+      state: "",
+      postalCode: "",
+      country: "India",
+      dateOfBirth: "",
+      newPassword: "",
+      confirmPassword: "",
+    },
+  });
+
+  useEffect(() => {
+    if (session?.user?.email) {
+      form.setValue("email", session.user.email);
+    }
+  }, [session?.user?.email, form]);
+
+  useEffect(() => {
+    if (!session?.user?.email) return;
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch(`/api/getUserById/${session.user.id}`);
+        const data = await response.json();
+        if (response.ok) {
+          form.reset({
+            firstName: data.firstName || "",
+            lastName: data.lastName || "",
+            phone: data.phone || "",
+            address: data.address || "",
+            email: data.email || "",
+            city: data.city || "",
+            state: data.state || "",
+            postalCode: data.postalCode || "",
+            country: data.country === "India" ? "India" : "",
+            dateOfBirth: data.dateOfBirth ? data.dateOfBirth.slice(0, 10) : "",
+            newPassword: "",
+            confirmPassword: "",
+          });
+          setNewsletter(!!data.newsletter);
+        } else {
+          toast.error(data.message, { style: { borderRadius: "10px", border: "2px solid red" } });
+        }
+      } catch (error) {
+        toast.error(error.message, { style: { borderRadius: "10px", border: "2px solid red" } });
+      }
+    };
+    fetchUserData();
+  }, [session?.user?.email]);
+
+  const onSubmit = async (data) => {
+    if (data.newPassword && data.newPassword !== data.confirmPassword) {
+      toast.error("Passwords do not match", { style: { borderRadius: "10px", border: "2px solid red" } });
+      return;
+    }
+    data.name = `${data.firstName} ${data.lastName}`;
+    data.newsletter = newsletter;
+    try {
+      const response = await fetch("/api/updateUser", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const res = await response.json();
+      if (!response.ok) {
+        toast.error(res.message, { style: { borderRadius: "10px", border: "2px solid red" } });
+      } else {
+        toast.success("Profile updated successfully!", { style: { borderRadius: "10px", border: "2px solid green" } });
+      }
+    } catch (error) {
+      toast.error(error.message, { style: { borderRadius: "10px", border: "2px solid red" } });
+    }
+  };
+
+  const user = session?.user || {
+    name: "John Doe",
+    email: "johndoe@example.com",
+    image: "https://randomuser.me/api/portraits/men/32.jpg",
+  };
+
+  return (
+    <div className="bg-[#fcf7f1] min-h-[600px] p-6 rounded-2xl max-w-5xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center gap-5 mb-6 border-b pb-6">
+        <div className="relative">
+          <img
+            src={user.image}
+            alt="avatar"
+            className="w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover"
+          />
+          <button className="absolute -top-2 -left-2 bg-pink-600 text-white w-8 h-8 rounded-full flex items-center justify-center border-4 border-[#fcf7f1] shadow"><svg xmlns='http://www.w3.org/2000/svg' className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13h3l8-8a2.828 2.828 0 00-4-4l-8 8v3h3z" /></svg></button>
+        </div>
+        <div>
+          <div className="text-2xl font-bold mb-1">{user.name}</div>
+          <div className="text-pink-600 text-[15px] font-medium">{user.email}</div>
+        </div>
+      </div>
+      {/* Form */}
+      <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 mt-4">
+        {/* First Name */}
+        <div>
+          <label className="block mb-1 font-medium text-[15px]">First Name</label>
+          <input {...form.register("firstName")} className="w-full border rounded-lg px-4 py-2 bg-white focus:outline-pink-600" />
+        </div>
+        {/* Last Name */}
+        <div>
+          <label className="block mb-1 font-medium text-[15px]">Last Name</label>
+          <input {...form.register("lastName")} className="w-full border rounded-lg px-4 py-2 bg-white focus:outline-pink-600" />
+        </div>
+        {/* Email (readonly) */}
+        <div>
+          <label className="block mb-1 font-medium text-[15px]">Email address</label>
+          <input {...form.register("email")} className="w-full border rounded-lg px-4 py-2 bg-white focus:outline-pink-600" readOnly disabled />
+        </div>
+        {/* Phone */}
+        <div>
+          <label className="block mb-1 font-medium text-[15px]">Phone</label>
+          <input {...form.register("phone")} maxLength={10} className="w-full border rounded-lg px-4 py-2 bg-white focus:outline-pink-600" />
+        </div>
+        {/* Date of Birth */}
+        <div>
+          <label className="block mb-1 font-medium text-[15px]">Date of Birth</label>
+          <input type="date" {...form.register("dateOfBirth")} className="w-full border rounded-lg px-4 py-2 bg-white focus:outline-pink-600" />
+        </div>
+        {/* Street Address */}
+        <div>
+          <label className="block mb-1 font-medium text-[15px]">Street Address</label>
+          <input {...form.register("address")} className="w-full border rounded-lg px-4 py-2 bg-white focus:outline-pink-600" />
+        </div>
+        {/* City */}
+        <div>
+          <label className="block mb-1 font-medium text-[15px]">City</label>
+          <input {...form.register("city")} className="w-full border rounded-lg px-4 py-2 bg-white focus:outline-pink-600" />
+        </div>
+        {/* State */}
+        <div>
+          <label className="block mb-1 font-medium text-[15px]">State</label>
+          <select {...form.register("state")} className="w-full border rounded-lg px-4 py-2 bg-white focus:outline-pink-600">
+            <option value="">Select State</option>
+            {statesIndia[0].states
+              .map(s => s.state)
+              .sort()
+              .map((state, idx) => (
+                <option key={idx} value={state}>{state}</option>
+              ))}
+          </select>
+        </div>
+        {/* Postal Code */}
+        <div>
+          <label className="block mb-1 font-medium text-[15px]">Postal Code</label>
+          <input {...form.register("postalCode")} className="w-full border rounded-lg px-4 py-2 bg-white focus:outline-pink-600" />
+        </div>
+        {/* Country */}
+        <div>
+          <label className="block mb-1 font-medium text-[15px]">Country</label>
+          <select {...form.register("country")} className="w-full border rounded-lg px-4 py-2 bg-white focus:outline-pink-600">
+            <option value="India">India</option>
+          </select>
+        </div>
+        {/* New Password */}
+        <div>
+          <label className="block mb-1 font-medium text-[15px]">New password (leave blank to leave unchanged)</label>
+          <input type="password" {...form.register("newPassword")} className="w-full border rounded-lg px-4 py-2 bg-white focus:outline-pink-600" />
+        </div>
+        {/* Confirm New Password */}
+        <div>
+          <label className="block mb-1 font-medium text-[15px]">Confirm new password</label>
+          <input type="password" {...form.register("confirmPassword")} className="w-full border rounded-lg px-4 py-2 bg-white focus:outline-pink-600" />
+        </div>
+        {/* Newsletter */}
+        <div className="col-span-2 flex items-center mt-2">
+          <input
+            type="checkbox"
+            id="newsletter"
+            checked={newsletter}
+            onChange={() => setNewsletter((v) => !v)}
+            className="mr-2 accent-pink-600 w-4 h-4"
+          />
+          <label htmlFor="newsletter" className="text-[15px]">Subscribe me to Newsletter</label>
+        </div>
+        {/* Submit Button */}
+        <div className="col-span-2 flex justify-end mt-4">
+          <button
+            type="submit"
+            className="bg-pink-600 text-white px-8 py-2 rounded-lg font-semibold text-base hover:bg-pink-700 transition"
+            disabled={form.formState.isSubmitting}
+          >
+            {form.formState.isSubmitting ? "Updating..." : "Update Profile"}
+          </button>
+        </div>
+      </form>
+    </div>
+
+
+  )
+}
+export default Profile

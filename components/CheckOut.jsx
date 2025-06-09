@@ -220,6 +220,7 @@ const CheckOut = () => {
   const [shipping, setShipping] = useState('free');
   const [payment, setPayment] = useState('bank');
   const [agree, setAgree] = useState(false);
+  const [saveAddress, setSaveAddress] = useState(false);
   const [mounted, setMounted] = React.useState(false);
 
   // Billing form state
@@ -273,6 +274,29 @@ const CheckOut = () => {
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
     if (loading) return;
+    let addressSaved = false;
+    if (saveAddress) {
+      const shippingData = {
+        firstName, lastName,
+        address: street,
+        city, state,
+        postalCode: zip,
+        country,
+        phone,
+        email
+      };
+      const res = await fetch('/api/shippingAddress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(shippingData)
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        setError(result.message || "Failed to save shipping address");
+        return;
+      }
+      addressSaved = true;
+    }
     if (payment === "online") {
       const customer = getCustomerInfo();
       await handleOnlinePaymentWithOrder(total, cart, customer, setLoading, setError, router);
@@ -298,17 +322,15 @@ const CheckOut = () => {
               <input className="border rounded px-3 py-2 w-full" required value={lastName} onChange={e => setLastName(e.target.value)} />
             </div>
           </div>
-          <div>
+          {/* <div>
             <label className="block text-sm mb-1">Company name (optional)</label>
             <input className="border rounded px-3 py-2 w-full" value={company} onChange={e => setCompany(e.target.value)} />
-          </div>
+          </div> */}
           <div>
-            <label className="block text-sm mb-1">Country / Region *</label>
+            <label className="block text-sm mb-1">Country</label>
             <select className="border rounded px-3 py-2 w-full" value={country} onChange={e => setCountry(e.target.value)}>
-              <option value="">Open this select menu</option>
+              <option value="">Select Country</option>
               <option value="India">India</option>
-              <option value="USA">USA</option>
-              <option value="UK">UK</option>
               {/* Add more countries as needed */}
             </select>
           </div>
@@ -341,15 +363,26 @@ const CheckOut = () => {
               <input className="border rounded px-3 py-2 w-full" required value={email} onChange={e => setEmail(e.target.value)} />
             </div>
           </div>
-          <div>
+          {/* <div>
             <label className="block text-sm mb-1">Order notes (optional)</label>
             <textarea className="border rounded px-3 py-2 w-full" rows={3} placeholder="Notes about your order, e.g. special notes for delivery." value={orderNotes} onChange={e => setOrderNotes(e.target.value)} />
-          </div>
-          <button className="w-full py-3 bg-black text-white rounded font-semibold text-sm mt-4" disabled={!agree || loading} type="submit">
+           </div>*/}
+          <button className="w-full py-3 bg-black text-white rounded font-semibold text-sm mt-4" disabled={!agree || loading} type="submit"> 
             {loading ? "Processing..." : "PLACE ORDER"}
           </button>
           {error && <div className="text-red-600 text-sm mt-2">{error}</div>}
         </form>
+        {/* Save address checkbox */}
+        <div className="flex items-center gap-2 mt-2">
+          <input
+            type="checkbox"
+            id="saveAddress"
+            checked={saveAddress}
+            onChange={e => setSaveAddress(e.target.checked)}
+            className="accent-black"
+          />
+          <label htmlFor="saveAddress" className="text-sm select-none">Save this address to my account</label>
+        </div>
       </div>
 
       {/* Order Summary Card */}

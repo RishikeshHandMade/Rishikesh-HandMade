@@ -24,6 +24,7 @@ const UserSchema = new Schema(
         isOtpVerified: { type: Boolean, default: false },
         resetPasswordOtp: { type: Number },
         resetPasswordExpires: { type: Date },
+        shippingAddresses: { type: [Schema.Types.ObjectId], ref: "ShippingAddress" },
     },
     { timestamps: true }
 );

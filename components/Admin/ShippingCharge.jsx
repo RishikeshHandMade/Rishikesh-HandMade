@@ -1,6 +1,6 @@
 "use client"
 import React, { useState } from 'react';
-import { statesIndia } from '../../lib/IndiaStates';
+import { statesIndia } from '@/lib/IndiaStates';
 
 // Unwrap the states array from the imported JSON
 const stateDistrictData = statesIndia[0].states;
