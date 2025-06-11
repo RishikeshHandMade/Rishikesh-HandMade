@@ -19,6 +19,7 @@ import {
   StickyNote,
   User,
   Users,
+  ShoppingCart,
 } from "lucide-react"
 import { NavProjects } from "@/components/nav-projects"
 import { NavUser } from "@/components/nav-user"
@@ -155,6 +156,12 @@ const data = {
       url: "/admin/manage_products_category",
       icon: Boxes,
     },
+    {
+      name: "View All Products",
+      url: "/admin/all_products",
+      icon: Boxes,
+    },
+    
     // {
     //   name: "Add Direct Package",
     //   url: "/admin/add_direct_package",
@@ -165,7 +172,27 @@ const data = {
       url: "/admin/manage_reviews",
       icon: Star,
     },
-
+    { divider: true },
+    {
+      name: "Enquiry Order",
+      url: "/admin/enquiry_order",
+      icon: ShoppingCart,
+    },
+    {
+      name: "All Orders",
+      url: "/admin/all_orders",
+      icon: ShoppingCart,
+    },
+    {
+      name: "Sales Section",
+      url: "/admin/sales_section",
+      icon: BarChart,
+    },
+    {
+      name: "Payment Report",
+      url: "/admin/payment_report",
+      icon: ClipboardList,
+    },
     // Space (empty item)
     { divider: true },
 
@@ -195,21 +222,12 @@ const data = {
     { divider: true },
 
     // Sixth group: Reports & tools
+    
     {
-      name: "Sales Section",
-      url: "/admin/sales_section",
-      icon: BarChart,
+      name: "Send Promotional Emails",
+      url: "/admin/send_promotional_emails",
+      icon: Send,
     },
-    {
-      name: "Payment Report",
-      url: "/admin/payment_report",
-      icon: ClipboardList,
-    },
-    // {
-    //   name: "Send Promotional Emails",
-    //   url: "/admin/send_promotional_emails",
-    //   icon: Send,
-    // },
     {
       name: "Package Calculator Visitors",
       url: "/admin/contact_custom_visitors",

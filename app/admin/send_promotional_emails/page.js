@@ -7,12 +7,27 @@ export const dynamic = "force-dynamic";
 const page = async () => {
     let allUsers = await GetAllUsers();
     if (allUsers) {
-        allUsers = allUsers.map(user => ({
-            ...user,
-            _id: user._id.toString(),
-            reviews: user.reviews.map(review => review.toString()),
-            packages: user.packages.map(pkg => pkg.toString())
-        }));
+        allUsers = allUsers.map(user => {
+            // Convert all object fields to plain values
+            const plainUser = {};
+            for (const [key, value] of Object.entries(user)) {
+                if (key === '_id' && value && value.toString) {
+                    plainUser._id = value.toString();
+                } else if (Array.isArray(value)) {
+                    // Convert array of ObjectIds or objects
+                    plainUser[key] = value.map(v => (v && v.toString ? v.toString() : v));
+                } else if (value && typeof value === 'object' && value.type === 'Buffer') {
+                    // Skip buffer fields (not serializable)
+                    continue;
+                } else {
+                    plainUser[key] = value;
+                }
+            }
+            // Ensure reviews and products are arrays of strings
+            plainUser.reviews = (user.reviews || []).map(r => r && r.toString ? r.toString() : r);
+            plainUser.products = (user.products || []).map(p => p && p.toString ? p.toString() : p);
+            return plainUser;
+        });
     }
 
     return (

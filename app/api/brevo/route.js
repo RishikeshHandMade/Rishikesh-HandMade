@@ -11,14 +11,16 @@ export async function POST(request) {
                 "api-key": process.env.BREVO_API_KEY,
             },
             body: JSON.stringify({
-                sender: { email: "info@yatrazone.com", name: "YatraZone" },
+                sender: { email: "rishikeshhandmade@gmail.com", name: "Rishikesh HandMade" },
                 to: [{ email: to }],
                 subject,
                 htmlContent,
             }),
         })
 
+        const responseBody = await response.text();
         if (!response.ok) {
+            console.error("Brevo error response:", response.status, responseBody);
             throw new Error("Failed to send email")
         }
 

@@ -72,6 +72,9 @@ const CartDetails = () => {
   return totalPerItem * item.qty;
 };
 
+  // Calculate final amount for all cart items
+  const cartTotal = cart.reduce((sum, item) => sum + getAmount(item), 0);
+
   // UI
   return (
     <div className="w-full px-10 mx-auto p-4 bg-white">
@@ -184,7 +187,7 @@ const CartDetails = () => {
               </div>
               <div className="font-bold text-base flex justify-between items-center border-t pt-3 mt-2 mb-3">
                 <span>Final Amount</span>
-                <span>₹{finalAmount}</span>
+                <span>₹{cartTotal}</span>
               </div>
               <div className="flex items-center gap-2 mb-2">
                 <input type="checkbox" id="terms" className="accent-black" checked={termsChecked} onChange={e => setTermsChecked(e.target.checked)} />

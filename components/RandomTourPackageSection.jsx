@@ -480,7 +480,8 @@ const RandomTourPackageSection = () => {
                         <div className="absolute left-0 right-0 bottom-0 flex items-center justify-center translate-y-10 opacity-0 group-hover/image:translate-y-0 group-hover/image:opacity-100 transition-all duration-300 py-4 ">
                           <Button
                             className="bg-black text-white hover:bg-gray-800 transition-colors duration-300 uppercase text-sm font-bold px-8 py-3 rounded-full shadow-lg border border-2 border-white"
-                            onClick={() => setQuickViewProduct(item)}
+                            onClick={() => setQuickViewProduct(item.product ? item.product : item) // Ensure we always pass the actual product object, not a wrapper
+}
                           >
                             QUICK VIEW
                           </Button>

@@ -12,8 +12,8 @@ export default function QuickViewProductCard({ product, onClose }) {
 
   // Prepare images array for gallery, using mainImage and subImages
   const images = [
-    product?.gallery?.mainImage || "/placeholder.png",
-    ...(Array.isArray(product?.gallery?.subImages) ? product.gallery.subImages : [])
+    product?.gallery?.mainImage?.url || "/placeholder.png",
+    ...(Array.isArray(product?.gallery?.subImages) ? product.gallery.subImages.map(img => img.url) : [])
   ];
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const formatNumeric = (num) => {
@@ -54,14 +54,26 @@ export default function QuickViewProductCard({ product, onClose }) {
         {/* SALE badge */}
         <span className="bg-black text-white text-xs font-bold px-3 py-1 rounded-full w-max mb-2">SALE 20% OFF</span>
         {/* Title & Rating */}
-        <h2 className="text-2xl font-bold mb-1">{product?.title || "N/A"}</h2>
+        <h2 className="text-2xl font-bold mb-1">
+          {/* Defensive: if title is object, stringify for debug */}
+          {typeof product?.title === 'object' ? JSON.stringify(product.title) : (product?.title || "N/A")}
+        </h2>
         <div className="flex items-center gap-2 mb-2">
           <span className="text-yellow-500 text-lg">★</span>
-          <span className="font-semibold">{product?.rating || "4.7"} Rating</span>
-          <span className="text-sm text-gray-500">({product?.reviewCount || "5"} customer reviews)</span>
+          <span className="font-semibold">
+            {/* Defensive: if rating is object, stringify for debug */}
+            {typeof product?.rating === 'object' ? JSON.stringify(product.rating) : (product?.rating || "4.7")} Rating
+          </span>
+          <span className="text-sm text-gray-500">
+            {/* Defensive: if reviewCount is object, stringify for debug */}
+            ({typeof product?.reviewCount === 'object' ? JSON.stringify(product.reviewCount) : (product?.reviewCount || "5")} customer reviews)
+          </span>
         </div>
         {/* Description */}
-        <p className="text-gray-600 mb-4">{product?.description || "No Description"}</p>
+        <p className="text-gray-600 mb-4">
+          {/* Defensive: if description is object, stringify for debug */}
+          {typeof product?.description === 'object' ? JSON.stringify(product.description) : (product?.description || "No Description")}
+        </p>
         {/* Price & Quantity */}
         <div className="flex flex-col gap-1 mb-2">
           {/* Coupon badge and price display */}
