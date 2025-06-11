@@ -119,8 +119,8 @@ export async function DELETE(req) {
         const submenu = menu.subMenu.find((sub) => sub._id.toString() === body.subMenuId);
         if (!submenu) return NextResponse.json({ message: "Submenu not found" }, { status: 404 });
 
-        if (submenu.packages.length > 0) {
-            return NextResponse.json({ message: "Cannot delete submenu with packages" }, { status: 400 });
+        if (Array.isArray(submenu.product) && submenu.product.length > 0) {
+            return NextResponse.json({ message: "Cannot delete submenu with products" }, { status: 400 });
         }
 
         const updatedMenu = await MenuBar.findByIdAndUpdate(

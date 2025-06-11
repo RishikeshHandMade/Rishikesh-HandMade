@@ -49,6 +49,10 @@ const ManageProductsCategory = () => {
             setBannerImage(null);
         } else if (type === 'profile') {
             setProfileImage(null);
+        } else if (type === 'editBanner') {
+            setEditBannerImage(null);
+        } else if (type === 'editProfile') {
+            setEditProfileImage(null);
         }
         if (!key) return;
         toast.loading('Deleting image from Cloudinary...', { id: 'cloud-delete' });
@@ -150,7 +154,7 @@ const ManageProductsCategory = () => {
                 body: JSON.stringify({
                     id: data.id,
                     subMenuId: editItem._id,
-                    subMenu: { title: data.subMenu.title, order: data.subMenu.order, banner: bannerImage, profileImage: profileImage }
+                    subMenu: { title: data.subMenu.title, order: data.subMenu.order, banner: editBannerImage, profileImage: editProfileImage }
                 }),
             })
 
@@ -198,15 +202,33 @@ const ManageProductsCategory = () => {
     }
 
     const handleEdit = (item) => {
-        setEditItem(item)
-        setValue("subMenu.title", item.title)
-        setValue("subMenu.order", item.order)
-        setEditBannerImage(item.banner)
-        setEditProfileImage(item.profileImage)
-    }
+        setEditItem(item);
+        setValue("subMenu.title", item.title);
+        setValue("subMenu.order", item.order);
+        // Defensive: only set image if it is an object with a non-empty url string
+        if (item.banner && typeof item.banner === 'object' && typeof item.banner.url === 'string' && item.banner.url.trim() !== '') {
+            setEditBannerImage(item.banner);
+        } else {
+            setEditBannerImage(null);
+        }
+        if (item.profileImage && typeof item.profileImage === 'object' && typeof item.profileImage.url === 'string' && item.profileImage.url.trim() !== '') {
+            setEditProfileImage(item.profileImage);
+        } else {
+            setEditProfileImage(null);
+        }
+    };
 
     const deleteMenuItem = async (subMenuId) => {
-        const id = menuItems.find(item => item.subMenu.some(sub => sub._id === subMenuId))?._id
+        if (!menuItems || !Array.isArray(menuItems)) {
+            toast.error("Menu items not loaded");
+            return;
+        }
+        const menuItem = menuItems.find(item => Array.isArray(item.subMenu) && item.subMenu.some(sub => sub._id === subMenuId));
+        if (!menuItem) {
+            toast.error("Menu item not found");
+            return;
+        }
+        const id = menuItem._id
         try {
             const response = await fetch(`/api/admin/website-manage/addSubMenu`, {
                 method: "DELETE",
@@ -458,12 +480,12 @@ const ManageProductsCategory = () => {
                                         </div>
                                     )}
                                     {/* Edit dialog banner image */}
-                                    {editBannerImage && editItem && (
+                                    {editBannerImage && editItem && typeof editBannerImage.url === 'string' && editBannerImage.url.trim() !== '' ? (
                                         <div className="relative h-32">
-                                            <Image className="w-full h-full w-full object-contain object-center rounded-lg" src={editBannerImage?.url} quality={50} alt="Banner" width={400} height={192} />
-                                            <button type="button" className="absolute top-2 right-2 bg-red-500 text-white rounded-full" onClick={() => setEditBannerImage(null)}><X className="w-6 h-6" /></button>
+                                            <Image className="w-full h-full w-full object-contain object-center rounded-lg" src={editBannerImage.url} quality={50} alt="Banner" width={400} height={192} />
+                                            <button type="button" className="absolute top-2 right-2 bg-red-500 text-white rounded-full" onClick={() => handleRemoveImage(editBannerImage.key, "editBanner")}><X className="w-6 h-6" /></button>
                                         </div>
-                                    )}
+                                    ) : null}
                                     <input
                                         type="file"
                                         accept="image/*"
@@ -513,12 +535,12 @@ const ManageProductsCategory = () => {
                                         </div>
                                     )}
                                     {/* Edit dialog profile image */}
-                                    {editProfileImage && editItem && (
+                                    {editProfileImage && editItem && typeof editProfileImage.url === 'string' && editProfileImage.url.trim() !== '' ? (
                                         <div className="relative h-32">
-                                            <Image className="w-full h-full w-full object-contain object-center rounded-lg" src={editProfileImage?.url} quality={50} alt="Profile" width={400} height={192} />
-                                            <button type="button" className="absolute top-2 right-2 bg-red-500 text-white rounded-full" onClick={() => setEditProfileImage(null)}><X className="w-6 h-6" /></button>
+                                            <Image className="w-full h-full w-full object-contain object-center rounded-lg" src={editProfileImage.url} quality={50} alt="Profile" width={400} height={192} />
+                                            <button type="button" className="absolute top-2 right-2 bg-red-500 text-white rounded-full" onClick={() => handleRemoveImage(editProfileImage.key, "editProfile")}><X className="w-6 h-6" /></button>
                                         </div>
-                                    )}
+                                    ) : null}
                                     <input
                                         type="file"
                                         accept="image/*"
