@@ -214,7 +214,7 @@ const MenuBar = (props) => {
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, y: -10 }}
                                             transition={{ duration: 0.2, ease: "easeInOut" }}
-                                            className="absolute top-full mt-2 -translate-x-1/2 bg-white text-black shadow-lg rounded-md w-48"
+                                            className="absolute top-full mt-2 -translate-x-1/2 bg-white text-black shadow-lg rounded-md w-52"
                                         >
                                             <ul className="grid gap-2 p-2 text-sm">
                                                 {item.subMenu
@@ -224,7 +224,7 @@ const MenuBar = (props) => {
                                                         <li key={subIndex}>
                                                             <NavigationMenu.Link asChild>
                                                                 <Link
-                                                                    className="block px-4 py-2 rounded-md"
+                                                                    className="block px-4 py-2 rounded-md hover:bg-gray-100"
                                                                     href={`/category/${subItem.url}`}
                                                                 >
                                                                     {subItem.title}

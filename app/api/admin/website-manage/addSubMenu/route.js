@@ -1,7 +1,7 @@
 import connectDB from "@/lib/connectDB";
 import { NextResponse } from "next/server";
 import MenuBar from "@/models/MenuBar";
-import Package from "@/models/Package";
+import Product from "@/models/Product";
 
 export async function GET(req) {
     await connectDB();
@@ -9,7 +9,7 @@ export async function GET(req) {
         .sort({ order: 1 })
         .populate({
             path: "subMenu.product",
-            model: "Package",
+            model: "Product",
         });
     return NextResponse.json(menu);
 }
@@ -72,6 +72,9 @@ export async function PATCH(req) {
 
             if (body.subMenu.banner !== undefined) {
                 updateFields["subMenu.$.banner"] = body.subMenu.banner;
+            }
+            if (body.subMenu.profileImage !== undefined) {
+                updateFields["subMenu.$.profileImage"] = body.subMenu.profileImage;
             }
 
             const updatedMenu = await MenuBar.findOneAndUpdate(

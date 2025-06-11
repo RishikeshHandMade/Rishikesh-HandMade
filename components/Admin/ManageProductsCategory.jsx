@@ -29,8 +29,13 @@ const ManageProductsCategory = () => {
     const [selectedMenu, setSelectedMenu] = useState("")
     const [editItem, setEditItem] = useState(null)
     const [bannerImage, setBannerImage] = useState(null)
+    // const [profileImage, setProfileImage] = useState(null)
+    // Separate state for edit dialog
+    const [editBannerImage, setEditBannerImage] = useState(null);
+    const [editProfileImage, setEditProfileImage] = useState(null);
     const [showProductProfile, setShowProductProfile] = useState(false);
     const [profileProps, setProfileProps] = useState({});
+    console.log(bannerImage)
     // Gallery state for product images
     // const [galleryImages, setGalleryImages] = useState([])
     // const [loadedGalleryImages, setLoadedGalleryImages] = useState([])
@@ -38,11 +43,34 @@ const ManageProductsCategory = () => {
     // const galleryFileInputRef = useRef(null);
     const [profileImage, setProfileImage] = useState(null);
     const profileFileInputRef = useRef();
-    const handleRemoveProfileImage = (key) => {
-      setProfileImage(null);
-      // Optionally, add logic to remove from cloud if needed
+    const handleRemoveImage = async (key, type) => {
+        // Remove from UI immediately
+        if (type === 'banner') {
+            setBannerImage(null);
+        } else if (type === 'profile') {
+            setProfileImage(null);
+        }
+        if (!key) return;
+        toast.loading('Deleting image from Cloudinary...', { id: 'cloud-delete' });
+        try {
+            const res = await fetch('/api/cloudinary', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ publicId: key }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                toast.success('Image deleted from Cloudinary!', { id: 'cloud-delete' });
+            } else {
+                toast.error('Cloudinary error: ' + (data.error || 'Failed to delete image from Cloudinary'), { id: 'cloud-delete' });
+            }
+        } catch (err) {
+            toast.error('Failed to delete image from Cloudinary (network or server error)', { id: 'cloud-delete' });
+        }
     };
     const bannerFileInputRef = useRef(null);
+    const profileImageFileInputRef = useRef(null);
+    // const profileFileInputRef = useRef(null);
     // console.log(menuItems)
     useEffect(() => {
         fetch("/api/getAllMenuItems")
@@ -50,6 +78,7 @@ const ManageProductsCategory = () => {
             .then(data => setMenuItems(data))
         // console.log(menuItems)
     }, [])
+
 
     const onSubmit = async (data) => {
         // Attach gallery images to submenu data
@@ -172,8 +201,8 @@ const ManageProductsCategory = () => {
         setEditItem(item)
         setValue("subMenu.title", item.title)
         setValue("subMenu.order", item.order)
-        setBannerImage(item.banner)
-        // setGalleryImages(item.gallery || [])
+        setEditBannerImage(item.banner)
+        setEditProfileImage(item.profileImage)
     }
 
     const deleteMenuItem = async (subMenuId) => {
@@ -240,7 +269,7 @@ const ManageProductsCategory = () => {
                         {profileImage && (
                             <div className="relative">
                                 <Image className="w-32 h-32 object-cover rounded-full" src={profileImage?.url} quality={50} alt="Profile" width={128} height={128} />
-                                <button type="button" className="absolute top-2 right-2 bg-red-500 text-white rounded-full" onClick={() => handleRemoveProfileImage(profileImage?.key)}><X className="w-6 h-6" /></button>
+                                <button type="button" className="absolute top-2 right-2 bg-red-500 text-white rounded-full" onClick={() => handleRemoveImage(profileImage?.key, "profile")}><X className="w-6 h-6" /></button>
                             </div>
                         )}
                         <input
@@ -285,7 +314,7 @@ const ManageProductsCategory = () => {
                         {bannerImage && (
                             <div className="relative">
                                 <Image className="w-full object-cover rounded-lg" src={bannerImage?.url} quality={50} alt="Banner" width={600} height={400} />
-                                <button type="button" className="absolute top-2 right-2 bg-red-500 text-white rounded-full" onClick={() => handleRemoveImage(bannerImage?.key)}><X className="w-6 h-6" /></button>
+                                <button type="button" className="absolute top-2 right-2 bg-red-500 text-white rounded-full" onClick={() => handleRemoveImage(bannerImage?.key, "banner")}><X className="w-6 h-6" /></button>
                             </div>
                         )}
                         <input
@@ -406,7 +435,7 @@ const ManageProductsCategory = () => {
                     </Table>
                 </div>
                 {editItem && (
-                    <Dialog open={!!editItem} onOpenChange={() => { setEditItem(null), window.location.reload() }}>
+                    <Dialog open={!!editItem} onOpenChange={() => { setEditItem(null) }}>
                         <DialogContent className="font-barlow">
                             <DialogHeader>
                                 <DialogTitle>Edit Menu Item</DialogTitle>
@@ -422,10 +451,17 @@ const ManageProductsCategory = () => {
                                 </div>
                                 <div className="flex flex-col gap-2 mt-4">
                                     <Label>Upload Banner</Label>
-                                    {bannerImage && (
-                                        <div className="relative">
-                                            <Image className="w-full object-cover rounded-lg" src={bannerImage?.url} quality={50} alt="Banner" width={600} height={400} />
-                                            <button type="button" className="absolute top-2 right-2 bg-red-500 text-white rounded-full" onClick={() => handleRemoveImage(bannerImage?.key)}><X className="w-6 h-6" /></button>
+                                    {bannerImage && !editItem && (
+                                        <div className="relative h-32">
+                                            <Image className="w-full h-full w-full object-contain object-center rounded-lg" src={bannerImage?.url} quality={50} alt="Banner" width={400} height={192} />
+                                            <button type="button" className="absolute top-2 right-2 bg-red-500 text-white rounded-full" onClick={() => handleRemoveImage(bannerImage?.key, "banner")}><X className="w-6 h-6" /></button>
+                                        </div>
+                                    )}
+                                    {/* Edit dialog banner image */}
+                                    {editBannerImage && editItem && (
+                                        <div className="relative h-32">
+                                            <Image className="w-full h-full w-full object-contain object-center rounded-lg" src={editBannerImage?.url} quality={50} alt="Banner" width={400} height={192} />
+                                            <button type="button" className="absolute top-2 right-2 bg-red-500 text-white rounded-full" onClick={() => setEditBannerImage(null)}><X className="w-6 h-6" /></button>
                                         </div>
                                     )}
                                     <input
@@ -445,7 +481,11 @@ const ManageProductsCategory = () => {
                                                 });
                                                 if (!res.ok) throw new Error('Banner upload failed');
                                                 const result = await res.json();
-                                                setBannerImage({ url: result.url, key: result.key });
+                                                if (editItem) {
+                                                    setEditBannerImage({ url: result.url, key: result.key });
+                                                } else {
+                                                    setBannerImage({ url: result.url, key: result.key });
+                                                }
                                                 toast.success('Banner uploaded successfully!');
                                             } catch (err) {
                                                 toast.error('Failed to upload banner');
@@ -453,7 +493,7 @@ const ManageProductsCategory = () => {
                                                 if (bannerFileInputRef.current) bannerFileInputRef.current.value = '';
                                             }
                                         }}
-                                        disabled={!!bannerImage}
+                                        disabled={editItem ? !!editBannerImage : !!bannerImage}
                                     />
                                     <button
                                         type="button"
@@ -464,9 +504,63 @@ const ManageProductsCategory = () => {
                                         Upload Banner Image
                                     </button>
                                 </div>
-                                
+                                <div className="flex flex-col gap-2 mt-4">
+                                    <Label>Upload Profile Image</Label>
+                                    {profileImage && !editItem && (
+                                        <div className="relative h-32">
+                                            <Image className="w-full h-full w-full object-contain object-center rounded-lg" src={profileImage?.url} quality={50} alt="Profile" width={400} height={192} />
+                                            <button type="button" className="absolute top-2 right-2 bg-red-500 text-white rounded-full" onClick={() => handleRemoveImage(profileImage?.key, "profile")}><X className="w-6 h-6" /></button>
+                                        </div>
+                                    )}
+                                    {/* Edit dialog profile image */}
+                                    {editProfileImage && editItem && (
+                                        <div className="relative h-32">
+                                            <Image className="w-full h-full w-full object-contain object-center rounded-lg" src={editProfileImage?.url} quality={50} alt="Profile" width={400} height={192} />
+                                            <button type="button" className="absolute top-2 right-2 bg-red-500 text-white rounded-full" onClick={() => setEditProfileImage(null)}><X className="w-6 h-6" /></button>
+                                        </div>
+                                    )}
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        style={{ display: 'none' }}
+                                        ref={profileImageFileInputRef}
+                                        onChange={async (event) => {
+                                            const file = event.target.files[0];
+                                            if (!file) return;
+                                            try {
+                                                const formData = new FormData();
+                                                formData.append('file', file);
+                                                const res = await fetch('/api/cloudinary', {
+                                                    method: 'POST',
+                                                    body: formData
+                                                });
+                                                if (!res.ok) throw new Error('Profile image upload failed');
+                                                const result = await res.json();
+                                                if (editItem) {
+                                                    setEditProfileImage({ url: result.url, key: result.key });
+                                                } else {
+                                                    setProfileImage({ url: result.url, key: result.key });
+                                                }
+                                                toast.success('Profile Image uploaded successfully!');
+                                            } catch (err) {
+                                                toast.error('Failed to upload profile image');
+                                            } finally {
+                                                if (profileImageFileInputRef.current) profileImageFileInputRef.current.value = '';
+                                            }
+                                        }}
+                                        disabled={editItem ? !!editProfileImage : !!profileImage}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="bg-blue-600 text-white px-4 py-2 rounded mt-2"
+                                        onClick={() => profileImageFileInputRef.current && profileImageFileInputRef.current.click()}
+                                        disabled={editItem ? !!editProfileImage : !!profileImage}
+                                    >
+                                        Upload Profile Image
+                                    </button>
+                                </div>
                                 <DialogFooter>
-                                    <button className="bg-blue-600 hover:bg-blue-500 mt-4" type="submit">Save Changes</button>
+                                    <button className="bg-blue-600 rounded px-4 py-2 text-white font-semibold hover:bg-blue-500 mt-4" type="submit">Save Changes</button>
                                 </DialogFooter>
                             </form>
                         </DialogContent>

@@ -34,7 +34,7 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, se
               } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
                 return <>GET ₹{coupon.amount} OFF</>;
               } else {
-                return <>GET 10% OFF</>;
+                return <>No Discount</>;
               }
             })()}
           </div>

@@ -11,7 +11,7 @@ import { Loader2 } from "lucide-react"
 import LanguageSelector from "./LanguageSelector"
 import SearchBar from "./SearchBar"
 import Cart from "./Cart";
-import { ShoppingCart, Heart } from "lucide-react"
+import { ShoppingCart, Heart,User } from "lucide-react"
 import { useCart } from "../context/CartContext";
 import { ArrowDown, Menu, X } from "lucide-react";
 import * as NavigationMenu from "@radix-ui/react-navigation-menu";
@@ -140,8 +140,8 @@ const Header = () => {
                 </>
               ) : (
                 <div className="relative">
-                  <button onClick={() => setIsAuthDropdownOpen(!isAuthDropdownOpen)} className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-800">
-                    Account <ChevronDown className="ml-2" size={16} />
+                  <button onClick={() => setIsAuthDropdownOpen(!isAuthDropdownOpen)} className="flex items-center px-4 py-2">
+                    <User className="ml-2" size={20} />
                   </button>
                   {isAuthDropdownOpen && (
                     <div className="absolute top-12 right-0 mt-2 w-48 text-black bg-white shadow-lg rounded-lg border">
