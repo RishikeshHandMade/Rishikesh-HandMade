@@ -23,6 +23,11 @@ const CartDetails = () => {
   const [termsChecked, setTermsChecked] = React.useState(false);
   const [shippingCharges] = React.useState(0); // You can update this logic as needed
 
+  const [pincode, setPincode] = React.useState("");
+  const [pincodeResult, setPincodeResult] = React.useState(null);
+  const [pincodeError, setPincodeError] = React.useState("");
+  const [isCheckingPincode, setIsCheckingPincode] = React.useState(false);
+
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
 
   // Calculate final amount (with coupon/discount)
@@ -61,20 +66,40 @@ const CartDetails = () => {
     return item.price;
   };
   const getAmount = (item) => {
-  const afterDiscount = getAfterDiscount(item);
-  const cgstPercent = Number(item.cgst) || 0;
-  const sgstPercent = Number(item.sgst) || 0;
-  // Calculate tax values
-  const cgstAmount = (afterDiscount * cgstPercent) / 100;
-  const sgstAmount = (afterDiscount * sgstPercent) / 100;
-  // Total for one item
-  const totalPerItem = afterDiscount + cgstAmount + sgstAmount;
-  return totalPerItem * item.qty;
-};
+    const afterDiscount = getAfterDiscount(item);
+    const cgstPercent = Number(item.cgst) || 0;
+    const sgstPercent = Number(item.sgst) || 0;
+    // Calculate tax values
+    const cgstAmount = (afterDiscount * cgstPercent) / 100;
+    const sgstAmount = (afterDiscount * sgstPercent) / 100;
+    // Total for one item
+    const totalPerItem = afterDiscount + cgstAmount + sgstAmount;
+    return totalPerItem * item.qty;
+  };
 
   // Calculate final amount for all cart items
   const cartTotal = cart.reduce((sum, item) => sum + getAmount(item), 0);
 
+  // Demo: valid pincode and price
+  const VALID_PINCODES = { "249201": 100, "110001": 120 }; // add more as needed
+
+  const handleCheckPincode = async () => {
+    setIsCheckingPincode(true);
+    setPincodeResult(null);
+    setPincodeError("");
+    setTimeout(() => { // simulate async
+      if (VALID_PINCODES[pincode]) {
+        setPincodeResult({ price: VALID_PINCODES[pincode] });
+        setPincodeError("");
+        // Optionally update shippingCharges here if you want to set it dynamically
+        // setShippingCharges(VALID_PINCODES[pincode]);
+      } else {
+        setPincodeResult(null);
+        setPincodeError("Sorry, we do not deliver to this pincode yet.");
+      }
+      setIsCheckingPincode(false);
+    }, 800);
+  };
   // UI
   return (
     <div className="w-full px-10 mx-auto p-4 bg-white">
@@ -149,59 +174,148 @@ const CartDetails = () => {
           {/* Right: Order Summary Card */}
           <div className="w-full md:w-1/2 flex flex-col gap-2 mt-8 md:mt-0">
             <div className="border border-gray-300 rounded-lg shadow p-6 bg-white">
-              <div className="font-semibold mb-2 text-base">Subtotal</div>
-              {/* Coupon code input and apply logic */}
-              <div className="flex flex-col gap-2 mb-2">
-                <div className="flex gap-2">
+              {/* Subtotal */}
+              <div className="flex justify-between items-center mb-0">
+                <span className="font-semibold text-base">Subtotal <span className="text-xs text-gray-500 font-normal">(INR)</span></span>
+                <span className="font-semibold text-base">{subtotal.toFixed(2)}</span>
+              </div>
+              <div className="text-xs text-red-600 mb-2 -mt-1">Subtotal does not include applicable taxes</div>
+
+              {/* Discount Amount */}
+              <div className="flex justify-between items-center mt-2 mb-1">
+                <span className="font-bold text-base">Discount Amount</span>
+                <span className="font-bold text-base">{(subtotal - (cartTotal - shippingCharges)).toFixed(2)}</span>
+              </div>
+              <hr className="my-2" />
+
+              {/* Promo Code Section */}
+              <div className="text-center font-semibold text-lg mb-2">Have a promo code?</div>
+              <div className="flex gap-2 mb-2">
+                <input
+                  type="text"
+                  placeholder="Apply Promo Code"
+                  className="w-full border border-blue-400 bg-blue-100 px-3 py-2 rounded text-gray-700"
+                  value={promoCode}
+                  onChange={e => {
+                    setPromoCode(e.target.value);
+                    if (e.target.value === "") setPromoError("");
+                  }}
+                  disabled={!!(subtotal - (cartTotal - shippingCharges) > 0)}
+                />
+                <button
+                  className="bg-blue-600 text-white px-4 py-2 rounded font-bold hover:bg-blue-700"
+                  onClick={handleApplyPromo}
+                  disabled={!promoCode || (subtotal - (cartTotal - shippingCharges) > 0)}
+                >Apply</button>
+              </div>
+              {promoError && <div className="text-xs text-red-600 mt-1">{promoError}</div>}
+              {/* Note about coupons */}
+              <div className="text-xs text-red-600 mb-2">Note : If discount promo code already applied extra additional coupon not applicable</div>
+              {/* Nice! You saved... */}
+              {(subtotal - (cartTotal - shippingCharges)) > 0 && (
+                <div className="bg-gray-100 rounded px-2 py-1 text-center text-sm font-semibold text-black mb-2">
+                  Nice! You saved <span className="font-bold">₹ {(subtotal - (cartTotal - shippingCharges)).toFixed(2)}</span> on your order.
+                </div>
+              )}
+
+              {/* Shipping Charges */}
+              <div className="flex justify-between items-center mt-2">
+                <span className="font-semibold">Shipping Charges</span>
+                <span className="font-semibold">
+                  ₹{pincodeResult ? pincodeResult.price.toFixed(2) : shippingCharges.toFixed(2)}
+                </span>
+              </div>
+              {/* Pincode check UI */}
+              <div className="flex flex-col gap-1 mt-2 mb-2">
+                <span className="text-xs text-gray-600">Check if we deliver to your area:</span>
+                <div className="flex gap-2 items-center">
                   <input
                     type="text"
-                    placeholder="Apply Promo Code"
-                    className="w-full border border-blue-400 bg-blue-100 px-3 py-2 rounded"
-                    value={promoCode}
+                    className="border border-gray-400 px-2 py-1 rounded text-sm w-32"
+                    placeholder="Enter Pincode"
+                    value={pincode}
+                    maxLength={6}
                     onChange={e => {
-                      setPromoCode(e.target.value);
-                      if (e.target.value === "") setPromoError("");
+                      setPincode(e.target.value);
+                      setPincodeResult(null);
+                      setPincodeError("");
                     }}
                   />
                   <button
-                    className="bg-blue-600 text-white px-4 py-2 rounded font-bold hover:bg-blue-700"
-                    onClick={handleApplyPromo}
-                    disabled={!promoCode}
-                  >Apply</button>
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm font-semibold"
+                    onClick={handleCheckPincode}
+                    disabled={isCheckingPincode || !pincode || pincode.length !== 6}
+                  >Check</button>
                 </div>
-                {promoError && <div className="text-xs text-red-600 mt-1">{promoError}</div>}
+                {pincodeResult && (
+                  <div className="text-green-700 text-xs mt-1">Delivery available! Shipping Price: ₹{pincodeResult.price}</div>
+                )}
+                {pincodeError && (
+                  <div className="text-red-600 text-xs mt-1">{pincodeError}</div>
+                )}
               </div>
-              {/* Show CGST/SGST for all products */}
-              {/* <div className="flex justify-between items-center mb-1 text-md">
-                <span>CGST %</span>
-                <span>{cart.map(item => item.cgst ?? 0).join(', ')}</span>
+              {/* <div className="text-xs text-red-600 mb-2 text-right">Search Available Pin Code For Confirm Shipment.</div> */}
+
+              {/* CGST/SGST */}
+              <div className="flex justify-between items-center mt-1">
+                <span className="font-semibold">Total CGST %</span>
+                <span className="font-semibold">{cart.reduce((sum, item) => sum + (Number(item.cgst) || 0), 0)}</span>
               </div>
-              <div className="flex justify-between items-center mb-1 text-md">
-                <span>SGST %</span>
-                <span>{cart.map(item => item.sgst ?? 0).join(', ')}</span>
-              </div> */}
-              <div className="text-xs text-red-600 mb-2">Note : If discount promo code already applied extra additional coupon not applicable</div>
-              <div className="flex justify-between items-center mb-1 text-sm">
-                <span>Shipping Charges</span>
-                <span>₹{shippingCharges}</span>
+              <div className="flex justify-between items-center mt-1 mb-1">
+                <span className="font-semibold">Total SGST %</span>
+                <span className="font-semibold">{cart.reduce((sum, item) => sum + (Number(item.sgst) || 0), 0)}</span>
               </div>
-              <div className="font-bold text-base flex justify-between items-center border-t pt-3 mt-2 mb-3">
+              <hr className="my-2" />
+
+              {/* Final Amount */}
+              <div className="flex justify-between items-center font-bold text-lg mb-2">
                 <span>Final Amount</span>
-                <span>₹{cartTotal}</span>
+                <span>₹{cartTotal.toFixed(2)}</span>
               </div>
+
+              {/* Terms and Pay Button */}
               <div className="flex items-center gap-2 mb-2">
                 <input type="checkbox" id="terms" className="accent-black" checked={termsChecked} onChange={e => setTermsChecked(e.target.checked)} />
                 <label htmlFor="terms" className="text-xs">I have read and agree to the website terms and conditions</label>
               </div>
-              <div className="flex flex-col gap-2 mt-2">
-                <button
-                  className="w-full py-3 bg-orange-500 text-white rounded font-bold text-base hover:bg-orange-600"
-                  disabled={!termsChecked}
-                  onClick={handleCheckout}
-                >I'm Ready To Pay</button>
-                {/* <button className="w-full py-3 bg-black text-white rounded font-bold text-base hover:bg-gray-800" disabled={!termsChecked}>I'm Ready To Pay</button> */}
+              <button
+                className="w-full py-3 bg-orange-500 text-white rounded font-bold text-base hover:bg-orange-600 mb-2"
+                disabled={!termsChecked}
+                onClick={handleCheckout}
+              >I'm Ready To Pay</button>
+
+              {/* Secure Payment and Card Icons */}
+              <div className="flex flex-col items-center gap-1 my-2">
+                <div className="flex items-center gap-2 text-xs font-semibold">
+                  <span className="inline-flex items-center"><svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 11c0-1.104.896-2 2-2s2 .896 2 2-.896 2-2 2-2-.896-2-2zm0 0V7m0 4v4m-7 4h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>Secure Payment</span>
+                  <img src="/visa-img.png" alt="Visa" className="w-8 h-6 object-contain" />
+                  <img src="/master-card.png" alt="Mastercard" className="w-8 h-6 object-contain" />
+                  {/* <img src="/amex.png" alt="Amex" className="w-8 h-6 object-contain" /> */}
+                  <img src="/rupay.png" alt="Rupay" className="w-8 h-6 object-contain" />
+                  <img src="/upi.png" alt="UPI" className="w-8 h-6 object-contain" />
+                </div>
+                <div className="text-xs text-gray-700">We also accept Indian Debit Cards, UPI and Netbanking.</div>
               </div>
-              <div className="text-xs text-gray-500 mt-3">Your personal data will be used to process your order, support your experience throughout this website, and for other purposes described in our privacy policy.</div>
+
+              {/* Continue Shopping Button */}
+              <button
+                className="w-full py-3 bg-green-700 text-white rounded font-bold text-base hover:bg-green-800 my-2"
+                onClick={() => window.location.href = '/shop'}
+              >Continue Shopping</button>
+
+              {/* Info Footer */}
+              <div className="text-xs text-gray-700 mt-4 text-center">
+                Your personal data will be used to process your order, support your experience throughout this website, and for other purposes described in our privacy policy.
+              </div>
+            </div>
+            <div className="flex flex-col items-center mt-3">
+              <div className="flex items-center gap-1 text-gray-800 text-sm">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 16v-4m0 0V8m0 4h4m-4 0H8" /></svg>
+                <span className="font-semibold">Quality You Can Trust</span>
+              </div>
+              <div className="text-xs text-gray-600 mt-1 max-w-xs text-center">
+                Your Rishikesh Handmade Guides are available 24/7/365 to answer your question and help you better understand your purchase.
+              </div>
             </div>
           </div>
         </div>

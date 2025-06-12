@@ -935,7 +935,7 @@ const RandomTourPackageSection = () => {
                               className="flex flex-row bg-[#FFF3C9] rounded-xl min-h-[220px] w-full md:w-1/2 overflow-hidden"
                             >
                               {/* Image/Video section */}
-                              <div className="flex-shrink-0 w-1/2 md:w-2/5 flex items-center justify-center bg-[#E8A57B]">
+                              <div className="flex-shrink-0 w-1/2 md:w-2/5 flex items-center justify-center">
                                 {isYoutube ? (
                                   <div className="w-full h-full aspect-video rounded-l-xl overflow-hidden flex items-center justify-center">
                                     <iframe
@@ -959,7 +959,7 @@ const RandomTourPackageSection = () => {
                                 )}
                               </div>
                               {/* Content section */}
-                              <div className="flex flex-col justify-between p-6 flex-1">
+                              <div className="flex flex-col justify-between p-4 flex-1">
                                 <div>
                                   <div className="font-bold text-lg md:text-xl text-black mb-2 leading-snug">{blog.title || 'No title available.'}</div>
                                   <div className="text-gray-800 text-base mb-4 line-clamp-3 min-h-[48px]">{blog.shortDescription || blog.shortDesc || 'No description available.'}</div>

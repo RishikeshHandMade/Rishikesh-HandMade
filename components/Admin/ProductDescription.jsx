@@ -65,7 +65,7 @@ const ProductDescription = ({ productData, productId }) => {
           setOverview("");
           setEditMode(false);
           setEditId(null);
-          fetchAllDescriptions();
+          fetchProductDescription();
         }
       } else {
         // POST request for create
@@ -80,7 +80,7 @@ const ProductDescription = ({ productData, productId }) => {
         } else {
           toast.success('Product info saved successfully!');
           setOverview("");
-          fetchAllDescriptions();
+          fetchProductDescription();
         }
       }
     } catch (err) {
@@ -123,8 +123,8 @@ const ProductDescription = ({ productData, productId }) => {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        toast.error('Description deleted!');
-        fetchAllDescriptions();
+        toast.success('Description deleted!');
+        fetchProductDescription();
         if (editId === deleteTargetId) {
           setEditMode(false);
           setEditId(null);
