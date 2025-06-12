@@ -41,6 +41,21 @@ export default function ProductDetailView({ product }) {
 
   // console.log(product)
   const [selectedImage, setSelectedImage] = React.useState(product?.gallery?.mainImage?.url || []);
+  const [isZoomed, setIsZoomed] = React.useState(false);
+  const [zoomPosition, setZoomPosition] = React.useState({ x: 50, y: 50 });
+
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setZoomPosition({ x, y });
+  };
+
+  const handleMouseEnter = () => setIsZoomed(true);
+  const handleMouseLeave = () => {
+    setIsZoomed(false);
+    setZoomPosition({ x: 50, y: 50 });
+  };
   const [quantity, setQuantity] = React.useState(1);
   const [showSizeChart, setShowSizeChart] = React.useState(false);
   const [selectedSize, setSelectedSize] = React.useState(null);
@@ -114,13 +129,27 @@ export default function ProductDetailView({ product }) {
       <div className="w-full lg:w-1/3 flex flex-col items-center">
         {/* Main Image */}
         <div className="w-full flex justify-center mb-4">
-          <div className="relative w-[400px] h-[400px] flex items-center justify-center rounded-xl overflow-hidden">
+          <div
+            className="relative w-[400px] h-[400px] flex items-center justify-center rounded-xl overflow-hidden"
+            onMouseMove={handleMouseMove}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            style={{ cursor: isZoomed ? 'zoom-out' : 'zoom-in' }}
+          >
             <Image
               src={selectedImage || product.gallery?.mainImage?.url || '/placeholder.png'}
               alt={product.title}
               fill
-              style={{ objectFit: 'contain' }}
+              style={{
+                objectFit: 'contain',
+                transition: 'transform 0.3s',
+                transform: isZoomed
+                  ? `scale(1.5) translate(${-zoomPosition.x + 50}%, ${-zoomPosition.y + 50}%)`
+                  : 'scale(1) translate(0, 0)',
+                pointerEvents: 'none',
+              }}
               className="object-contain w-full h-full"
+              draggable={false}
             />
           </div>
         </div>
@@ -130,7 +159,7 @@ export default function ProductDetailView({ product }) {
             <div className="relative">
               <Carousel className="w-full">
                 <CarouselContent>
-                {[product.gallery.mainImage?.url, ...product.gallery.subImages.map(img => img.url)].filter(Boolean).map((img, idx) => (
+                  {[product.gallery.mainImage?.url, ...product.gallery.subImages.map(img => img.url)].filter(Boolean).map((img, idx) => (
                     <CarouselItem key={idx} className="flex justify-center basis-1/5 max-w-[20%] min-w-0">
                       <button
                         className={`rounded-lg border-2 ${selectedImage === img ? 'border-black' : 'border-gray-200'} focus:outline-none focus:ring-2 focus:ring-black`}
@@ -148,10 +177,10 @@ export default function ProductDetailView({ product }) {
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                { product.gallery.subImages.length > 5 && (
+                {product.gallery.subImages.length > 5 && (
                   <>
-                  <CarouselPrevious />
-                  <CarouselNext />
+                    <CarouselPrevious />
+                    <CarouselNext />
                   </>
                 )}
               </Carousel>

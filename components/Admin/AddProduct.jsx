@@ -267,8 +267,8 @@ const AddProduct = ({ id }) => {
                         <TableRow>
                             <TableHead className="text-center !text-black w-1/6">Order</TableHead>
                             <TableHead className="text-center !text-black w-1/4">Product Name</TableHead>
-                            <TableHead className="text-center !text-black w-1/6">QR</TableHead>
                             <TableHead className="text-center !text-black w-1/6">URL</TableHead>
+                            <TableHead className="text-center !text-black w-1/6">QR</TableHead>
                             <TableHead className="w-1/6 !text-black text-center">Action</TableHead>
                         </TableRow>
                     </TableHeader>
