@@ -130,9 +130,9 @@ const CategoryTag = ({ productData, productId }) => {
     }
   };
   // Show suggestions for tag input
-  const tagSuggestions = tags.filter(tag =>
-    newTagInput && tag.toLowerCase().includes(newTagInput.toLowerCase()) && !selectedTags.includes(tag)
-  );
+  // const tagSuggestions = tags.filter(tag =>
+  //   newTagInput && tag.toLowerCase().includes(newTagInput.toLowerCase()) && !selectedTags.includes(tag)
+  // );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -198,21 +198,40 @@ const CategoryTag = ({ productData, productId }) => {
   };
   // Delete handler
   const handleDelete = async (row) => {
+    const productToDelete = row.product || productId || selectedProduct;
+    if (!productToDelete) {
+      toast.error("No product ID found for deletion!");
+      return;
+    }
     try {
-      const res = await fetch("/api/productCategory", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ product: row.product, tag: "__all__" })
+      const res = await fetch(`/api/productCategory?product=${encodeURIComponent(productToDelete)}`, {
+        method: "DELETE"
       });
       const json = await res.json();
-      if (res.ok) {
+      console.log("Delete API response:", json, "Status:", res.status);
+      if (res.ok && json.success) {
         toast.success("Category deleted!");
-        await fetchCategoryRows();
+        // Re-fetch the category rows for the current product
+        fetch(`/api/productCategory?product=${productToDelete}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.success && data.data && Array.isArray(data.data.tags) && data.data.tags.length > 0) {
+              setCategoryRows([{
+                product: productToDelete,
+                productName: productData?.title || productTitle || "",
+                tags: data.data.tags,
+                categoryTagId: data.data._id
+              }]);
+            } else {
+              setCategoryRows([]);
+            }
+          });
       } else {
         toast.error(json.error || "Delete failed");
       }
-    } catch {
+    } catch (err) {
       toast.error("API error");
+      console.error("Delete error:", err);
     }
   };
 

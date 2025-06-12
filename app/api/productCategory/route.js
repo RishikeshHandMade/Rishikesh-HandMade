@@ -79,19 +79,20 @@ export async function PATCH(req) {
 
 
 // DELETE: Remove a tag from a product
+// DELETE: Delete a category tag by product or _id
 export async function DELETE(req) {
   await connectDB();
   try {
-    const { product, tag } = await req.json();
-    if (!product || !tag) {
-      return Response.json({ error: 'Product and tag are required.' }, { status: 400 });
-    }
-    if (tag === "__all__") {
-      // Delete the entire category tag document for this product
-      const deleted = await CategoryTag.findOneAndDelete({ product });
-      // Unset the category/tag reference in Product
-      await Product.findByIdAndUpdate(product, { $unset: { category: "" } });
-      return Response.json({ success: true, data: deleted });
+    const url = new URL(req.url, 'http://localhost');
+    const product = url.searchParams.get('product');
+    const id = url.searchParams.get('id');
+    const tag = url.searchParams.get('tag'); 
+    let result;
+    if (product) {
+      result = await CategoryTag.deleteOne({ product });
+      await Product.findByIdAndUpdate(product, { $unset: { categoryTag: "" } });
+    } else if (id) {
+      result = await CategoryTag.deleteOne({ _id: id });
     } else {
       // Remove a single tag from the tags array
       const updated = await CategoryTag.findOneAndUpdate(
@@ -99,12 +100,8 @@ export async function DELETE(req) {
         { $pull: { tags: tag } },
         { new: true }
       );
-      // If tags array is now empty, unset the category/tag reference in Product
-      if (updated && Array.isArray(updated.tags) && updated.tags.length === 0) {
-        await Product.findByIdAndUpdate(product, { $unset: { category: "" } });
-      }
-      return Response.json({ success: true, data: updated });
     }
+    return Response.json({ success: true, data: result });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
