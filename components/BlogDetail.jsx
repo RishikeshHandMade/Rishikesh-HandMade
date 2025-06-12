@@ -83,7 +83,7 @@ const BlogDetail = () => {
       )}
       {quickViewNews && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="rounded-2xl shadow-2xl w-full max-w-lg h-[90vh] relative flex flex-col overflow-y-auto animate-fadeIn">
+          <div className="rounded-2xl bg-white shadow-2xl w-full max-w-lg h-[90vh] relative flex flex-col overflow-y-auto animate-fadeIn">
             <button aria-label="Close" onClick={handleCloseNewsModal} className="absolute top-4 right-4 z-10 bg-gray-200 hover:bg-gray-400 rounded-full p-2">
               <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
             </button>
@@ -104,8 +104,8 @@ const BlogDetail = () => {
         </div>
       )}
       {!loading && (
-        <div className="w-full mx-auto md:p-8 my-4 mb-4 bg-[#fcf7f1]">
-          <div className="w-full px-10 flex flex-col md:flex-row gap-8">
+        <div className="w-full mx-auto md:p-4 my-4 mb-4 bg-[#fcf7f1]">
+          <div className="w-full px-5 flex flex-col md:flex-row gap-8">
             {/* Left: Blog Details (scrollable) */}
             <div className="md:w-2/3 w-full md:h-screen md:overflow-y-auto pr-0 md:pr-2 scrollbar-none" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
               {loading ? (
@@ -206,7 +206,7 @@ const BlogDetail = () => {
             </div>
             {/* News Section for mobile (below blog on small screens) */}
             <div className="md:hidden w-full flex flex-col mt-8">
-              <div className="bg-[#fcf7f1] rounded-lg p-4 flex flex-col min-h-[300px]">
+              <div className="bg-[#fcf7f1] rounded-lg p-4 flex flex-col min-h-[350px]">
                 <div className="flex-1 pr-2 mb-4">
                   <div className="font-bold text-2xl mb-4">Latest News</div>
                   <div className="h-[380px] overflow-y-auto p-4 border border-black rounded-xl scrollbar-none" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>

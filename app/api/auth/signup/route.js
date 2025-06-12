@@ -86,8 +86,8 @@ export async function POST(req) {
                     <!-- Header -->
                     <tr>
                         <td style="padding: 30px 0; text-align: center; background-color: #4F46E5; border-top-left-radius: 8px; border-top-right-radius: 8px;">
-                            <a href="https://yatrazone.vercel.app/" class="header">
-            <img src="https://yatrazone.vercel.app/logo.png" alt="YatraZone Logo">
+                            <a href="https://rishikeshhandmade.com/" class="header">
+            <img src="https://rishikeshhandmade.com/logo.png" alt="Rishikesh HandMade Logo">
         </a>
                             <h1 style="color: #ffffff; margin: 0; margin-top:12px; font-size: 24px;">Verification Code</h1>
                         </td>
@@ -96,7 +96,7 @@ export async function POST(req) {
                     <tr>
                         <td class="content" style="padding: 40px 30px;">
                             <p style="margin-top: 0; color: #333333; font-size: 16px; line-height: 1.5;">Hello, ${email}</p>
-                            <p style="color: #333333; font-size: 16px; line-height: 1.5;">Thank you for signing up with <span style="font-weight: 900; color: #4F46E5;">YatraZone!</span>. Please use the following verification code to complete your sign-in:</p>
+                            <p style="color: #333333; font-size: 16px; line-height: 1.5;">Thank you for signing up with <span style="font-weight: 900; color: #4F46E5;">Rishikesh HandMade!</span>. Please use the following verification code to complete your sign-in:</p>
                             <div style="background-color: #f8f9fa; border-radius: 4px; padding: 20px; margin: 30px 0; text-align: center;">
                                 <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #4F46E5;">${otp}</span>
                             </div>
@@ -107,8 +107,8 @@ export async function POST(req) {
                     <tr>
                         <td style="padding: 20px 30px; text-align: center; background-color: #f8f9fa; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;">
                             <div class="footer">
-            <p>If you have any questions, feel free to contact: <a href="mailto:info@yatrazone.com">info@yatrazone.com</a>.</p>
-            <p>&copy; ${new Date().getFullYear()} YatraZone. All rights reserved.</p>
+            <p>If you have any questions, feel free to contact: <a href="mailto:info@rishikeshhandmade.com">info@rishikeshhandmade.com</a>.</p>
+            <p>&copy; ${new Date().getFullYear()} Rishikesh HandMade. All rights reserved.</p>
         </div>
                         </td>
                     </tr>
@@ -125,7 +125,7 @@ export async function POST(req) {
         // Send the OTP via Brevo
         const otpSent = await sendOTP(email, otp, message, subject);
         if (!otpSent) {
-            return NextResponse.json({ message: 'Failed to send OTP' }, { status: 201 });
+          return NextResponse.json({ message: 'Failed to send OTP email. Please try again later.' }, { status: 500 });
         }
 
         return NextResponse.json({ message: 'OTP sent to your email' }, { status: 201 });

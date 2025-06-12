@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
-
+import Autoplay from "embla-carousel-autoplay";
 const RelatedBlogs = ({ excludeId }) => {
   const [relatedBlogs, setRelatedBlogs] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -24,13 +24,13 @@ const RelatedBlogs = ({ excludeId }) => {
     <div className="mt-12 mb-5 w-full md:w-[95%] mx-auto px-10">
       <h2 className="text-3xl underline font-bold mb-4" >Related Blogs</h2>
       <div className="relative">
-        <Carousel className="w-full">
+        <Carousel className="w-full" plugins={[Autoplay({ delay: 4000 })]}>
           <CarouselContent>
             {relatedBlogs.map((blog, idx) => (
               <CarouselItem key={idx} className="pl-1md:basis-1/2 lg:basis-1/2">
                 <div className="flex flex-col md:flex-row rounded-3xl overflow-hidden shadow group hover:shadow-lg transition bg-transparent min-h-[250px]">
                   {/* Left: Image/Video/Placeholder */}
-                  <div className="md:w-1/2 w-full flex items-center justify-center bg-white p-0 md:p-0">
+                  <div className="md:w-1/2 w-full flex items-center justify-center p-0 md:p-0">
                     {blog.images && blog.images[0]?.url ? (
                       <img
                         src={blog.images[0].url}
@@ -62,10 +62,14 @@ const RelatedBlogs = ({ excludeId }) => {
                     )}
                   </div>
                   {/* Right: Content */}
-                  <div className="flex-1 flex flex-col justify-between bg-yellow-100 p-8 md:rounded-r-3xl">
-                    <div>
-                      <span className="inline-block bg-black text-white text-sm px-4 py-1 rounded font-bold mb-6 mt-2 md:mt-0">{blog.createdAt ? new Date(blog.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : ''}</span>
-                      <h3 className="font-bold text-2xl md:text-3xl text-gray-900 mb-4 mt-4">{blog.title}</h3>
+                  <div className="flex-1 flex flex-col justify-between bg-yellow-100 p-8 ">
+                    <div className='gap-2'>
+                      <span className="inline-block bg-black text-white text-sm px-4 rounded font-bold mb-6 md:mt-0">{blog.createdAt ? new Date(blog.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : ''}</span>
+                      <h3 className="font-bold text-2xl text-gray-900 my-2">
+  {blog.title.split(' ').length > 10
+    ? blog.title.split(' ').slice(0, 10).join(' ') + '...'
+    : blog.title}
+</h3>
                       {/* <p className="text-gray-800 text-lg mb-8 md:mb-10">{blog.shortDescription}</p> */}
                     </div>
                     <div className="flex items-center mt-auto">
