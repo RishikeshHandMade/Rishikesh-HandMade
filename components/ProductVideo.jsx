@@ -30,10 +30,6 @@ const ProductVideo = ({ productData, productId }) => {
   if (loading) return <div className="py-8 text-center">Loading videos...</div>;
   if (!videos.length) return null;
 
-  // For demo, use placeholder description. In real use, fetch/store per-video descriptions.
-  const getDescription = (idx) => productData?.videoDescriptions?.[idx] ||
-    'Discover more about this product. Get inspired and connect with us for more details!';
-
   return (
     <div className="w-full px-10 mx-auto py-10">
       {videos.map((video, idx) => {
@@ -42,38 +38,35 @@ const ProductVideo = ({ productData, productId }) => {
         return (
           <div
             key={video.url}
-            className="flex flex-col md:flex-row items-stretch justify-center mb-8 gap-5 w-full h-[350px]"
+            className="flex flex-col md:flex-row items-stretch justify-center mb-8 gap-6 w-full"
             style={{ flexDirection: isEven ? 'row-reverse' : 'row' }}
           >
             {/* Video */}
-            <div className="md:w-1/2 w-full bg-white border border-gray-200 flex items-center justify-center h-[350px]">
+            <div className="w-full md:w-[60%] aspect-video rounded-2xl overflow-hidden bg-black flex items-center justify-center">
               {videoId ? (
                 <iframe
-                  width="100%"
-                  height="100%"
                   src={`https://www.youtube.com/embed/${videoId}`}
                   title="YouTube video player"
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
-                  className="rounded shadow-md w-full h-full"
-                  style={{ minHeight: 315, aspectRatio: '1/1' }}
+                  className="w-full h-full"
                 />
               ) : (
-                <div className="w-full h-64 bg-gray-200 flex items-center justify-center text-gray-500">
+                <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">
                   Invalid YouTube URL
                 </div>
               )}
             </div>
             {/* Description */}
-            <div className="md:w-1/2 w-full bg-white border border-gray-200 p-4 flex flex-col items-center justify-center h-[350px] text-start px-6">
+            <div className="flex-1 min-w-0 bg-white border border-gray-200 p-6 flex flex-col items-start justify-center text-start rounded-2xl shadow-sm">
               <h2 className="font-bold text-2xl mb-4">{video.title || "Product Video"}</h2>
               <p className="mb-6 text-gray-700 text-base md:text-lg">{video.description || 'Discover more about this product. Get inspired and connect with us for more details!'}</p>
               <button
-                className="bg-black text-white px-6 py-3 rounded font-semibold hover:bg-gray-800 transition"
-                onClick={() => window.location.href = '/contact'}
+                className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors text-base font-semibold"
+                onClick={() => window.open(video.url, '_blank')}
               >
-                Get Connected
+                Watch on YouTube
               </button>
             </div>
           </div>

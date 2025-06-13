@@ -246,7 +246,7 @@ export default function ProductInfoTabs({ product }) {
                     </button>
                 ))}
             </div>
-            <div className="py-4 px-2 text-sm text-gray-700 min-h-[64px] text-center">
+            <div className="py-4 px-2 text-sm text-gray-700 min-h-[64px] w-[80%] mx-auto text-center">
                 {tabs[activeTab].content}
             </div>
         </div>

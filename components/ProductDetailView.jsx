@@ -1,9 +1,8 @@
 "use client";
 import React from "react";
 import Image from "next/image";
-import { Heart, Share2 } from "lucide-react"
+import { Heart, Share2, Ruler, Mail, Star } from "lucide-react"
 import { useCart } from "../context/CartContext";
-import { Star } from 'lucide-react';
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import {
@@ -13,7 +12,39 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
 export default function ProductDetailView({ product }) {
+  // --- Ask An Expert Modal State ---
+  const [showExpertModal, setShowExpertModal] = React.useState(false);
+  const [expertForm, setExpertForm] = React.useState({
+    name: '',
+    email: '',
+    phone: '',
+    need: 'Appointment',
+    question: '',
+    contactMethod: 'Phone',
+  });
+  const handleExpertInputChange = (e) => {
+    const { name, value, type } = e.target;
+    setExpertForm((prev) => ({
+      ...prev,
+      [name]: type === 'radio' ? value : value,
+    }));
+  };
+  const handleExpertSubmit = (e) => {
+    e.preventDefault();
+    setShowExpertModal(false);
+    setExpertForm({
+      name: '',
+      email: '',
+      phone: '',
+      need: 'Appointment',
+      question: '',
+      contactMethod: 'Phone',
+    });
+    toast.success('Your question has been submitted!');
+  };
+
   const router = useRouter();
   const [showShareBox, setShowShareBox] = React.useState(false);
   const [productUrl, setProductUrl] = React.useState("");
@@ -71,17 +102,6 @@ export default function ProductDetailView({ product }) {
   const availableSizes = [...new Set(variants.map(v => v.size))];
   const allColors = [...new Set(variants.map(v => v.color))];
 
-  // For disabling color buttons: only enable if that color exists for selectedSize
-  const colorIsEnabled = (color) => {
-    if (!selectedSize) return true;
-    return variants.some(v => v.size === selectedSize && v.color === color);
-  };
-  // For disabling size buttons: only enable if that size exists for selectedColor
-  const sizeIsEnabled = (size) => {
-    if (!selectedColor) return true;
-    return variants.some(v => v.color === selectedColor && v.size === size);
-  };
-
   // Find the selected variant
   const selectedVariant = variants.find(v => {
     return (
@@ -126,114 +146,151 @@ export default function ProductDetailView({ product }) {
   const total = hasDiscount ? (discountedPrice * quantity).toFixed(2) : (selectedVariant ? (selectedVariant.price * quantity).toFixed(2) : 0);
 
   const { addToCart, addToWishlist, removeFromWishlist, wishlist } = useCart();
+  // Gather all images (main + sub) at the top-level
+  // Gather all images, filter out empty/undefined/null, and fallback to placeholder if empty
+  const allImagesRaw = [product.gallery?.mainImage?.url, ...(product.gallery?.subImages?.map(img => img.url) || [])];
+  const allImages = allImagesRaw.filter(img => typeof img === 'string' && img.trim().length > 0);
+  if (allImages.length === 0) allImages.push('/placeholder.png');
+  // Debug main image array and index
+  // Embla carousel API and active image index for main image gallery
+  const [carouselApi, setCarouselApi] = React.useState(null);
+  const [activeImageIdx, setActiveImageIdx] = React.useState(0);
+  React.useEffect(() => {
+    if (!carouselApi) return;
+    const onSelect = () => {
+      const idx = carouselApi.selectedScrollSnap();
+      setActiveImageIdx(idx);
+    };
+    carouselApi.on('select', onSelect);
+    setActiveImageIdx(carouselApi.selectedScrollSnap());
+    return () => carouselApi.off('select', onSelect);
+  }, [carouselApi]);
+  // No need for activeImg, just use allImages[activeImageIdx]
+
   return (
-    <div className="flex flex-col lg:flex-row gap-8">
+    <div className="flex flex-col lg:flex-row gap-4">
       {/* LEFT: Product Images */}
       <div className="w-full lg:w-1/3 flex flex-col items-center">
-        {/* Main Image */}
+
+        {/* Main Image Carousel (QuickView style, embla-controlled) */}
         <div className="w-full flex justify-center mb-4">
-          <div
-            className="relative w-[400px] h-[400px] flex items-center justify-center rounded-xl overflow-hidden"
-            onMouseMove={handleMouseMove}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            style={{ cursor: isZoomed ? 'zoom-out' : 'zoom-in' }}
-          >
-            <Image
-              src={selectedImage || product.gallery?.mainImage?.url || '/placeholder.png'}
-              alt={product.title}
-              fill
-              style={{
-                objectFit: 'contain',
-                transition: 'transform 0.3s',
-                transform: isZoomed
-                  ? `scale(1.5) translate(${-zoomPosition.x + 50}%, ${-zoomPosition.y + 50}%)`
-                  : 'scale(1) translate(0, 0)',
-                pointerEvents: 'none',
-              }}
-              className="object-contain w-full h-full"
-              draggable={false}
-            />
+          <div className="relative w-full max-w-[500px] h-[420px] md:h-[500px] flex items-center justify-center rounded-xl overflow-hidden">
+            <Carousel
+              className="w-full h-full pr-4"
+              opts={{ loop: true }} // <--- This is the correct place to enable looping
+              plugins={[Autoplay({ delay: 4000 })]}
+              setApi={setCarouselApi}
+            >
+
+              <CarouselContent className="h-[420px] md:h-[500px]">
+                {allImages.map((img, idx) => (
+                  <CarouselItem key={idx} className="flex items-center justify-center h-full">
+                    <div className="relative w-full h-[420px] md:h-[500px] flex items-center justify-center"
+                      onMouseMove={handleMouseMove}
+                      onMouseEnter={handleMouseEnter}
+                      onMouseLeave={handleMouseLeave}
+                      style={{ cursor: isZoomed ? 'zoom-out' : 'zoom-in' }}
+                    >
+                      <Image
+                        src={img}
+                        alt={`Product image ${idx}`}
+                        layout="fill"
+                        objectFit="contain"
+                        className="w-full h-full object-contain"
+                        draggable={false}
+                        style={{
+                          objectFit: 'contain',
+                          width: '100%',
+                          height: '100%',
+                          transition: 'transform 0.3s',
+                          transform:
+                            isZoomed && activeImageIdx === idx
+                              ? `scale(1.5) translate(${-zoomPosition.x + 50}%, ${-zoomPosition.y + 50}%)`
+                              : 'scale(1) translate(0, 0)',
+                          pointerEvents: 'none',
+                        }}
+                      />
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselNext className="!right-2 !top-1/2 !-translate-y-1/2 z-10" />
+              <CarouselPrevious className="!left-1 !top-1/2 !-translate-y-1/2 z-10" />
+            </Carousel>
           </div>
         </div>
-        {/* Sub-Images Carousel */}
-        {Array.isArray(product.gallery?.subImages) && product.gallery.subImages.length > 0 && (
+        {/* Sub-Images Carousel (5 per row) */}
+        {allImages.length > 1 && (
           <div className="w-full max-w-[400px] mx-auto px-2">
-            <div className="relative">
-              <Carousel className="w-full">
-                <CarouselContent>
-                  {[product.gallery.mainImage?.url, ...product.gallery.subImages.map(img => img.url)].filter(Boolean).map((img, idx) => (
-                    <CarouselItem key={idx} className="flex justify-center basis-1/5 max-w-[20%] min-w-0">
-                      <button
-                        className={`rounded-lg border-2 ${selectedImage === img ? 'border-black' : 'border-gray-200'} focus:outline-none focus:ring-2 focus:ring-black`}
-                        onClick={() => setSelectedImage(img)}
-                        style={{ minWidth: 64, minHeight: 64 }}
-                      >
-                        <Image
-                          src={img}
-                          alt={`${product.title} ${idx + 1}`}
-                          width={64}
-                          height={64}
-                          className="rounded-lg object-cover w-16 h-16"
-                        />
-                      </button>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                {product.gallery.subImages.length > 5 && (
-                  <>
-                    <CarouselPrevious />
-                    <CarouselNext />
-                  </>
-                )}
-              </Carousel>
-            </div>
+            <Carousel opts={{ align: 'start', loop: allImages.length > 5 }} className="w-full">
+              <CarouselContent>
+                {allImages.map((img, idx) => (
+                  <CarouselItem key={idx} className="flex justify-center basis-1/5 max-w-[20%] min-w-0">
+                    <button
+                      className={`rounded-lg border-2 ${activeImageIdx === idx ? 'border-black' : 'border-gray-200'} focus:outline-none focus:ring-2 focus:ring-black`}
+                      onClick={() => carouselApi && carouselApi.scrollTo(idx)}
+                      style={{ minWidth: 64, minHeight: 64 }}
+                    >
+                      <Image
+                        src={img}
+                        alt={`${product.title} thumb ${idx + 1}`}
+                        width={64}
+                        height={64}
+                        className="rounded-lg object-cover w-16 h-16"
+                      />
+                    </button>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              {allImages.length > 5 && (
+                <>
+                  <CarouselPrevious />
+                  <CarouselNext />
+                </>
+              )}
+            </Carousel>
           </div>
         )}
-      </div>
 
+      </div>
       {/* CENTER: Product Details/Description/Selectors */}
       <div className="w-full lg:w-1/3 max-w-xl mx-auto flex flex-col">
-        {/* Badges and Title */}
-        {/* <div className="flex items-center gap-3 mb-2">
-          <span className="bg-black text-white text-xs px-3 py-1 rounded font-bold">SALE 20% OFF</span>
-        </div> */}
         <h1 className="text-3xl font-bold mb-1">{product.title}</h1>
         <div className="flex items-center gap-2 mb-3">
           <span className="font-semibold flex items-center">
-            {product?.reviews?.rating && (
-              <>
-                {[...Array(product.reviews?.rating)].map((_, i) => (
-                  <Star key={i} size={20} className="text-yellow-400 fill-yellow-400" />
-                ))}
-              </>
-            )}Rating</span>
+            {(() => {
+              if (Array.isArray(product?.reviews) && product.reviews.length > 0) {
+                const avg = product.reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / product.reviews.length;
+                return avg.toFixed(1);
+              }
+              return "0";
+            })()} Rating</span>
           <span className="text-gray-700 text-sm">({product.reviews?.length || 0} customer reviews)</span>
         </div>
         {(() => {
- 
-  if (desc === "No Description") {
-    return <p className="text-gray-700 mb-6 max-w-lg">No Description</p>;
-  }
-  if (showFullDesc || words.length <= 20) {
-    return (
-      <p className="text-gray-700 mb-6 max-w-lg">
-        {desc}
-        {words.length > 20 && (
-          <>
-            {' '}<button className="text-blue-600 underline ml-2" onClick={() => setShowFullDesc(false)}>Close</button>
-          </>
-        )}
-      </p>
-    );
-  }
-  return (
-    <p className="text-gray-700 mb-6 max-w-lg">
-      {words.slice(0, 20).join(' ')}...{' '}
-      <button className="text-blue-600 underline" onClick={() => setShowFullDesc(true)}>Read more</button>
-    </p>
-  );
-})()}
+
+          if (desc === "No Description") {
+            return <p className="text-gray-700 mb-6 max-w-lg">No Description</p>;
+          }
+          if (showFullDesc || words.length <= 20) {
+            return (
+              <p className="text-gray-700 mb-6 max-w-lg">
+                {desc}
+                {words.length > 20 && (
+                  <>
+                    {' '}<button className="text-blue-600 underline ml-2" onClick={() => setShowFullDesc(false)}>Close</button>
+                  </>
+                )}
+              </p>
+            );
+          }
+          return (
+            <p className="text-gray-700 mb-6 max-w-lg">
+              {words.slice(0, 20).join(' ')}...{' '}
+              <button className="text-blue-600 underline" onClick={() => setShowFullDesc(true)}>Read more</button>
+            </p>
+          );
+        })()}
 
 
         {/* Selectors */}
@@ -278,29 +335,37 @@ export default function ProductDetailView({ product }) {
             {availableSizes.map((size, idx) => (
               <button
                 key={size || idx}
-                className={`px-3 py-1 border rounded-lg bg-white hover:bg-gray-100 ${selectedSize === size ? 'border-black font-semibold' : ''}`}
+                className={`relative px-3 py-1 border rounded-full bg-white text-base font-medium transition-all duration-150
+        ${selectedSize === size ? 'border-black ring-2 ring-black' : 'border-gray-300'}
+        hover:bg-gray-100
+      `}
                 onClick={() => {
                   setSelectedSize(size);
                   setQuantity(1);
-                  // If current color is not available for this size, pick the first available color for this size
+                  // When selecting a size, if the current color is not available for this size, pick the first available color for this size
                   const colorForSize = variants.find(v => v.size === size && v.color === selectedColor);
                   if (!colorForSize) {
                     const firstColor = variants.find(v => v.size === size)?.color;
                     setSelectedColor(firstColor);
                   }
                 }}
-                disabled={!allColors.some(color => variants.find(v => v.size === size && v.color === color))}
+                aria-pressed={selectedSize === size}
+                tabIndex={0}
+                style={{ position: 'relative' }}
               >
                 {size}
               </button>
             ))}
-            {/* Size Chart Link/Button */}
+          </div>
+          {/* Size Chart Link/Button */}
+          <div className="flex gap-2 items-center">
             {product?.size?.sizeChartUrl?.url && (
               <>
                 <span
-                  className="ml-3 underline text-blue-600 cursor-pointer hover:text-blue-800 text-sm"
+                  className="ml-3 text-black cursor-pointer hover:underline text-base flex items-center gap-2"
                   onClick={() => setShowSizeChart(true)}
                 >
+                  <Ruler />
                   Size Chart
                 </span>
                 {/* Modal for Size Chart */}
@@ -320,38 +385,201 @@ export default function ProductDetailView({ product }) {
                 )}
               </>
             )}
+            {/* Ask An Expert Button */}
+            <button
+              className="text-black hover:underline w-fit text-base flex items-center gap-2"
+              onClick={() => setShowExpertModal(true)}
+            >
+              <Mail />
+              Ask An Expert
+            </button>
+            {/* Ask An Expert Modal */}
+            {showExpertModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative animate-fade-in">
+                  <button
+                    className="absolute top-2 right-2 text-gray-500 hover:text-black text-4xl font-bold"
+                    onClick={() => setShowExpertModal(false)}
+                    aria-label="Close"
+                  >
+                    ×
+                  </button>
+                  <h2 className="text-xl font-bold mb-2 text-center">Ask An Expert</h2>
+                  <form onSubmit={handleExpertSubmit} className="flex flex-col gap-4">
+                    <div className="text-center text-gray-500 text-sm mb-2">We will follow up with you via email within 24–36 hours</div>
+                    <hr className="" />
+                    <div className="text-center text-base mb-2">Please answer the following questionnaire</div>
+                    <input
+                      type="text"
+                      name="name"
+                      value={expertForm.name}
+                      onChange={handleExpertInputChange}
+                      placeholder="Your Name"
+                      className="border rounded px-3 py-2"
+                      required
+                    />
+                    <input
+                      type="email"
+                      name="email"
+                      value={expertForm.email}
+                      onChange={handleExpertInputChange}
+                      placeholder="Email Address"
+                      className="border rounded px-3 py-2"
+                      required
+                    />
+                    <input
+                      type="text"
+                      name="phone"
+                      value={expertForm.phone}
+                      onChange={handleExpertInputChange}
+                      placeholder="Phone Number"
+                      className="border rounded px-3 py-2"
+                      required
+                    />
+                    <div className="flex flex-row gap-6 items-center mt-2">
+                      <span className="text-sm">Do You Need</span>
+                      <label className="flex items-center gap-1 text-sm">
+                        <input
+                          type="radio"
+                          name="need"
+                          value="Appointment"
+                          checked={expertForm.need === 'Appointment'}
+                          onChange={handleExpertInputChange}
+                          required
+                        /> Appointment
+                      </label>
+                      <label className="flex items-center gap-1 text-sm">
+                        <input
+                          type="radio"
+                          name="need"
+                          value="Business"
+                          checked={expertForm.need === 'Business'}
+                          onChange={handleExpertInputChange}
+                          required
+                        /> Business
+                      </label>
+                      <label className="flex items-center gap-1 text-sm">
+                        <input
+                          type="radio"
+                          name="need"
+                          value="Personal"
+                          checked={expertForm.need === 'Personal'}
+                          onChange={handleExpertInputChange}
+                        /> Personal
+                      </label>
+                    </div>
+                    <div>
+                      <label className="block text-sm mb-1">What Can I Help You With Today?</label>
+                      <textarea
+                        name="question"
+                        value={expertForm.question}
+                        onChange={handleExpertInputChange}
+                        placeholder="Describe your question or issue"
+                        className="border rounded px-3 py-2 w-full h-24 "
+                        rows={4}
+                        required
+                      />
+                    </div>
+                    <div className="mt-2">
+                      <span className="block text-sm mb-1">How Would You Like Me To Contact You?</span>
+                      <div className="flex flex-row gap-6">
+                        <label className="flex items-center gap-1 text-sm">
+                          <input
+                            type="radio"
+                            name="contactMethod"
+                            value="Phone"
+                            checked={expertForm.contactMethod === 'Phone'}
+                            onChange={handleExpertInputChange}
+                          /> Phone
+                        </label>
+                        <label className="flex items-center gap-1 text-sm">
+                          <input
+                            type="radio"
+                            name="contactMethod"
+                            value="Email"
+                            checked={expertForm.contactMethod === 'Email'}
+                            onChange={handleExpertInputChange}
+                          /> Email
+                        </label>
+                        <label className="flex items-center gap-1 text-sm">
+                          <input
+                            type="radio"
+                            name="contactMethod"
+                            value="Both"
+                            checked={expertForm.contactMethod === 'Both'}
+                            onChange={handleExpertInputChange}
+                          /> Both
+                        </label>
+                      </div>
+                    </div>
+                    <button
+                      type="submit"
+                      className="bg-black text-white rounded px-6 py-2 font-bold hover:bg-gray-900 transition mt-2"
+                    >
+                      SEND QUESTION
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
           </div>
           {/* Color */}
           <div className="flex items-center gap-2">
             <span className="font-bold text-md">Color:</span>
-            {allColors.map((color, idx) => (
-              <button
-                key={color || idx}
-                className={`w-7 h-7 rounded-full border-2 ${selectedColor === color ? 'border-black ring-2 ring-black' : 'border-gray-300'}`}
-                style={{ background: color }}
-                title={color}
-                onClick={() => {
-                  setSelectedColor(color);
-                  setQuantity(1);
-                  // If current size is not available for this color, pick first available size for this color
-                  const sizeForColor = variants.find(v => v.color === color && v.size === selectedSize);
-                  if (!sizeForColor) {
-                    const firstSize = variants.find(v => v.color === color)?.size;
-                    setSelectedSize(firstSize);
-                  }
-                }}
-                disabled={!colorIsEnabled(color)}
-              ></button>
-            ))}
+            {allColors.map((color, idx) => {
+              // Only enable colors that are available for the selected size
+              const enabled = selectedSize ? variants.some(v => v.color === color && v.size === selectedSize) : false;
+              return (
+                <button
+                  key={color || idx}
+                  className={`relative w-8 h-8 rounded-full border-2 transition-all duration-150
+          ${selectedColor === color ? 'border-black ring-2 ring-black' : ''}
+          ${!enabled ? 'border-gray-300 opacity-40 cursor-not-allowed' : 'hover:ring-2 hover:ring-black'}
+        `}
+                  style={{ background: color, position: 'relative' }}
+                  title={color}
+                  onClick={() => {
+                    if (!enabled) return;
+                    setSelectedColor(color);
+                    setQuantity(1);
+                  }}
+                  aria-disabled={!enabled}
+                  tabIndex={enabled ? 0 : -1}
+                >
+                  {(!enabled) && (
+                    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 40 40">
+                      <line x1="5" y1="35" x2="35" y2="5" stroke="#e57373" strokeWidth="2" />
+                    </svg>
+                  )}
+                </button>
+              );
+            })}
           </div>
-        </div>
-        {/* SKU, Tags, etc. */}
-        <div className="mb-4">
-          {/* <div className="text-md mb-1"><span className="font-bold text-md">Category:</span> Dresses, Jeans, Summer, Clothing</div> */}
-          <div className="text-md"><span className="font-bold ">Tags:</span> {(product?.categoryTag?.tags && product?.categoryTag?.tags.length > 0) ? product.categoryTag.tags.join(', ') : 'No tags'}</div>
+          {/* SKU, Tags, etc. */}
+          <div className="mb-4">
+            <div className="text-sm mb-1">
+              <span className="block font-semibold text-lg mb-2">Category:</span>
+              <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto pr-1">
+                {Array.isArray(product.categoryTag?.tags) && product.categoryTag.tags.length > 0 ? (
+                  product.categoryTag.tags.map((tag, index) => (
+                    <span
+                      key={index}
+                      className="bg-gray-200 text-black font-medium px-3 py-1 rounded-full text-sm"
+                    >
+                      {tag}
+                    </span>
+                  ))
+                ) : (
+                  <span className="bg-gray-200 text-black font-medium px-3 py-1 rounded-full text-sm">
+                    {product.category || "No Category"}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
-
       {/* RIGHT: Price/Offers/Add to Cart Box */}
       <div className="w-full lg:w-1/3 flex flex-col">
         <div className="border rounded-xl p-6">
@@ -377,7 +605,7 @@ export default function ProductDetailView({ product }) {
           {/* Action Buttons */}
           <div className="flex gap-4 mb-6 items-center">
             <button
-              className="bg-black text-white py-3 px-8 rounded-lg font-semibold hover:bg-gray-800 w-full"
+              className="bg-black text-white py-3 px-8 font-semibold hover:bg-gray-800 w-full"
               onClick={() => {
                 if (!selectedVariant) return;
                 addToCart({
@@ -488,7 +716,7 @@ export default function ProductDetailView({ product }) {
           </div>
           {/* Buy Now Button */}
           <button
-            className="border border-black py-3 rounded-lg font-semibold hover:bg-gray-100 w-full"
+            className="border border-black py-3 font-semibold hover:bg-gray-100 w-full"
             onClick={() => {
               if (!selectedVariant) return;
               router.push("/checkout");
@@ -498,6 +726,7 @@ export default function ProductDetailView({ product }) {
           </button>
         </div>
       </div>
+
     </div>
   );
 }
