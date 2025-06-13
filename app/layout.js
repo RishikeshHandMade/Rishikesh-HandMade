@@ -16,9 +16,9 @@ export const metadata = {
     template: "%s | Rishikesh Handmade",
   },
   description:
-    "Experience the essence of spirituality with Rishikesh Handmade, offering enriching spiritual journeys across India. Explore the rich heritage of Rishikesh with our expert guidance.",
+    "Rishikesh Handmade:It showcases eco-friendly, handcrafted items like wooden carvings, paintings, jewelry, and home decor made by skilled local artisans. By supporting this platform, you help preserve age-old crafts and empower local communitiess. For more info call +91 7351009107, Info@rishikeshhandmade.com rishikeshhandmade@gmail.com Our website is your gateway to the heart of Rishikesh, offering rich and soulful handmade creations crafted by local artisans.",
   keywords:
-    "rishikeshhandmade, rishikesh, handmade, travel, website, rishikesh handmade, travel website, tour website, tour, tour package, package, india, India",
+    "rishikeshhandmade, rishikesh, handmade, website, rishikesh handmade, travel website, tour website, tour, tour package, package, india, India",
   icons: { apple: "/apple-touch-icon.png" },
   manifest: "/site.webmanifest",
   openGraph: {
@@ -54,7 +54,7 @@ export default function RootLayout({ children }) {
         {isPaid ? (
           <CartProvider>
             <NextTopLoader color="#006eff" height={3} showSpinner={false} zIndex={1600} />
-            <Toaster position="top-center" reverseOrder={false} toastOptions={{ duration: 3000 , style: { fontFamily: "var(--font-GildaDisplay)" } }} />
+            <Toaster position="top-center" reverseOrder={false} toastOptions={{ duration: 3000, style: { fontFamily: "var(--font-GildaDisplay)" } }} />
             <SessionWrapper>
               <SearchProvider>
                 <Header />

@@ -1001,13 +1001,13 @@ const RandomTourPackageSection = () => {
                                 const words = desc.trim().split(/\s+/);
                                 return words.slice(0, 24).join(" ") + (words.length > 24 ? " ..." : "");
                               })()} &nbsp;
-                            <button
-                              onClick={() => setQuickViewNews(news[0])}
-                              className="inline-block text-purple-700 hover:underline font-bold mt-1"
+                              <button
+                                onClick={() => setQuickViewNews(news[0])}
+                                className="inline-block text-purple-700 hover:underline font-bold mt-1"
                               >
-                              See more
-                            </button>
-                              </div>
+                                See more
+                              </button>
+                            </div>
                           </div>
                           {/* Remaining News - alternating color cards */}
                           <div className="flex flex-col gap-3">
@@ -1030,13 +1030,13 @@ const RandomTourPackageSection = () => {
                                       const words = desc.trim().split(/\s+/);
                                       return words.slice(0, 30).join(" ") + (words.length > 30 ? " ..." : "");
                                     })()}&nbsp;
-                                  <button
-                                    onClick={() => setQuickViewNews(item)}
-                                    className="inline-block text-blue-600 hover:underline font-semibold my-1"
+                                    <button
+                                      onClick={() => setQuickViewNews(item)}
+                                      className="inline-block text-blue-600 hover:underline font-semibold my-1"
                                     >
-                                    See more
-                                  </button>
-                                    </div>
+                                      See more
+                                    </button>
+                                  </div>
                                 </div>
                               );
                             })}
@@ -1070,55 +1070,55 @@ const RandomTourPackageSection = () => {
                 first to explore what’s new, what’s hot, and what everyone’s
                 talking about. Your next favorite find is just a follow away!
               </p>
-              <Carousel>
-                <CarouselContent>
-                  {allPosts.map((post, idx) => (
-                    <CarouselItem
-                      key={post._id || idx}
-                      className={`pl-1 ${allPosts.length <= 3 ? cardBasis : "md:basis-1/5"
-                        }`}
-                      style={
-                        allPosts.length <= 3
-                          ? { minWidth: `calc(100%/${allPosts.length})` }
-                          : {}
-                      }
-                    >
-                      <div className="relative group rounded-lg overflow-hidden w-full h-60  md:h-52 bg-gray-100">
-                        <Image
-                          src={post.image}
-                          alt={`${post.type === "facebook" ? "Facebook" : "Instagram"
-                            } ${idx}`}
-                          width={400}
-                          height={400}
-                          className="object-cover md:object-cover w-full h-full"
-                        />
-                        <a
-                          href={post.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center"
-                        >
-                          {post.type === "facebook" ? (
-                            <img
-                              src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg"
-                              alt="Facebook"
-                              className="w-10 h-10 opacity-80"
-                            />
-                          ) : (
-                            <img
-                              src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png"
-                              alt="Instagram"
-                              className="w-10 h-10 opacity-80"
-                            />
-                          )}
-                        </a>
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
-              </Carousel>
+              <div className="w-full px-5">
+                <Carousel className="w-full" plugins={[Autoplay({ delay: 4000 })]}>
+                  <CarouselContent >
+                    {allPosts.map((post, idx) => (
+                      <CarouselItem
+                        key={post._id || idx}
+                        className={`pl-5 ${allPosts.length <= 3 ? cardBasis : "md:basis-1/5"}`}
+                        style={
+                          allPosts.length <= 3
+                            ? { minWidth: `calc(100%/${allPosts.length})` }
+                            : {}
+                        }
+                      >
+                        <div className="relative group rounded-lg overflow-hidden w-full h-60 md:h-52 bg-gray-100">
+                          <Image
+                            src={post.image}
+                            alt={`${post.type === "facebook" ? "Facebook" : "Instagram"} ${idx}`}
+                            width={400}
+                            height={400}
+                            className="object-cover md:object-cover w-full h-full"
+                          />
+                          <a
+                            href={post.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center"
+                          >
+                            {post.type === "facebook" ? (
+                              <img
+                                src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg"
+                                alt="Facebook"
+                                className="w-10 h-10 opacity-80"
+                              />
+                            ) : (
+                              <img
+                                src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png"
+                                alt="Instagram"
+                                className="w-10 h-10 opacity-80"
+                              />
+                            )}
+                          </a>
+                        </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent >
+                  <CarouselPrevious className="absolute left-1 top-1/2 -translate-y-1/2 p-5" />
+                  <CarouselNext className="absolute right-1 top-1/2 -translate-y-1/2 p-5" />
+                </Carousel>
+              </div>
             </div>
           )}
           {/* Quick View Modal */}
