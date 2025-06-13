@@ -1,12 +1,15 @@
 "use client";
-import React, { useState, useEffect, useRef } from 'react';
-import toast from 'react-hot-toast';
+import React, { useState, useRef, useEffect } from "react";
+import { useCart } from "../context/CartContext";
+import toast from "react-hot-toast";
+import { Heart } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 import { Mail, Phone, Share2, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import QuickViewProductCard from "./QuickViewProductCard";
 import Autoplay from "embla-carousel-autoplay";
-import Link from "next/link"
 import BlogQuickViewModal from "./BlogQuickViewModal";
 import CertificateQuickViewModal from "./CertificateQuickViewModal";
 import { Star } from 'lucide-react';
@@ -128,6 +131,48 @@ const CertificateImage = ({ cert, className = "", onClick }) => {
 };
 
 const ArtisanDetails = ({ artisan }) => {
+  console.log(artisan)
+  const { addToCart, addToWishlist, removeFromWishlist, wishlist } = useCart();
+  // --- Helper for Add to Cart with discount/coupon logic ---
+  const handleAddToCart = (item) => {
+    const price = item?.quantity?.variants[0]?.price;
+    const coupon = item.coupon || item.coupons?.coupon;
+    let discountedPrice = price;
+    let couponApplied = false;
+    let couponCode = "";
+    if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+      discountedPrice = price - (price * coupon.percent) / 100;
+      couponApplied = true;
+      couponCode = coupon.couponCode;
+    } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+      discountedPrice = price - coupon.amount;
+      couponApplied = true;
+      couponCode = coupon.couponCode;
+    }
+    addToCart({
+      id: item._id,
+      name: item.title,
+      image: item?.gallery?.mainImage || "/placeholder.jpeg",
+      price: Math.round(discountedPrice),
+      originalPrice: price,
+      qty: 1,
+      couponApplied,
+      couponCode: couponApplied ? couponCode : undefined,
+      productCode: item.code || item.productCode || '',
+      discountPercent: coupon && typeof coupon.percent === 'number' ? coupon.percent : undefined,
+      discountAmount: coupon && typeof coupon.amount === 'number' ? coupon.amount : undefined,
+      cgst: (item.taxes && item.taxes.cgst) || item.cgst || (item.tax && item.tax.cgst) || 0,
+      sgst: (item.taxes && item.taxes.sgst) || item.sgst || (item.tax && item.tax.sgst) || 0,
+      quantity: item.quantity || {},
+    });
+    toast.success("Added to cart!");
+  };
+
+  const formatNumeric = (num) => {
+    if (typeof num !== 'number') return num;
+    return num.toLocaleString('en-IN');
+  }
+
   // ...existing state
   const [otherArtisans, setOtherArtisans] = useState([]);
   const [showBlogModal, setShowBlogModal] = useState(false);
@@ -136,7 +181,6 @@ const ArtisanDetails = ({ artisan }) => {
   const [modalCertificate, setModalCertificate] = useState(null);
   // Helper for safe social links
   const getSocialLink = (plugin, key) => (plugin && plugin[key]) ? plugin[key] : '';
-
 
   // Fetch other artisans (excluding current one)
   useEffect(() => {
@@ -156,7 +200,7 @@ const ArtisanDetails = ({ artisan }) => {
   useEffect(() => {
     if (!showShareBox) return;
     function handleClick(e) {
-      if (shareBoxRef.current && !shareBoxRef.current.covers(e.target)) {
+      if (shareBoxRef.current && !shareBoxRef.current.contains(e.target)) {
         setShowShareBox(false);
       }
     }
@@ -246,7 +290,7 @@ const ArtisanDetails = ({ artisan }) => {
           {/* Details Card */}
           <div className="flex-1 flex flex-col gap-2 mt-8 md:mt-8 md:ml-0 bg-transparent">
             <div className="flex flex-col gap-2">
-              <div className="text-2xl md:text-3xl font-bold leading-tight flex items-center">Name: <span className="font-bold text-2xl md:text-3xl text-gray-800 align-middle"> {artisan.title}{artisan.firstName} {artisan.lastName}</span></div>
+              <div className="text-2xl md:text-2xl font-bold leading-tight flex items-center">Name: <span className="text-2xl md:text-2xl align-middle font-semibold"> {artisan.title}{artisan.firstName} {artisan.lastName}</span></div>
               <div className="flex gap-3">
                 <div className="font-bold text-2xl mt-1 mb-1 text-xl flex items-center pr-2 border-r-4 border-black">SHG : <span className="font-normal text-md ">{artisan.shgName || 'No SHG Name Avaiable'}</span></div>
                 <div className="font-bold text-2xl mt-1 mb-1 text-xl flex items-center"> Artisan Number: <span className="font-normal text-md">{artisan.artisanNumber || 'Artisan Number Not Available'}</span></div>
@@ -260,7 +304,7 @@ const ArtisanDetails = ({ artisan }) => {
               ))}
             </div>
             <div className="font-bold mt-2 text-2xl">Pincode: <span className="font-normal text-md">{artisan.address?.pincode || 'No Pincode'}</span></div>
-            <div className="font-bold mt-2 text-2xl">Address: <span className="font-normal text-md">{artisan.address?.fullAddress || 'No Address'}</span></div>
+            <div className="font-bold mt-2 text-2xl">Address: <span className="font-normal text-">{artisan.address?.fullAddress || 'No Address'}</span></div>
             <div className="flex items-center gap-5 mt-2 mb-2">
               <div className='flex items-center gap-2 mt-2 mb-2 px-4 border-r-4 border-black'>
                 {/* Email icon */}
@@ -491,369 +535,442 @@ const ArtisanDetails = ({ artisan }) => {
       </div>
 
       {/* My Story Section */}
-      <div className="w-full max-w-7xl my-5 px-2 md:px-0">
-        <h2 className="text-3xl font-bold mb-4 w-fit ">
-          <span className='border-t-4 border-black'>
-            My Story
-          </span>
-        </h2>
-        <div className="mb-4 text-lg font-medium">
-          {/* <span className="font-bold">( Short Description )</span> */}
-          <span className="">{artisan.artisanStories?.shortDescription || 'No short description available.'}</span>
-        </div>
-        {/* <div className="mb-4 text-base font-mono text-gray-700">
-          {artisan.artisanStories.storyIntro || 'Maecenas ac est sit amet augue pharetra convallis nec danos dui. Cras suscipit quam et turpis ele.'}
-        </div> */}
-        <div className="flex flex-col md:flex-row gap-8 items-start bg-[#fffaf4] p-6  shadow">
-          {/* Left: Image */}
-          <div className="flex-shrink-0 w-full md:w-[320px] flex justify-center items-center">
-            <img
-              src={artisan.artisanStories?.image || '/placeholder.jpeg'}
-              alt="Artisan"
-              className="rounded-2xl object-cover w-[350px] h-[350px] shadow-md"
-            />
+      {Array.isArray(artisan.artisanStories) && artisan.artisanStories.length > 0 && (
+        <div className="w-full max-w-7xl my-5 px-2 md:px-0">
+          <h2 className="text-3xl font-bold mb-4 w-fit ">
+            <span className='border-t-4 border-black'>
+              My Story
+            </span>
+          </h2>
+          <div className="mb-4 text-lg font-medium">
+            {/* <span className="font-bold">( Short Description )</span> */}
+            <span className="">{artisan.artisanStories?.shortDescription || 'No short description available.'}</span>
           </div>
-          {/* Right: Detail Description */}
-          <div className="flex-1 flex flex-col h-full justify-between w-full">
-            <div>
-              <h3 className="text-2xl font-bold mb-2 underline">Detail Description</h3>
-              <div className="text-xl font-sans mb-5">
-                {artisan.artisanStories?.title || (
-                  <>
-                    {artisan.artisanStories?.title || "Story title"}
-                  </>
-                )}
-              </div>
-              <div className="text-lg font-sans mb-8">
-                {artisan.artisanStories?.longDescription || (
-                  <>
-                    {artisan.artisanStories?.longDescription || "Long description"}
-                  </>
-                )}
-              </div>
+          <div className="flex flex-col md:flex-row gap-8 items-start bg-[#fffaf4] p-6  shadow">
+            {/* Left: Image */}
+            <div className="flex-shrink-0 w-full md:w-[320px] flex justify-center items-center">
+              <img
+                src={artisan.artisanStories?.image || '/placeholder.jpeg'}
+                alt="Artisan"
+                className="rounded-2xl object-cover w-[350px] h-[350px] shadow-md"
+              />
             </div>
-            {/* Share Row */}
-            <div className="flex flex-row items-center gap-6 border-t pt-4 mt-auto justify-end">
-              <span className="text-xl font-bold">Share</span>
-              {/* Share Link */}
-              <button
-                className="hover:scale-110 transition p-1"
-                title="Copy profile link"
-                onClick={() => {
-                  navigator.clipboard.writeText(typeof window !== 'undefined' ? window.location.href : '');
-                  toast.success('Profile link copied!');
-                }}
-              >
-                <svg width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-share-2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="M8.59 13.51l6.83 3.98"></path><path d="M15.41 6.51l-6.82 3.98"></path></svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Products Carousel */}
-      <div className="w-full max-w-7xl my-5">
-        <h3 className="text-3xl font-bold mb-4 text-gray-800">
-          <span className='border-t-4 border-black'>
-            Product We Develop
-          </span></h3>
-        <Carousel className="w-full md:w-[100%] mx-auto my-4">
-          <CarouselContent className="-ml-1 w-full gap-2">
-            {products.map((product) => (
-              <CarouselItem
-                key={product._id}
-                className="pl-1 md:basis-1/4 min-w-0 snap-start"
-              >
-                <div className="max-w-[250px] flex flex-col items-center p-0 relative shadow-none">
-                  {/* Image Section (rounded only) */}
-                  <div className="relative w-full h-72 rounded-3xl overflow-hidden flex items-center justify-center group/image shadow-lg bg-white">
-                    {/* Discount Badge */}
-                    <div className="absolute top-4 left-4 z-10">
-                      <div className="bg-white rounded-full px-4 py-1 text-xs font-bold shadow text-black tracking-tight">
-                        GET 20% OFF
-                      </div>
-                    </div>
-                    {/* Wishlist/Cart buttons */}
-                    <div className="absolute top-4 right-4 z-10 flex flex-col gap-3 items-end">
-                      <button className="rounded-full bg-[#b3a7a3]/80 hover:bg-[#b3a7a3] transition-colors duration-300 h-10 w-10 shadow-none flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
-                      </button>
-                      <button className="rounded-full bg-[#b3a7a3]/80 hover:bg-[#b3a7a3] transition-colors duration-300 h-10 w-10 shadow-none flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2"><circle cx="8" cy="21" r="1" /><circle cx="19" cy="21" r="1" /><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" /></svg>
-                      </button>
-                    </div>
-                    {/* Main Product Image */}
-                    <img
-                      src={Array.isArray(product.gallery) ? product.gallery[0]?.mainImage?.url : product.gallery?.mainImage?.url || "/placeholder.jpeg"}
-                      alt={product.title}
-                      className="object-cover w-full h-full rounded-3xl transition-transform duration-300 group-hover/image:scale-105"
-                    />
-                    {/* Quick View Button - Slide Up from Bottom on Hover */}
-                    <div className="absolute left-0 right-0 bottom-0 flex items-center justify-center translate-y-12 opacity-0 group-hover/image:translate-y-0 group-hover/image:opacity-100 transition-all duration-300 py-4">
-                      <Button
-                        className="bg-black text-white hover:bg-gray-800 transition-colors duration-300 uppercase text-sm font-bold px-8 py-3 rounded-full shadow-lg"
-                        onClick={() => setQuickViewProduct(product)}
-                      >
-                        QUICK VIEW
-                      </Button>
-                    </div>
-                  </div>
-                  {/* Name and Price Section (plain, separate box) */}
-                  <div className="w-full flex justify-between items-center px-4 hover:underline py-4 mt-0 bg-transparent">
-                    <span className="font-semibold text-xl leading-tight max-w-[180px] truncate cursor-pointer mb-1" style={{ color: 'inherit' }}>
-                      {product.title}
-                    </span>
-                    {product.quantity?.variants?.[0]?.price && (
-                      <span className="font-medium text-lg mt-0" style={{ color: 'inherit' }}>
-                        ₹{product.quantity.variants[0].price}
-                      </span>
-                    )}
-                  </div>
+            {/* Right: Detail Description */}
+            <div className="flex-1 flex flex-col h-full justify-between w-full">
+              <div>
+                <h3 className="text-2xl font-bold mb-2 underline">Detail Description</h3>
+                <div className="text-xl font-sans mb-5">
+                  {artisan.artisanStories?.title || (
+                    <>
+                      {artisan.artisanStories?.title || "Story title"}
+                    </>
+                  )}
                 </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious />
-          <CarouselNext />
-        </Carousel>
-      </div>
-
-      {/* Blogs Section */}
-      <div className="w-full max-w-7xl mb-10">
-        <h3 className="text-3xl font-bold mb-4 text-gray-800">
-          <span className='border-t-4 border-black'>
-            Blogs
-          </span></h3>
-        <div className="flex flex-col gap-6">
-          {artisan.artisanBlogs.length === 0 && (
-            <div className="text-gray-500 text-center">No blogs available.</div>
-          )}
-          {artisan.artisanBlogs && artisan.artisanBlogs?.length > 0 && artisan.artisanBlogs.reduce((rows, blog, idx) => {
-            if (idx % 2 === 0) rows.push([blog]);
-            else rows[rows.length - 1].push(blog);
-            return rows;
-          }, []).map((row, rowIdx) => (
-            <div key={rowIdx} className="flex flex-col md:flex-row gap-6">
-              {row.map((blog, colIdx) => {
-                const firstImage = Array.isArray(blog.images) && blog.images.length > 0 ? blog.images[0].url || blog.images[0] : undefined;
-                // Format date (assuming blog.date is ISO or similar)
-                let blogDate = '';
-                if (blog.date) {
-                  const d = new Date(blog.date);
-                  blogDate = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-                }
-                return (
-                  <div
-                    key={blog._id}
-                    className="flex flex-row bg-[#FFF3C9] rounded-3xl shadow-md min-h-[220px] w-full md:w-1/2 overflow-hidden"
+                <div className="text-lg font-sans mb-8">
+                  {artisan.artisanStories?.longDescription || (
+                    <>
+                      {artisan.artisanStories?.longDescription || "Long description"}
+                    </>
+                  )}
+                </div>
+              </div>
+              {/* Share Row */}
+              <div className="flex flex-row items-center gap-6 border-t pt-4 mt-auto justify-end">
+                <span className="text-xl font-bold">Share</span>
+                {/* Share Link */}
+                <button
+                  className="hover:scale-110 transition p-1"
+                  title="Copy profile link"
+                  onClick={() => {
+                    navigator.clipboard.writeText(typeof window !== 'undefined' ? window.location.href : '');
+                    toast.success('Profile link copied!');
+                  }}
+                >
+                  <svg width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-share-2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="M8.59 13.51l6.83 3.98"></path><path d="M15.41 6.51l-6.82 3.98"></path></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Products Carousel */}
+      {Array.isArray(artisan.products) && artisan.products.length > 0 && (
+        <div className="w-full max-w-7xl my-5">
+          <h3 className="text-3xl font-bold mb-4 text-gray-800">
+            <span className='border-t-4 border-black'>
+              Product We Develop
+            </span></h3>
+          <Carousel className={`w-full mx-auto my-4 ${products.length > 0 ? "block" : "hidden"}`} plugins={[Autoplay({ delay: 4000 })]}>
+            <CarouselContent className="w-full gap-2">
+              {products.length > 0 &&
+                products.map((item, index) => (
+                  <CarouselItem
+                    key={index}
+                    className="pl-5 md:basis-1/2 lg:basis-1/4 min-w-0 snap-start"
                   >
-                    {/* Image section */}
-                    <div className="flex-shrink-0 w-1/2 md:w-2/5 flex items-center justify-center bg-[#E8A57B]">
-                      {(() => {
-                        // Prefer image if present, else youtubeUrl
-                        let mediaUrl = undefined;
-                        if (Array.isArray(blog.images) && blog.images?.length > 0) {
-                          mediaUrl = blog.images[0].url || blog.images[0];
-                        } else if (blog.youtubeUrl) {
-                          mediaUrl = blog.youtubeUrl;
-                        }
-
-                        if (mediaUrl) {
-                          // Check if it's a YouTube URL
-                          if (/^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//.test(mediaUrl)) {
-                            // Convert to embed URL
-                            let embedUrl = mediaUrl;
-                            if (embedUrl.includes('youtube.com/watch?v=')) {
-                              const videoId = embedUrl.split('v=')[1].split('&')[0];
-                              embedUrl = `https://www.youtube.com/embed/${videoId}`;
-                            } else if (embedUrl.includes('youtu.be/')) {
-                              const videoId = embedUrl.split('youtu.be/')[1].split(/[?&]/)[0];
-                              embedUrl = `https://www.youtube.com/embed/${videoId}`;
-                            }
-                            return (
-                              <div className="w-full h-full aspect-video rounded-l-3xl overflow-hidden flex items-center justify-center">
-                                <iframe
-                                  src={embedUrl}
-                                  title={blog.title}
-                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                  allowFullScreen
-                                  className="w-full h-full min-h-[160px] max-h-[220px] border-0"
-                                />
-                              </div>
-                            );
+                    <div className="flex flex-col w-[290px]">
+                      {/* Image Section */}
+                      <div className="relative w-full h-96 rounded-3xl overflow-hidden flex items-center justify-center group/image">
+                        {/* --- Dynamic Coupon Tag --- */}
+                        {(() => {
+                          const coupon = item.coupon || item.coupons?.coupon;
+                          if (!coupon?.couponCode) return null;
+                          const { percent, amount, couponCode } = coupon;
+                          let offerText;
+                          if (typeof percent === 'number' && percent > 0) {
+                            offerText = <>GET {percent}% OFF</>;
+                          } else if (typeof amount === 'number' && amount > 0) {
+                            offerText = <>GET ₹{amount} OFF</>;
                           } else {
-                            // Regular image
-                            return (
-                              <img
-                                src={mediaUrl}
-                                alt={blog.title}
-                                className="object-cover w-full h-full max-h-[220px] rounded-l-3xl"
-                              />
-                            );
+                            offerText = <>Special Offer</>;
                           }
-                        } else {
-                          // No image or video
                           return (
-                            <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-l-3xl text-gray-400">
-                              No Image
+                            <div className="absolute top-6 left-4 z-10 bg-white rounded-full px-4 py-1 text-sm font-bold shadow text-black tracking-tight" style={{ letterSpacing: 0 }}>
+                              {offerText}
                             </div>
                           );
-                        }
-                      })()}
-                    </div>
-                    {/* Content section */}
-                    <div className="flex flex-col justify-between p-6 flex-1">
-                      <div>
-                        {blogDate && (
-                          <div className="text-xs font-semibold bg-black text-white inline-block px-3 py-1 rounded mb-2">{blogDate}</div>
-                        )}
-                        <div className="font-bold text-lg md:text-xl text-black mb-2 leading-snug">{blog.title || 'No title available.'}</div>
-                        <div className="text-gray-800 text-base mb-4 line-clamp-3 min-h-[48px]">{blog.shortDescription || 'No description available.'}</div>
-                      </div>
-                      <div className="flex items-center mt-auto">
-                        <button
-                          onClick={() => { setModalBlog(blog); setShowBlogModal(true); }}
-                          className="text-gray-700 font-semibold hover:underline flex items-center group transition focus:outline-none"
-                        >
-                          Read More  &gt;
-
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-              {/* If odd number of blogs, fill the row with an empty div for alignment */}
-              {row.length === 1 && <div className="hidden md:block w-1/2"></div>}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Reviews Section */}
-      <div className="w-full mx-auto mb-10 relative min-h-[600px] flex items-center justify-end relative">
-        {/* Background Image */}
-        <div className="absolute inset-0 w-full h-full z-0">
-          <img
-            src="/blogs.jpg"
-            alt="Happy client"
-            className="w-full h-full object-cover bg-[#FCEED5]"
-            style={{ objectPosition: 'top' }}
-          />
-        </div>
-
-        {/* Review Card Overlay */}
-        <div className="absolute right-1 top-[40%] z-10 flex flex-col justify-start w-full md:w-1/2 items-end pr-1">
-          <Carousel className="w-full md:w-[600px]"
-            plugins={[Autoplay({ delay: 4000 })]}>
-
-            <CarouselContent className="w-full">
-              {(artisan.promotions && artisan.promotions?.length > 0 ? artisan.promotions : [
-                {
-                  _id: 1,
-                  rating: 3,
-                  title: 'Joe Doe',
-                  subtitle: 'Undergraduate Student',
-                  shortDescription: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Aliquam aut ipsa corrupti, laudantium eos assumenda sed qui vitae ut. Aut mollitia obcaecati rerum optio repellendus reiciendis, accusamus, dignissimos impedit quisquam in molestias, voluptates voluptatem expedita. Nisi eligendi excepturi, optio ipsam, porro dolore perspiciatis corrupti atque animi ipsa architecto eum laboriosam.architecto eum laboriosam.architecto eum laboriosam.",
-                  image: '/placeholder.jpeg',
-                },
-
-              ]).map((review, idx) => (
-                <CarouselItem
-                  key={review._id}
-                  className="min-w-0 snap-center w-full"
-                >
-                  <div className="bg-white rounded-3xl px-8 py-5 flex flex-col justify-between h-full min-h-[320px] relative overflow-visible">
-                    {/* Review text */}
-                    <div className="text-md md:text-2xl text-gray-800 font-bold leading-relaxed mb-2 text-left">
-                      {review.title || 'No review text.'}
-                    </div>
-                    <div className="absolute right-4 top-4 flex items-center gap-1">
-                      {review.rating && (
-                        <>
-                          {[...Array(review.rating)].map((_, i) => (
-                            <Star key={i} size={22} className="text-yellow-400 fill-yellow-400" />
-                          ))}
-                        </>
-                      )}
-                    </div>
-
-
-                    <div className="text-md md:text-md text-gray-800 font-medium leading-relaxed mb-2 text-left">
-                      {review.shortDescription || 'No review text.'}
-                    </div>
-                    {/* Bottom row: avatar, name, subtitle, nav buttons */}
-                    <div className="flex items-center justify-between w-full mt-auto">
-                      {/* Avatar, Name, Subtitle */}
-                      <div className="flex items-center">
-                        <img
-                          src={review.image || "/placeholder-user.jpg"}
-                          alt={review.createdBy || 'Anonymous'}
-                          className="w-14 h-14 rounded-full border-4 border-white shadow object-cover"
+                        })()}
+                        {/* Heart/Wishlist & Cart Buttons - Top Right */}
+                        <div className="absolute top-6 right-6 z-10 flex flex-col gap-4 items-end">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={`rounded-full transition-colors duration-300 h-12 w-12 shadow-none ${wishlist.some(i => i.id === item._id) ? "bg-pink-600 hover:bg-pink-700" : "bg-white hover:bg-[#b3a7a3]"}`}
+                            onClick={() => {
+                              if (wishlist.some(i => i.id === item._id)) {
+                                removeFromWishlist(item._id);
+                                toast.success("Removed from wishlist!");
+                              } else {
+                                const price = item?.quantity?.variants[0].price;
+                                const coupon = item.coupon || item.coupons?.coupon;
+                                let discountedPrice = price;
+                                let couponApplied = false;
+                                let couponCode = "";
+                                if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+                                  discountedPrice = price - (price * coupon.percent) / 100;
+                                  couponApplied = true;
+                                  couponCode = coupon.couponCode;
+                                } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+                                  discountedPrice = price - coupon.amount;
+                                  couponApplied = true;
+                                  couponCode = coupon.couponCode;
+                                }
+                                addToWishlist({
+                                  id: item._id,
+                                  name: item.title,
+                                  image: item?.gallery?.mainImage || "/placeholder.jpeg",
+                                  price: Math.round(discountedPrice),
+                                  originalPrice: price,
+                                  qty: 1,
+                                  couponApplied,
+                                  couponCode: couponApplied ? couponCode : undefined
+                                });
+                                toast.success("Added to wishlist!");
+                              }
+                            }}
+                          >
+                            <Heart size={28} className={wishlist.some(i => i.id === item._id) ? "text-white" : "text-pink-600"} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="rounded-full bg-[#b3a7a3]/80 hover:bg-[#b3a7a3] transition-colors duration-300 h-12 w-12 shadow-none"
+                            onClick={() => handleAddToCart(item)}
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="28"
+                              height="28"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="white"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="text-white"
+                            >
+                              <circle cx="8" cy="21" r="1" />
+                              <circle cx="19" cy="21" r="1" />
+                              <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
+                            </svg>
+                          </Button>
+                        </div>
+                        <Image
+                          src={item?.gallery?.mainImage?.url || "/placeholder.jpeg"}
+                          alt={item?.title || "Product image"}
+                          width={400}
+                          height={500}
+                          quality={60}
+                          className="object-cover w-full h-full rounded-3xl transition-transform duration-300 group-hover/image:scale-105"
                         />
-                        <div className="ml-4 text-left">
-                          <div className="font-bold text-xl text-black">{review.createdBy || review.title || 'Anonymous'}</div>
+                        {/* Quick View Button - Slide Up from Bottom on Hover (image only) */}
+                        <div className="absolute left-0 right-0 bottom-0 flex items-center justify-center translate-y-10 opacity-0 group-hover/image:translate-y-0 group-hover/image:opacity-100 transition-all duration-300 py-4 ">
+                          <Button
+                            className="bg-black text-white hover:bg-gray-800 transition-colors duration-300 uppercase text-sm font-bold px-8 py-3 rounded-full shadow-lg border border-2 border-white"
+                            onClick={() => setQuickViewProduct(item.product ? item.product : item)}
+                          >
+                            QUICK VIEW
+                          </Button>
                         </div>
                       </div>
-
+                      {/* Name and Price Section */}
+                      <div className="flex flex-col items-start justify-between px-1 pt-4 pb-2 mt-0">
+                        <Link
+                          href={`/product/${item._id}`}
+                          className="font-bold hover:underline text-xl text-gray-900 leading-tight truncate cursor-pointer"
+                        >
+                          {item?.title}
+                        </Link>
+                        {(() => {
+                          const price = item?.quantity?.variants[0]?.price;
+                          const coupon = item.coupon || item.coupons?.coupon;
+                          let discountedPrice = price;
+                          let hasDiscount = false;
+                          if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+                            discountedPrice = price - (price * coupon.percent) / 100;
+                            hasDiscount = true;
+                          } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+                            discountedPrice = price - coupon.amount;
+                            hasDiscount = true;
+                          }
+                          if (hasDiscount && discountedPrice < price) {
+                            return (
+                              <span>
+                                <del className="text-black font-bold text-xl mr-2">₹{formatNumeric(price)}</del>
+                                <span className="font-bold text-xl text-black px-2">₹{formatNumeric(Math.round(discountedPrice))}</span>
+                              </span>
+                            );
+                          } else {
+                            return (
+                              <span className="font-bold text-xl text-black">₹{formatNumeric(price)}</span>
+                            );
+                          }
+                        })()}
+                      </div>
                     </div>
-                  </div>
-                </CarouselItem>
-              ))}
+                  </CarouselItem>
+                ))}
             </CarouselContent>
-            {/* Carousel navigation styled as in screenshot */}
-            <div className="flex items-center gap-3">
-              <CarouselPrevious className="absolute top-[85%] left-[65%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
-              <CarouselNext className="absolute top-[85%] left-[80%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
-            </div>
+            <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 p-5" />
+            <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 p-5" />
           </Carousel>
         </div>
-      </div>
+      )}
+      {/* Blogs Section */}
+      {Array.isArray(artisan.artisanBlogs) && artisan.artisanBlogs.length > 0 && (
+        <div className="w-full max-w-7xl mb-10">
+          <h3 className="text-3xl font-bold mb-4 text-gray-800">
+            <span className='border-t-4 border-black'>
+              Blogs
+            </span></h3>
+          <div className="flex flex-col gap-6">
+            {artisan.artisanBlogs.length === 0 && (
+              <div className="text-gray-500 text-center">No blogs available.</div>
+            )}
+            {artisan.artisanBlogs && artisan.artisanBlogs?.length > 0 && artisan.artisanBlogs.reduce((rows, blog, idx) => {
+              if (idx % 2 === 0) rows.push([blog]);
+              else rows[rows.length - 1].push(blog);
+              return rows;
+            }, []).map((row, rowIdx) => (
+              <div key={rowIdx} className="flex flex-col md:flex-row gap-6">
+                {row.map((blog, colIdx) => {
+                  const firstImage = Array.isArray(blog.images) && blog.images.length > 0 ? blog.images[0].url || blog.images[0] : undefined;
+                  // Format date (assuming blog.date is ISO or similar)
+                  let blogDate = '';
+                  if (blog.date) {
+                    const d = new Date(blog.date);
+                    blogDate = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                  }
+                  return (
+                    <div
+                      key={blog._id}
+                      className="flex flex-row bg-[#FFF3C9] rounded-3xl shadow-md min-h-[220px] w-full md:w-1/2 overflow-hidden"
+                    >
+                      {/* Image section */}
+                      <div className="flex-shrink-0 w-1/2 md:w-2/5 flex items-center justify-center bg-[#E8A57B]">
+                        {(() => {
+                          // Prefer image if present, else youtubeUrl
+                          let mediaUrl = undefined;
+                          if (Array.isArray(blog.images) && blog.images?.length > 0) {
+                            mediaUrl = blog.images[0].url || blog.images[0];
+                          } else if (blog.youtubeUrl) {
+                            mediaUrl = blog.youtubeUrl;
+                          }
 
-      {/* Certificate And Awards Section */}
-      <div className="w-full md:w-[90%] mx-auto my-10">
-        <div className="flex flex-col items-start gap-8">
-          {/* Left: Heading and description */}
-          <div className="flex-1">
-            <h2 className="text-4xl md:text-5xl font-bold mb-2">
-              <span className="border-t-4 border-black">
-                Certificate And Awards
-              </span>
-            </h2>
+                          if (mediaUrl) {
+                            // Check if it's a YouTube URL
+                            if (/^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//.test(mediaUrl)) {
+                              // Convert to embed URL
+                              let embedUrl = mediaUrl;
+                              if (embedUrl.includes('youtube.com/watch?v=')) {
+                                const videoId = embedUrl.split('v=')[1].split('&')[0];
+                                embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                              } else if (embedUrl.includes('youtu.be/')) {
+                                const videoId = embedUrl.split('youtu.be/')[1].split(/[?&]/)[0];
+                                embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                              }
+                              return (
+                                <div className="w-full h-full aspect-video rounded-l-3xl overflow-hidden flex items-center justify-center">
+                                  <iframe
+                                    src={embedUrl}
+                                    title={blog.title}
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                    className="w-full h-full min-h-[160px] max-h-[220px] border-0"
+                                  />
+                                </div>
+                              );
+                            } else {
+                              // Regular image
+                              return (
+                                <img
+                                  src={mediaUrl}
+                                  alt={blog.title}
+                                  className="object-cover w-full h-full max-h-[220px] rounded-l-3xl"
+                                />
+                              );
+                            }
+                          } else {
+                            // No image or video
+                            return (
+                              <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-l-3xl text-gray-400">
+                                No Image
+                              </div>
+                            );
+                          }
+                        })()}
+                      </div>
+                      {/* Content section */}
+                      <div className="flex flex-col justify-between p-6 flex-1">
+                        <div>
+                          {blogDate && (
+                            <div className="text-xs font-semibold bg-black text-white inline-block px-3 py-1 rounded mb-2">{blogDate}</div>
+                          )}
+                          <div className="font-bold text-lg md:text-xl text-black mb-2 leading-snug">{blog.title || 'No title available.'}</div>
+                          <div className="text-gray-800 text-base mb-4 line-clamp-3 min-h-[48px]">{blog.shortDescription || 'No description available.'}</div>
+                        </div>
+                        <div className="flex items-center mt-auto">
+                          <button
+                            onClick={() => { setModalBlog(blog); setShowBlogModal(true); }}
+                            className="text-gray-700 font-semibold hover:underline flex items-center group transition focus:outline-none"
+                          >
+                            Read More  &gt;
+
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                {/* If odd number of blogs, fill the row with an empty div for alignment */}
+                {row.length === 1 && <div className="hidden md:block w-1/2"></div>}
+              </div>
+            ))}
           </div>
         </div>
-        <div className="w-full h-[500px] mx-auto flex flex-row items-start justify-center px-5 py-1 gap-8">
-          {/* Left Column: Text */}
-          <div className="w-1/2 pr-6 flex flex-col justify-center h-full">
-            <p className="text-gray-700 text-xl text-justify leading-relaxed">
-              We extend our heartfelt congratulations to you on the remarkable achievement of reaching your goal. Your dedication, skill, and unwavering commitment to excellence have truly set you apart. As an artisan, your work reflects not only your talent but also the passion and perseverance that define true craftsmanship. It is with great pride and admiration that we recognize your outstanding accomplishment. May this milestone be a stepping stone to even greater success in your journey. We are honored to celebrate this moment with you and look forward to your continued excellence.
-            </p>
-          </div>
-          {/* Right Column: Certificate Grid */}
-          <div className="w-1/2 h-full flex flex-col items-center gap-4 overflow-hidden border-4 border-black rounded-xl">
-            <CertificateSectionGrid
-              certificates={artisan.certificates && artisan.certificates.length > 0 ? artisan.certificates : [
-                {
-                  _id: 1,
-                  title: 'Gold Glitter Award',
-                  year: '2021',
-                  specialization: 'Craft Excellence',
-                  image: 'https://img.freepik.com/free-vector/black-gold-glitter-background_52683-65222.jpg',
-                },
-                {
-                  _id: 2,
-                  title: 'Silver Handicraft Medal',
-                  year: '2020',
-                  specialization: 'Traditional Art',
-                  image: 'https://img.freepik.com/free-vector/black-gold-glitter-background_52683-65222.jpg',
-                },
-              ]}
-              onImageClick={(cert) => { setModalCertificate(cert); setShowCertificateModal(true); }}
-            // imageClassName="w-full h-full object-cover rounded-lg shadow-md"
+      )}
+
+      {/* Reviews Section */}
+      {Array.isArray(artisan.promotions) && artisan.promotions.length > 0 && (
+        <div className="w-full mx-auto mb-10 relative min-h-[600px] flex items-center justify-end relative">
+          {/* Background Image */}
+          <div className="absolute inset-0 w-full h-full z-0">
+            <img
+              src="/blogs.jpg"
+              alt="Happy client"
+              className="w-full h-full object-cover bg-[#FCEED5]"
+              style={{ objectPosition: 'top' }}
             />
           </div>
+
+          {/* Review Card Overlay */}
+          <div className="absolute right-1 top-[40%] z-10 flex flex-col justify-start w-full md:w-1/2 items-end pr-1">
+
+            <Carousel className="w-full md:w-[600px]"
+              plugins={[Autoplay({ delay: 4000 })]}>
+
+              <CarouselContent className="w-full">
+                {artisan.promotions.map((review) => (
+                  <CarouselItem
+                    key={review._id}
+                    className="min-w-0 snap-center w-full"
+                  >
+                    <div className="bg-white rounded-3xl px-8 py-5 flex flex-col justify-between h-full min-h-[320px] relative overflow-visible">
+                      {/* Review text */}
+                      <div className="text-md md:text-2xl text-gray-800 font-bold leading-relaxed mb-2 text-left">
+                        {review.title || 'No review text.'}
+                      </div>
+
+                      <div className="absolute right-4 top-4 flex items-center gap-1">
+                        {review.rating && (
+                          <>
+                            {[...Array(review.rating)].map((_, i) => (
+                              <Star key={i} size={22} className="text-yellow-400 fill-yellow-400" />
+                            ))}
+                          </>
+                        )}
+                      </div>
+
+                      <div className="text-md md:text-md text-gray-800 font-medium leading-relaxed mb-2 text-left">
+                        {review.shortDescription || 'No review text.'}
+                      </div>
+
+                      {/* Bottom row: avatar, name, subtitle */}
+                      <div className="flex items-center justify-between w-full mt-auto">
+                        <div className="flex items-center">
+                          <img
+                            src={review.image || "/placeholder-user.jpg"}
+                            alt={review.createdBy || 'Anonymous'}
+                            className="w-14 h-14 rounded-full border-4 border-white shadow object-cover"
+                          />
+                          <div className="ml-4 text-left">
+                            <div className="font-bold text-xl text-black">{review.createdBy || review.title || 'Anonymous'}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <div className="flex items-center gap-3">
+                <CarouselPrevious className="absolute top-[85%] left-[65%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
+                <CarouselNext className="absolute top-[85%] left-[80%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
+              </div>
+            </Carousel>
+          </div>
         </div>
-      </div>
+      )}
+      {/* Certificate And Awards Section */}
+      {Array.isArray(artisan.certificates) && artisan.certificates.length > 0 && (
+        <div className="w-full md:w-[90%] mx-auto my-10">
+          <div className="flex flex-col items-start gap-8">
+            {/* Left: Heading and description */}
+            <div className="flex-1">
+              <h2 className="text-4xl md:text-5xl font-bold mb-2">
+                <span className="border-t-4 border-black">
+                  Certificate And Awards
+                </span>
+              </h2>
+            </div>
+          </div>
+          <div className="w-full h-[500px] mx-auto flex flex-row items-start justify-center px-5 py-1 gap-8">
+            {/* Left Column: Text */}
+            <div className="w-1/2 pr-6 flex flex-col justify-center h-full">
+              <p className="text-gray-700 text-xl text-justify leading-relaxed">
+                We extend our heartfelt congratulations to you on the remarkable achievement of reaching your goal. Your dedication, skill, and unwavering commitment to excellence have truly set you apart. As an artisan, your work reflects not only your talent but also the passion and perseverance that define true craftsmanship. It is with great pride and admiration that we recognize your outstanding accomplishment. May this milestone be a stepping stone to even greater success in your journey. We are honored to celebrate this moment with you and look forward to your continued excellence.
+              </p>
+            </div>
+            {/* Right Column: Certificate Grid */}
+            <div className="w-1/2 h-full flex flex-col items-center gap-4 overflow-hidden border-4 border-black rounded-xl">
+              <CertificateSectionGrid
+                certificates={artisan.certificates}
+                onImageClick={(cert) => { setModalCertificate(cert); setShowCertificateModal(true); }}
+              // imageClassName="w-full h-full object-cover rounded-lg shadow-md"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Meet Other Artisans Section */}
       <div className="w-full max-w-[90%] mx-auto mb-16 mt-16">
@@ -992,7 +1109,6 @@ const ArtisanDetails = ({ artisan }) => {
                         {/* Card Content Overlay */}
                         <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-6 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
                           <div>
-                            <div className="font-bold text-2xl text-white mb-2 leading-tight drop-shadow-md">{card.name}</div>
                             <Link
                               href={`/artisan/${card.id}`}
                               className="font-bold text-2xl text-white mb-3 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
@@ -1000,6 +1116,7 @@ const ArtisanDetails = ({ artisan }) => {
                             >
                               {card.name}
                             </Link>
+                            <div className="text-md text-white drop-shadow-md">{card.title}</div>
                           </div>
                           {/* Arrow Button with Socials on Hover */}
                           <div className="relative group/arrow">

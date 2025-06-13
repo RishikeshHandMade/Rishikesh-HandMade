@@ -21,7 +21,7 @@ import Artisan from '@/models/Artisan';
 
 export async function GET(req, { params }) {
   await connectDB();
-  const id = await params.id;
+  const id = params.id;
   // console.log('Requested artisan id:', id);
   const artisan = await Artisan.findById(id)
     .populate('promotions')
