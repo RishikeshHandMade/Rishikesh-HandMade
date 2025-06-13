@@ -141,6 +141,7 @@ const BlogDetail = () => {
                   ) : blog?.images && blog?.images?.length > 0 ? (
                     <div className="w-full rounded-2xl overflow-hidden mb-8">
                       <img
+                      loading="lazy"
                         src={blog?.images[0]?.url}
                         alt={blog?.title}
                         className="w-full object-cover rounded-2xl"
@@ -163,9 +164,9 @@ const BlogDetail = () => {
             <div className="hidden md:flex md:w-1/3 w-full">
               <div className="sticky bottom-0 h-screen w-full flex flex-col">
                 <div className="bg-[#fcf7f1] rounded-lg p-4 flex flex-col h-full">
-                  <div className="flex-1 pr-2 mb-4">
+                  <div className="flex-1 pr-2">
                     <div className="font-bold text-2xl mb-4">Latest News</div>
-                    <div className="h-[calc(100vh-200px)] overflow-y-auto p-4 border border-black rounded-xl scrollbar-none" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                    <div className="h-[calc(100vh-150px)] overflow-y-auto p-4 border border-black rounded-xl scrollbar-none" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                       {loadingNews ? (
                         <div className="flex items-center justify-center h-full min-h-[120px]">
                           <svg className="animate-spin h-7 w-7 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -207,7 +208,7 @@ const BlogDetail = () => {
             {/* News Section for mobile (below blog on small screens) */}
             <div className="md:hidden w-full flex flex-col mt-8">
               <div className="bg-[#fcf7f1] rounded-lg p-4 flex flex-col min-h-[350px]">
-                <div className="flex-1 pr-2 mb-4">
+                <div className="flex-1 pr-2">
                   <div className="font-bold text-2xl mb-4">Latest News</div>
                   <div className="h-[380px] overflow-y-auto p-4 border border-black rounded-xl scrollbar-none" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                     {loadingNews ? (
@@ -250,7 +251,6 @@ const BlogDetail = () => {
           </div>
         </div>
       )}
-
       {/* Related Blogs Section */}
       {blog && blog._id && (
         <RelatedBlogs excludeId={blog._id} />

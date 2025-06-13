@@ -388,20 +388,24 @@ const RandomTourPackageSection = () => {
                       {/* Image Section */}
                       <div className="relative w-full h-96  rounded-3xl overflow-hidden flex items-center justify-center group/image">
                         {/* GET 10% OFF Tag */}
+                        
+                        {item.coupon?.length > 0 && (
                         <div className="absolute top-6 left-4 z-10">
                           <div className="bg-white rounded-full px-4 py-1 text-sm font-bold shadow text-black tracking-tight" style={{ letterSpacing: 0 }}>
-                            {(() => {
-                              const coupon = item.coupon || item.coupons?.coupon;
-                              if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
-                                return <>GET {coupon.percent}% OFF</>;
-                              } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
-                                return <>GET ₹{coupon.amount} OFF</>;
-                              } else {
-                                return <>GET 10% OFF</>;
-                              }
-                            })()}
-                          </div>
+                              {(() => {
+                                const coupon = item.coupon || item.coupons?.coupon;
+                                if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+                                  return <>GET {coupon.percent}% OFF</>;
+                                } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+                                  return <>GET ₹{coupon.amount} OFF</>;
+                                } else {
+                                  return <>GET 10% OFF</>;
+                                }
+                              })()} 
+                        
+                          </div>  
                         </div>
+                        )}
                         {/* Heart/Wishlist & Cart Buttons - Top Right */}
                         <div className="absolute top-6 right-6 z-10 flex flex-col gap-4 items-end">
                           <Button
@@ -481,7 +485,7 @@ const RandomTourPackageSection = () => {
                           <Button
                             className="bg-black text-white hover:bg-gray-800 transition-colors duration-300 uppercase text-sm font-bold px-8 py-3 rounded-full shadow-lg border border-2 border-white"
                             onClick={() => setQuickViewProduct(item.product ? item.product : item) // Ensure we always pass the actual product object, not a wrapper
-}
+                            }
                           >
                             QUICK VIEW
                           </Button>

@@ -60,6 +60,9 @@ export default function ProductDetailView({ product }) {
   const [showSizeChart, setShowSizeChart] = React.useState(false);
   const [selectedSize, setSelectedSize] = React.useState(null);
   const [selectedColor, setSelectedColor] = React.useState(null);
+  const [showFullDesc, setShowFullDesc] = React.useState(false);
+  const desc = product.description?.overview || "No Description";
+  const words = desc.split(' ');
 
   // Extract variants
   const variants = Array.isArray(product?.quantity?.variants) ? product.quantity.variants : [];
@@ -207,7 +210,32 @@ export default function ProductDetailView({ product }) {
             )}Rating</span>
           <span className="text-gray-700 text-sm">({product.reviews?.length || 0} customer reviews)</span>
         </div>
-        <p className="text-gray-700 mb-6 max-w-lg">{product.description?.overview || "No Description"}</p>
+        {(() => {
+ 
+  if (desc === "No Description") {
+    return <p className="text-gray-700 mb-6 max-w-lg">No Description</p>;
+  }
+  if (showFullDesc || words.length <= 20) {
+    return (
+      <p className="text-gray-700 mb-6 max-w-lg">
+        {desc}
+        {words.length > 20 && (
+          <>
+            {' '}<button className="text-blue-600 underline ml-2" onClick={() => setShowFullDesc(false)}>Close</button>
+          </>
+        )}
+      </p>
+    );
+  }
+  return (
+    <p className="text-gray-700 mb-6 max-w-lg">
+      {words.slice(0, 20).join(' ')}...{' '}
+      <button className="text-blue-600 underline" onClick={() => setShowFullDesc(true)}>Read more</button>
+    </p>
+  );
+})()}
+
+
         {/* Selectors */}
         {/* Price and Coupon Section */}
         <div className="mb-4">

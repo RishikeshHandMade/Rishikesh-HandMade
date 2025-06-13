@@ -55,14 +55,15 @@ function RelatedProductsCarousel({ products }) {
     <div className="w-full py-10 px-5">
       {/* <h2 className="text-xl font-bold mb-8 text-center">Related Products</h2> */}
       <div className="relative">
-        <Carousel className="w-full" plugins={[Autoplay({ delay: 4000 })]}>
+        <Carousel className="w-full pl-2" plugins={[Autoplay({ delay: 4000 })]}>
           <CarouselContent>
             {safeProducts.map((p, idx) => (
-              <CarouselItem key={p._id || idx} className="w-72 min-w-[270px]">
+              <CarouselItem key={p._id || idx} className="pl-5  md:basis-1/2 lg:basis-1/4 min-w-0 snap-start">
                 <div
                   className="rounded-2xl flex flex-col justify-between w-72 min-w-[270px] p-0 relative overflow-hidden"
                 >
                   {/* Discount badge */}
+                  {p.coupon?.length > 0 && (
                   <div className="absolute left-4 top-4 z-20 bg-white rounded-full px-4 py-1 text-sm font-bold text-black tracking-tight">
                     {(() => {
                       const coupon = p.coupon || p.coupons?.coupon;
@@ -70,11 +71,10 @@ function RelatedProductsCarousel({ products }) {
                         return <>GET {coupon.percent}% OFF</>;
                       } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
                         return <>GET ₹{coupon.amount} OFF</>;
-                      } else {
-                        return <>No Discount</>;
-                      }
+                      } 
                     })()}
                   </div>
+                  )}
                   {/* Icons top right, stacked */}
                   <div className="absolute top-6 right-6 z-10 flex flex-col gap-4 items-end">
                     <Button
@@ -152,7 +152,7 @@ function RelatedProductsCarousel({ products }) {
                     />
                   </div>
                   {/* Bottom section: name and price */}
-                  <div className="flex flex-row items-center justify-between w-full px-5 py-4">
+                  <div className="flex flex-col items-start justify-between w-full px-5 py-4">
                     <div className="flex-1 min-w-0">
                       <Link
                         href={`/product/${p._id}`}
@@ -196,8 +196,8 @@ function RelatedProductsCarousel({ products }) {
               </CarouselItem>
             ))}
           </CarouselContent>
-          {/* <CarouselPrevious /> */}
-          {/* <CarouselNext /> */}
+          <CarouselPrevious className="absolute top-44 left-0 z-10 p-5 " />
+          <CarouselNext className="absolute top-44 right-0 z-10 p-5" />
         </Carousel>
       </div>
     </div>
