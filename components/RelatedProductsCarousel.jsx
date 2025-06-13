@@ -62,19 +62,28 @@ function RelatedProductsCarousel({ products }) {
                 <div
                   className="rounded-2xl flex flex-col justify-between w-72 min-w-[270px] p-0 relative overflow-hidden"
                 >
-                  {/* Discount badge */}
-                  {p.coupon?.length > 0 && (
-                  <div className="absolute left-4 top-4 z-20 bg-white rounded-full px-4 py-1 text-sm font-bold text-black tracking-tight">
-                    {(() => {
-                      const coupon = p.coupon || p.coupons?.coupon;
-                      if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
-                        return <>GET {coupon.percent}% OFF</>;
-                      } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
-                        return <>GET ₹{coupon.amount} OFF</>;
-                      } 
-                    })()}
-                  </div>
-                  )}
+               
+               {(() => {
+                          const coupon = p.coupon || p.coupons?.coupon;
+                          if (!coupon?.couponCode) return null;
+
+                          const { percent, amount } = coupon;
+
+                          let offerText;
+                          if (typeof percent === 'number' && percent > 0) {
+                            offerText = <>GET {percent}% OFF</>;
+                          } else if (typeof amount === 'number' && amount > 0) {
+                            offerText = <>GET ₹{amount} OFF</>;
+                          } else {
+                            offerText = <>Special Offer</>;
+                          }
+
+                          return (
+                            <div className="absolute top-6 left-4 z-10 bg-white rounded-full px-4 py-1 text-sm font-bold shadow text-black tracking-tight" style={{ letterSpacing: 0 }}>
+                              {offerText}
+                            </div>
+                          );
+                        })()}
                   {/* Icons top right, stacked */}
                   <div className="absolute top-6 right-6 z-10 flex flex-col gap-4 items-end">
                     <Button

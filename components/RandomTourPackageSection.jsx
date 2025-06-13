@@ -206,7 +206,7 @@ const RandomTourPackageSection = () => {
       try {
         const res = await fetch("/api/product");
         const data = await res.json();
-        console.log("Product API response:", data);
+        // console.log("Product API response:", data);
 
         if (data && data.length > 0) {
           setProducts(data);
@@ -291,8 +291,6 @@ const RandomTourPackageSection = () => {
         setIsLoading(false);
       }
     };
-
-
     fetchProducts();
     fetchBlogs();
     fetchPromotinalBanner();
@@ -388,24 +386,29 @@ const RandomTourPackageSection = () => {
                       {/* Image Section */}
                       <div className="relative w-full h-96  rounded-3xl overflow-hidden flex items-center justify-center group/image">
                         {/* GET 10% OFF Tag */}
-                        
-                        {item.coupon?.length > 0 && (
-                        <div className="absolute top-6 left-4 z-10">
-                          <div className="bg-white rounded-full px-4 py-1 text-sm font-bold shadow text-black tracking-tight" style={{ letterSpacing: 0 }}>
-                              {(() => {
-                                const coupon = item.coupon || item.coupons?.coupon;
-                                if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
-                                  return <>GET {coupon.percent}% OFF</>;
-                                } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
-                                  return <>GET ₹{coupon.amount} OFF</>;
-                                } else {
-                                  return <>GET 10% OFF</>;
-                                }
-                              })()} 
-                        
-                          </div>  
-                        </div>
-                        )}
+
+                        {(() => {
+                          const coupon = item.coupon || item.coupons?.coupon;
+                          if (!coupon?.couponCode) return null;
+
+                          const { percent, amount, couponCode } = coupon;
+
+                          let offerText;
+                          if (typeof percent === 'number' && percent > 0) {
+                            offerText = <>GET {percent}% OFF</>;
+                          } else if (typeof amount === 'number' && amount > 0) {
+                            offerText = <>GET ₹{amount} OFF</>;
+                          } else {
+                            offerText = <>Special Offer</>;
+                          }
+
+                          return (
+                            <div className="absolute top-6 left-4 z-10 bg-white rounded-full px-4 py-1 text-sm font-bold shadow text-black tracking-tight" style={{ letterSpacing: 0 }}>
+                              {offerText}
+                            </div>
+                          );
+                        })()}
+
                         {/* Heart/Wishlist & Cart Buttons - Top Right */}
                         <div className="absolute top-6 right-6 z-10 flex flex-col gap-4 items-end">
                           <Button
@@ -493,7 +496,7 @@ const RandomTourPackageSection = () => {
                         </div>
                       </div>
                       {/* Name and Price Section */}
-                      <div className="flex items-center justify-between px-2 pt-4 pb-2  mt-0">
+                      <div className="flex items-center justify-between px-1 pt-4 pb-2  mt-0">
                         <Link
                           href={`/product/${item._id}`}
                           className="font-bold hover:underline text-xl text-gray-900 leading-tight max-w-[200px] truncate cursor-pointer"
@@ -532,8 +535,8 @@ const RandomTourPackageSection = () => {
                   </CarouselItem>
                 ))}
             </CarouselContent>
-            {/* <CarouselPrevious /> */}
-            {/* <CarouselNext /> */}
+            <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 p-5" />
+            <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 p-5" />
           </Carousel>
           {/* Promotional Banner Section */}
           {promotinalBanner.length > 0 && (
@@ -541,11 +544,31 @@ const RandomTourPackageSection = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {promotinalBanner.map((item, idx) => (
                   <div key={idx} className="rounded-2xl flex flex-col h-[350px] md:h-[400px] p-0 overflow-hidden relative group">
-                    <img src={item?.image?.url} alt={item?.title} className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105" />
+                    <img src={item?.image?.url} alt={item?.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
                     <div className="absolute z-10 flex flex-col justify-between gap-2 px-10 p-6 h-full items-start">
-                      <span className="inline-block bg-white text-black px-3 py-1 rounded text-xs font-bold w-fit mb-2 shadow">{item?.coupon ? `GET ${item?.coupon}% OFF` : ''}</span>
-                      <span className="text-2xl md:text-3xl font-extrabold text-black mb-2 leading-tight w-1/2">{item?.title}</span>
-                      <Link href={item?.buttonLink || '#'} target="_blank" rel="noopener noreferrer" className="mt-4 px-5 py-2 bg-black text-white rounded-xl hover:bg-gray-800 transition w-fit">View Now</Link>
+                      {(() => {
+                        const coupon = item.coupon || item.coupons?.coupon;
+                        if (!coupon?.couponCode) return null;
+
+                        const { percent, amount, couponCode } = coupon;
+
+                        let offerText;
+                        if (typeof percent === 'number' && percent > 0) {
+                          offerText = <>GET {percent}% OFF</>;
+                        } else if (typeof amount === 'number' && amount > 0) {
+                          offerText = <>GET ₹{amount} OFF</>;
+                        } else {
+                          offerText = <>Special Offer</>;
+                        }
+
+                        return (
+                          <div className="absolute top-6 left-4 z-10 bg-white rounded-full px-4 py-1 text-sm font-bold shadow text-black tracking-tight" style={{ letterSpacing: 0 }}>
+                            {offerText}
+                          </div>
+                        );
+                      })()}
+                      <span className="text-2xl md:text-5xl font-bold text-black mb-2 leading-tight w-1/2">{item?.title}</span>
+                      <Link href={item?.buttonLink || '#'} target="_blank" rel="noopener noreferrer" className="mt-4 px-10 text-md py-2 bg-black text-white hover:bg-gray-800 transition w-fit">View Now</Link>
                     </div>
                   </div>
                 ))}
@@ -564,7 +587,27 @@ const RandomTourPackageSection = () => {
                       <div className="rounded-2xl flex flex-col h-[340px] p-0 overflow-hidden relative bg-white group">
                         <img src={item.image?.url} alt={item.title} className="absolute inset-0 w-full h-full object-cover object-center opacity-80 transition-transform duration-300 group-hover:scale-105" />
                         <div className="relative z-10 flex flex-col justify-between items-start h-full p-6">
-                          <span className="inline-block bg-white text-black px-3 py-1 rounded text-xs font-bold w-fit mb-2 shadow">{item.coupon ? `GET ${item.coupon}% OFF` : ''}</span>
+                          {(() => {
+                            const coupon = item.coupon || item.coupons?.coupon;
+                            if (!coupon?.couponCode) return null;
+
+                            const { percent, amount, couponCode } = coupon;
+
+                            let offerText;
+                            if (typeof percent === 'number' && percent > 0) {
+                              offerText = <>GET {percent}% OFF</>;
+                            } else if (typeof amount === 'number' && amount > 0) {
+                              offerText = <>GET ₹{amount} OFF</>;
+                            } else {
+                              offerText = <>Special Offer</>;
+                            }
+
+                            return (
+                              <div className="absolute top-6 left-4 z-10 bg-white rounded-full px-4 py-1 text-sm font-bold shadow text-black tracking-tight" style={{ letterSpacing: 0 }}>
+                                {offerText}
+                              </div>
+                            );
+                          })()}
                           <span className="text-2xl md:text-3xl font-extrabold text-black mb-2 leading-tight w-1/2">{item.title}</span>
                           <Link href={item.buttonLink || '#'} target="_blank" rel="noopener noreferrer" className="mt-4 px-5 py-3 bg-black text-white rounded-xl hover:bg-gray-800 transition w-fit">View Now</Link>
                         </div>
@@ -852,17 +895,90 @@ const RandomTourPackageSection = () => {
             </div>
           </div>
 
-          {/* News/Announcement Section */}
+          {/*Blogs /  News & Announcement Section */}
           <div className="w-full flex flex-col items-center mb-12">
-            <div className="w-full flex flex-col md:flex-row gap-8 min-h-[300px]">
+            <div className="w-full flex flex-col md:flex-row gap-8 min-h-[350px]">
               <div className="flex flex-col md:flex-row w-full gap-8">
-                <div className="flex-1 bg-[#fcf7f1] rounded-lg p-4 flex flex-col justify-between min-h-[300px]">
+                <div className="flex-1 bg-[#fcf7f1] rounded-lg p-4 flex flex-col justify-between min-h-[350px] px-10">
                   <h2 className="text-3xl font-bold mb-4">Upcoming News, Blog and Events</h2>
                   <p className="text-gray-800 mb-8 text-lg md:text-md font-medium">
                     "We're preparing exciting new content and updates for our users, including upcoming news and events. We’re working behind the scenes to bring you fresh news, upcoming events, and new features to enhance your experience.
                     <br /><br />
                     Stay connected — great things are coming soon!"
                   </p>
+                  {!isBlogsLoading && blogs && blogs.length > 0 && (
+                    <div className="w-full mx-auto max-w-7xl mb-10 p-2">
+                      <Carousel className="w-full" plugins={[Autoplay({ delay: 4000 })]}>
+                        <CarouselContent className="">
+                          {blogs.map((blog, idx) => {
+                            // Determine media (YouTube or image)
+                            let mediaUrl = blog.image || (Array.isArray(blog.images) && blog.images.length > 0 ? blog.images[0].url || blog.images[0] : undefined) || blog.youtubeUrl;
+                            let isYoutube = false;
+                            let embedUrl = '';
+                            if (mediaUrl && /^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//.test(mediaUrl)) {
+                              isYoutube = true;
+                              embedUrl = mediaUrl;
+                              if (embedUrl.includes('youtube.com/watch?v=')) {
+                                const videoId = embedUrl.split('v=')[1].split('&')[0];
+                                embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                              } else if (embedUrl.includes('youtu.be/')) {
+                                const videoId = embedUrl.split('youtu.be/')[1].split(/[?&]/)[0];
+                                embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                              }
+                            }
+                            return (
+                              <CarouselItem key={blog._id || idx} className="w-full">
+                                <div className="flex flex-row bg-[#FFF3C9] rounded-xl min-h-[220px] w-full overflow-hidden">
+                                  {/* Image/Video section */}
+                                  <div className="flex-shrink-0 w-1/2 md:w-2/5 flex items-center justify-center">
+                                    {isYoutube ? (
+                                      <div className="w-full h-full aspect-video rounded-l-xl overflow-hidden flex items-center justify-center">
+                                        <iframe
+                                          src={embedUrl}
+                                          title={blog.title}
+                                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                          allowFullScreen
+                                          className="w-full h-full min-h-[160px] max-h-[220px] border-0"
+                                        />
+                                      </div>
+                                    ) : mediaUrl ? (
+                                      <img
+                                        src={mediaUrl}
+                                        alt={blog.title}
+                                        className="object-cover md:object-cover w-full h-full max-h-[220px] rounded-l-xl"
+                                      />
+                                    ) : (
+                                      <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-l-xl text-gray-400">
+                                        No Image
+                                      </div>
+                                    )}
+                                  </div>
+                                  {/* Content section */}
+                                  <div className="flex flex-col justify-between p-4 flex-1">
+                                    <div>
+                                      <div className="font-bold text-lg md:text-xl text-black mb-2 leading-snug">{blog.title || 'No title available.'}</div>
+                                      <div className="text-gray-800 text-base mb-4 line-clamp-3 min-h-[48px]">{blog.shortDescription || blog.shortDesc || 'No description available.'}</div>
+                                    </div>
+                                    <div className="flex items-center mt-auto">
+                                      <Link
+                                        href={`/blogs/${blog._id}`}
+                                        rel="noopener noreferrer"
+                                        className="text-gray-700 font-semibold hover:underline flex items-center group transition focus:outline-none"
+                                      >
+                                        Read More  &gt;
+                                      </Link>
+                                    </div>
+                                  </div>
+                                </div>
+                              </CarouselItem>
+                            );
+                          })}
+                        </CarouselContent>
+                        <CarouselPrevious className="bg-black text-white py-3 font-bold rounded hover:bg-gray-800 transition-colors text-lg" />
+                        <CarouselNext className="bg-black text-white py-3 font-bold rounded hover:bg-gray-800 transition-colors text-lg" />
+                      </Carousel>
+                    </div>
+                  )}
                   <Link href="/blogs">
                     <button className="w-full bg-black text-white py-3 font-bold rounded hover:bg-gray-800 transition-colors text-lg">
                       Read More
@@ -870,28 +986,62 @@ const RandomTourPackageSection = () => {
                   </Link>
                 </div>
                 {/* News box */}
-                <div className="flex-1 bg-[#fcf7f1] rounded-lg p-4 flex flex-col min-h-[300px]">
+                <div className="flex-1 bg-[#fcf7f1] rounded-lg p-4 flex flex-col min-h-[350px] border border-black">
                   <div className="flex-1 pr-2 mb-4">
-                    <div className="font-bold text-2xl mb-4">Latest News</div>
-                    <div className="h-[380px] overflow-y-auto p-4 border border-black rounded-xl">
+                    <div className="font-bold text-2xl mb-4 px-2">Latest News</div>
+                    <div className="h-[400px] overflow-y-auto p-0 border-none rounded-xl">
                       {news && news.length > 0 ? (
-                        news.map((item) => (
-                          <div key={item._id} className="bg-gray-200 border border-black rounded-lg px-3 py-2 mb-2 text-base font-medium">
-                            <div className="mb-2">
+                        <>
+                          {/* First News - plain heading and description, not in a box */}
+                          <div className="mb-4 px-2">
+                            <div className="font-bold text-lg md:text-xl mb-1">{news[0].title || 'News'}</div>
+                            <div className="text-gray-700 mb-1">
                               {(() => {
-                                const desc = item.description ?? "";
+                                const desc = news[0].description ?? "";
                                 const words = desc.trim().split(/\s+/);
-                                return words.slice(0, 20).join(" ") + (words.length > 20 ? " ..." : "");
-                              })()}
-                            </div>
+                                return words.slice(0, 24).join(" ") + (words.length > 24 ? " ..." : "");
+                              })()} &nbsp;
                             <button
-                              onClick={() => setQuickViewNews(item)}
-                              className="inline-block text-blue-600 hover:underline font-semibold mt-2"
-                            >
-                              Read More
+                              onClick={() => setQuickViewNews(news[0])}
+                              className="inline-block text-purple-700 hover:underline font-bold mt-1"
+                              >
+                              See more
                             </button>
+                              </div>
                           </div>
-                        ))
+                          {/* Remaining News - alternating color cards */}
+                          <div className="flex flex-col gap-3">
+                            {news.slice(1).map((item, idx) => {
+                              const colorClasses = [
+                                'bg-[#fff7eb] border-[#ffe7c7]', // light orange
+                                'bg-[#f2fff6] border-[#c7ffe6]', // light green
+                                'bg-[#f2f6ff] border-[#c7d6ff]'  // light blue
+                              ];
+                              const colorIdx = idx % 3;
+                              return (
+                                <div
+                                  key={item._id}
+                                  className={`rounded-xl border font-barlow px-4 py-3 ${colorClasses[colorIdx]} shadow-md`}
+                                >
+                                  <div className="font-bold text-base md:text-lg mb-1">{item.title || 'News'}</div>
+                                  <div className="text-gray-700 mb-2">
+                                    {(() => {
+                                      const desc = item.description ?? "";
+                                      const words = desc.trim().split(/\s+/);
+                                      return words.slice(0, 30).join(" ") + (words.length > 30 ? " ..." : "");
+                                    })()}&nbsp;
+                                  <button
+                                    onClick={() => setQuickViewNews(item)}
+                                    className="inline-block text-blue-600 hover:underline font-semibold my-1"
+                                    >
+                                    See more
+                                  </button>
+                                    </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </>
                       ) : (
                         <div className="text-gray-500 text-center py-8">No news available at the moment.</div>
                       )}
@@ -906,96 +1056,7 @@ const RandomTourPackageSection = () => {
               </div>
             </div>
           </div>
-          {/* Blog Section with full-width background */}
-          {!isBlogsLoading && blogs && blogs.length > 0 && (
-            <div className="w-full mx-auto  max-w-7xl mb-10 p-2">
-              <Carousel className="w-full" plugins={[Autoplay({ delay: 4000 })]}>
-                <CarouselContent className="px-10 sm:px-0">
-                  {Array.from({ length: Math.ceil(blogs.length / 2) }).map((_, pairIdx) => (
-                    <CarouselItem key={pairIdx} className="w-full">
-                      <div className="flex flex-col md:flex-row gap-6">
-                        {[0, 1].map((offset) => {
-                          const blog = blogs[pairIdx * 2 + offset];
-                          if (!blog) return null;
 
-                          // Determine media (YouTube or image)
-                          let mediaUrl = blog.image || (Array.isArray(blog.images) && blog.images.length > 0 ? blog.images[0].url || blog.images[0] : undefined) || blog.youtubeUrl;
-                          let isYoutube = false;
-                          let embedUrl = '';
-                          if (mediaUrl && /^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//.test(mediaUrl)) {
-                            isYoutube = true;
-                            embedUrl = mediaUrl;
-                            if (embedUrl.includes('youtube.com/watch?v=')) {
-                              const videoId = embedUrl.split('v=')[1].split('&')[0];
-                              embedUrl = `https://www.youtube.com/embed/${videoId}`;
-                            } else if (embedUrl.includes('youtu.be/')) {
-                              const videoId = embedUrl.split('youtu.be/')[1].split(/[?&]/)[0];
-                              embedUrl = `https://www.youtube.com/embed/${videoId}`;
-                            }
-                          }
-                          return (
-                            <div
-                              key={blog._id || offset}
-                              className="flex flex-row bg-[#FFF3C9] rounded-xl min-h-[220px] w-full md:w-1/2 overflow-hidden"
-                            >
-                              {/* Image/Video section */}
-                              <div className="flex-shrink-0 w-1/2 md:w-2/5 flex items-center justify-center">
-                                {isYoutube ? (
-                                  <div className="w-full h-full aspect-video rounded-l-xl overflow-hidden flex items-center justify-center">
-                                    <iframe
-                                      src={embedUrl}
-                                      title={blog.title}
-                                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                      allowFullScreen
-                                      className="w-full h-full min-h-[160px] max-h-[220px] border-0"
-                                    />
-                                  </div>
-                                ) : mediaUrl ? (
-                                  <img
-                                    src={mediaUrl}
-                                    alt={blog.title}
-                                    className="object-cover md:object-cover w-full h-full max-h-[220px] rounded-l-xl"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-l-xl text-gray-400">
-                                    No Image
-                                  </div>
-                                )}
-                              </div>
-                              {/* Content section */}
-                              <div className="flex flex-col justify-between p-4 flex-1">
-                                <div>
-                                  <div className="font-bold text-lg md:text-xl text-black mb-2 leading-snug">{blog.title || 'No title available.'}</div>
-                                  <div className="text-gray-800 text-base mb-4 line-clamp-3 min-h-[48px]">{blog.shortDescription || blog.shortDesc || 'No description available.'}</div>
-                                </div>
-                                <div className="flex items-center mt-auto">
-                                  <Link
-                                    href={`/blogs/${blog._id}`}
-
-                                    rel="noopener noreferrer"
-                                    className="text-gray-700 font-semibold hover:underline flex items-center group transition focus:outline-none"
-                                  >
-                                    Read More  &gt;
-                                  </Link>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                        {/* If odd number of blogs, fill the row with an empty div for alignment */}
-                        {(() => {
-                          const isOdd = blogs.length % 2 !== 0 && pairIdx === Math.floor(blogs.length / 2);
-                          return isOdd ? <div className="hidden md:block w-1/2"></div> : null;
-                        })()}
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
-              </Carousel>
-            </div>
-          )}
           {/* Instagram-like Image Carousel using Carousel classes */}
           {!isInstaLoading && !isFbLoading && allPosts.length > 0 && (
             <div className="w-full flex flex-col items-center mt-12">
@@ -1081,13 +1142,13 @@ const RandomTourPackageSection = () => {
             <ViewNews news={quickViewNews} onClose={() => setQuickViewNews(null)} />
           )}
         </div>
-      </div>
 
-      <ReviewModal
-        open={showReviewModal}
-        onClose={() => setShowReviewModal(false)}
-        onSubmit={(data) => { setShowReviewModal(false); toast.success('Review submitted!'); }}
-      />
+        <ReviewModal
+          open={showReviewModal}
+          onClose={() => setShowReviewModal(false)}
+          onSubmit={(data) => { setShowReviewModal(false); toast.success('Review submitted!'); }}
+        />
+      </div>
     </section>
   );
 }

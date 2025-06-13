@@ -93,7 +93,7 @@ const HeroSection = () => {
       try {
         const res = await fetch("/api/getSearchPackages");
         const data = await res.json();
-        console.log(data)
+        // console.log(data)
         if (data.packages && data.packages.length > 0) {
           setPackages(data.packages);
         }
@@ -242,7 +242,7 @@ const HeroSection = () => {
                           href={banner.addtoCartLink || '#'}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className={`bg-white text-black px-5 py-2 rounded-lg font-bold ${!banner.addtoCartLink ? ' opacity-50 pointer-events-none' : ''}`}
+                          className={`bg-white text-black px-5 py-2 font-bold ${!banner.addtoCartLink ? ' opacity-50 pointer-events-none' : ''}`}
                         >
                           ADD TO CART
                         </a>
@@ -250,14 +250,14 @@ const HeroSection = () => {
                           href={banner.viewDetailLink || '#'}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className={`bg-white text-black px-5 py-2 rounded-lg font-bold ${!banner.viewDetailLink ? ' opacity-50 pointer-events-none' : ''}`}
+                          className={`bg-white text-black px-5 py-2 font-bold ${!banner.viewDetailLink ? ' opacity-50 pointer-events-none' : ''}`}
                         >
                           VIEW DETAIL
                         </a>
                       </div>
                       <div className="flex flex-col items-center gap-1 mt-1 mb-2">
                         <div className="text-lg font-bold text-white">{banner.subtitle || "No Subtitle"}</div>
-                        <div className="text-base font-semibold text-white tracking-tight px-10">{banner.subDescription || "No Sub Description"}</div>
+                        <div className="text-base font-semibold text-white tracking-tight px-10 text-center">{banner.subDescription || "No Sub Description"}</div>
                       </div>
                       {/* More Category Circular Button */}
                       {/* <div className="absolute left-1/2 bottom-[-72px] -translate-x-1/2">

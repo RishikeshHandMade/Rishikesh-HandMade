@@ -42,36 +42,6 @@ const AboutUsSection = () => {
             location: "Rajasthan, India",
             footertext: "Step into history and faith",
         },
-        {
-            _id: "4",
-            link: "#",
-            image: { url: "https://dummyimage.com/1280x720/000/fff" },
-            headerText: "Spiritual Retreat",
-            title: "Himalayan Pilgrimage",
-            subTitle: "Find peace in the mountains",
-            location: "Uttarakhand, India",
-            footertext: "A journey to rejuvenate your soul",
-        },
-        {
-            _id: "5",
-            link: "#",
-            image: { url: "https://dummyimage.com/1280x720/333/fff" },
-            headerText: "Divine Experience",
-            title: "Temple Tour",
-            subTitle: "Sacred sites across India",
-            location: "Varanasi, India",
-            footertext: "Explore the roots of spirituality",
-        },
-        {
-            _id: "6",
-            link: "#",
-            image: { url: "https://dummyimage.com/1280x720/666/fff" },
-            headerText: "Cultural Journey",
-            title: "Ancient Wonders",
-            subTitle: "Historical & spiritual landmarks",
-            location: "Rajasthan, India",
-            footertext: "Step into history and faith",
-        },
 
     ];
 
@@ -83,7 +53,7 @@ const AboutUsSection = () => {
                 // console.log(data);
                 setFeaturedPackages(data?.length ? data : dummyPackages); // Use dummy data if API returns empty
             } catch (error) {
-                console.error('Error fetching data:', error);
+                // console.error('Error fetching data:', error);
                 setFeaturedPackages(dummyPackages); // Use dummy data on error
             } finally {
                 setIsLoading(false);
@@ -132,7 +102,7 @@ const AboutUsSection = () => {
     }
 
     return (
-        <section className="bg-[#fcf7f1] relative py-1 w-full px-10 md:px-8 lg:px-16 overflow-hidden max-w-screen overflow-x-hidden">
+        <section className="bg-[#fcf7f1] relative py-1 w-full px-10 md:px-5 overflow-hidden max-w-screen overflow-x-hidden">
             <div className="w-full">
                 <h2 className="font-bold text-2xl md:text-4xl text-center mt-7">Crafted by Hand, Cherished by Heart.
 
@@ -147,7 +117,7 @@ const AboutUsSection = () => {
                 <p className="flex items-center text-gray-600 font-barlow font-bold text-sm md:text-lg xl:text-xl mb-4">
 
                 </p>
-                <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4 mx-auto pl-10">
                     {loading ? (
                         // Loading skeletons
                         Array.from({ length: 5 }).map((_, idx) => (
