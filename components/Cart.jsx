@@ -9,9 +9,12 @@ export default function Cart({ open, onClose, initialTab = "cart" }) {
   const [tab, setTab] = useState(initialTab);
   const [show, setShow] = useState(true); // Always mount on first render
   const firstRender = React.useRef(true);
-  const { cart, wishlist, setCart, setWishlist, updateCartQty, removeFromCart, removeFromWishlist } = useCart();
+  const { cart: rawCart, wishlist, setCart, setWishlist, updateCartQty, removeFromCart, removeFromWishlist } = useCart();
+  const cart = Array.isArray(rawCart) ? rawCart : [];
   const { data: session, status } = useSession();
   const userId = session?.user?.id || session?.user?.email;
+  const cartItems = Array.isArray(rawCart) ? rawCart : [];
+  const cartTotal = cartItems.reduce((sum, item) => sum + item.price * item.qty, 0);
   const isLoggedIn = status === "authenticated" && userId;
 
   useEffect(() => {

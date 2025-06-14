@@ -4,17 +4,49 @@ import { useCart } from "../context/CartContext";
 import Link from "next/link";
 
 import { useRouter } from "next/navigation";
+  // 2. Get price after discount
+  const getAfterDiscount = (item) => {
+    const base = item.originalPrice ?? item.price;
+    if (item.discountPercent) return base * (1 - item.discountPercent / 100);
+    if (item.discountAmount) return base - item.discountAmount;
+    return base;
+  };
 
 const CartDetails = () => {
-  const { cart, updateCartQty, removeFromCart } = useCart();
-  console.log(cart)
+  const { cart: rawCart, updateCartQty, removeFromCart } = useCart();
+  const cart = Array.isArray(rawCart) ? rawCart : [];
+  console.log(cart);
+  
   const router = useRouter();
 
   // Handler for checkout navigation
   const handleCheckout = () => {
     if (!termsChecked) return;
-    // Use localStorage as a bridge for cart data (since Next.js router doesn't pass state like React Router)
-    localStorage.setItem("checkoutCart", JSON.stringify(cart));
+    // Collect all relevant cart data for checkout
+    const checkoutData = {
+      cart: cart.map(item => ({
+        ...item,
+        // include all important fields
+        discountPercent: item.discountPercent || null,
+        discountAmount: item.discountAmount || null,
+        cgst: item.cgst || 0,
+        sgst: item.sgst || 0,
+        originalPrice: item.originalPrice ?? item.price,
+        afterDiscount: getAfterDiscount(item),
+      })),
+      subTotal,
+      totalDiscount,
+      taxTotal,
+      finalShipping,
+      promo: appliedPromoDetails ? {
+        code: appliedPromoDetails.couponCode,
+        percent: appliedPromoDetails.percent || null,
+        amount: appliedPromoDetails.amount || null,
+        discount: promoDiscount
+      } : null,
+      cartTotal
+    };
+    localStorage.setItem("checkoutCart", JSON.stringify(checkoutData));
     router.push("/checkout");
   };
 
@@ -29,7 +61,7 @@ const CartDetails = () => {
   const [isCheckingPincode, setIsCheckingPincode] = React.useState(false);
   const [appliedPromo, setAppliedPromo] = React.useState(null); // to track applied promo
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-
+  const totalAfterDiscount = Array.isArray(cart) ? cart.reduce((sum, item) => sum + getAfterDiscount(item) * item.qty, 0) : 0;
   // Calculate final amount (with coupon/discount)
   const finalAmount = cart.reduce((sum, item) => {
     let afterDiscount = item.price;
@@ -40,6 +72,11 @@ const CartDetails = () => {
 
   // Coupon apply handler
   const handleApplyPromo = async () => {
+    // Defensive: ensure cart is defined and is an array
+    if (!Array.isArray(cart)) {
+      setPromoError("Cart is not loaded. Please refresh the page.");
+      return;
+    }
     setPromoError("");
 
     // If any cart item has a discount or coupon, block promo code
@@ -58,6 +95,9 @@ const CartDetails = () => {
       setPromoError(`Promo code "${appliedPromo}" is already applied.`);
       return;
     }
+    const totalAfterDiscount = Array.isArray(cart)
+  ? cart.reduce((sum, item) => sum + getAfterDiscount(item) * item.qty, 0)
+  : 0;
 
     // Calculate cart total (before promo)
     const cartTotalBeforePromo = totalAfterDiscount + taxTotal + finalShipping;
@@ -119,29 +159,15 @@ const CartDetails = () => {
   // 1. Get original price before any discount
   const getOriginalPrice = item => item.originalPrice ?? item.price;
 
-  // 2. Get price after discount
-  const getAfterDiscount = (item) => {
-    const base = item.originalPrice ?? item.price;
-    if (item.discountPercent) return base * (1 - item.discountPercent / 100);
-    if (item.discountAmount) return base - item.discountAmount;
-    return base;
-  };
 
   // 3. Calculate tax
   const getTaxAmount = (price, percent) => (price * percent) / 100;
 
 
   // 5. For entire cart
-  const subTotal = cart.reduce((sum, item) => sum + getOriginalPrice(item) * item.qty, 0);
-  const totalAfterDiscount = cart.reduce((sum, item) => sum + getAfterDiscount(item) * item.qty, 0);
-  const totalDiscount = subTotal - totalAfterDiscount;
-
-  const taxTotal = cart.reduce((sum, item) => {
-    const discountedPrice = getAfterDiscount(item);
-    const tax = getTaxAmount(discountedPrice, Number(item.cgst || 0)) +
-      getTaxAmount(discountedPrice, Number(item.sgst || 0));
-    return sum + tax * item.qty;
-  }, 0);
+  const subTotal = Array.isArray(cart) ? cart.reduce((sum, item) => sum + (item.originalPrice ?? item.price) * item.qty, 0) : 0;
+  const totalDiscount = Array.isArray(cart) ? cart.reduce((sum, item) => sum + ((item.discountPercent ? (item.originalPrice ?? item.price) * (item.discountPercent / 100) : item.discountAmount || 0) * item.qty), 0) : 0;
+  const taxTotal = Array.isArray(cart) ? cart.reduce((sum, item) => sum + (((getAfterDiscount(item) * ((Number(item.cgst) || 0) + (Number(item.sgst) || 0))) / 100) * item.qty), 0) : 0;
   const finalShipping = pincodeResult?.price || shippingCharges || 0;
 
   // Remove promo if a discounted/coupon item is present
