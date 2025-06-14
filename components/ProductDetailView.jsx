@@ -555,7 +555,7 @@ export default function ProductDetailView({ product }) {
               );
             })}
           </div>
-          {/* SKU, Tags, etc. */}
+          {/* Tags, etc. */}
           <div className="mb-4">
             <div className="text-sm mb-1">
               <span className="block font-semibold text-lg mb-2">Category:</span>
@@ -591,16 +591,22 @@ export default function ProductDetailView({ product }) {
           {/* Offers/Info Boxes */}
           <div className="flex flex-col gap-3 mb-6">
             <div className="border rounded-lg p-3 flex items-center justify-between">
-              <span className="font-semibold">Bank Offer 5% Cashback</span>
+              <span className="font-semibold">Fast Delivery</span>
+              <span className="text-gray-500 text-xs w-52">The specific delivery time will vary depending on the shipping address and the selected delivery options.</span>
             </div>
             <div className="border rounded-lg p-3 flex items-center justify-between">
               <span className="font-semibold">Easy Returns</span>
-              <span className="text-gray-500">30 Days</span>
+              <span className="text-gray-500">Within 30 days of purchase</span>
             </div>
-            <div className="border rounded-lg p-3 flex items-center gap-2">
-              <span className="font-semibold">Enjoy The Product</span>
-              <span className="text-gray-500 text-xs">Lorem Ipsum is simply dummy text of the printing and typesetting</span>
+            <div className="border rounded-lg p-3 flex items-center justify-between">
+              <span className="font-semibold">24/7 support</span>
+              <span className="text-gray-500 text-xs w-52">Service support is availble 24 hours a day. 7 days a week. You can reach them by phone,email, or chat</span>
             </div>
+            <div className="border rounded-lg p-3 flex items-center justify-between gap-2">
+              <span className="font-semibold">Payment & Security</span>
+              <span className="text-gray-500 text-xs w-52">Your payment information is processed securly. We do not store credit card details nor have access to your credit card infomation</span>
+            </div>
+            <h2 className="font-bold mx-auto">"Shop with Confidence - 100% Money-Back Guarantee!"</h2>
           </div>
           {/* Action Buttons */}
           <div className="flex gap-4 mb-6 items-center">

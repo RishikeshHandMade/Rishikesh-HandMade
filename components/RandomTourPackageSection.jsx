@@ -19,7 +19,7 @@ import { useCart } from "../context/CartContext";
 import { toast } from "react-hot-toast"
 import { Star } from 'lucide-react';
 import ReviewModal from "./ReviewModal";
-import ViewNews from "./ViewNews";
+
 function slugify(text) {
   return text
     .toString()
@@ -71,29 +71,12 @@ const RandomTourPackageSection = () => {
   // ...existing state
   const [showReviewModal, setShowReviewModal] = useState(false);
   const { addToCart, addToWishlist, removeFromWishlist, wishlist } = useCart();
-
-  // State and effect for fetching all reviews
-  const [allReviews, setAllReviews] = useState([]);
-  useEffect(() => {
-    fetch('/api/promotion')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && Array.isArray(data.promotions)) {
-          setAllReviews(data.promotions);
-        }
-      });
-  }, []);
   const [customReview, setcustomReview] = useState([]);
-  // console.log(customReview)
-  useEffect(() => {
-    fetch('/api/saveReviews')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && Array.isArray(data.reviews)) {
-          setcustomReview(data.reviews);
-        }
-      });
-  }, []);
+  const [isLoadingPromotions, setIsLoadingPromotions] = useState(true);
+  const [isLoadingReviews, setIsLoadingReviews] = useState(true);
+  const [allReviews, setAllReviews] = useState([]);
+  // State and effect for fetching all reviews
+
   const artisanReviews = [...customReview, ...allReviews];
   // console.log(allReviews)
 
@@ -126,19 +109,12 @@ const RandomTourPackageSection = () => {
 
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [blogs, setBlogs] = useState([]);
-  const [isBlogsLoading, setIsBlogsLoading] = useState(true);
-  const [instagramPosts, setInstagramPosts] = useState([]);
-  const [isInstaLoading, setIsInstaLoading] = useState(true);
+
   const [isartisanLoading, setIsArtisanLoading] = useState(true);
-  const [facebookPosts, setFacebookPosts] = useState([]);
-  const [isFbLoading, setIsFbLoading] = useState(true);
+
   const [artisan, setArtisan] = useState([])
   const [quickViewProduct, setQuickViewProduct] = useState(null);
-  const [promotinalBanner, setPromotinalBanner] = useState([])
-  const [featuredOffer, setFeaturedOffer] = useState([])
-  const [news, setNews] = useState([])
-  const [quickViewNews, setQuickViewNews] = useState(null); // For news modal
+
 
   // Prevent background scroll when Quick View is open
   useEffect(() => {
@@ -149,153 +125,89 @@ const RandomTourPackageSection = () => {
     }
     return () => document.body.classList.remove("overflow-hidden");
   }, [quickViewProduct]);
-  useEffect(() => {
-    const fetchInstagramPosts = async () => {
-      try {
-        const res = await fetch("/api/instagram-posts");
-        const data = await res.json();
-        // console.log(data);
-        setInstagramPosts(data);
-      } catch (error) {
-        setInstagramPosts([]);
-      } finally {
-        setIsInstaLoading(false);
+
+
+  // Fetch Promotions
+  const fetchPromotions = async () => {
+    try {
+      const res = await fetch("/api/promotion");
+      const data = await res.json();
+
+      if (data.success && Array.isArray(data.promotions)) {
+        setAllReviews(data.promotions);
+      } else {
+        setAllReviews([]);
       }
-    };
-    fetchInstagramPosts();
-  }, []);
-  useEffect(() => {
-    const fetchArtisan = async () => {
-      try {
-        const res = await fetch("/api/createArtisan");
-        const data = await res.json();
-        // console.log(data);
-        // Ensure artisan is always an array
-        if (Array.isArray(data)) {
-          setArtisan(data);
-        } else if (Array.isArray(data.artisans)) {
-          setArtisan(data.artisans);
-        } else {
-          setArtisan([]);
-        }
-      } catch (error) {
+    } catch (error) {
+      console.error("Error fetching promotions:", error);
+      setAllReviews([]);
+    } finally {
+      setIsLoadingPromotions(false);
+    }
+  };
+
+  // Fetch Reviews
+  const fetchReviews = async () => {
+    try {
+      const res = await fetch("/api/saveReviews");
+      const data = await res.json();
+
+      if (data.success && Array.isArray(data.reviews)) {
+        setcustomReview(data.reviews);
+      } else {
+        setcustomReview([]);
+      }
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+      setcustomReview([]);
+    } finally {
+      setIsLoadingReviews(false);
+    }
+  };
+  const fetchArtisan = async () => {
+    try {
+      const res = await fetch("/api/createArtisan");
+      const data = await res.json();
+      // console.log(data);
+      // Ensure artisan is always an array
+      if (Array.isArray(data)) {
+        setArtisan(data);
+      } else if (Array.isArray(data.artisans)) {
+        setArtisan(data.artisans);
+      } else {
         setArtisan([]);
-      } finally {
-        setIsArtisanLoading(false);
       }
-    };
-    fetchArtisan();
-  }, []);
-  useEffect(() => {
-    const fetchFacebookPosts = async () => {
-      try {
-        const res = await fetch("/api/facebook-posts");
-        const data = await res.json();
-        // console.log(data);
-        setFacebookPosts(data);
-      } catch (error) {
-        setFacebookPosts([]);
-      } finally {
-        setIsFbLoading(false);
-      }
-    };
-    fetchFacebookPosts();
-  }, []);
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await fetch("/api/product");
-        const data = await res.json();
-        // console.log("Product API response:", data);
+    } catch (error) {
+      setArtisan([]);
+    } finally {
+      setIsArtisanLoading(false);
+    }
+  };
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch("/api/product");
+      const data = await res.json();
+      // console.log("Product API response:", data);
 
-        if (data && data.length > 0) {
-          setProducts(data);
-        } else {
-          setProducts([]);
-        }
-      } catch (error) {
-        // console.error("Error fetching products:", error);
+      if (data && data.length > 0) {
+        setProducts(data);
+      } else {
         setProducts([]);
-      } finally {
-        setIsLoading(false);
       }
-    };
+    } catch (error) {
+      // console.error("Error fetching products:", error);
+      setProducts([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    const fetchBlogs = async () => {
-      try {
-        const res = await fetch("/api/blogs");
-        const data = await res.json();
-        // console.log(data);
-        if (Array.isArray(data)) {
-          setBlogs(data);
-        } else if (Array.isArray(data.blogs)) {
-          setBlogs(data.blogs);
-        } else {
-          setBlogs([]);
-        }
-      } catch (error) {
-        // console.error("Error fetching blogs:", error);
-        setBlogs([]);
-      } finally {
-        setIsBlogsLoading(false);
-      }
-    };
-    const fetchPromotinalBanner = async () => {
-      try {
-        const res = await fetch("/api/addPromotinalBanner");
-        const data = await res.json();
-        // console.log("Promotinal Banner API response:", data);
-        if (data && data.length > 0) {
-          setPromotinalBanner(data);
-        } else {
-          setPromotinalBanner([]);
-        }
-      } catch (error) {
-        // console.error("Error fetching products:", error);
-        setPromotinalBanner([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    const fetchFeaturedOffer = async () => {
-      try {
-        const res = await fetch("/api/addFeaturedOffer");
-        const data = await res.json();
-        // console.log("Featured Offer API response:", data);
-        if (data && data.length > 0) {
-          setFeaturedOffer(data);
-        } else {
-          setFeaturedOffer([]);
-        }
-      } catch (error) {
-        // console.error("Error fetching products:", error);
-        setFeaturedOffer([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    const fetchNews = async () => {
-      try {
-        const res = await fetch("/api/addNews");
-        const data = await res.json();
-        // console.log("News API response:", data);
-        if (data && data.length > 0) {
-          setNews(data);
-        } else {
-          setNews([]);
-        }
-      } catch (error) {
-        // console.error("Error fetching products:", error);
-        setNews([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+
+  useEffect(() => {
+    fetchArtisan();
     fetchProducts();
-    fetchBlogs();
-    fetchPromotinalBanner();
-    fetchFeaturedOffer();
-    fetchNews();
+    fetchPromotions();
+    fetchReviews();
   }, []);
 
   if (isLoading) {
@@ -352,18 +264,12 @@ const RandomTourPackageSection = () => {
     return new Intl.NumberFormat("en-IN").format(num);
   };
 
-  // Combine both Instagram and Facebook posts for the card section
-  const allPosts = [...instagramPosts, ...facebookPosts];
-
-  // Determine card width based on number of posts
-  const cardBasis =
-    allPosts.length <= 3 ? `basis-1/${allPosts.length}` : "md:basis-1/5";
 
   return (
     <section className="bg-[#fcf7f1] md:mt-19 w-full px-4 overflow-hidden max-w-screen overflow-x-hidden">
       <div className=" w-full h-full overflow-hidden max-w-screen ">
-        <div className="w-full py-9 px-1 ">
-          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mt-10">
+        <div className="w-full py-5 px-1 ">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mt-10 uppercase">
             Trending Products: The Best, Today
           </h1>
           <p className=" text-gray-600 py-8 text-center font-barlow w-[50%] mx-auto">
@@ -538,610 +444,299 @@ const RandomTourPackageSection = () => {
             <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 p-5" />
             <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 p-5" />
           </Carousel>
-          {/* Promotional Banner Section */}
-          {promotinalBanner.length > 0 && (
-            <div className="w-full my-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {promotinalBanner.map((item, idx) => (
-                  <div key={idx} className="rounded-2xl flex flex-col h-[350px] md:h-[400px] p-0 overflow-hidden relative group">
-                    <img src={item?.image?.url} alt={item?.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                    <div className="absolute z-10 flex flex-col justify-between gap-2 px-10 p-6 h-full items-start">
-                      {(() => {
-                        const coupon = item.coupon || item.coupons?.coupon;
-                        if (!coupon?.couponCode) return null;
+        </div>
 
-                        const { percent, amount, couponCode } = coupon;
-
-                        let offerText;
-                        if (typeof percent === 'number' && percent > 0) {
-                          offerText = <>GET {percent}% OFF</>;
-                        } else if (typeof amount === 'number' && amount > 0) {
-                          offerText = <>GET ₹{amount} OFF</>;
-                        } else {
-                          offerText = <>Special Offer</>;
-                        }
-
-                        return (
-                          <div className="absolute top-6 left-4 z-10 bg-white rounded-full px-4 py-1 text-sm font-bold shadow text-black tracking-tight" style={{ letterSpacing: 0 }}>
-                            {offerText}
-                          </div>
-                        );
-                      })()}
-                      <span className="text-2xl md:text-5xl font-bold text-black mb-2 leading-tight w-1/2">{item?.title}</span>
-                      <Link href={item?.buttonLink || '#'} target="_blank" rel="noopener noreferrer" className="mt-4 px-10 text-md py-2 bg-black text-white hover:bg-gray-800 transition w-fit">View Now</Link>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Featured Offer For You Section */}
-          {featuredOffer.length > 0 && (
-            <div className="w-full my-8">
-              <h2 className="text-2xl md:text-3xl font-bold text-center mb-5">Featured Offer For You</h2>
-              <Carousel className=" w-full max-w-full">
-                <CarouselContent>
-                  {featuredOffer.map((item, idx) => (
-                    <CarouselItem key={idx} className="px-2 md:basis-1/3 lg:basis-1/4 ml-5">
-                      <div className="rounded-2xl flex flex-col h-[340px] p-0 overflow-hidden relative bg-white group">
-                        <img src={item.image?.url} alt={item.title} className="absolute inset-0 w-full h-full object-cover object-center opacity-80 transition-transform duration-300 group-hover:scale-105" />
-                        <div className="relative z-10 flex flex-col justify-between items-start h-full p-6">
-                          {(() => {
-                            const coupon = item.coupon || item.coupons?.coupon;
-                            if (!coupon?.couponCode) return null;
-
-                            const { percent, amount, couponCode } = coupon;
-
-                            let offerText;
-                            if (typeof percent === 'number' && percent > 0) {
-                              offerText = <>GET {percent}% OFF</>;
-                            } else if (typeof amount === 'number' && amount > 0) {
-                              offerText = <>GET ₹{amount} OFF</>;
-                            } else {
-                              offerText = <>Special Offer</>;
-                            }
-
-                            return (
-                              <div className="absolute top-6 left-4 z-10 bg-white rounded-full px-4 py-1 text-sm font-bold shadow text-black tracking-tight" style={{ letterSpacing: 0 }}>
-                                {offerText}
-                              </div>
-                            );
-                          })()}
-                          <span className="text-2xl md:text-3xl font-extrabold text-black mb-2 leading-tight w-1/2">{item.title}</span>
-                          <Link href={item.buttonLink || '#'} target="_blank" rel="noopener noreferrer" className="mt-4 px-5 py-3 bg-black text-white rounded-xl hover:bg-gray-800 transition w-fit">View Now</Link>
-                        </div>
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
-              </Carousel>
-            </div>
-          )}
-
-          {/* Reviews Section */}
-          <div className="w-full mx-auto mb-10 relative min-h-[600px] flex items-center justify-end relative">
-            {/* Background Image */}
-            <div className="absolute inset-0 w-full h-full z-0">
-              <img
-                src="/blogs.jpg"
-                alt="Happy client"
-                className="w-full h-full object-cover bg-[#FCEED5]"
-                style={{ objectPosition: 'top' }}
-              />
-            </div>
-
-            {/* Review Card Overlay */}
-            <div className="absolute right-1 gap-2 top-[30%] z-10 flex flex-col justify-start w-full md:w-1/2 items-end pr-1">
-              <div className="button px-10">
-                <Button className="bg-white text-black hover:bg-black hover:text-white transition-colors duration-300" onClick={() => setShowReviewModal(true)}>Write Reviews</Button>
-              </div>
-              <Carousel className="w-full md:w-[600px]"
-                plugins={[Autoplay({ delay: 4000 })]}>
-
-                <CarouselContent className="w-full">
-                  {(normalizedReviews && normalizedReviews.length > 0 ? normalizedReviews : [
-                    {
-                      _id: 1,
-                      rating: 3,
-                      title: 'Joe Doe',
-                      subtitle: 'Undergraduate Student',
-                      shortDescription: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Aliquam aut ipsa corrupti, laudantium eos assumenda sed qui vitae ut. Aut mollitia obcaecati rerum optio repellendus reiciendis, accusamus, dignissimos impedit quisquam in molestias, voluptates voluptatem expedita. Nisi eligendi excepturi, optio ipsam, porro dolore perspiciatis corrupti atque animi ipsa architecto eum laboriosam.architecto eum laboriosam.architecto eum laboriosam.",
-                      image: '/placeholder.jpeg',
-                    },
-                  ].map(normalizeReview)).map((review, idx) => (
-                    <CarouselItem
-                      key={review._id}
-                      className="min-w-0 snap-center w-full"
-                    >
-                      <div className="bg-white rounded-3xl px-8 py-5 flex flex-col justify-between h-full min-h-[320px] relative overflow-visible">
-                        {/* Review text */}
-                        <div className="text-md md:text-2xl text-gray-800 font-bold leading-relaxed mb-2 text-left">
-                          {review.title || 'No review text.'}
-                        </div>
-                        <div className="absolute right-4 top-4 flex items-center gap-1">
-                          {review.rating && (
-                            <>
-                              {[...Array(review.rating)].map((_, i) => (
-                                <Star key={i} size={22} className="text-yellow-400 fill-yellow-400" />
-                              ))}
-                            </>
-                          )}
-                        </div>
-
-
-                        <div className="text-md md:text-md text-gray-800 font-medium leading-relaxed mb-2 text-left">
-                          {review.shortDescription || 'No review text.'}
-                        </div>
-                        {/* Bottom row: avatar, name, subtitle, nav buttons */}
-                        <div className="flex items-center justify-between w-full mt-auto">
-                          {/* Avatar, Name, Subtitle */}
-                          <div className="flex items-center">
-                            <img
-                              src={review.image || "/placeholder-user.jpg"}
-                              alt={review.createdBy || 'Anonymous'}
-                              className="w-14 h-14 rounded-full border-4 border-white shadow object-cover"
-                            />
-                            <div className="ml-4 text-left">
-                              <div className="font-bold text-xl text-black">{review.createdBy || review.title || 'Anonymous'}</div>
-                            </div>
-                          </div>
-
-                        </div>
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
-              </Carousel>
-            </div>
+        {/* Reviews Section */}
+        <div className="w-full mx-auto mb-10 relative min-h-[600px] flex items-center justify-end relative">
+          {/* Background Image */}
+          <div className="absolute inset-0 w-full h-full z-0">
+            <img
+              src="/blogs.jpg"
+              alt="Happy client"
+              className="w-full h-full object-cover bg-[#FCEED5]"
+              style={{ objectPosition: 'top' }}
+            />
           </div>
 
-          {/* Artisan Carousel Section */}
-          <div className="w-full mt-16">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-8">Meet Our Artisans</h2>
-            <div className="w-full max-w-[90%] mx-auto mb-16 mt-16">
-              <div className="flex flex-col md:flex-row items-start gap-5 ">
-                {/* Left: Heading and description */}
-                <div className="flex-1 flex flex-col justify-center md:pr-8">
-                  <h2 className="text-4xl md:text-4xl font-bold  mb-4">Celebrating the Art of Craftsmanship. Honoring the Hands That Shape Beauty</h2>
-                  <div className="text-lg md:text-md text-gray-700 text-justify mb-6">
-                    We are proud to recognize and celebrate your exceptional talent and dedication as a skilled handicraft artisan. Your ability to transform raw materials into beautiful, meaningful works of art speaks to your creativity, precision, and passion for the craft. Each piece you create is a testament to the enduring value of handmade artistry and the cultural richness it preserves. With deep appreciation, we commend you for achieving this milestone and look forward to witnessing your continued journey of artistic excellence.
-                  </div>
-                  <Link href="/contact" className="bg-black text-white py-3 px-6 rounded-lg font-semibold text-lg w-fit mb-6">Join Our Team</Link>
-                </div>
-                {/* Right: Top 2 artisan cards in new style */}
-                <div className="flex flex-row  gap-4 justify-end">
-                  {(artisan && artisan.slice(0, 2).map((item, idx) => {
-                    const card = {
-                      id: item._id || idx,
-                      name: `${item.title ? item.title + " " : ""}${item.firstName || ''} ${item.lastName || ''}`.trim() || "Unknown Artisan",
-                      date: item.createdAt ? new Date(item.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase() : "N/A",
-                      image: item.profileImage?.url || item.image || "/bg-custom-1.jpg",
-                      title: item.specializations && item.specializations.length > 0 ? item.specializations.join(", ") : "Artisan",
-                      subtitle: item.shgName || "",
-                      experience: item.yearsOfExperience ? `${item.yearsOfExperience} years experience` : "",
-                      location: item.address ? `${item.address.city}, ${item.address.state}` : "",
-                      socials: [
-                        { icon: "/fb.png", url: item.socialPlugin?.facebook || "#" },
-                        { icon: "/insta-Tranparent.webp", url: item.socialPlugin?.instagram || "#" },
-                        { icon: "/youtube.webp", url: item.socialPlugin?.youtube || "#" },
-                        { icon: "/google.png", url: item.socialPlugin?.google || "#" },
-                        { icon: "/website.png", url: item.socialPlugin?.website || "#" }
-                      ],
-                    };
-                    return (
-                      <div key={card.id} className="relative rounded-2xl overflow-hidden shadow-md group transition-all h-full w-[340px] flex flex-col bg-[#fbeff2] ">
-                        {/* Date Badge */}
-                        <div className="absolute top-5 left-5 z-20 flex items-center gap-2">
-                          <span className="bg-white rounded px-3 py-1 text-md font-bold shadow text-gray-800">{card.subtitle}</span>
-                        </div>
-                        {/* Card Image */}
-                        <div className="relative w-full h-96">
+          {/* Review Card Overlay */}
+          <div className="absolute right-1 gap-2 top-[30%] z-10 flex flex-col justify-start w-full md:w-1/2 items-end pr-1">
+            <div className="button px-10">
+              <Button className="bg-white text-black hover:bg-black hover:text-white transition-colors duration-300" onClick={() => setShowReviewModal(true)}>Write Reviews</Button>
+            </div>
+            <Carousel className="w-full md:w-[600px]"
+              plugins={[Autoplay({ delay: 4000 })]}>
+
+              <CarouselContent className="w-full">
+                {(normalizedReviews && normalizedReviews.length > 0 ? normalizedReviews : [
+                  {
+                    _id: 1,
+                    rating: 3,
+                    title: 'Joe Doe',
+                    subtitle: 'Undergraduate Student',
+                    shortDescription: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Aliquam aut ipsa corrupti, laudantium eos assumenda sed qui vitae ut. Aut mollitia obcaecati rerum optio repellendus reiciendis, accusamus, dignissimos impedit quisquam in molestias, voluptates voluptatem expedita. Nisi eligendi excepturi, optio ipsam, porro dolore perspiciatis corrupti atque animi ipsa architecto eum laboriosam.architecto eum laboriosam.architecto eum laboriosam.",
+                    image: '/placeholder.jpeg',
+                  },
+                ].map(normalizeReview)).map((review, idx) => (
+                  <CarouselItem
+                    key={review._id}
+                    className="min-w-0 snap-center w-full"
+                  >
+                    <div className="bg-white rounded-3xl px-8 py-5 flex flex-col justify-between h-full min-h-[320px] relative overflow-visible">
+                      {/* Review text */}
+                      <div className="text-md md:text-2xl text-gray-800 font-bold leading-relaxed mb-2 text-left">
+                        {review.title || 'No review text.'}
+                      </div>
+                      <div className="absolute right-4 top-4 flex items-center gap-1">
+                        {review.rating && (
+                          <>
+                            {[...Array(review.rating)].map((_, i) => (
+                              <Star key={i} size={22} className="text-yellow-400 fill-yellow-400" />
+                            ))}
+                          </>
+                        )}
+                      </div>
+
+
+                      <div className="text-md md:text-md text-gray-800 font-medium leading-relaxed mb-2 text-left">
+                        {review.shortDescription || 'No review text.'}
+                      </div>
+                      {/* Bottom row: avatar, name, subtitle, nav buttons */}
+                      <div className="flex items-center justify-between w-full mt-auto">
+                        {/* Avatar, Name, Subtitle */}
+                        <div className="flex items-center">
                           <img
-                            src={card.image}
-                            alt={card.name}
-                            className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
-                            style={{ objectFit: 'cover' }}
+                            src={review.image || "/placeholder-user.jpg"}
+                            alt={review.createdBy || 'Anonymous'}
+                            className="w-14 h-14 rounded-full border-4 border-white shadow object-cover"
                           />
-                        </div>
-                        {/* Card Content Overlay */}
-                        <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-6 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
-                          <div>
-                            <Link
-                              href={`/artisan/${card.id}`}
-                              className="font-bold text-2xl text-white mb-3 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
-                              title={card.name}
-                            >
-                              {card.name}
-                            </Link>
-                            <div className="text-md text-white drop-shadow-md">{card.title}</div>
+                          <div className="ml-4 text-left">
+                            <div className="font-bold text-xl text-black">{review.createdBy || review.title || 'Anonymous'}</div>
                           </div>
-                          {/* Arrow Button with Socials on Hover */}
-                          <div className="relative group/arrow">
-                            <button className="bg-white text-black rounded-full w-12 h-12 flex items-center justify-center shadow transition group-hover/arrow:bg-[#e84393] group-hover/arrow:text-white">
-                              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                              </svg>
-                            </button>
-                            {/* Social Icons: show on arrow hover */}
-                            <div className="absolute bottom-12 right-0 flex flex-col gap-4 opacity-0 group-hover/arrow:opacity-100 transition-opacity duration-300 z-30 items-center">
-                              {card.socials.slice(0, 6).map((s, i) => (
-                                <a
-                                  key={i}
-                                  href={s.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className={`
+                        </div>
+
+                      </div>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
+          </div>
+        </div>
+
+        {/* Artisan Carousel Section */}
+        <div className="w-full mt-16">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-8 uppercase">Meet Our Artisans</h2>
+          <div className="w-full max-w-[90%] mx-auto mb-16 mt-16">
+            <div className="flex flex-col md:flex-row items-start gap-5 ">
+              {/* Left: Heading and description */}
+              <div className="flex-1 flex flex-col justify-center md:pr-8">
+                <h2 className="text-4xl md:text-4xl font-bold  mb-4">Celebrating the Art of Craftsmanship. Honoring the Hands That Shape Beauty</h2>
+                <div className="text-lg md:text-md text-gray-700 text-justify mb-6">
+                  We are proud to recognize and celebrate your exceptional talent and dedication as a skilled handicraft artisan. Your ability to transform raw materials into beautiful, meaningful works of art speaks to your creativity, precision, and passion for the craft. Each piece you create is a testament to the enduring value of handmade artistry and the cultural richness it preserves. With deep appreciation, we commend you for achieving this milestone and look forward to witnessing your continued journey of artistic excellence.
+                </div>
+                <Link href="/contact" className="bg-black text-white py-3 px-6 rounded-lg font-semibold text-lg w-fit mb-6">Join Our Team</Link>
+              </div>
+              {/* Right: Top 2 artisan cards in new style */}
+              <div className="flex flex-row  gap-4 justify-end">
+                {(artisan && artisan.slice(0, 2).map((item, idx) => {
+                  const card = {
+                    id: item._id || idx,
+                    name: `${item.title ? item.title + " " : ""}${item.firstName || ''} ${item.lastName || ''}`.trim() || "Unknown Artisan",
+                    date: item.createdAt ? new Date(item.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase() : "N/A",
+                    image: item.profileImage?.url || item.image || "/bg-custom-1.jpg",
+                    title: item.specializations && item.specializations.length > 0 ? item.specializations.join(", ") : "Artisan",
+                    subtitle: item.shgName || "",
+                    experience: item.yearsOfExperience ? `${item.yearsOfExperience} years experience` : "",
+                    location: item.address ? `${item.address.city}, ${item.address.state}` : "",
+                    socials: [
+                      { icon: "/fb.png", url: item.socialPlugin?.facebook || "#" },
+                      { icon: "/insta-Tranparent.webp", url: item.socialPlugin?.instagram || "#" },
+                      { icon: "/youtube.webp", url: item.socialPlugin?.youtube || "#" },
+                      { icon: "/google.png", url: item.socialPlugin?.google || "#" },
+                      { icon: "/website.png", url: item.socialPlugin?.website || "#" }
+                    ],
+                  };
+                  return (
+                    <div key={card.id} className="relative rounded-2xl overflow-hidden shadow-md group transition-all h-full w-[340px] flex flex-col bg-[#fbeff2] ">
+                      {/* Date Badge */}
+                      <div className="absolute top-5 left-5 z-20 flex items-center gap-2">
+                        <span className="bg-white rounded px-3 py-1 text-md font-bold shadow text-gray-800">{card.subtitle}</span>
+                      </div>
+                      {/* Card Image */}
+                      <div className="relative w-full h-96">
+                        <img
+                          src={card.image}
+                          alt={card.name}
+                          className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+                          style={{ objectFit: 'cover' }}
+                        />
+                      </div>
+                      {/* Card Content Overlay */}
+                      <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-6 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
+                        <div>
+                          <Link
+                            href={`/artisan/${card.id}`}
+                            className="font-bold text-2xl text-white mb-3 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
+                            title={card.name}
+                          >
+                            {card.name}
+                          </Link>
+                          <div className="text-md text-white drop-shadow-md">{card.title}</div>
+                        </div>
+                        {/* Arrow Button with Socials on Hover */}
+                        <div className="relative group/arrow">
+                          <button className="bg-white text-black rounded-full w-12 h-12 flex items-center justify-center shadow transition group-hover/arrow:bg-[#e84393] group-hover/arrow:text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                            </svg>
+                          </button>
+                          {/* Social Icons: show on arrow hover */}
+                          <div className="absolute bottom-12 right-0 flex flex-col gap-4 opacity-0 group-hover/arrow:opacity-100 transition-opacity duration-300 z-30 items-center">
+                            {card.socials.slice(0, 6).map((s, i) => (
+                              <a
+                                key={i}
+                                href={s.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`
                           bg-white rounded-full w-12 h-12 flex items-center justify-center shadow hover:bg-gray-100 transition
                           transform translate-y-5 group-hover/arrow:translate-y-0
                         `}
-                                  style={{
-                                    transitionProperty: 'transform, opacity, background-color, box-shadow',
-                                    transitionDuration: '0.6s',
-                                    transitionTimingFunction: 'cubic-bezier(0.4,0,0.2,1)',
-                                    transitionDelay: `${i * 60}ms`
-                                  }}
-                                >
-                                  <img src={s.icon} alt="social" className="w-7 h-7 object-contain" />
-                                </a>
-                              ))}
-                            </div>
+                                style={{
+                                  transitionProperty: 'transform, opacity, background-color, box-shadow',
+                                  transitionDuration: '0.6s',
+                                  transitionTimingFunction: 'cubic-bezier(0.4,0,0.2,1)',
+                                  transitionDelay: `${i * 60}ms`
+                                }}
+                              >
+                                <img src={s.icon} alt="social" className="w-7 h-7 object-contain" />
+                              </a>
+                            ))}
                           </div>
                         </div>
                       </div>
-                    );
-                  }))}
-                </div>
+                    </div>
+                  );
+                }))}
               </div>
-              {/* Carousel for remaining artisans in new style */}
-              {artisan && artisan.length > 2 && (
-                <div className="mt-10">
-                  <Carousel className="w-full">
-                    <CarouselContent className="flex gap-6">
-                      {artisan.slice(2).map((item, idx) => {
-                        const card = {
-                          id: item._id || idx,
-                          name: `${item.title ? item.title + " " : ""}${item.firstName || ''} ${item.lastName || ''}`.trim() || "Unknown Artisan",
-                          date: item.createdAt ? new Date(item.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase() : "N/A",
-                          image: item.profileImage?.url || item.image || "/bg-custom-1.jpg",
-                          title: item.specializations && item.specializations.length > 0 ? item.specializations.join(", ") : "Artisan",
-                          subtitle: item.shgName || "",
-                          experience: item.yearsOfExperience ? `${item.yearsOfExperience} years experience` : "",
-                          location: item.address ? `${item.address.city}, ${item.address.state}` : "",
-                          socials: [
-                            { icon: "/fb.png", url: item.socialPlugin?.facebook || "#" },
-                            { icon: "/insta-Tranparent.webp", url: item.socialPlugin?.instagram || "#" },
-                            { icon: "/youtube.webp", url: item.socialPlugin?.youtube || "#" },
-                            { icon: "/google.png", url: item.socialPlugin?.google || "#" },
-                            { icon: "/website.png", url: item.socialPlugin?.website || "#" }
-                          ],
-                        };
-                        return (
-                          <CarouselItem key={card.id} className="pl-5 md:basis-1/2 lg:basis-1/4 min-w-0 snap-start">
-                            <div className="relative rounded-2xl overflow-hidden shadow-md group transition-all h-full flex flex-col bg-[#fbeff2]">
-                              {/* Date Badge */}
-                              <div className="absolute top-5 left-5 z-20 flex items-center gap-2">
-                                <span className="bg-white rounded px-3 py-1 text-md font-bold shadow text-gray-800">{card.subtitle}</span>
+            </div>
+            {/* Carousel for remaining artisans in new style */}
+            {artisan && artisan.length > 2 && (
+              <div className="mt-10">
+                <Carousel className="w-full">
+                  <CarouselContent className="flex gap-6">
+                    {artisan.slice(2).map((item, idx) => {
+                      const card = {
+                        id: item._id || idx,
+                        name: `${item.title ? item.title + " " : ""}${item.firstName || ''} ${item.lastName || ''}`.trim() || "Unknown Artisan",
+                        date: item.createdAt ? new Date(item.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase() : "N/A",
+                        image: item.profileImage?.url || item.image || "/bg-custom-1.jpg",
+                        title: item.specializations && item.specializations.length > 0 ? item.specializations.join(", ") : "Artisan",
+                        subtitle: item.shgName || "",
+                        experience: item.yearsOfExperience ? `${item.yearsOfExperience} years experience` : "",
+                        location: item.address ? `${item.address.city}, ${item.address.state}` : "",
+                        socials: [
+                          { icon: "/fb.png", url: item.socialPlugin?.facebook || "#" },
+                          { icon: "/insta-Tranparent.webp", url: item.socialPlugin?.instagram || "#" },
+                          { icon: "/youtube.webp", url: item.socialPlugin?.youtube || "#" },
+                          { icon: "/google.png", url: item.socialPlugin?.google || "#" },
+                          { icon: "/website.png", url: item.socialPlugin?.website || "#" }
+                        ],
+                      };
+                      return (
+                        <CarouselItem key={card.id} className="pl-5 md:basis-1/2 lg:basis-1/4 min-w-0 snap-start">
+                          <div className="relative rounded-2xl overflow-hidden shadow-md group transition-all h-full flex flex-col bg-[#fbeff2]">
+                            {/* Date Badge */}
+                            <div className="absolute top-5 left-5 z-20 flex items-center gap-2">
+                              <span className="bg-white rounded px-3 py-1 text-md font-bold shadow text-gray-800">{card.subtitle}</span>
+                            </div>
+                            {/* Card Image */}
+                            <div className="relative w-full h-96">
+                              <img
+                                src={card.image}
+                                alt={card.name}
+                                className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+                                style={{ objectFit: 'cover' }}
+                              />
+                            </div>
+                            {/* Card Content Overlay */}
+                            <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-6 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
+                              <div>
+                                <Link
+                                  href={`/artisan/${card.id}`}
+                                  className="font-bold text-2xl text-white mb-3 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
+                                  title={card.name}
+                                >
+                                  {card.name}
+                                </Link>
+                                <div className="text-md text-white drop-shadow-md">{card.title}</div>
                               </div>
-                              {/* Card Image */}
-                              <div className="relative w-full h-96">
-                                <img
-                                  src={card.image}
-                                  alt={card.name}
-                                  className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
-                                  style={{ objectFit: 'cover' }}
-                                />
-                              </div>
-                              {/* Card Content Overlay */}
-                              <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-6 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
-                                <div>
-                                  <Link
-                                    href={`/artisan/${card.id}`}
-                                    className="font-bold text-2xl text-white mb-3 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
-                                    title={card.name}
-                                  >
-                                    {card.name}
-                                  </Link>
-                                  <div className="text-md text-white drop-shadow-md">{card.title}</div>
-                                </div>
-                                {/* Arrow Button with Socials on Hover */}
-                                <div className="relative group/arrow">
-                                  <button className="bg-white text-black rounded-full w-12 h-12 flex items-center justify-center shadow transition group-hover/arrow:bg-[#e84393] group-hover/arrow:text-white">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                                    </svg>
-                                  </button>
-                                  {/* Social Icons: show on arrow hover */}
-                                  <div className="absolute bottom-14 right-0 flex flex-col gap-4 opacity-0 group-hover/arrow:opacity-100 transition-opacity duration-300 z-30 items-center">
-                                    {card.socials.slice(0, 6).map((s, i) => (
-                                      <a
-                                        key={i}
-                                        href={s.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className={`
+                              {/* Arrow Button with Socials on Hover */}
+                              <div className="relative group/arrow">
+                                <button className="bg-white text-black rounded-full w-12 h-12 flex items-center justify-center shadow transition group-hover/arrow:bg-[#e84393] group-hover/arrow:text-white">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                                  </svg>
+                                </button>
+                                {/* Social Icons: show on arrow hover */}
+                                <div className="absolute bottom-14 right-0 flex flex-col gap-4 opacity-0 group-hover/arrow:opacity-100 transition-opacity duration-300 z-30 items-center">
+                                  {card.socials.slice(0, 6).map((s, i) => (
+                                    <a
+                                      key={i}
+                                      href={s.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className={`
                                 bg-white rounded-full w-12 h-12 flex items-center justify-center shadow hover:bg-gray-100 transition
                                 transform translate-y-5 group-hover/arrow:translate-y-0
                               `}
-                                        style={{
-                                          transitionProperty: 'transform, opacity, background-color, box-shadow',
-                                          transitionDuration: '0.6s',
-                                          transitionTimingFunction: 'cubic-bezier(0.4,0,0.2,1)',
-                                          transitionDelay: `${i * 60}ms`
-                                        }}
-                                      >
-                                        <img src={s.icon} alt="social" className="w-7 h-7" />
-                                      </a>
-                                    ))}
-                                  </div>
+                                      style={{
+                                        transitionProperty: 'transform, opacity, background-color, box-shadow',
+                                        transitionDuration: '0.6s',
+                                        transitionTimingFunction: 'cubic-bezier(0.4,0,0.2,1)',
+                                        transitionDelay: `${i * 60}ms`
+                                      }}
+                                    >
+                                      <img src={s.icon} alt="social" className="w-7 h-7" />
+                                    </a>
+                                  ))}
                                 </div>
                               </div>
                             </div>
-                          </CarouselItem>
-                        );
-                      })}
-                    </CarouselContent>
-                    <div className="flex items-center gap-3 mt-4 justify-center">
-                      <CarouselPrevious className="bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
-                      <CarouselNext className="bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
-                    </div>
-                  </Carousel>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/*Blogs /  News & Announcement Section */}
-          <div className="w-full flex flex-col items-center mb-12">
-            <div className="w-full flex flex-col md:flex-row gap-8 min-h-[350px]">
-              <div className="flex flex-col md:flex-row w-full gap-8">
-                <div className="flex-1 bg-[#fcf7f1] rounded-lg p-4 flex flex-col justify-between min-h-[350px] px-10">
-                  <h2 className="text-3xl font-bold mb-4">Upcoming News, Blog and Events</h2>
-                  <p className="text-gray-800 mb-8 text-lg md:text-md font-medium">
-                    "We're preparing exciting new content and updates for our users, including upcoming news and events. We’re working behind the scenes to bring you fresh news, upcoming events, and new features to enhance your experience.
-                    <br /><br />
-                    Stay connected — great things are coming soon!"
-                  </p>
-                  {!isBlogsLoading && blogs && blogs.length > 0 && (
-                    <div className="w-full mx-auto max-w-7xl mb-10 p-2">
-                      <Carousel className="w-full" plugins={[Autoplay({ delay: 4000 })]}>
-                        <CarouselContent className="">
-                          {blogs.map((blog, idx) => {
-                            // Determine media (YouTube or image)
-                            let mediaUrl = blog.image || (Array.isArray(blog.images) && blog.images.length > 0 ? blog.images[0].url || blog.images[0] : undefined) || blog.youtubeUrl;
-                            let isYoutube = false;
-                            let embedUrl = '';
-                            if (mediaUrl && /^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//.test(mediaUrl)) {
-                              isYoutube = true;
-                              embedUrl = mediaUrl;
-                              if (embedUrl.includes('youtube.com/watch?v=')) {
-                                const videoId = embedUrl.split('v=')[1].split('&')[0];
-                                embedUrl = `https://www.youtube.com/embed/${videoId}`;
-                              } else if (embedUrl.includes('youtu.be/')) {
-                                const videoId = embedUrl.split('youtu.be/')[1].split(/[?&]/)[0];
-                                embedUrl = `https://www.youtube.com/embed/${videoId}`;
-                              }
-                            }
-                            return (
-                              <CarouselItem key={blog._id || idx} className="w-full">
-                                <div className="flex flex-row bg-[#FFF3C9] rounded-xl min-h-[220px] w-full overflow-hidden">
-                                  {/* Image/Video section */}
-                                  <div className="flex-shrink-0 w-1/2 md:w-2/5 flex items-center justify-center">
-                                    {isYoutube ? (
-                                      <div className="w-full h-full aspect-video rounded-l-xl overflow-hidden flex items-center justify-center">
-                                        <iframe
-                                          src={embedUrl}
-                                          title={blog.title}
-                                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                          allowFullScreen
-                                          className="w-full h-full min-h-[160px] max-h-[220px] border-0"
-                                        />
-                                      </div>
-                                    ) : mediaUrl ? (
-                                      <img
-                                        src={mediaUrl}
-                                        alt={blog.title}
-                                        className="object-cover md:object-cover w-full h-full max-h-[220px] rounded-l-xl"
-                                      />
-                                    ) : (
-                                      <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-l-xl text-gray-400">
-                                        No Image
-                                      </div>
-                                    )}
-                                  </div>
-                                  {/* Content section */}
-                                  <div className="flex flex-col justify-between p-4 flex-1">
-                                    <div>
-                                      <div className="font-bold text-lg md:text-xl text-black mb-2 leading-snug">{blog.title || 'No title available.'}</div>
-                                      <div className="text-gray-800 text-base mb-4 line-clamp-3 min-h-[48px]">{blog.shortDescription || blog.shortDesc || 'No description available.'}</div>
-                                    </div>
-                                    <div className="flex items-center mt-auto">
-                                      <Link
-                                        href={`/blogs/${blog._id}`}
-                                        rel="noopener noreferrer"
-                                        className="text-gray-700 font-semibold hover:underline flex items-center group transition focus:outline-none"
-                                      >
-                                        Read More  &gt;
-                                      </Link>
-                                    </div>
-                                  </div>
-                                </div>
-                              </CarouselItem>
-                            );
-                          })}
-                        </CarouselContent>
-                        <CarouselPrevious className="bg-black text-white py-3 font-bold rounded hover:bg-gray-800 transition-colors text-lg" />
-                        <CarouselNext className="bg-black text-white py-3 font-bold rounded hover:bg-gray-800 transition-colors text-lg" />
-                      </Carousel>
-                    </div>
-                  )}
-                  <Link href="/blogs">
-                    <button className="w-full bg-black text-white py-3 font-bold rounded hover:bg-gray-800 transition-colors text-lg">
-                      Read More
-                    </button>
-                  </Link>
-                </div>
-                {/* News box */}
-                <div className="flex-1 bg-[#fcf7f1] rounded-lg p-4 flex flex-col min-h-[350px] border border-black">
-                  <div className="flex-1 pr-2 mb-4">
-                    <div className="font-bold text-2xl mb-4 px-2">Latest News</div>
-                    <div className="h-[400px] overflow-y-auto p-0 border-none rounded-xl">
-                      {news && news.length > 0 ? (
-                        <>
-                          {/* First News - plain heading and description, not in a box */}
-                          <div className="mb-4 px-2">
-                            <div className="font-bold text-lg md:text-xl mb-1">{news[0].title || 'News'}</div>
-                            <div className="text-gray-700 mb-1">
-                              {(() => {
-                                const desc = news[0].description ?? "";
-                                const words = desc.trim().split(/\s+/);
-                                return words.slice(0, 24).join(" ") + (words.length > 24 ? " ..." : "");
-                              })()} &nbsp;
-                              <button
-                                onClick={() => setQuickViewNews(news[0])}
-                                className="inline-block text-purple-700 hover:underline font-bold mt-1"
-                              >
-                                See more
-                              </button>
-                            </div>
                           </div>
-                          {/* Remaining News - alternating color cards */}
-                          <div className="flex flex-col gap-3">
-                            {news.slice(1).map((item, idx) => {
-                              const colorClasses = [
-                                'bg-[#fff7eb] border-[#ffe7c7]', // light orange
-                                'bg-[#f2fff6] border-[#c7ffe6]', // light green
-                                'bg-[#f2f6ff] border-[#c7d6ff]'  // light blue
-                              ];
-                              const colorIdx = idx % 3;
-                              return (
-                                <div
-                                  key={item._id}
-                                  className={`rounded-xl border font-barlow px-4 py-3 ${colorClasses[colorIdx]} shadow-md`}
-                                >
-                                  <div className="font-bold text-base md:text-lg mb-1">{item.title || 'News'}</div>
-                                  <div className="text-gray-700 mb-2">
-                                    {(() => {
-                                      const desc = item.description ?? "";
-                                      const words = desc.trim().split(/\s+/);
-                                      return words.slice(0, 30).join(" ") + (words.length > 30 ? " ..." : "");
-                                    })()}&nbsp;
-                                    <button
-                                      onClick={() => setQuickViewNews(item)}
-                                      className="inline-block text-blue-600 hover:underline font-semibold my-1"
-                                    >
-                                      See more
-                                    </button>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </>
-                      ) : (
-                        <div className="text-gray-500 text-center py-8">No news available at the moment.</div>
-                      )}
-                    </div>
+                        </CarouselItem>
+                      );
+                    })}
+                  </CarouselContent>
+                  <div className="flex items-center gap-3 mt-4 justify-center">
+                    <CarouselPrevious className="bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
+                    <CarouselNext className="bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
                   </div>
-                  <Link href="/contact">
-                    <button className="w-full bg-lime-400 text-black font-bold py-3 rounded hover:bg-lime-500 transition-colors text-lg mt-2">
-                      Get Connected
-                    </button>
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Instagram-like Image Carousel using Carousel classes */}
-          {!isInstaLoading && !isFbLoading && allPosts.length > 0 && (
-            <div className="w-full flex flex-col items-center mt-12">
-              <h2 className="text-center font-bold text-2xl md:text-3xl lg:text-4xl">
-                Don’t just watch the trends — live them!
-              </h2>
-              <p className="text-gray-600 py-8 text-center font-barlow w-[80%] mx-auto">
-                Follow us on social media for your daily dose of Trending
-                Packages, exclusive offers, behind-the-scenes peeks, and
-                real-time updates. Join our community of trendsetters and be the
-                first to explore what’s new, what’s hot, and what everyone’s
-                talking about. Your next favorite find is just a follow away!
-              </p>
-              <div className="w-full px-5">
-                <Carousel className="w-full" plugins={[Autoplay({ delay: 4000 })]}>
-                  <CarouselContent >
-                    {allPosts.map((post, idx) => (
-                      <CarouselItem
-                        key={post._id || idx}
-                        className={`pl-5 ${allPosts.length <= 3 ? cardBasis : "md:basis-1/5"}`}
-                        style={
-                          allPosts.length <= 3
-                            ? { minWidth: `calc(100%/${allPosts.length})` }
-                            : {}
-                        }
-                      >
-                        <div className="relative group rounded-lg overflow-hidden w-full h-60 md:h-52 bg-gray-100">
-                          <Image
-                            src={post.image}
-                            alt={`${post.type === "facebook" ? "Facebook" : "Instagram"} ${idx}`}
-                            width={400}
-                            height={400}
-                            className="object-cover md:object-cover w-full h-full"
-                          />
-                          <a
-                            href={post.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center"
-                          >
-                            {post.type === "facebook" ? (
-                              <img
-                                src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg"
-                                alt="Facebook"
-                                className="w-10 h-10 opacity-80"
-                              />
-                            ) : (
-                              <img
-                                src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png"
-                                alt="Instagram"
-                                className="w-10 h-10 opacity-80"
-                              />
-                            )}
-                          </a>
-                        </div>
-                      </CarouselItem>
-                    ))}
-                  </CarouselContent >
-                  <CarouselPrevious className="absolute left-1 top-1/2 -translate-y-1/2 p-5" />
-                  <CarouselNext className="absolute right-1 top-1/2 -translate-y-1/2 p-5" />
                 </Carousel>
               </div>
-            </div>
-          )}
-          {/* Quick View Modal */}
-          {quickViewProduct && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setQuickViewProduct(null)}>
-              <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full relative overflow-y-auto max-h-[90vh]" onClick={e => e.stopPropagation()}>
-                {/* Close Button */}
-                <button
-                  className="absolute top-4 right-4 text-2xl font-bold text-gray-500 hover:text-black focus:outline-none"
-                  onClick={() => setQuickViewProduct(null)}
-                  aria-label="Close quick view"
-                >
-                  &times;
-                </button>
-                <QuickViewProductCard product={quickViewProduct} onClose={() => setQuickViewProduct(null)} />
-              </div>
-            </div>
-          )}
-          {/* News Quick View Modal */}
-          {quickViewNews && (
-            <ViewNews news={quickViewNews} onClose={() => setQuickViewNews(null)} />
-          )}
+            )}
+          </div>
         </div>
+
+
+        {/* Quick View Modal */}
+        {quickViewProduct && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setQuickViewProduct(null)}>
+            <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full relative overflow-y-auto max-h-[90vh]" onClick={e => e.stopPropagation()}>
+              {/* Close Button */}
+              <button
+                className="absolute top-4 right-4 text-2xl font-bold text-gray-500 hover:text-black focus:outline-none"
+                onClick={() => setQuickViewProduct(null)}
+                aria-label="Close quick view"
+              >
+                &times;
+              </button>
+              <QuickViewProductCard product={quickViewProduct} onClose={() => setQuickViewProduct(null)} />
+            </div>
+          </div>
+        )}
 
         <ReviewModal
           open={showReviewModal}
@@ -1149,6 +744,8 @@ const RandomTourPackageSection = () => {
           onSubmit={(data) => { setShowReviewModal(false); toast.success('Review submitted!'); }}
         />
       </div>
+
+
     </section>
   );
 }

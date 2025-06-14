@@ -12,13 +12,13 @@ import GoogleTranslate from "@/components/GoogleTranslate";
 export const metadata = {
   metadataBase: new URL("https://rishikeshhandmade.com/"),
   title: {
-    default: "Rishikesh Handmade - Your Spiritual Travel Solution",
+    default: "Rishikesh Handmade - Jute Fiber, Bhimal Fiber, Natural Fiber, Handicraft Product",
     template: "%s | Rishikesh Handmade",
   },
   description:
     "Rishikesh Handmade:It showcases eco-friendly, handcrafted items like wooden carvings, paintings, jewelry, and home decor made by skilled local artisans. By supporting this platform, you help preserve age-old crafts and empower local communitiess. For more info call +91 7351009107, Info@rishikeshhandmade.com rishikeshhandmade@gmail.com Our website is your gateway to the heart of Rishikesh, offering rich and soulful handmade creations crafted by local artisans.",
   keywords:
-    "rishikeshhandmade, rishikesh, handmade, website, rishikesh handmade, travel website, tour website, tour, tour package, package, india, India",
+    "rishikeshhandmade, rishikesh, handmade, website, rishikesh handmade, india, India",
   icons: { apple: "/apple-touch-icon.png" },
   manifest: "/site.webmanifest",
   openGraph: {
