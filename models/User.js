@@ -25,6 +25,8 @@ const UserSchema = new Schema(
         resetPasswordOtp: { type: Number },
         resetPasswordExpires: { type: Date },
         shippingAddresses: { type: [Schema.Types.ObjectId], ref: "ShippingAddress" },
+        cart: { type: [Schema.Types.Mixed], default: [] },
+        wishlist: { type: [Schema.Types.Mixed], default: [] },
     },
     { timestamps: true }
 );

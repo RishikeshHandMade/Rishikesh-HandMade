@@ -27,7 +27,7 @@ const CartDetails = () => {
   const [pincodeResult, setPincodeResult] = React.useState(null);
   const [pincodeError, setPincodeError] = React.useState("");
   const [isCheckingPincode, setIsCheckingPincode] = React.useState(false);
-
+  const [appliedPromo, setAppliedPromo] = React.useState(null); // to track applied promo
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
 
   // Calculate final amount (with coupon/discount)
@@ -39,46 +39,135 @@ const CartDetails = () => {
   }, 0) + shippingCharges;
 
   // Coupon apply handler
-  const handleApplyPromo = () => {
+  const handleApplyPromo = async () => {
     setPromoError("");
-    if (cart.some(item => item.couponApplied)) {
-      setPromoError("A coupon is already applied to one or more products. Remove it to apply a new code.");
+
+    // If any cart item has a discount or coupon, block promo code
+    const hasDiscountedItem = cart.some(item => item.discountPercent || item.discountAmount || item.couponApplied);
+    if (hasDiscountedItem) {
+      setPromoError("A product-level discount or coupon is already applied. Promo code cannot be used.");
       return;
     }
-    // Here you would call an API to validate/apply the coupon and update cart context accordingly.
-    // For demo, we'll just show success and simulate discount for all items.
-    // TODO: Replace with real coupon logic
-    // setPromoError("Coupon application logic not implemented. Integrate with backend.");
-  };
-  const [mounted, setMounted] = React.useState(false);
-  React.useEffect(() => { setMounted(true); }, []);
-  if (!mounted) return null;
 
-  // Helper for discount calculation
+    if (!promoCode) {
+      setPromoError("Please enter a promo code.");
+      return;
+    }
+
+    if (appliedPromo) {
+      setPromoError(`Promo code "${appliedPromo}" is already applied.`);
+      return;
+    }
+
+    // Calculate cart total (before promo)
+    const cartTotalBeforePromo = totalAfterDiscount + taxTotal + finalShipping;
+
+    try {
+      const res = await fetch("/api/validatePromo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ promoCode, cartTotal: cartTotalBeforePromo })
+      });
+      const data = await res.json();
+      if (!data.valid) {
+        setPromoError(data.error || "Invalid promo code.");
+        return;
+      }
+      // Check if discount is not greater than cart total (should be handled by API, but double check)
+      if (data.discount >= cartTotalBeforePromo) {
+        setPromoError("Discount cannot exceed or equal cart total.");
+        return;
+      }
+      setAppliedPromo(promoCode);
+      setAppliedPromoDetails(data.coupon); // store full coupon details
+      localStorage.setItem("appliedPromoCode", promoCode); // store for checkout
+      localStorage.setItem("appliedPromoDetails", JSON.stringify(data.coupon));
+      setPromoCode(""); // clear input
+    } catch (err) {
+      setPromoError("Failed to validate promo code. Please try again.");
+    }
+  };
+
+
+
   const getDiscount = (item) => {
     if (item.discountPercent) return `${item.discountPercent}%`;
     if (item.discountAmount) return `${item.discountAmount} Rs`;
     return '-';
   };
-  const getAfterDiscount = (item) => {
-    if (item.discountPercent) return (item.price * (1 - item.discountPercent / 100));
-    if (item.discountAmount) return (item.price - item.discountAmount);
-    return item.price;
-  };
+  // Promo discount logic
+  const [appliedPromoDetails, setAppliedPromoDetails] = React.useState(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('appliedPromoDetails');
+      return stored ? JSON.parse(stored) : null;
+    }
+    return null;
+  });
   const getAmount = (item) => {
     const afterDiscount = getAfterDiscount(item);
     const cgstPercent = Number(item.cgst) || 0;
     const sgstPercent = Number(item.sgst) || 0;
-    // Calculate tax values
+
     const cgstAmount = (afterDiscount * cgstPercent) / 100;
     const sgstAmount = (afterDiscount * sgstPercent) / 100;
-    // Total for one item
+
     const totalPerItem = afterDiscount + cgstAmount + sgstAmount;
     return totalPerItem * item.qty;
   };
 
-  // Calculate final amount for all cart items
-  const cartTotal = cart.reduce((sum, item) => sum + getAmount(item), 0);
+
+  // 1. Get original price before any discount
+  const getOriginalPrice = item => item.originalPrice ?? item.price;
+
+  // 2. Get price after discount
+  const getAfterDiscount = (item) => {
+    const base = item.originalPrice ?? item.price;
+    if (item.discountPercent) return base * (1 - item.discountPercent / 100);
+    if (item.discountAmount) return base - item.discountAmount;
+    return base;
+  };
+
+  // 3. Calculate tax
+  const getTaxAmount = (price, percent) => (price * percent) / 100;
+
+
+  // 5. For entire cart
+  const subTotal = cart.reduce((sum, item) => sum + getOriginalPrice(item) * item.qty, 0);
+  const totalAfterDiscount = cart.reduce((sum, item) => sum + getAfterDiscount(item) * item.qty, 0);
+  const totalDiscount = subTotal - totalAfterDiscount;
+
+  const taxTotal = cart.reduce((sum, item) => {
+    const discountedPrice = getAfterDiscount(item);
+    const tax = getTaxAmount(discountedPrice, Number(item.cgst || 0)) +
+      getTaxAmount(discountedPrice, Number(item.sgst || 0));
+    return sum + tax * item.qty;
+  }, 0);
+  const finalShipping = pincodeResult?.price || shippingCharges || 0;
+
+  // Remove promo if a discounted/coupon item is present
+  const hasDiscountedItem = cart.some(item => item.discountPercent || item.discountAmount || item.couponApplied);
+  React.useEffect(() => {
+    if (hasDiscountedItem && (appliedPromo || appliedPromoDetails)) {
+      setAppliedPromo(null);
+      setAppliedPromoDetails(null);
+      localStorage.removeItem('appliedPromoCode');
+      localStorage.removeItem('appliedPromoDetails');
+    }
+  }, [cart]);
+
+  let promoDiscount = 0;
+  if (appliedPromoDetails && !hasDiscountedItem) {
+    if (appliedPromoDetails.percent) {
+      promoDiscount = Math.round((totalAfterDiscount + taxTotal + finalShipping) * (appliedPromoDetails.percent / 100));
+    } else if (appliedPromoDetails.amount) {
+      promoDiscount = appliedPromoDetails.amount;
+    }
+    // Ensure discount doesn't exceed total
+    const maxDiscount = totalAfterDiscount + taxTotal + finalShipping;
+    if (promoDiscount > maxDiscount) promoDiscount = maxDiscount;
+  }
+
+  const cartTotal = totalAfterDiscount + taxTotal + finalShipping - promoDiscount;
 
   // Demo: valid pincode and price
   const VALID_PINCODES = { "249201": 100, "110001": 120 }; // add more as needed
@@ -100,6 +189,9 @@ const CartDetails = () => {
       setIsCheckingPincode(false);
     }, 800);
   };
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => { setMounted(true); }, []);
+  if (!mounted) return null;
   // UI
   return (
     <div className="w-full px-10 mx-auto p-4 bg-white">
@@ -177,52 +269,63 @@ const CartDetails = () => {
               {/* Subtotal */}
               <div className="flex justify-between items-center mb-0">
                 <span className="font-semibold text-base">Subtotal <span className="text-xs text-gray-500 font-normal">(INR)</span></span>
-                <span className="font-semibold text-base">{subtotal.toFixed(2)}</span>
+                <span className="font-semibold text-base">{subTotal.toFixed(2)}</span>
               </div>
               <div className="text-xs text-red-600 mb-2 -mt-1">Subtotal does not include applicable taxes</div>
 
               {/* Discount Amount */}
               <div className="flex justify-between items-center mt-2 mb-1">
                 <span className="font-bold text-base">Discount Amount</span>
-                <span className="font-bold text-base">{(subtotal - (cartTotal - shippingCharges)).toFixed(2)}</span>
+                <span className="font-bold text-base">₹{Math.max(0, totalDiscount).toFixed(2)}</span>
               </div>
+              {appliedPromoDetails && (
+                <div className="flex justify-between items-center mb-1 text-green-700">
+                  <span className="font-bold text-base">Promo Code ({appliedPromoDetails.couponCode})</span>
+                  <span className="font-bold text-base">-₹{promoDiscount.toFixed(2)}</span>
+                </div>
+              )}
               <hr className="my-2" />
 
               {/* Promo Code Section */}
               <div className="text-center font-semibold text-lg mb-2">Have a promo code?</div>
+              {appliedPromo && (
+                <div className="text-green-700 text-xs mt-1">Promo code "{appliedPromo}" applied successfully!</div>
+              )}
               <div className="flex gap-2 mb-2">
                 <input
                   type="text"
                   placeholder="Apply Promo Code"
                   className="w-full border border-blue-400 bg-blue-100 px-3 py-2 rounded text-gray-700"
                   value={promoCode}
-                  onChange={e => {
+                  onChange={(e) => {
                     setPromoCode(e.target.value);
-                    if (e.target.value === "") setPromoError("");
+                    setPromoError("");
                   }}
-                  disabled={!!(subtotal - (cartTotal - shippingCharges) > 0)}
+                  disabled={!!appliedPromo}
                 />
+
+
                 <button
                   className="bg-blue-600 text-white px-4 py-2 rounded font-bold hover:bg-blue-700"
                   onClick={handleApplyPromo}
-                  disabled={!promoCode || (subtotal - (cartTotal - shippingCharges) > 0)}
+                  disabled={!promoCode || !!appliedPromo}
                 >Apply</button>
               </div>
+
               {promoError && <div className="text-xs text-red-600 mt-1">{promoError}</div>}
               {/* Note about coupons */}
               <div className="text-xs text-red-600 mb-2">Note : If discount promo code already applied extra additional coupon not applicable</div>
               {/* Nice! You saved... */}
-              {(subtotal - (cartTotal - shippingCharges)) > 0 && (
+              {totalDiscount > 0 && (
                 <div className="bg-gray-100 rounded px-2 py-1 text-center text-sm font-semibold text-black mb-2">
-                  Nice! You saved <span className="font-bold">₹ {(subtotal - (cartTotal - shippingCharges)).toFixed(2)}</span> on your order.
+                  🎉 Nice! You saved <span className="font-bold">₹{totalDiscount.toFixed(2)}</span> on your order.
                 </div>
               )}
-
               {/* Shipping Charges */}
               <div className="flex justify-between items-center mt-2">
                 <span className="font-semibold">Shipping Charges</span>
                 <span className="font-semibold">
-                  ₹{pincodeResult ? pincodeResult.price.toFixed(2) : shippingCharges.toFixed(2)}
+                  ₹{finalShipping.toFixed(2)}
                 </span>
               </div>
               {/* Pincode check UI */}

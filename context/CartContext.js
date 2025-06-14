@@ -59,6 +59,7 @@ export function CartProvider({ children }) {
         cart,
         wishlist,
         setCart,
+        setWishlist,
         addToCart,
         removeFromCart,
         updateCartQty,

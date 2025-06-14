@@ -112,6 +112,10 @@ const handleOnlinePaymentWithOrder = async (total, cart, customer, setLoading, s
       <h2>Thank you for your order!</h2>
       <p>Hello, ${customer.name}</p>
     </div>
+    <div class="footer">
+      <p>Order ID: ${orderId}</p>
+      <p>Order Date: ${new Date().toLocaleDateString()}</p>
+    </div>
   </div>
 </body>
 </html>`

@@ -3,12 +3,16 @@ import { ShoppingCart, Heart, X, Minus, Plus, Ship } from "lucide-react";
 import ReactDOM from "react-dom";
 import Link from "next/link";
 import { useCart } from "../context/CartContext";
+import { useSession } from "next-auth/react";
 
 export default function Cart({ open, onClose, initialTab = "cart" }) {
   const [tab, setTab] = useState(initialTab);
   const [show, setShow] = useState(true); // Always mount on first render
   const firstRender = React.useRef(true);
-  const { cart, wishlist, updateCartQty, removeFromCart, removeFromWishlist } = useCart();
+  const { cart, wishlist, setCart, setWishlist, updateCartQty, removeFromCart, removeFromWishlist } = useCart();
+  const { data: session, status } = useSession();
+  const userId = session?.user?.id || session?.user?.email;
+  const isLoggedIn = status === "authenticated" && userId;
 
   useEffect(() => {
     if (open) {
@@ -31,6 +35,63 @@ export default function Cart({ open, onClose, initialTab = "cart" }) {
       if (!open) setShow(false);
     }
   }, []);
+
+  // Sync cart to backend on change
+  useEffect(() => {
+    if (isLoggedIn) {
+      // console.log('[Cart.jsx] Syncing cart to backend', cart);
+      fetch("/api/sync-cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, cart }),
+      });
+    }
+  }, [cart, isLoggedIn, userId]);
+
+  // Sync wishlist to backend on change
+  useEffect(() => {
+    if (isLoggedIn) {
+      // console.log('[Cart.jsx] Syncing wishlist to backend', wishlist);
+      fetch("/api/sync-wishlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, wishlist }),
+      });
+    }
+  }, [wishlist, isLoggedIn, userId]);
+
+  // Fetch cart/wishlist from backend on mount if logged in
+  useEffect(() => {
+    if (isLoggedIn && cart.length === 0) {
+      fetch(`/api/sync-cart`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, cart: [] }), // empty triggers fetch only
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.cart) {
+            // console.log('[Cart.jsx] setCart from backend fetch', data.cart);
+            setCart(data.cart);
+          }
+        });
+    }
+    if (isLoggedIn && wishlist.length === 0) {
+      fetch(`/api/sync-wishlist`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, wishlist: [] }),
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.wishlist) {
+            // console.log('[Cart.jsx] setWishlist from backend fetch', data.wishlist);
+            setWishlist(data.wishlist);
+          }
+        });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn, userId]);
 
   const subtotal = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
   const freeShipping = subtotal >= 150;
