@@ -1,6 +1,6 @@
 "use client"
 import React, { useEffect, useState } from 'react';
-
+import Link from 'next/link';
 // Helper to extract YouTube video ID from URL
 const getYouTubeId = (url) => {
   const match = url.match(/(?:youtu.be\/|youtube.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
@@ -62,12 +62,12 @@ const ProductVideo = ({ productData, productId }) => {
             <div className="flex-1 min-w-0 bg-white border border-gray-200 p-6 flex flex-col items-start justify-center text-start rounded-2xl shadow-sm">
               <h2 className="font-bold text-2xl mb-4">{video.title || "Product Video"}</h2>
               <p className="mb-6 text-gray-700 text-base md:text-lg">{video.description || 'Discover more about this product. Get inspired and connect with us for more details!'}</p>
-              <button
-                className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors text-base font-semibold"
-                onClick={() => window.open(video.url, '_blank')}
+              <Link
+              href="/contact"
+                className="bg-black text-white px-6 py-2 hover:bg-gray-800 transition-colors text-base font-semibold"
               >
-                Watch on YouTube
-              </button>
+                Get Connected
+              </Link>
             </div>
           </div>
         );

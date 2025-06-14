@@ -46,22 +46,21 @@ const dummyProducts = [
   },
 ];
 
-const discountPercent = 10;
 
 const ResponsiveFeaturedCarousel = ({ products }) => {
   const { addToCart, addToWishlist, removeFromWishlist, wishlist } = useCart();
   // Use products if available and non-empty, otherwise fallback to 3 dummy products
   // console.log(products)
   const displayProducts = Array.isArray(products) && products.length > 0
+    ? products
+    : dummyProducts;
 
-    ? products.slice(0, 4)
-    : dummyProducts.slice(0, 4);
-
-  const [selected, setSelected] = React.useState(displayProducts.map((p) => p.checked ?? true));
+  // Always keep selected state in sync with displayProducts length
+  const [selected, setSelected] = React.useState(() => displayProducts.map((p) => p.checked ?? true));
 
   React.useEffect(() => {
     setSelected(displayProducts.map((p) => p.checked ?? true));
-  }, [products]);
+  }, [displayProducts]);
 
   const handleCheck = (idx) => {
     setSelected((prev) => {
@@ -82,169 +81,282 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
     );
 
 
+  // Modal state for options
+  const [optionModal, setOptionModal] = React.useState({ open: false, productIdx: null });
+  const [selectedColor, setSelectedColor] = React.useState(null);
+  const [selectedSize, setSelectedSize] = React.useState(null);
+
+  // Helper to get options for modal
+  const getOptions = (product) => {
+    // Try product.colors (array of {name, hex}), or variants
+    let colors = product.colors || [];
+    let sizes = product.sizes || [];
+    if (!colors.length && product.quantity?.variants) {
+      colors = Array.from(new Set(product.quantity.variants.map(v => v.color))).filter(Boolean).map(color => ({ name: color, hex: color }));
+    }
+    if (!sizes.length && product.quantity?.variants) {
+      sizes = Array.from(new Set(product.quantity.variants.map(v => v.size))).filter(Boolean);
+    }
+    return { colors, sizes };
+  };
+
+  // Reset modal state on open
+  React.useEffect(() => {
+    if (optionModal.open && optionModal.productIdx != null) {
+      setSelectedColor(null);
+      setSelectedSize(null);
+    }
+  }, [optionModal]);
+
   return (
-    <div className="rounded-2xl py-8 px-2 sm:px-4 md:px-4 flex mt-8 w-full">
-      <div className="flex flex-row items-start justify-between w-full">
-        {/* Left: Carousel with 4 products per slide */}
-        <div className="flex">
-          <Carousel>
-            <CarouselContent >
+    <div className="w-full flex flex-row gap-4 rounded-2xl items-center py-8 px-2 sm:px-4 md:px-4 mt-8">
+      {/* Choose Options Modal */}
+      {optionModal.open && optionModal.productIdx != null && (
+        (() => {
+          const product = displayProducts[optionModal.productIdx];
+          if (!product) return null;
+          const { colors, sizes } = getOptions(product);
+          return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+              <div className="bg-white rounded-2xl shadow-xl w-[340px] p-6 relative animate-fade-in">
+                <button
+                  className="absolute right-4 top-4 text-xl text-gray-400 hover:text-black"
+                  onClick={() => setOptionModal({ open: false, productIdx: null })}
+                  aria-label="Close"
+                >&#10005;</button>
+                <div className="font-bold text-lg mb-4">CHOOSE OPTIONS</div>
+                {/* Color selection */}
+                {colors.length > 0 && (
+                  <div className="mb-4">
+                    <div className="font-semibold text-sm mb-1">Color: {selectedColor || <span className="text-gray-400">Select</span>}</div>
+                    <div className="flex gap-3">
+                      {colors.map((color, idx) => (
+                        <button
+                          key={color.hex || color.name || idx}
+                          className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all ${selectedColor === (color.name || color.hex) ? 'border-black' : 'border-gray-300'}`}
+                          style={{ background: color.hex || color.name }}
+                          title={color.name}
+                          onClick={() => setSelectedColor(color.name || color.hex)}
+                        >
+                          {selectedColor === (color.name || color.hex) && <span className="w-4 h-4 bg-white rounded-full border border-black"></span>}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {/* Size selection */}
+                {sizes.length > 0 && (
+                  <div className="mb-4">
+                    <div className="font-semibold text-sm mb-1">Size: {selectedSize || <span className="text-gray-400">Select</span>}</div>
+                    <div className="flex gap-3">
+                      {sizes.map((size, idx) => (
+                        <button
+                          key={size || idx}
+                          className={`w-12 h-10 rounded-full border-2 flex items-center justify-center text-base font-semibold transition-all ${selectedSize === size ? 'border-black bg-gray-100' : 'border-gray-300'}`}
+                          onClick={() => setSelectedSize(size)}
+                        >
+                          {size}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <button
+                  className={`mt-4 w-full py-2 rounded-lg font-bold text-base transition ${selectedColor && selectedSize ? 'bg-black text-white hover:bg-gray-900' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                  disabled={!selectedColor || !selectedSize}
+                  onClick={() => {
+                    // Add to cart with selected options
+                    const prod = displayProducts[optionModal.productIdx];
+                    let price = prod.price || prod.minPrice || 0;
+                    // Find variant price if available
+                    if (prod.quantity?.variants) {
+                      const variant = prod.quantity.variants.find(v => v.size === selectedSize && (v.color === selectedColor || !selectedColor));
+                      if (variant) price = variant.price;
+                    }
+                    addToCart({
+                      id: prod._id || prod.id,
+                      name: prod.title || prod.name,
+                      image: (prod.gallery?.mainImage) || (prod.image?.url) || prod.image || "/product.jpeg",
+                      price,
+                      color: selectedColor,
+                      size: selectedSize,
+                    }, 1);
+                    toast.success('Added to cart!');
+                    setOptionModal({ open: false, productIdx: null });
+                  }}
+                >Add to Cart</button>
+              </div>
+            </div>
+          );
+        })()
+      )}
+
+      {/* Carousel Section (Left) */}
+      <div className="flex-1 max-w-[70%] mx-auto flex flex-row items-start">
+        {/* Carousel with 4 products per slide */}
+        <div className="relative w-full">
+          <Carousel className="w-full">
+            <CarouselContent className="w-full gap-2">
               {chunkArray(displayProducts, 4).map((row, rowIdx) => (
-                <CarouselItem key={rowIdx} className="flex gap-2 justify-start" >
-                  {row.map((product, idx) => (
-                    <React.Fragment key={product.id || product._id || idx}>
-                      <div className="rounded-2xl border-2 border-black p-5 flex flex-col w-64 min-w-[220px] justify-between mb-2 md:mb-0">
+                <CarouselItem key={rowIdx} className="flex gap-4 justify-start">
+                  {row.map((product, idx) => {
+                    const globalIdx = rowIdx * 4 + idx;
+                    return (
+                      <div key={product.id || product._id || globalIdx} className="rounded-2xl border border-gray-200 bg-white p-4 flex flex-col w-56 min-w-[220px] justify-between">
                         <div>
-                          <div className="flex items-center mb-3">
-                            <input
-                              type="checkbox"
-                              checked={selected[rowIdx * 4 + idx]}
-                              onChange={() => handleCheck(rowIdx * 4 + idx)}
-                              className="accent-black mr-2 scale-125 cursor-pointer"
-                            />
-                          </div>
-                          <div className="w-full h-64 relative mb-3 rounded-xl overflow-hidden flex items-center justify-center">
+                          <div className="w-full h-56 relative mb-3 rounded-xl overflow-hidden flex items-center justify-center bg-gray-50">
                             <Image
-                              src={product.gallery?.mainImage?.url || (product.image && product.image.url) || "/product.jpeg"}
+                              src={product.gallery?.mainImage?.url || (product.image && product.image.url) || product.image || "/product.jpeg"}
                               alt={product.title || product.packageName || "Product image"}
-                              width={220}
-                              height={200}
+                              width={180}
+                              height={180}
                               className="object-contain w-full h-full hover:scale-105 transition-all duration-300"
                             />
                           </div>
-                          <div className="flex flex-col items-start justify-between gap-1">
-                            <Link
-                              href={`/product/${product._id}`}
-                              className="font-bold hover:underline text-md text-gray-900 leading-tight max-w-[200px] truncate cursor-pointer"
-                            >
-                              {product?.title}
-                            </Link>
-                            {/* <span className="text-base font-semibold truncate" title={product.name || product.title}>{product.name || product.title}</span> */}
-                            {(() => {
-                              const price = product.quantity?.variants?.[0]?.price || product.price || product.minPrice || 0;
-                              const coupon = product.coupon || product.coupons?.coupon;
-                              let discountedPrice = price;
-                              let couponApplied = false;
-                              let couponCode = '';
-                              let discountLabel = '';
-                              if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
-                                discountedPrice = price - (price * coupon.percent) / 100;
-                                couponApplied = true;
-                                couponCode = coupon.couponCode;
-                                discountLabel = `-${coupon.percent}%`;
-                              } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
-                                discountedPrice = price - coupon.amount;
-                                couponApplied = true;
-                                couponCode = coupon.couponCode;
-                                discountLabel = `-₹${coupon.amount?.toLocaleString('en-IN')}`;
-                              }
-                              if (couponApplied) {
-                                return (
-                                  <div className="flex items-center gap-1">
-                                    <span className="text-gray-600 line-through text-md mr-2">₹{price?.toLocaleString('en-IN')}</span>
-                                    <span className="text-md font-bold text-black">₹{Math.round(discountedPrice)?.toLocaleString('en-IN')}</span>
-                                  </div>
-                                );
-                              } else {
-                                return <span className="text-md font-bold text-black">₹{price?.toLocaleString('en-IN')}</span>;
-                              }
-                            })()}
+                          <div className="mb-2">
+                            <div className="flex items-center gap-2 mb-1">
+                              <input
+                                type="checkbox"
+                                checked={selected[globalIdx]}
+                                onChange={() => handleCheck(globalIdx)}
+                                className="accent-black scale-125 cursor-pointer"
+                                style={{ marginTop: 2 }}
+                              />
+                              <Link
+                                href={`/product/${product._id}`}
+                                className="font-semibold text-[16px] text-black leading-tight hover:underline"
+                                style={{ lineHeight: '1.2' }}
+                              >
+                                {product.title || product.name || product.packageName}
+                              </Link>
+                            </div>
+                            {/* Price block */}
+                            <div className="flex items-center gap-2 mt-1">
+                              {product.oldPrice && (
+                                <span className="text-gray-400 text-[17px] font-semibold line-through">
+                                  ₹{product.oldPrice.toFixed(2)}
+                                </span>
+                              )}
+                              {(() => {
+                                const price = product.quantity?.variants?.[0]?.price || product.price || product.minPrice || 0;
+                                const coupon = product.coupon || product.coupons?.coupon;
+                                let discountedPrice = price;
+                                let couponApplied = false;
+                                if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+                                  discountedPrice = price - (price * coupon.percent) / 100;
+                                  couponApplied = true;
+                                } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+                                  discountedPrice = price - coupon.amount;
+                                  couponApplied = true;
+                                }
+                                if (couponApplied || product.oldPrice) {
+                                  return (
+                                    <span className="text-[19px] font-bold text-black ml-1">₹{Math.round(discountedPrice)?.toLocaleString('en-IN')}</span>
+                                  );
+                                } else {
+                                  return <span className="text-[19px] font-bold text-black">₹{price?.toLocaleString('en-IN')}</span>;
+                                }
+                              })()}
+                            </div>
                           </div>
                         </div>
+                        <button
+                          className="border border-black rounded-md py-2 px-3 text-sm font-semibold mt-2 hover:bg-black hover:text-white transition"
+                          onClick={() => setOptionModal({ open: true, productIdx: globalIdx })}
+                        >
+                          Choose Options
+                        </button>
                       </div>
-                      {/* Plus sign except after last */}
-                      {idx < row.length - 1 && (
-                        <div className="hidden md:flex items-center justify-center h-full">
-                          <span className="text-3xl font-bold text-gray-300 mx-2">+</span>
-                        </div>
-                      )}
-                    </React.Fragment>
-                  ))}
+                    );
+                  })}
                 </CarouselItem>
               ))}
             </CarouselContent>
+            <CarouselPrevious className="absolute -left-8 top-1/2 -translate-y-1/2" />
+            <CarouselNext className="absolute -right-8 top-1/2 -translate-y-1/2" />
           </Carousel>
-          {/* Summary - Sticky on desktop */}
-          <div className="mx-5 flex flex-col gap-4 min-w-[230px] border rounded-2xl p-10 shadow-lg items-center md:sticky md:top-24 md:self-start w-full md:w-auto">
-            <div className="text-base text-gray-700 font-semibold mb-1">Price Total:</div>
-            {(() => {
-              let originalTotal = 0;
-              let discountedTotal = 0;
-              let anyDiscount = false;
-              displayProducts.forEach((product, idx) => {
-                if (!selected[idx]) return;
-                const price = product.quantity?.variants?.[0]?.price || product.price || product.minPrice || 0;
-                const coupon = product.coupon || product.coupons?.coupon;
-                let discountedPrice = price;
-                if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
-                  discountedPrice = price - (price * coupon.percent) / 100;
-                  anyDiscount = true;
-                } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
-                  discountedPrice = price - coupon.amount;
-                  anyDiscount = true;
-                }
-                originalTotal += price;
-                discountedTotal += discountedPrice;
-              });
-              if (anyDiscount) {
-                return (
-                  <div className="flex gap-2 items-center mb-2">
-                    <span className="text-gray-600 line-through text-lg">₹{originalTotal.toLocaleString('en-IN')}</span>
-                    <span className="text-2xl font-bold text-black">₹{Math.round(discountedTotal).toLocaleString('en-IN')}</span>
-                  </div>
-                );
-              } else {
-                return (
-                  <div className="flex gap-2 items-center mb-2">
-                    <span className="text-2xl font-bold text-black">₹{originalTotal.toLocaleString('en-IN')}</span>
-                  </div>
-                );
+        </div>
+      </div>
+      {/* Summary Section (Right) */}
+      <div className="flex-shrink-0 w-[320px] ml-8">
+        <div className="rounded-2xl border border-gray-200 p-6 bg-white flex flex-col items-center">
+          <span className="text-xs text-gray-700 mb-2">Price Total:</span>
+          {(() => {
+            let originalTotal = 0;
+            let discountedTotal = 0;
+            let anyDiscount = false;
+            displayProducts.forEach((product, idx) => {
+              if (!selected[idx]) return;
+              const price = product.quantity?.variants?.[0]?.price || product.price || product.minPrice || 0;
+              const coupon = product.coupon || product.coupons?.coupon;
+              let discountedPrice = price;
+              if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+                discountedPrice = price - (price * coupon.percent) / 100;
+                anyDiscount = true;
+              } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+                discountedPrice = price - coupon.amount;
+                anyDiscount = true;
               }
-            })()}
-
-            <button
-              className="bg-black text-white w-full py-3 rounded-lg font-bold text-base mb-2 hover:bg-gray-900 transition"
-              onClick={() => {
-                // Add all selected products to cart
-                let added = 0;
-                displayProducts.forEach((p, i) => {
-                  if (selected[i]) {
-                    // Use similar logic as ProductDetailView
-                    const price = p.quantity?.variants?.[0]?.price || p.price || p.minPrice || 0;
-                    const coupon = p.coupon || p.coupons?.coupon;
-                    let discountedPrice = price;
-                    let couponApplied = false;
-                    let couponCode = '';
-                    if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
-                      discountedPrice = price - (price * coupon.percent) / 100;
-                      couponApplied = true;
-                      couponCode = coupon.couponCode;
-                    } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
-                      discountedPrice = price - coupon.amount;
-                      couponApplied = true;
-                      couponCode = coupon.couponCode;
-                    }
-                    addToCart({
-                      id: p._id || p.id,
-                      name: p.title || p.name,
-                      image: (p.gallery?.mainImage) || (p.image?.url) || p.image || "/RandomTourPackageImages/u1.jpg",
-                      price: Math.round(discountedPrice),
-                      originalPrice: price,
-                      couponApplied,
-                      couponCode: couponApplied ? couponCode : undefined
-                    }, 1);
-                    added++;
+              originalTotal += price;
+              discountedTotal += discountedPrice;
+            });
+            if (anyDiscount) {
+              return (
+                <div className="flex gap-2 items-center mb-2">
+                  <span className="text-gray-400 line-through text-base">₹{originalTotal.toFixed(2)}</span>
+                  <span className="text-xl font-bold text-black">₹{discountedTotal.toFixed(2)}</span>
+                </div>
+              );
+            } else {
+              return (
+                <div className="flex gap-2 items-center mb-2">
+                  <span className="text-xl font-bold text-black">₹{originalTotal.toFixed(2)}</span>
+                </div>
+              );
+            }
+          })()}
+          <button
+            className="bg-black text-white w-full py-3 rounded-lg font-bold text-base mb-3 mt-2 hover:bg-gray-900 transition"
+            onClick={() => {
+              // Add all selected products to cart
+              let added = 0;
+              displayProducts.forEach((p, i) => {
+                if (selected[i]) {
+                  // Use similar logic as ProductDetailView
+                  const price = p.quantity?.variants?.[0]?.price || p.price || p.minPrice || 0;
+                  const coupon = p.coupon || p.coupons?.coupon;
+                  let discountedPrice = price;
+                  let couponApplied = false;
+                  let couponCode = '';
+                  if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+                    discountedPrice = price - (price * coupon.percent) / 100;
+                    couponApplied = true;
+                    couponCode = coupon.couponCode;
+                  } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+                    discountedPrice = price - coupon.amount;
+                    couponApplied = true;
+                    couponCode = coupon.couponCode;
                   }
-                });
-                if (added > 0) {
-                  toast.success(`${added} product${added > 1 ? 's' : ''} added to cart!`);
-                } else {
-                  toast.error("Please select at least one product.");
+                  addToCart({
+                    id: p._id || p.id,
+                    name: p.title || p.name,
+                    image: (p.gallery?.mainImage) || (p.image?.url) || p.image || "/product.jpeg",
+                    price: Math.round(discountedPrice),
+                    originalPrice: price,
+                    couponApplied,
+                    couponCode: couponApplied ? couponCode : undefined
+                  }, 1);
+                  added++;
                 }
-              }}
-            >ADD ALL TO CART</button>
-            {/* <div className="text-xs text-center text-gray-700">Get a 10% discount buying these products together</div> */}
-          </div>
+              });
+              if (added > 0) {
+                toast.success(`${added} product${added > 1 ? 's' : ''} added to cart!`);
+              } else {
+                toast.error("Please select at least one product.");
+              }
+            }}
+          >ADD ALL TO CART</button>
+          <div className="text-xs text-center text-gray-700 w-52">Get a 10% discount buying these products together</div>
         </div>
       </div>
     </div>

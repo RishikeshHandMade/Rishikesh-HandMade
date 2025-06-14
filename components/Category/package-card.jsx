@@ -21,23 +21,34 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, se
   const hasDiscount = pkg.originalPrice && pkg.price && pkg.originalPrice > pkg.price;
 
   return (
-    <div className="flex flex-col w-[290px] rounded-3xl mb-2 group cursor-pointer">
+    <div className="flex flex-col w-[250px] rounded-3xl mb-2 group cursor-pointer">
       {/* Image Section */}
       <div className="relative w-full h-80 rounded-3xl overflow-hidden flex items-center justify-center group/image">
         {/* GET 10% OFF Tag */}
         <div className="absolute top-6 left-4 z-10">
-          <div className="bg-white rounded-full px-4 py-1 text-sm font-bold shadow text-black tracking-tight" style={{ letterSpacing: 0 }}>
-            {(() => {
-              const coupon = pkg.coupon || pkg.coupons?.coupon;
-              if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
-                return <>GET {coupon.percent}% OFF</>;
-              } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
-                return <>GET ₹{coupon.amount} OFF</>;
-              } else {
-                return <>No Discount</>;
-              }
-            })()}
-          </div>
+
+
+          {(() => {
+            const coupon = pkg.coupon || pkg.coupons?.coupon;
+            if (!coupon?.couponCode) return null;
+
+            const { percent, amount } = coupon;
+
+            let offerText;
+            if (typeof percent === 'number' && percent > 0) {
+              offerText = <>GET {percent}% OFF</>;
+            } else if (typeof amount === 'number' && amount > 0) {
+              offerText = <>GET ₹{amount} OFF</>;
+            } else {
+              offerText = <>Special Offer</>;
+            }
+
+            return (
+              <div className="bg-white rounded-full px-4 py-1 text-sm font-bold shadow text-black tracking-tight" style={{ letterSpacing: 0 }}>
+                {offerText}
+              </div>
+            );
+          })()}
         </div>
         {/* Heart/Wishlist & Cart Buttons - Top Right */}
         <div className="absolute top-6 right-6 z-10 flex flex-col gap-4 items-end">
@@ -154,10 +165,10 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, se
         )}
       </div>
       {/* Name and Price Section */}
-      <div className="flex items-center justify-between px-2 pt-4 pb-2 mt-0">
+      <div className="flex flex-col items-start justify-between px-2 pt-4 pb-2 mt-0">
         <Link
           href={`/product/${pkg._id}`}
-          className="font-bold hover:underline text-xl text-gray-900 leading-tight max-w-[200px] truncate cursor-pointer"
+          className="font-bold hover:underline text-xl text-gray-900 leading-tight truncate cursor-pointer"
         >
           {pkg?.title}
         </Link>
@@ -182,13 +193,13 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, se
           if (hasDiscount && discountedPrice < originalPrice) {
             return (
               <span>
-                <del className="text-black font-bold text-xl mr-2">₹{formatNumber(originalPrice)}</del>
-                <span className="font-bold text-xl text-black px-2">₹{formatNumber(Math.round(discountedPrice))}</span>
+                <span className="font-semibold text-xl text-black px-2">₹{formatNumber(Math.round(discountedPrice))}</span>
+                <del className="text-black font-semibold text-md mr-2">₹{formatNumber(originalPrice)}</del>
               </span>
             );
           } else {
             return (
-              <span className="font-bold text-xl text-black">₹{formatNumber(price)}</span>
+              <span className="font-semibold text-xl text-black">₹{formatNumber(price)}</span>
             );
           }
         })()}

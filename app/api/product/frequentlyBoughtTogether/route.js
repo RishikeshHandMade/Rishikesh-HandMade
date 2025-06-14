@@ -42,7 +42,7 @@ export async function GET(request) {
         'coupons',
         'artisan'
       ])
-      .limit(6)
+      .limit(8)
       .sort({ createdAt: -1 })
       .lean()
       .exec();

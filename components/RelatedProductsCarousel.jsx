@@ -62,28 +62,27 @@ function RelatedProductsCarousel({ products }) {
                 <div
                   className="rounded-2xl flex flex-col justify-between w-72 min-w-[270px] p-0 relative overflow-hidden"
                 >
-               
-               {(() => {
-                          const coupon = p.coupon || p.coupons?.coupon;
-                          if (!coupon?.couponCode) return null;
+                  {(() => {
+                    const coupon = p.coupon || p.coupons?.coupon;
+                    if (!coupon?.couponCode) return null;
 
-                          const { percent, amount } = coupon;
+                    const { percent, amount } = coupon;
 
-                          let offerText;
-                          if (typeof percent === 'number' && percent > 0) {
-                            offerText = <>GET {percent}% OFF</>;
-                          } else if (typeof amount === 'number' && amount > 0) {
-                            offerText = <>GET ₹{amount} OFF</>;
-                          } else {
-                            offerText = <>Special Offer</>;
-                          }
+                    let offerText;
+                    if (typeof percent === 'number' && percent > 0) {
+                      offerText = <>GET {percent}% OFF</>;
+                    } else if (typeof amount === 'number' && amount > 0) {
+                      offerText = <>GET ₹{amount} OFF</>;
+                    } else {
+                      offerText = <>Special Offer</>;
+                    }
 
-                          return (
-                            <div className="absolute top-6 left-4 z-10 bg-white rounded-full px-4 py-1 text-sm font-bold shadow text-black tracking-tight" style={{ letterSpacing: 0 }}>
-                              {offerText}
-                            </div>
-                          );
-                        })()}
+                    return (
+                      <div className="absolute top-6 left-4 z-10 bg-white rounded-full px-4 py-1 text-sm font-bold shadow text-black tracking-tight" style={{ letterSpacing: 0 }}>
+                        {offerText}
+                      </div>
+                    );
+                  })()}
                   {/* Icons top right, stacked */}
                   <div className="absolute top-6 right-6 z-10 flex flex-col gap-4 items-end">
                     <Button
@@ -155,7 +154,7 @@ function RelatedProductsCarousel({ products }) {
                       src={p.gallery?.mainImage?.url || '/placeholder-image.jpg'}
                       alt={p.title || 'Product Image'}
                       fill
-                      className="object-cover rounded-2xl"
+                      className="object-cover rounded-2xl hover:scale-105 transition-all duration-300"
                       sizes="(max-width: 768px) 100vw, 300px"
                       priority={idx === 0}
                     />
@@ -187,14 +186,14 @@ function RelatedProductsCarousel({ products }) {
                       }
                       if (couponApplied) {
                         return (
-                          <div className="ml-4 whitespace-nowrap flex gap-2">
+                          <div className="whitespace-nowrap flex gap-2">
                             <span className="text-gray-600 line-through text-lg">₹{price?.toLocaleString('en-IN')}</span>
                             <span className="text-xl font-bold text-black">₹{Math.round(discountedPrice)?.toLocaleString('en-IN')}</span>
                           </div>
                         );
                       } else {
                         return (
-                          <div className="ml-4 text-xl font-bold text-black whitespace-nowrap">
+                          <div className="text-xl font-bold text-black whitespace-nowrap">
                             ₹{price?.toLocaleString('en-IN')}
                           </div>
                         );
