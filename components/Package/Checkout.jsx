@@ -13,8 +13,7 @@ import { useSession } from "next-auth/react"
 import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 import toast from "react-hot-toast"
-import { UploadButton } from "@/utils/uploadthing"
-import { deleteFileFromUploadthing } from "@/utils/Utapi"
+import { useRef } from "react"
 import { X } from "lucide-react"
 
 const Checkout = ({ packages }) => {
@@ -76,6 +75,41 @@ const Checkout = ({ packages }) => {
         travelDate: "",
         departureLocation: "",
     })
+
+    // Cloudinary-style image upload (copied from AddGallery.jsx)
+    const [images, setImages] = useState([]);
+    const [loadedImages, setLoadedImages] = useState([]);
+    const [uploading, setUploading] = useState(false);
+    const fileInputRef = useRef(null);
+
+    const handleImageChange = async (e) => {
+        const files = Array.from(e.target.files);
+        setUploading(true);
+        for (const file of files) {
+            const formData = new FormData();
+            formData.append('file', file);
+            try {
+                const res = await fetch('/api/cloudinary', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (res.ok && data.url) {
+                    setImages(prev => [...prev, data.url]);
+                    toast.success('Image uploaded!');
+                } else {
+                    toast.error('Cloudinary upload failed: ' + (data.error || 'Unknown error'));
+                }
+            } catch (err) {
+                toast.error('Cloudinary upload error: ' + err.message);
+            }
+        }
+        setUploading(false);
+    };
+    const handleImageLoad = (index) => {
+        setLoadedImages(prev => [...prev, index]);
+    };
+
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -145,7 +179,7 @@ const Checkout = ({ packages }) => {
         if (fileKey) {
             try {
                 // Delete the file from UploadThing
-                await deleteFileFromUploadthing(fileKey);
+                // Removed UploadThing delete, now just clear image from state(fileKey);
 
                 // Remove the file from the state
                 const updatedCategory = [...heliFormData[category]];
@@ -828,15 +862,16 @@ const Checkout = ({ packages }) => {
                                             value={heliFormData.adults[index]?.weight || ""}
                                             onChange={(e) => handleInputChange(e, "weight", index, "adults")}
                                             className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
-
                                         />
                                     </div>
+
+                                    {/* ID Proof */}
                                     <div>
                                         <label className="block text-sm font-medium mb-1">ID Proof</label>
-                                        <UploadButton
-                                            endpoint="imageUploader" // Replace with your UploadThing endpoint
-                                            onClientUploadComplete={(res) => handleFileUpload(res, index, "adults")}
-                                            onUploadError={(error) => console.error("Upload Error:", error)}
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => handleFileChange(e, index, "adults")}
                                         />
                                         {heliFormData.adults[index]?.idProof?.url && (
                                             <div className="mt-2 relative flex items-center gap-4 aspect-video">
@@ -862,206 +897,101 @@ const Checkout = ({ packages }) => {
                                 </div>
                             ))}
 
-                            {/* Number of Children */}
                             <div>
-                                <label className="block text-sm font-medium mb-1">Number of Children</label>
+                                <label className="block text-sm font-medium mb-1">10-Digit Mobile Number</label>
                                 <Input
                                     type="number"
-                                    min={0}
-                                    value={heliFormData.numChildren}
-                                    onChange={(e) => handleInputChange(e, "numChildren")}
                                     className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
-
-                                />
-                            </div>
-
-                            {/* Children Details */}
-                            {Array.from({ length: heliFormData.numChildren }).map((_, index) => (
-                                <div key={index} className="space-y-4 p-4 bg-white rounded-lg border border-gray-200">
-                                    <h3 className="text-lg font-semibold">Child {index + 1}</h3>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">Full Name</label>
-                                        <Input
-                                            type="text"
-                                            value={heliFormData.children[index]?.fullname || ""}
-                                            onChange={(e) => handleInputChange(e, "fullname", index, "children")}
-                                            className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
-
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">Age</label>
-                                        <Input
-                                            type="number"
-                                            value={heliFormData.children[index]?.age || ""}
-                                            onChange={(e) => handleInputChange(e, "age", index, "children")}
-                                            className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
-
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">Weight (kg)</label>
-                                        <Input
-                                            type="number"
-                                            value={heliFormData.children[index]?.weight || ""}
-                                            onChange={(e) => handleInputChange(e, "weight", index, "children")}
-                                            className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
-
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">ID Proof</label>
-                                        <UploadButton
-                                            endpoint="imageUploader" // Replace with your UploadThing endpoint
-                                            onClientUploadComplete={(res) => handleFileUpload(res, index, "children")}
-                                            onUploadError={(error) => console.error("Upload Error:", error)}
-                                        />
-                                        {heliFormData.children[index]?.idProof?.url && (
-                                            <div className="mt-2 relative flex items-center gap-4 aspect-video">
-                                                <Image
-                                                    src={heliFormData.children[index].idProof.url}
-                                                    width={1280}
-                                                    height={720}
-                                                    quality={25}
-                                                    alt="ID Proof"
-                                                    className="w-full h-full object-cover rounded-lg"
-                                                />
-                                                <Button
-                                                    type="button"
-                                                    size={"icon"}
-                                                    onClick={() => handleDeleteImage(index, "children")}
-                                                    className="bg-red-500 absolute top-0 right-0 rounded-full text-white hover:bg-red-600"
-                                                >
-                                                    <X className="w-4 h-4" />
-                                                </Button>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-
-                            {/* Number of Infants */}
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Number of Infants</label>
-                                <Input
-                                    type="number"
-                                    min={0}
-                                    value={heliFormData.numInfants}
-                                    onChange={(e) => handleInputChange(e, "numInfants")}
-                                    className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
-
-                                />
-                            </div>
-
-                            {/* Infants Details */}
-                            {Array.from({ length: heliFormData.numInfants }).map((_, index) => (
-                                <div key={index} className="space-y-4 p-4 bg-white rounded-lg border border-gray-200">
-                                    <h3 className="text-lg font-semibold">Infant {index + 1}</h3>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">Full Name</label>
-                                        <Input
-                                            type="text"
-                                            value={heliFormData.infants[index]?.fullname || ""}
-                                            onChange={(e) => handleInputChange(e, "fullname", index, "infants")}
-                                            className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
-
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">Age</label>
-                                        <Input
-                                            type="number"
-                                            value={heliFormData.infants[index]?.age || ""}
-                                            onChange={(e) => handleInputChange(e, "age", index, "infants")}
-                                            className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
-
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">Weight (kg)</label>
-                                        <Input
-                                            type="number"
-                                            value={heliFormData.infants[index]?.weight || ""}
-                                            onChange={(e) => handleInputChange(e, "weight", index, "infants")}
-                                            className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
-
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">ID Proof</label>
-                                        <UploadButton
-                                            endpoint="imageUploader" // Replace with your UploadThing endpoint
-                                            onClientUploadComplete={(res) => handleFileUpload(res, index, "infants")}
-                                            onUploadError={(error) => console.error("Upload Error:", error)}
-                                        />
-                                        {heliFormData.infants[index]?.idProof?.url && (
-                                            <div className="mt-2 relative flex items-center gap-4 aspect-video">
-                                                <Image
-                                                    src={heliFormData.infants[index].idProof.url}
-                                                    width={1280}
-                                                    height={720}
-                                                    quality={25}
-                                                    alt="ID Proof"
-                                                    className="w-full h-full object-cover rounded-lg"
-                                                />
-                                                <Button
-                                                    type="button"
-                                                    size={"icon"}
-                                                    onClick={() => handleDeleteImage(index, "infants")}
-                                                    className="bg-red-500 absolute top-0 right-0 rounded-full text-white hover:bg-red-600"
-                                                >
-                                                    <X className="w-4 h-4" />
-                                                </Button>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-
-                            {/* Pickup Location */}
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Pickup Location</label>
-                                <Input
-                                    type="text"
-                                    value={heliFormData.pickupLocation}
-                                    onChange={(e) => handleInputChange(e, "pickupLocation")}
-                                    className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
+                                    value={formData.mobile}
+                                    onChange={(e) => {
+                                        // Ensure the input value is no longer than 10 digits
+                                        if (e.target.value.length <= 10) {
+                                            setFormData({ ...formData, mobile: e.target.value });
+                                        }
+                                    }}
                                     required
                                 />
                             </div>
 
-                            {/* Dropoff Location */}
+                            {/* Email */}
                             <div>
-                                <label className="block text-sm font-medium mb-1">Dropoff Location</label>
+                                <label className="block text-sm font-medium mb-1">Email</label>
                                 <Input
-                                    type="text"
-                                    value={heliFormData.dropoffLocation}
-                                    onChange={(e) => handleInputChange(e, "dropoffLocation")}
+                                    type="email"
                                     className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                     required
                                 />
                             </div>
 
-                            {/* Medical Requirements */}
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Medical Requirements</label>
+                            {/* Permanent Address */}
+                            <div className="col-span-2">
+                                <label className="block text-sm font-medium mb-1">Permanent Address</label>
                                 <Textarea
-                                    value={heliFormData.medicalRequirements}
-                                    onChange={(e) => handleInputChange(e, "medicalRequirements")}
-                                    className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
+                                    className="resize-none outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
+                                    value={formData.address}
+                                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                    required
                                 />
                             </div>
 
-                            {/* Special Requirements */}
+                            {/* Apartment, Suite, etc. (Optional) */}
                             <div>
-                                <label className="block text-sm font-medium mb-1">Special Requirements</label>
-                                <Textarea
-                                    value={heliFormData.specialRequirements}
-                                    onChange={(e) => handleInputChange(e, "specialRequirements")}
-                                    className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
+                                <label className="block text-sm font-medium mb-1">Apartment, Suite, etc. (Optional)</label>
+                                <Input
+                                    type="text"
+                                    className="resize-none outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
+                                    value={formData.apartment}
+                                    onChange={(e) => setFormData({ ...formData, apartment: e.target.value })}
                                 />
                             </div>
-                        </div>}
+                        </div>
+                        }
+                        {/* Pickup Location */}
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Pickup Location</label>
+                            <Input
+                                type="text"
+                                value={heliFormData.pickupLocation}
+                                onChange={(e) => handleInputChange(e, "pickupLocation")}
+                                className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
+                                required
+                            />
+                        </div>
+
+                        {/* Dropoff Location */}
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Dropoff Location</label>
+                            <Input
+                                type="text"
+                                value={heliFormData.dropoffLocation}
+                                onChange={(e) => handleInputChange(e, "dropoffLocation")}
+                                className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
+                                required
+                            />
+                        </div>
+
+                        {/* Medical Requirements */}
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Medical Requirements</label>
+                            <Textarea
+                                value={heliFormData.medicalRequirements}
+                                onChange={(e) => handleInputChange(e, "medicalRequirements")}
+                                className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
+                            />
+                        </div>
+
+                        {/* Special Requirements */}
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Special Requirements</label>
+                            <Textarea
+                                value={heliFormData.specialRequirements}
+                                onChange={(e) => handleInputChange(e, "specialRequirements")}
+                                className="outline-none border-2 border-blue-600 bg-transparent focus-visible:ring-0 focus:ring-0 focus-visible:outline-none focus:outline-none"
+                            />
+                        </div>
+
 
                         {/* Submit Button */}
                         <Button type="submit" className="w-full mt-8 !py-6 border-2 font-barlow text-lg border-blue-600 bg-blue-200 hover:bg-blue-600 hover:text-white text-black">
@@ -1224,7 +1154,7 @@ const Checkout = ({ packages }) => {
 
             </div>
         </SidebarInset >
-    )
+    );
 }
 
-export default Checkout
+export default Checkout;
