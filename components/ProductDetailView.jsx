@@ -145,7 +145,7 @@ export default function ProductDetailView({ product }) {
   const price = selectedVariant ? formatNumeric(selectedVariant.price) : 0;
   const total = hasDiscount ? (discountedPrice * quantity).toFixed(2) : (selectedVariant ? (selectedVariant.price * quantity).toFixed(2) : 0);
 
-  const { addToCart, addToWishlist, removeFromWishlist, wishlist } = useCart();
+  const {cart, addToCart,setCart, addToWishlist, removeFromWishlist, wishlist } = useCart();
   // Gather all images (main + sub) at the top-level
   // Gather all images, filter out empty/undefined/null, and fallback to placeholder if empty
   const allImagesRaw = [product.gallery?.mainImage?.url, ...(product.gallery?.subImages?.map(img => img.url) || [])];
@@ -723,9 +723,35 @@ export default function ProductDetailView({ product }) {
           {/* Buy Now Button */}
           <button
             className="border border-black py-3 font-semibold hover:bg-gray-100 w-full"
-            onClick={() => {
+            onClick={async () => {
               if (!selectedVariant) return;
-              router.push("/checkout");
+              try {
+                // Prepare the buy-now product
+                const buyNowProduct = {
+                  id: product._id,
+                  name: product.title,
+                  image: selectedImage || product.gallery?.mainImage || '/placeholder.png',
+                  price: hasDiscount ? Math.round(discountedPrice) : selectedVariant.price,
+                  originalPrice: selectedVariant.price,
+                  couponApplied: hasDiscount,
+                  couponCode: coupon ? coupon.couponCode : '',
+                  size: selectedSize,
+                  color: selectedColor,
+                  uploaderCode: product.uploaderCode || '',
+                  cgst: selectedVariant.cgst,
+                  sgst: selectedVariant.sgst,
+                  qty: 1
+                };
+                
+                // Store the product in localStorage
+                localStorage.setItem('buyNowProduct', JSON.stringify(buyNowProduct));
+                
+                // Redirect to checkout with buy-now mode
+                router.push(`/checkout?mode=buy-now`);
+              } catch (error) {
+                console.error('Error preparing buy-now product:', error);
+                toast.error('Failed to prepare product. Please try again.');
+              }
             }}
           >
             BUY IT NOW

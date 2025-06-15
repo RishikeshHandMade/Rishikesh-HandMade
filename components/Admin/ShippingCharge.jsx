@@ -54,7 +54,7 @@ const ShippingCharge = () => {
         </select>
       </div>
       <div className="grid grid-cols-3 gap-4 items-center mb-4">
-        <label className="font-bold text-lg col-span-1">Type Dist. Name</label>
+        <label className="font-bold text-lg col-span-1">Type District Name</label>
         <select
           className="col-span-2 bg-blue-100 text-black font-bold text-lg px-6 py-2 rounded focus:outline-none"
           value={selectedDistrict}
@@ -62,8 +62,8 @@ const ShippingCharge = () => {
           disabled={!districts.length}
         >
           <option value="">Select</option>
-          {districts.map(dist => (
-            <option value={dist} key={dist}>{dist}</option>
+          {districts.map(district => (
+            <option value={district} key={district}>{district}</option>
           ))}
         </select>
       </div>
@@ -81,29 +81,29 @@ const ShippingCharge = () => {
         <label className="font-bold text-lg col-span-1">Shipping Charges</label>
         <div className="col-span-2 w-full">
           <div className="grid grid-cols-2 gap-2 mb-2">
-            <div className="bg-blue-300 text-black font-bold text-lg text-center py-2 rounded">Amount</div>
-            <div className="bg-blue-300 text-black font-bold text-lg text-center py-2 rounded">Label</div>
+            <div className="bg-blue-200 text-black font-bold text-lg text-center py-2 rounded">Amount</div>
+            <div className="bg-blue-200 text-black font-bold text-lg text-center py-2 rounded">Weight</div>
           </div>
           {charges.map((row, idx) => (
             <div className="grid grid-cols-2 gap-2 mb-2" key={idx}>
               <input
                 type="number"
-                className="bg-blue-300 text-white font-bold text-lg px-4 py-2 rounded placeholder-black focus:outline-none"
-                placeholder="Amount"
+                className="bg-blue-200 text-black font-normal text-lg px-4 py-2 rounded placeholder-black focus:outline-none"
+                placeholder="Enter Amount"
                 value={row.amount}
                 onChange={e => handleChargeChange(idx, 'amount', e.target.value)}
               />
               <input
                 type="text"
-                className="bg-blue-300 text-white font-bold text-lg px-4 py-2 rounded placeholder-black focus:outline-none"
-                placeholder="Label"
+                className="bg-blue-200 text-black font-normal text-lg px-4 py-2 rounded placeholder-black focus:outline-none"
+                placeholder="Enter Weight in Kg"
                 value={row.label}
                 onChange={e => handleChargeChange(idx, 'label', e.target.value)}
               />
             </div>
           ))}
           <button
-            className="bg-gray-400 text-black font-bold px-6 py-2 mt-2 rounded"
+            className="bg-gray-500 text-black font-bold px-6 py-2 mt-2 rounded"
             type="button"
             onClick={addChargeRow}
           >Add More +</button>

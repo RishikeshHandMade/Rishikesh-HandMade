@@ -22,7 +22,7 @@ export const metadata = {
   icons: { apple: "/apple-touch-icon.png" },
   manifest: "/site.webmanifest",
   openGraph: {
-    title: "Rishikesh Handmade - Your Spiritual Travel Solution",
+    title: "Rishikesh Handmade - Jute Fiber, Bhimal Fiber, Natural Fiber, Handicraft Product",
     description:
       "Embark on a transformative voyage with Rishikesh Handmade, offering enriching spiritual journeys across India.",
     images: ["/logo.png"],
@@ -31,7 +31,7 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Rishikesh Handmade - Your Spiritual Travel Solution",
+    title: "Rishikesh Handmade - Jute Fiber, Bhimal Fiber, Natural Fiber, Handicraft Product",
     description:
       "Embark on a transformative voyage with Rishikesh Handmade, offering enriching spiritual journeys across India.",
     images: ["/logo.png"],
