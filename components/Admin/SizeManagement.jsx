@@ -287,11 +287,6 @@ const SizeManagement = ({ productData, productId }) => {
       toast.error('Failed to delete');
     }
   };
-
-
-
-
-
   return (
     <>
       {/* Modal for image preview */}

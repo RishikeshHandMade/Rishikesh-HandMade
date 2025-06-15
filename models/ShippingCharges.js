@@ -1,53 +1,44 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
-const shippingChargeSchema = new mongoose.Schema({
+const ShippingChargeSchema = new mongoose.Schema({
     state: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    districts: [{
+      district: {
         type: String,
         required: true,
         trim: true
-    },
-    district: {
-        type: String,
-        required: true,
-        trim: true
-    },
-    pincode: {
-        type: String,
-        required: true,
-        trim: true,
-        validate: {
+      },
+      pincodes: [{
+        pincode: {
+          type: String,
+          required: true,
+          trim: true,
+          validate: {
             validator: function(v) {
-                return /^\d{6}$/.test(v);
+              return /^\d{6}$/.test(v);
             },
             message: props => `${props.value} is not a valid 6-digit pincode`
-        }
-    },
-    weight: {
-        type: Number,
-        required: true,
-        min: 0
-    },
-    shippingCharge: {
-        type: Number,
-        required: true,
-        min: 0
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    },
-    updatedAt: {
-        type: Date,
-        default: Date.now
-    }
-}, {
-    timestamps: true
-});
-
-// Create indexes for faster querying
-shippingChargeSchema.index({ pincode: 1 });
-shippingChargeSchema.index({ state: 1, district: 1 });
-
-const ShippingCharge = mongoose.model('ShippingCharge', shippingChargeSchema);
-
-module.exports = ShippingCharge;
+          }
+        },
+        shippingCharges: [{
+          weight: {
+            type: Number,
+            required: true,
+            min: 0,
+            default: 0
+          },
+          shippingCharge: {
+            type: Number,
+            required: true,
+            min: 0,
+            default: 0
+          }
+        }]
+      }]
+    }],
+  }, { timestamps: true });
+export default mongoose.models.ShippingCharge || mongoose.model('ShippingCharge', ShippingChargeSchema);

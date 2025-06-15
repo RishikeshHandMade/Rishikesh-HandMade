@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { useCart } from "../context/CartContext";
 import Link from "next/link";
 import {
@@ -11,7 +11,7 @@ import {
   DialogClose,
 } from "./ui/dialog";
 import { useRouter } from "next/navigation";
-
+import {statesIndia} from "../lib/IndiaStates";
 const CartDetails = () => {
   // 2. Get price after discount
   const getAfterDiscount = (item) => {
@@ -29,9 +29,13 @@ const CartDetails = () => {
   // Handler for checkout navigation
   const handleCheckout = () => {
     if (!termsChecked) return;
+    
+    // First, ensure we have the latest cart data
+    const currentCart = Array.isArray(rawCart) ? rawCart : [];
+    
     // Collect all relevant cart data for checkout
     const checkoutData = {
-      cart: cart.map((item) => ({
+      cart: currentCart.map((item) => ({
         ...item,
         // include all important fields
         discountPercent: item.discountPercent || null,
@@ -41,21 +45,38 @@ const CartDetails = () => {
         originalPrice: item.originalPrice ?? item.price,
         afterDiscount: getAfterDiscount(item),
       })),
-      subTotal,
-      totalDiscount,
-      taxTotal,
-      finalShipping,
+      subTotal: currentCart.reduce((sum, item) => sum + (item.originalPrice ?? item.price) * item.qty, 0),
+      totalDiscount: currentCart.reduce((sum, item) => {
+        const discount = item.discountPercent ? 
+          (item.originalPrice ?? item.price) * (item.discountPercent / 100) : 
+          (item.discountAmount || 0);
+        return sum + (discount * item.qty);
+      }, 0),
+      taxTotal: currentCart.reduce((sum, item) => {
+        const price = getAfterDiscount(item);
+        const tax = ((item.cgst || 0) + (item.sgst || 0)) / 100 * price * item.qty;
+        return sum + tax;
+      }, 0),
+      finalShipping: FinalShipping || 0,
       promo: appliedPromoDetails
         ? {
-            code: appliedPromoDetails.couponCode,
-            percent: appliedPromoDetails.percent || null,
-            amount: appliedPromoDetails.amount || null,
-            discount: promoDiscount,
-          }
+          code: appliedPromoDetails.couponCode,
+          percent: appliedPromoDetails.percent || null,
+          amount: appliedPromoDetails.amount || null,
+          discount: promoDiscount,
+        }
         : null,
-      cartTotal,
+      cartTotal: currentCart.reduce((sum, item) => {
+        const price = getAfterDiscount(item);
+        const tax = ((item.cgst || 0) + (item.sgst || 0)) / 100 * price;
+        return sum + (price + tax) * item.qty;
+      }, 0) + (FinalShipping || 0) - (promoDiscount || 0),
     };
+    
+    // Save to localStorage before navigation
     localStorage.setItem("checkoutCart", JSON.stringify(checkoutData));
+    
+    // Redirect to checkout
     router.push("/checkout");
   };
 
@@ -80,29 +101,9 @@ const CartDetails = () => {
   const [stateInput, setStateInput] = React.useState("");
   const [districtInput, setDistrictInput] = React.useState("");
   const [pincodeInput, setPincodeInput] = React.useState("");
+  const [loadingShipping, setLoadingShipping] = useState(false);
+  const [FinalShipping,setFinalShipping ]=useState(false)
 
-  const handlePincodeSearch = async () => {
-    setIsCheckingPincode(true);
-    setPincodeResult(null);
-    setPincodeError("");
-
-    // Use the pincodeInput from the modal
-    setTimeout(() => {
-      // simulate async
-      if (VALID_PINCODES[pincodeInput]) {
-        setPincodeResult({ price: VALID_PINCODES[pincodeInput] });
-        setPincodeError("");
-        setIsPincodeModalOpen(false);
-        setIsPincodeConfirmModalOpen(true);
-        setPincode(pincodeInput); // Update the main pincode state
-      } else {
-        setPincodeResult(null);
-        setPincodeError("Sorry, we do not deliver to this pincode yet.");
-        setIsPincodeModalOpen(false);
-      }
-      setIsCheckingPincode(false);
-    }, 800);
-  };
   const handleApplyPincode = () => {
     setIsPincodeConfirmModalOpen(false);
     // The pincodeResult is already set, so shipping charges will be updated
@@ -204,31 +205,31 @@ const CartDetails = () => {
   // 5. For entire cart
   const subTotal = Array.isArray(cart)
     ? cart.reduce(
-        (sum, item) => sum + (item.originalPrice ?? item.price) * item.qty,
-        0
-      )
+      (sum, item) => sum + (item.originalPrice ?? item.price) * item.qty,
+      0
+    )
     : 0;
   const totalDiscount = Array.isArray(cart)
     ? cart.reduce(
-        (sum, item) =>
-          sum +
-          (item.discountPercent
-            ? (item.originalPrice ?? item.price) * (item.discountPercent / 100)
-            : item.discountAmount || 0) *
-            item.qty,
-        0
-      )
+      (sum, item) =>
+        sum +
+        (item.discountPercent
+          ? (item.originalPrice ?? item.price) * (item.discountPercent / 100)
+          : item.discountAmount || 0) *
+        item.qty,
+      0
+    )
     : 0;
   const taxTotal = Array.isArray(cart)
     ? cart.reduce(
-        (sum, item) =>
-          sum +
-          ((getAfterDiscount(item) *
-            ((Number(item.cgst) || 0) + (Number(item.sgst) || 0))) /
-            100) *
-            item.qty,
-        0
-      )
+      (sum, item) =>
+        sum +
+        ((getAfterDiscount(item) *
+          ((Number(item.cgst) || 0) + (Number(item.sgst) || 0))) /
+          100) *
+        item.qty,
+      0
+    )
     : 0;
   const finalShipping = pincodeResult?.price || shippingCharges || 0;
 
@@ -250,7 +251,7 @@ const CartDetails = () => {
     if (appliedPromoDetails.percent) {
       promoDiscount = Math.round(
         (totalAfterDiscount + taxTotal + finalShipping) *
-          (appliedPromoDetails.percent / 100)
+        (appliedPromoDetails.percent / 100)
       );
     } else if (appliedPromoDetails.amount) {
       promoDiscount = appliedPromoDetails.amount;
@@ -266,24 +267,6 @@ const CartDetails = () => {
   // Demo: valid pincode and price
   const VALID_PINCODES = { 249201: 100, 110001: 120 }; // add more as needed
 
-  const handleCheckPincode = async () => {
-    setIsCheckingPincode(true);
-    setPincodeResult(null);
-    setPincodeError("");
-    setTimeout(() => {
-      // simulate async
-      if (VALID_PINCODES[pincode]) {
-        setPincodeResult({ price: VALID_PINCODES[pincode] });
-        setPincodeError("");
-        // Optionally update shippingCharges here if you want to set it dynamically
-        // setShippingCharges(VALID_PINCODES[pincode]);
-      } else {
-        setPincodeResult(null);
-        setPincodeError("Sorry, we do not deliver to this pincode yet.");
-      }
-      setIsCheckingPincode(false);
-    }, 800);
-  };
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => {
     setMounted(true);
@@ -485,17 +468,17 @@ const CartDetails = () => {
               {/* Pincode check UI */}
               <div className="flex flex-col gap-1 mt-2 mb-2">
                 <div className="flex gap-2 items-center">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-600">
-                    Check if we deliver to your area:
-                  </span>
-                  <button
-                    className="text-blue-600 hover:text-blue-800 text-sm font-medium underline focus:outline-none"
-                    onClick={() => setIsPincodeModalOpen(true)}
-                  >
-                    {pincodeResult ? `${pincode} ✓` : "Check Pincode"}
-                  </button>
-                </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-600">
+                      Check if we deliver to your area:
+                    </span>
+                    <button
+                      className="text-blue-600 hover:text-blue-800 text-sm font-medium underline focus:outline-none"
+                      onClick={() => setIsPincodeModalOpen(true)}
+                    >
+                      {pincodeResult ? `${pincode} ✓` : "Check Pincode"}
+                    </button>
+                  </div>
                 </div>
                 {pincodeResult && (
                   <div className="text-green-700 text-xs mt-1">
@@ -527,12 +510,15 @@ const CartDetails = () => {
                       <select
                         className="w-full py-3 px-4 rounded-md bg-green-100 border-0 focus:ring-2 focus:ring-green-400"
                         value={stateInput}
-                        onChange={(e) => setStateInput(e.target.value)}
+                        onChange={e => {
+                          setStateInput(e.target.value);
+                          setDistrictInput(""); // reset district when state changes
+                        }}
                       >
                         <option value="">Select State</option>
-                        <option value="Delhi">Delhi</option>
-                        <option value="Uttarakhand">Uttarakhand</option>
-                        {/* Add more states as needed */}
+                        {statesIndia[0].states.map((s) => (
+                          <option key={s.state} value={s.state}>{s.state}</option>
+                        ))}
                       </select>
                     </div>
 
@@ -540,12 +526,13 @@ const CartDetails = () => {
                       <select
                         className="w-full py-3 px-4 rounded-md bg-yellow-100 border-0 focus:ring-2 focus:ring-yellow-400"
                         value={districtInput}
-                        onChange={(e) => setDistrictInput(e.target.value)}
+                        onChange={e => setDistrictInput(e.target.value)}
+                        disabled={!stateInput}
                       >
                         <option value="">Select Distt.</option>
-                        <option value="New Delhi">New Delhi</option>
-                        <option value="Dehradun">Dehradun</option>
-                        {/* Add more districts as needed */}
+                        {stateInput && statesIndia[0].states.find(s => s.state === stateInput)?.districts.map(d => (
+                          <option key={d} value={d}>{d}</option>
+                        ))}
                       </select>
                     </div>
 
@@ -562,11 +549,59 @@ const CartDetails = () => {
 
                     <button
                       className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-md transition-colors"
-                      onClick={handlePincodeSearch}
-                      disabled={!pincodeInput || pincodeInput.length !== 6}
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        setPincodeError("");
+                        setPincodeResult(null);
+                        setLoadingShipping(true);
+                        try {
+                          const res = await fetch('/api/checkShipping', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              state: stateInput,
+                              district: districtInput,
+                              pincode: pincodeInput
+                            })
+                          });
+                          // console.log('Shipping API status:', res.status);
+                          const data = await res.json();
+                          // console.log('Shipping API response:', data);
+                          if (data.available) {
+                            setPincodeResult({
+                              price: data.shippingCharge,
+                              state: stateInput,
+                              district: districtInput,
+                              pincode: pincodeInput
+                            });
+                            setFinalShipping(data.shippingCharge);
+                            setIsPincodeModalOpen(false);
+                            setIsPincodeConfirmModalOpen(true);
+                          } else {
+                            setPincodeError(data.message || 'Delivery not available');
+                            setFinalShipping(0);
+                          }
+                        } catch (err) {
+                          setPincodeError('Server error. Please try again.');
+                          setFinalShipping(0);
+                        } finally {
+                          setLoadingShipping(false);
+                        }
+                      }}
+                      disabled={!pincodeInput || pincodeInput.length !== 6 || !stateInput || !districtInput || loadingShipping}
                     >
-                      SEARCH
+                      {loadingShipping ? 'Checking...' : 'SEARCH'}
                     </button>
+                    {pincodeResult && (
+                      <div className="text-green-700 text-xs mt-1">
+                        Delivery available! Shipping Price: ₹{pincodeResult.price}
+                      </div>
+                    )}
+                    {pincodeError && (
+                      <div className="text-red-600 text-xs mt-1">
+                        {pincodeError}
+                      </div>
+                    )}
                   </div>
                 </DialogContent>
               </Dialog>
@@ -663,8 +698,15 @@ const CartDetails = () => {
               </div>
               <button
                 className="w-full py-3 bg-orange-500 text-white rounded font-bold text-base hover:bg-orange-600 mb-2"
-                disabled={!termsChecked}
-                onClick={handleCheckout}
+                disabled={!termsChecked || !pincodeResult}
+                onClick={() => {
+                  if (!pincodeResult) {
+                    setPincodeError('Please check your pincode for delivery before proceeding.');
+                    setIsPincodeModalOpen(true);
+                    return;
+                  }
+                  handleCheckout();
+                }}
               >
                 I'm Ready To Pay
               </button>
