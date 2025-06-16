@@ -2,7 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
-const OrderConfirm = ({ orderId = '267676GHERTI05467' }) => {
+const OrderConfirm = ({ orderId}) => {
   const router = useRouter();
 
   const handleViewOrders = () => {

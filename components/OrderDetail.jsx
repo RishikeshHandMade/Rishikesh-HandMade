@@ -3,49 +3,6 @@ import React, { useState } from "react";
 import ReturnRequest from "./ReturnRequest";
 import CancelRequest from "./CancelRequest";
 
-const mockOrder = {
-  id: "17493",
-  status: "IN PROGRESS",
-  product: {
-    name: "casual shirt",
-    image: "https://cdn-icons-png.flaticon.com/512/892/892458.png",
-  },
-  courier: "casual shirt",
-  address: "451 Wall Street UK, London",
-  startTime: "2024-04-05T15:43:23",
-  history: [
-    {
-      label: "Product Shiped",
-      date: "2024-04-08T17:23:00",
-      details: [
-        { label: "Courier Service", value: "UPS, R. Gosling" },
-        { label: "Estimated Delivery Date", value: "09/04/2024" },
-      ],
-      status: "success",
-    },
-    {
-      label: "Product Shiped",
-      date: "2024-04-08T17:23:00",
-      details: [
-        { label: "Tracking Number", value: "3409-4216-8759" },
-        { label: "Warehouse", value: "Top Shirt 12b" },
-      ],
-      status: "fail",
-    },
-    {
-      label: "Product Packaging",
-      date: "2024-04-09T16:34:00",
-      details: [],
-      status: "pending",
-    },
-    {
-      label: "Order Placed",
-      date: "2024-04-10T14:36:00",
-      details: [],
-      status: "pending",
-    },
-  ],
-};
 
 const statusBadge = {
   "IN PROGRESS": "bg-pink-600 text-white",
@@ -71,7 +28,7 @@ const OrderDetail = ({ order }) => {
   const [activeTab, setActiveTab] = useState("history");
   const [showCancelRequest, setShowCancelRequest] = useState(false);
   const [showReturnRequest, setShowReturnRequest] = useState(false);
-  const orderData = order || mockOrder;
+  const orderData = order;
 
   if (showCancelRequest) {
     return (
@@ -106,7 +63,7 @@ const OrderDetail = ({ order }) => {
       <div className="flex items-start gap-4">
         <div className="flex flex-col items-center">
           <img
-            src={mockOrder.product.image}
+            src={orderData.product?.image || (orderData.products && orderData.products[0]?.image?.url) || ''}
             alt="product"
             className="w-16 h-16 rounded-lg border mb-2"
           />
@@ -114,25 +71,25 @@ const OrderDetail = ({ order }) => {
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
-            <span className={`px-2 py-1 rounded text-xs font-bold ${statusBadge[mockOrder.status]}`}>{mockOrder.status}</span>
-            <span className="text-lg font-bold">Order #{mockOrder.id}</span>
+            <span className={`px-2 py-1 rounded text-xs font-bold ${statusBadge[orderData.status]}`}>{orderData.status}</span>
+            <span className="text-lg font-bold">Order #{orderData.orderId || orderData.transactionId || orderData._id}</span>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-2 gap-4 text-sm text-gray-700 mb-4">
             <div>
               <div className="text-xs text-gray-500">Item</div>
-              <div className="font-semibold">{mockOrder.product.name}</div>
+              <div className="font-semibold">{orderData.product?.name || (orderData.products && orderData.products[0]?.name) || '-'}</div>
             </div>
             <div>
               <div className="text-xs text-gray-500">Courier</div>
-              <div className="font-semibold">{mockOrder.courier}</div>
+              <div className="font-semibold">{orderData.courier || '-'}</div>
             </div>
             <div>
               <div className="text-xs text-gray-500">Start Time</div>
-              <div className="font-semibold">{formatDateTime(mockOrder.startTime)}</div>
+              <div className="font-semibold">{orderData.startTime ? formatDateTime(orderData.startTime) : '-'}</div>
             </div>
             <div>
               <div className="text-xs text-gray-500">Address</div>
-              <div className="font-semibold">Address {mockOrder.address}</div>
+              <div className="font-semibold">{orderData.address || '-'}</div>
             </div>
           </div>
           {/* Action Buttons */}
@@ -170,7 +127,7 @@ const OrderDetail = ({ order }) => {
         <div className="mt-6">
           {/* Timeline */}
           <ol className="relative border-l-2 border-gray-200 ml-4">
-            {mockOrder.history.map((step, idx) => (
+            {(orderData.history || []).map((step, idx) => (
               <li key={idx} className="mb-10 ml-4">
                 <span
                   className={`absolute -left-6 top-1 flex items-center justify-center w-6 h-6 rounded-full border-2 ${

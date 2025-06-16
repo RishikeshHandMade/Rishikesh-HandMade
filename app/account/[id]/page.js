@@ -2,7 +2,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import Account from '@/components/MyAccount/Account';
 import Order from '@/models/Order';
-import Package from '@/models/Package';
 import connectDB from '@/lib/connectDB';
 import CustomOrder from '@/models/CustomOrder';
 
@@ -30,7 +29,7 @@ export default async function AccountPage({ params }) {
         // Lookup to join the Package collection
         {
             $lookup: {
-                from: 'packages', // The collection to join
+                from: 'products', // The collection to join
                 localField: 'packageId', // Field from the Order collection
                 foreignField: '_id', // Field from the Package collection
                 as: 'package', // Output array field
@@ -62,7 +61,7 @@ export default async function AccountPage({ params }) {
         // Lookup to join the Package collection
         {
             $lookup: {
-                from: 'packages', // The collection to join
+                from: 'products', // The collection to join
                 localField: 'packageId', // Field from the Order collection
                 foreignField: '_id', // Field from the Package collection
                 as: 'package', // Output array field

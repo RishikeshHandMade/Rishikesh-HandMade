@@ -3,7 +3,7 @@ import React from 'react';
 import Image from 'next/image';
 import { useCart } from '../context/CartContext';
 
-const CheckOutOverview = ({ checkoutData, paymentMethod, onEdit }) => {
+const CheckOutOverview = ({ checkoutData, paymentMethod, onEdit, onConfirm, loading, error}) => {
   const { cart } = useCart();
 
   if (!checkoutData) {
@@ -141,13 +141,26 @@ const CheckOutOverview = ({ checkoutData, paymentMethod, onEdit }) => {
         )}
 
         {/* Edit Cart Button */}
-        <button
-          type="button"
-          onClick={onEdit}
-          className="mt-6 w-full py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-        >
-          Edit Cart
-        </button>
+        <div className="flex flex-col gap-3 mt-6">
+          <button
+            type="button"
+            onClick={onEdit}
+            className="w-full py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Edit Cart
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="w-full py-2 px-4 rounded-md shadow-sm text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-60"
+            disabled={loading}
+          >
+            {loading ? 'Processing...' : 'Confirm & Pay'}
+          </button>
+          {error && (
+            <div className="text-red-600 text-xs mt-2 text-center">{error}</div>
+          )}
+        </div>
       </div>
     </div>
   );
