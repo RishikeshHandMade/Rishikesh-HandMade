@@ -90,6 +90,7 @@ export default function ProductDetailView({ product }) {
   const [quantity, setQuantity] = React.useState(1);
   const [showSizeChart, setShowSizeChart] = React.useState(false);
   const [selectedSize, setSelectedSize] = React.useState(null);
+  const [selectedWeight, setSelectedWeight] = React.useState(null);
   const [selectedColor, setSelectedColor] = React.useState(null);
   const [showFullDesc, setShowFullDesc] = React.useState(false);
   const desc = product.description?.overview || "No Description";
@@ -106,6 +107,7 @@ export default function ProductDetailView({ product }) {
   const selectedVariant = variants.find(v => {
     return (
       (selectedSize ? v.size === selectedSize : true) &&
+      (selectedWeight ? v.weight === selectedWeight : true) &&
       (selectedColor ? v.color === selectedColor : true)
     );
   });
@@ -114,6 +116,7 @@ export default function ProductDetailView({ product }) {
   React.useEffect(() => {
     if (variants.length && !selectedSize && !selectedColor) {
       setSelectedSize(variants[0].size);
+      setSelectedWeight(variants[0].weight);
       setSelectedColor(variants[0].color);
     }
   }, [variants]);
@@ -145,7 +148,7 @@ export default function ProductDetailView({ product }) {
   const price = selectedVariant ? formatNumeric(selectedVariant.price) : 0;
   const total = hasDiscount ? (discountedPrice * quantity).toFixed(2) : (selectedVariant ? (selectedVariant.price * quantity).toFixed(2) : 0);
 
-  const {cart, addToCart,setCart, addToWishlist, removeFromWishlist, wishlist } = useCart();
+  const { cart, addToCart, setCart, addToWishlist, removeFromWishlist, wishlist } = useCart();
   // Gather all images (main + sub) at the top-level
   // Gather all images, filter out empty/undefined/null, and fallback to placeholder if empty
   const allImagesRaw = [product.gallery?.mainImage?.url, ...(product.gallery?.subImages?.map(img => img.url) || [])];
@@ -330,33 +333,41 @@ export default function ProductDetailView({ product }) {
             </button>
           </div>
           {/* Size */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="font-bold text-md">Size:</span>
-            {availableSizes.map((size, idx) => (
-              <button
-                key={size || idx}
-                className={`relative px-3 py-1 border rounded-full bg-white text-base font-medium transition-all duration-150
-        ${selectedSize === size ? 'border-black ring-2 ring-black' : 'border-gray-300'}
-        hover:bg-gray-100
-      `}
-                onClick={() => {
-                  setSelectedSize(size);
-                  setQuantity(1);
-                  // When selecting a size, if the current color is not available for this size, pick the first available color for this size
-                  const colorForSize = variants.find(v => v.size === size && v.color === selectedColor);
-                  if (!colorForSize) {
-                    const firstColor = variants.find(v => v.size === size)?.color;
-                    setSelectedColor(firstColor);
-                  }
-                }}
-                aria-pressed={selectedSize === size}
-                tabIndex={0}
-                style={{ position: 'relative' }}
-              >
-                {size}
-              </button>
-            ))}
+            {availableSizes.map((size, idx) => {
+              const variant = variants.find(v => v.size === size);
+              const weight = variant?.weight || "N/A"; // fallback if weight is not available
+
+              return (
+                <button
+                  key={size || idx}
+                  className={`relative w-24 px-3 py-2 border rounded-xl bg-white text-sm font-medium transition-all duration-150
+          ${selectedSize === size ? 'border-black ring-2 ring-black' : 'border-gray-300'}
+          hover:bg-gray-100
+        `}
+                  onClick={() => {
+                    setSelectedSize(size);
+                    setQuantity(1);
+                    const colorForSize = variants.find(v => v.size === size && v.color === selectedColor);
+                    if (!colorForSize) {
+                      const firstColor = variants.find(v => v.size === size)?.color;
+                      setSelectedColor(firstColor);
+                    }
+                  }}
+                  aria-pressed={selectedSize === size}
+                  tabIndex={0}
+                >
+                  <div className="flex justify-between items-center w-full">
+                    <span>{size}</span>
+                    <div className="h-4 w-px bg-gray-300" />
+                    <span className="text-gray-600 text-md">{weight}g</span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
+
           {/* Size Chart Link/Button */}
           <div className="flex gap-2 items-center">
             {product?.size?.sizeChartUrl?.url && (
@@ -623,6 +634,7 @@ export default function ProductDetailView({ product }) {
                   couponApplied: hasDiscount,
                   couponCode: coupon ? coupon.couponCode : '',
                   size: selectedSize,
+                  weight: selectedWeight,
                   color: selectedColor,
                   uploaderCode: product.uploaderCode || '',
                 }, quantity);
@@ -648,6 +660,7 @@ export default function ProductDetailView({ product }) {
                     couponApplied: hasDiscount,
                     couponCode: coupon ? coupon.couponCode : '',
                     size: selectedSize,
+                    weight: selectedWeight,
                     color: selectedColor,
                   });
                   toast.success("Added to wishlist!");
@@ -730,22 +743,23 @@ export default function ProductDetailView({ product }) {
                 const buyNowProduct = {
                   id: product._id,
                   name: product.title,
-                  image: selectedImage || product.gallery?.mainImage || '/placeholder.png',
+                  image: selectedImage || product.gallery?.mainImage?.url || '/placeholder.jpeg',
                   price: hasDiscount ? Math.round(discountedPrice) : selectedVariant.price,
                   originalPrice: selectedVariant.price,
                   couponApplied: hasDiscount,
                   couponCode: coupon ? coupon.couponCode : '',
                   size: selectedSize,
+                  weight: selectedWeight,
                   color: selectedColor,
                   uploaderCode: product.uploaderCode || '',
                   cgst: selectedVariant.cgst,
                   sgst: selectedVariant.sgst,
-                  qty: 1
+                  qty: quantity
                 };
-                
+
                 // Store the product in localStorage
                 localStorage.setItem('buyNowProduct', JSON.stringify(buyNowProduct));
-                
+
                 // Redirect to checkout with buy-now mode
                 router.push(`/checkout?mode=buy-now`);
               } catch (error) {
@@ -758,7 +772,6 @@ export default function ProductDetailView({ product }) {
           </button>
         </div>
       </div>
-
     </div>
   );
 }

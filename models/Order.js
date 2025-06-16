@@ -31,7 +31,6 @@ const OrderSchema = new Schema({
     city: { type: String },
     state: { type: String },
     zip: { type: String },
-    country: { type: String },
     address: { type: String },
     // Payment/order info
     orderId: { type: String }, // Razorpay or internal order id

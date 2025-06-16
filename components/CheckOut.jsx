@@ -51,14 +51,21 @@ const triggerRazorpay = async ({ cartTotal, orderId, firstName, lastName, email,
   // 3. Open Razorpay checkout
   const options = {
     key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-    amount: data.amount,
+    amount: data.amount, // in paise
     currency: data.currency,
     name: 'Rishikesh Handmade',
     description: 'Order Payment',
-    order_id: data.id,
+    order_id: data.id, // Use Razorpay's order id here!
     handler: function (response) {
-      // TODO: Implement payment verification and order update here
-      window.location.href = `/dashboard?orderId=${orderId}`;
+      // Payment success handler
+      window.location.href = `/dashboard?orderId=${data.userOrderId}`;
+      // Clear buyNowProduct after successful payment (Buy Now mode)
+      if (typeof window !== "undefined") {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('mode') === 'buy-now') {
+          localStorage.removeItem('buyNowProduct');
+        }
+      }
     },
     prefill: {
       name: `${firstName || ''} ${lastName || ''}`.trim(),
@@ -66,6 +73,7 @@ const triggerRazorpay = async ({ cartTotal, orderId, firstName, lastName, email,
       contact: phone || '',
     },
   };
+
   const rzp = new window.Razorpay(options);
   rzp.open();
 };
@@ -79,11 +87,11 @@ import { toast } from 'react-hot-toast';
 function buildOrderPayload({
   cart,
   checkoutData,
-  street, city, district, state, zip, country,
+  street, city, district, state, zip,
   firstName, lastName, email, phone, altPhone,
   payment, transactionId, orderId, agree
 }) {
-  const fullAddress = [street, city, district, state, zip, country].filter(Boolean).join(', ');
+  const fullAddress = [street, city, district, state, zip].filter(Boolean).join(', ');
   return {
     products: cart,
     cartTotal: checkoutData?.cartTotal,
@@ -104,7 +112,6 @@ function buildOrderPayload({
     district,
     state,
     zip,
-    country,
     address: fullAddress,
     // Payment/order info
     orderId,
@@ -125,9 +132,9 @@ const handleOnlinePaymentWithOrder = async (finalAmount, cart, customer, setLoad
     // 1. Gather all form fields and order data
     const {
       firstName, lastName, email, phone, altPhone,
-      street, city, district, state, zip, country
+      street, city, district, state, zip,
     } = formFields;
-    const address = [street, city, district, state, zip, country].filter(Boolean).join(', ');
+    const address = [street, city, district, state, zip].filter(Boolean).join(', ');
     // 2. Create Razorpay order and save in DB
     const orderResponse = await axios.post("/api/razorpay", {
       amount: finalAmount, // in rupees
@@ -175,7 +182,7 @@ const handleOnlinePaymentWithOrder = async (finalAmount, cart, customer, setLoad
             style: { borderRadius: '10px', border: '2px solid green' },
           });
           if (routerInstance && orderId) {
-            routerInstance.push(`/order-confirmation/${orderId}`);
+            routerInstance.push(`/dashboard?orderId=${orderId}`);
           }
         } catch (err) {
           setError('Payment verification or order update failed!');
@@ -244,7 +251,6 @@ const handleOnlinePaymentWithOrder = async (finalAmount, cart, customer, setLoad
       city: checkoutData?.city,
       state: checkoutData?.state,
       zip: checkoutData?.zip,
-      country: checkoutData?.country,
       address: checkoutData?.address || '', // Ensure address is sent
       // Payment/order info
       orderId: razorpayOrderData.id, // Save Razorpay order ID
@@ -370,7 +376,6 @@ const handleOnlinePaymentWithOrder = async (finalAmount, cart, customer, setLoad
       city: checkoutData?.city,
       state: checkoutData?.state,
       zip: checkoutData?.zip,
-      country: checkoutData?.country,
       // Payment/order info
       orderId: checkoutData?.orderId || '', // Razorpay or internal order id
       transactionId: checkoutData?.transactionId || '',
@@ -494,26 +499,61 @@ const handleOnlinePaymentWithOrder = async (finalAmount, cart, customer, setLoad
   setLoading(false);
 }
 
-import { useRouter } from 'next/navigation';
-// --- Two-step checkout: form → overview → payment ---
 
 import CheckOutOverview from './CheckOutOverview';
+import { usePathname, useRouter } from "next/navigation"
 
-// ... inside CheckOut component ...
+
 
 const CheckOut = () => {
-  const { cart: contextCart, setCart, removeFromCart } = useCart();
-
-  const [checkoutData, setCheckoutData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
   const { data: session, status } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
+  const { cart: contextCart, setCart, removeFromCart } = useCart();
+  const [checkoutData, setCheckoutData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
+  // Coupon state
+  const [couponInput, setCouponInput] = useState("");
+  const [loadingCoupon, setLoadingCoupon] = useState(false);
+  const [couponError, setCouponError] = useState("")
+  const [showOverview, setShowOverview] = useState(false);
+  const [confirmedPaymentMethod, setConfirmedPaymentMethod] = useState(null);
+    const [shipping, setShipping] = useState('free');
   // Load cart data from localStorage and handle authentication state
   useEffect(() => {
     const loadCartData = () => {
+      // Check for buy-now mode in URL
+      let isBuyNow = false;
+      if (typeof window !== "undefined") {
+        const params = new URLSearchParams(window.location.search);
+        isBuyNow = params.get('mode') === 'buy-now';
+      }
+      if (isBuyNow) {
+        // Load buyNowProduct from localStorage
+        const buyNowRaw = typeof window !== "undefined" ? localStorage.getItem('buyNowProduct') : null;
+        if (buyNowRaw) {
+          try {
+            const buyNowProduct = JSON.parse(buyNowRaw);
+            // Wrap as array for cart compatibility
+            setCheckoutData({
+              cart: [buyNowProduct],
+              subTotal: buyNowProduct.price * (buyNowProduct.qty || 1),
+              // Add other fields if needed
+            });
+            setCart([buyNowProduct]); // Update context for downstream compatibility
+          } catch (error) {
+            console.error("Error parsing buyNowProduct:", error);
+            setCheckoutData(null);
+          }
+        } else {
+          setCheckoutData(null);
+        }
+        setIsLoading(false);
+        return;
+      }
+      // Fallback to normal cart flow
       const stored = typeof window !== "undefined" ? localStorage.getItem("checkoutCart") : null;
       if (stored) {
         try {
@@ -535,16 +575,9 @@ const CheckOut = () => {
       setIsLoading(false);
     };
 
-    // Load cart data when component mounts or when auth status changes
+    // Load cart/buy-now data when component mounts or when auth status changes
     loadCartData();
   }, [status]); // Re-run when auth status changes
-
-  // Coupon state
-  const [couponInput, setCouponInput] = useState("");
-  const [loadingCoupon, setLoadingCoupon] = useState(false);
-  const [couponError, setCouponError] = useState("")
-  const [showOverview, setShowOverview] = useState(false);
-  const [confirmedPaymentMethod, setConfirmedPaymentMethod] = useState(null);
   // Handle coupon application
   const cart = React.useMemo(() => {
     // First try checkoutData, then contextCart, then empty array
@@ -597,7 +630,7 @@ const CheckOut = () => {
   };
   // const [error, setError] = useState(null);
 
-  const [shipping, setShipping] = useState('free');
+
   const paymentOptions = [
     { value: 'online', label: 'Online Payment' },
     { value: 'cod', label: 'Cash on Delivery (COD)' }
@@ -606,7 +639,6 @@ const CheckOut = () => {
   const [agree, setAgree] = useState(false);
   const [saveAddress, setSaveAddress] = useState(false);
   const [mounted, setMounted] = React.useState(false);
-
   // Billing form state
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -618,12 +650,24 @@ const CheckOut = () => {
   const [email, setEmail] = useState("");
   const [district, setDistrict] = useState("");
   const [altPhone, setAltPhone] = useState("");
-  const [country, setCountry] = useState("");
+
   React.useEffect(() => { setMounted(true); }, []);
-  if (!mounted) return null;
+  const isLoadingOrUnauth = status === 'loading' || !session;
+
+  React.useEffect(() => {
+    if (!mounted) return;
+    if (status === 'loading') return;
+    if (!session) {
+      router.replace(`/sign-in?callbackUrl=${encodeURIComponent(pathname)}`);
+    }
+  }, [session, status, router, pathname, mounted]);
+
+  if (!mounted || isLoadingOrUnauth) {
+    // Optionally render a spinner or nothing while redirecting
+    return null;
+  }
 
   // Calculate cart totals safely
-
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
   const shippingCost = shippingOptions.find(opt => opt.value === shipping)?.cost || 0;
   const total = subtotal + shippingCost;
@@ -651,6 +695,18 @@ const CheckOut = () => {
   // Handle COD order creation
   const handleCreateOrder = async (paymentMethod) => {
     setLoading(true);
+    // If buy-now mode, clear buyNowProduct after order
+    let isBuyNow = false;
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      isBuyNow = params.get('mode') === 'buy-now';
+    }
+    // ... rest of function ...
+    // After successful order/payment:
+    if (isBuyNow) {
+      localStorage.removeItem('buyNowProduct');
+    }
+  
     setError(null);
 
     try {
@@ -671,7 +727,6 @@ const CheckOut = () => {
           postalCode: zip,
           phone,
           district,
-          country,
         },
         paymentInfo: {
           method: paymentMethod,
@@ -707,7 +762,7 @@ const CheckOut = () => {
       setCart([]);
 
       // Redirect to order confirmation page
-      router.push(`/order-confirmation/${data.order._id}`);
+      router.push(`/dashboard?orderId=${data.order._id}`);
 
       return data.order;
     } catch (error) {
@@ -731,7 +786,6 @@ const CheckOut = () => {
     if (!state.trim()) return 'State is required.';
     if (!altPhone.trim()) return 'Alt Phone number is required.';
     if (!zip || !/^[0-9]{5,6}$/.test(zip)) return 'A valid PIN code is required.';
-    if (!country.trim()) return 'Country is required.';
     return '';
   };
 
@@ -759,7 +813,6 @@ const CheckOut = () => {
         city,
         state,
         postalCode: zip,
-        country,
         phone,
         email,
         district,
@@ -820,7 +873,7 @@ const CheckOut = () => {
             // Don't fail the order if email fails
           }
           // Redirect to order confirmation page
-          router.push(`/order-confirmation/${order._id}`);
+          router.push(`/dashboard?orderId=${order._id}`);
         }
       } catch (error) {
         console.error('Error creating COD order:', error);
@@ -847,49 +900,48 @@ const CheckOut = () => {
 
   // Handler for confirming payment on overview (step 2 → step 3)
   const handleConfirmAndPay = async () => {
-  setLoading(true);
-  try {
-    // Build form fields from state for payload
-    const formFields = {
-      street, city, district, state, zip, country,
-      firstName, lastName, email, phone, altPhone
-    };
-    let orderId = checkoutData?.orderId;
-    let transactionId = checkoutData?.transactionId;
+    setLoading(true);
+    try {
+      // Build form fields from state for payload
+      const formFields = {
+        street, city, district, state, zip,firstName, lastName, email, phone, altPhone
+      };
+      let orderId = checkoutData?.orderId;
+      let transactionId = checkoutData?.transactionId;
 
-    if (confirmedPaymentMethod === 'cod') {
-      // Always generate unique orderId and transactionId for COD
-      orderId = `COD-${Date.now()}-${Math.floor(Math.random()*10000)}`;
-      if (!transactionId) transactionId = orderId;
-      const orderPayload = buildOrderPayload({
-        cart: contextCart,
-        checkoutData,
-        ...formFields,
-        payment: 'cod',
-        transactionId,
-        orderId,
-        agree,
-      });
-      const res = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderPayload)
-      });
-      const data = await res.json();
-      if (!data.orderId) {
-        setError('Order creation failed.');
-        setLoading(false);
-        return;
-      }
-      // Optionally send confirmation email here
-      try {
-        await fetch('/api/brevo', {
+      if (confirmedPaymentMethod === 'cod') {
+        // Always generate unique orderId and transactionId for COD
+        orderId = `COD-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+        if (!transactionId) transactionId = orderId;
+        const orderPayload = buildOrderPayload({
+          cart: contextCart,
+          checkoutData,
+          ...formFields,
+          payment: 'cod',
+          transactionId,
+          orderId,
+          agree,
+        });
+        const res = await fetch('/api/orders', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            to: email,
-            subject: 'Order Confirmation',
-            htmlContent: `<!DOCTYPE html>
+          body: JSON.stringify(orderPayload)
+        });
+        const data = await res.json();
+        if (!data.orderId) {
+          setError('Order creation failed.');
+          setLoading(false);
+          return;
+        }
+        // Optionally send confirmation email here
+        try {
+          await fetch('/api/brevo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: email,
+              subject: 'Order Confirmation',
+              htmlContent: `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -914,40 +966,40 @@ const CheckOut = () => {
       </div>
     </body>
     </html>`
-          })
-        });
-      } catch (e) { /* handle email error */ }
-      router.push(`/order-confirmation/${data.orderId}`);
+            })
+          });
+        } catch (e) { /* handle email error */ }
+        router.push(`/dashboard?orderId=${data.orderId}`);
+        setLoading(false);
+        return;
+      }
+      // For online, always go through Razorpay handler
+      if (confirmedPaymentMethod === 'online') {
+        const customer = {
+          name: `${firstName} ${lastName}`.trim(),
+          email,
+          phone
+        };
+        await handleOnlinePaymentWithOrder(
+          checkoutData?.cartTotal,
+          contextCart,
+          customer,
+          setLoading,
+          setError,
+          router,
+          checkoutData,
+          formFields
+        );
+        return;
+      }
       setLoading(false);
-      return;
+    } catch (error) {
+      setError(error.message || 'Order creation failed.');
+      setLoading(false);
     }
-    // For online, always go through Razorpay handler
-    if (confirmedPaymentMethod === 'online') {
-      const customer = {
-        name: `${firstName} ${lastName}`.trim(),
-        email,
-        phone
-      };
-      await handleOnlinePaymentWithOrder(
-        checkoutData?.cartTotal,
-        contextCart,
-        customer,
-        setLoading,
-        setError,
-        router,
-        checkoutData,
-        formFields
-      );
-      return;
-    }
-    setLoading(false);
-  } catch (error) {
-    setError(error.message || 'Order creation failed.');
-    setLoading(false);
   }
-}
-       
-        
+
+
   if (showOverview) {
     return (
       <CheckOutOverview
@@ -960,6 +1012,11 @@ const CheckOut = () => {
       />
     );
   }
+
+
+
+
+
   return (
     <div className="flex flex-col md:flex-row gap-10 w-full min-h-screen bg-[#fcf7f2] p-10">
       {/* Billing Details Form */}
@@ -1092,17 +1149,6 @@ const CheckOut = () => {
                     placeholder="Enter State"
                     value={state}
                     onChange={e => setState(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm mb-1 text-gray-600">Country</label>
-                  <input
-                    className="w-full py-2 px-3 bg-gray-100 rounded-md border-0"
-                    required
-                    type="text"
-                    placeholder="Enter Country"
-                    value={country}
-                    onChange={e => setCountry(e.target.value)}
                   />
                 </div>
               </div>

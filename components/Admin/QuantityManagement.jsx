@@ -14,7 +14,7 @@ const QuantityManagement = ({ productData, productId }) => {
   };
 
   const [rows, setRows] = useState([
-    { size: '', price: '', qty: '', color: '' }
+    { size: '', price: '', qty: '', color: '', weight: '' }
   ]);
   const [sizes, setSizes] = useState([]); // fetched from API
   const [allColors, setAllColors] = useState([]); // fetched from API
@@ -47,7 +47,7 @@ const QuantityManagement = ({ productData, productId }) => {
   }; // qty now supported
 
   const handleAddRow = () => {
-    setRows(rows => [...rows, { size: '', price: '', qty: '', color: '' }]);
+    setRows(rows => [...rows, { size: '', price: '', qty: '', color: '', weight: '' }]);
   };
 
   const [saving, setSaving] = useState(false);
@@ -91,6 +91,7 @@ const QuantityManagement = ({ productData, productId }) => {
           color: row.color,
           price: Number(row.price),
           qty: Number(row.qty),
+          weight: Number(row.weight),
           optional: false // Default optional as false (customize as needed)
         };
       });
@@ -132,6 +133,7 @@ const QuantityManagement = ({ productData, productId }) => {
         price: v.price || '',
         qty: v.qty || '',
         color: v.color || '',
+        weight: v.weight || '',
       };
     }));
     setEditMode(true);
@@ -140,7 +142,7 @@ const QuantityManagement = ({ productData, productId }) => {
 
   // Cancel edit
   const handleCancelEdit = () => {
-    setRows([{ size: '', price: '', qty: '', color: '' }]);
+    setRows([{ size: '', price: '', qty: '', color: '', weight: '' }]);
     setEditMode(false);
   };
 
@@ -190,6 +192,7 @@ const QuantityManagement = ({ productData, productId }) => {
                 <th className="border px-2 py-1 text-center">Color</th>
                 <th className="border px-2 py-1 text-center">Price</th>
                 <th className="border px-2 py-1 text-center">Quantity</th>
+                <th className="border px-2 py-1 text-center">Weight (gram)</th>
                 <th className="border px-2 py-1 text-center">Action</th>
               </tr>
             </thead>
@@ -251,6 +254,16 @@ const QuantityManagement = ({ productData, productId }) => {
                       placeholder="Qty"
                       value={row.qty ?? ''}
                       onChange={e => handleRowChange(idx, 'qty', e.target.value)}
+                    />
+                  </div></td>
+                  <td className="border px-2 py-1"><div className="flex justify-center">
+                    <Input
+                      type="number"
+                      min={0}
+                      className="w-24 bg-gray-50 rounded"
+                      placeholder="Weight"
+                      value={row.weight ?? ''}
+                      onChange={e => handleRowChange(idx, 'weight', e.target.value)}
                     />
                   </div></td>
                   <td className="border px-2 py-1 text-center"><div className="flex justify-center gap-2">
@@ -324,6 +337,7 @@ const QuantityManagement = ({ productData, productId }) => {
                                   <span className="bg-blue-100 rounded px-2 py-1 font-medium">Price: ₹{v.price}</span>
                                   <span className="bg-green-100 rounded px-2 py-1 font-medium">Qty: {v.qty}</span>
                                   <span className="bg-yellow-100 rounded px-2 py-1 font-medium">Color: {v.color}</span>
+                                  <span className="bg-yellow-100 rounded px-2 py-1 font-medium">Weight: {v.weight}</span>
                                 </div>
                               );
                             })}

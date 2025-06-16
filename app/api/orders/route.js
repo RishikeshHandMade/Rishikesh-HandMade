@@ -6,6 +6,26 @@ export async function POST(req) {
   await connectDB();
   try {
     const body = await req.json();
+
+    // Generate unique orderId and transactionId for COD
+    function generateOrderId(length = 6) {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let result = '';
+      for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    }
+    function generateTransactionId() {
+      return `TXN-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    }
+
+    // Only apply for COD orders
+    if (body.payment === 'cod') {
+      body.orderId = generateOrderId(6);
+      body.transactionId = generateTransactionId();
+    }
+
     // Save all checkoutData as received
     const order = await Order.create(body);
     return NextResponse.json({ orderId: order._id, success: true }, { status: 200 });

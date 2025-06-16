@@ -22,7 +22,7 @@ export async function middleware(req) {
 
   if (pathname.startsWith("/sign-in") || pathname.startsWith("/sign-up")) {
     if (token && !token.isAdmin && !token.isSubAdmin) {
-      return NextResponse.redirect(new URL("/profile", req.url));
+      return NextResponse.redirect(new URL("/dashboard", req.url));
     }
     return NextResponse.next();
   }
@@ -45,7 +45,7 @@ export async function middleware(req) {
   }
 
   // Protect /profile page: Only allow logged-in users (Google Auth or credentials)
-  if (pathname.startsWith("/profile") || pathname.startsWith("/account")) {
+  if (pathname.startsWith("/dashboard") || pathname.startsWith("/orders")) {
     if (!token) {
       return NextResponse.redirect(new URL("/sign-in", req.url));
     }
@@ -59,8 +59,8 @@ export const config = {
   matcher: [
     "/admin/:path*",
     "/api/admin/:path*",
-    "/profile",
-    "/account/:path*",
+    "/dashboard",
+    "/dashboard/:path*",
     "/checkout/orderConfirmed/:path*",
     "/sign-in",
     "/sign-up",

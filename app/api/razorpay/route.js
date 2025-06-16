@@ -27,9 +27,21 @@ export async function POST(request) {
             throw new Error("Failed to create Razorpay order");
         }
 
+        // Generate a random 6-character alphanumeric orderId for user-facing use
+        function generateOrderId(length = 6) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+        const userOrderId = generateOrderId(6);
+
         // Save order in MongoDB (products only)
         const newOrder = new Order({
-            orderId: razorpayOrder.id, // Razorpay order ID
+            orderId: userOrderId, // 6-char string for user
+            razorpayOrderId: razorpayOrder.id, // for internal reference
             products,                  // Array of products
             name: customer?.name || '',
             email: customer?.email || '',
@@ -42,7 +54,8 @@ export async function POST(request) {
 
         await newOrder.save();
 
-        return NextResponse.json(razorpayOrder);
+        // Return both the Razorpay order and the user-facing orderId
+        return NextResponse.json({ ...razorpayOrder, userOrderId });
     } catch (error) {
         console.error("Error creating Razorpay order:", error);
         return NextResponse.json(
@@ -56,27 +69,31 @@ export async function POST(request) {
 export async function PUT(request) {
     await connectDB();
     try {
-        // console.log("[PAYMENT] Verification started");
-        const { razorpay_payment_id, razorpay_order_id, razorpay_signature } =
-            await request.json();
+        const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = await request.json();
 
-        // console.log("[PAYMENT] Signature verification for order:", razorpay_order_id);
-        // ✅ Step 1: Verify Razorpay Signature
+        // Step 1: Verify Razorpay Signature
         const generatedSignature = crypto
             .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
             .update(`${razorpay_order_id}|${razorpay_payment_id}`)
             .digest("hex");
 
         if (generatedSignature !== razorpay_signature) {
-            // console.error("[PAYMENT] Invalid signature", { razorpay_order_id, razorpay_payment_id });
             return NextResponse.json(
                 { success: false, error: "Invalid signature" },
                 { status: 400 }
             );
         }
 
-        // console.log("[PAYMENT] Fetching payment details for:", razorpay_payment_id);
-        // ✅ Step 2: Fetch Full Payment Details from Razorpay
+        // Step 2: Update order with transactionId (Razorpay payment ID) and payment details
+        const order = await Order.findOne({ razorpayOrderId: razorpay_order_id });
+        if (!order) {
+            return NextResponse.json({ success: false, error: "Order not found for this Razorpay order ID." }, { status: 404 });
+        }
+        order.transactionId = razorpay_payment_id;
+        order.status = "Paid";
+        order.paymentMethod = "online";
+        order.datePurchased = new Date();
+        // Fetch Full Payment Details from Razorpay
         const paymentResponse = await fetch(
             `https://api.razorpay.com/v1/payments/${razorpay_payment_id}`,
             {
@@ -89,49 +106,21 @@ export async function PUT(request) {
                 },
             }
         );
-
         const paymentDetails = await paymentResponse.json();
-
-        if (!paymentResponse.ok) {
-            // console.error("[PAYMENT] Failed to fetch payment details", paymentDetails);
-            throw new Error("Failed to fetch payment details");
+        if (paymentResponse.ok) {
+            order.bank = paymentDetails.bank || null;
+            order.cardType = paymentDetails.card?.type || null;
         }
-
-        // ✅ Step 3: Extract Payment Method
-        const paymentMethod = paymentDetails.method; // e.g., "upi", "card", "netbanking"
-        const paymentStatus = paymentDetails.status; // e.g., "captured"
-        const bank = paymentDetails.bank || null; // If paid via Net Banking
-        const cardType = paymentDetails.card?.type || null; // If paid via Card
-
-        // console.log("[PAYMENT] Looking for order in DB:", razorpay_order_id);
-        // ✅ Step 4: Find and Update the Order
-        const order = await Order.findOne({ orderId: razorpay_order_id });
-
-        if (!order) {
-            // console.error("[PAYMENT] Order not found in DB", razorpay_order_id);
-            throw new Error("Order not found");
-        }
-
-        // Update the order with transaction details
-        order.transactionId = razorpay_payment_id;
-        order.status = paymentStatus === "captured" ? "Paid" : "Failed";
-        order.paymentMethod = paymentMethod;
-        order.bank = bank;
-        order.cardType = cardType;
-
-        // console.log("[PAYMENT] Saving order with payment status:", order.status);
         await order.save();
-
-        // ✅ Step 5: Return Payment Details
+        // Return user-facing orderId and payment details
         return NextResponse.json({
             success: true,
-            orderId: razorpay_order_id,
+            orderId: order.orderId,
             paymentId: razorpay_payment_id,
-            paymentMethod,
-            paymentStatus,
-            bank,
-            cardType,
-            order,
+            paymentMethod: paymentDetails.method,
+            paymentStatus: paymentDetails.status,
+            bank: paymentDetails.bank || null,
+            cardType: paymentDetails.card?.type || null,
         });
     } catch (error) {
         // console.error("Error verifying Razorpay payment:", error);

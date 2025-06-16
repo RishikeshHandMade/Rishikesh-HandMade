@@ -297,10 +297,10 @@ const Checkout = ({ packages }) => {
                 }
             })
 
-            const { id: orderId } = orderResponse.data
+            const { orderId, razorpayOrderId } = orderResponse.data;
             // Load Razorpay script
-            const script = document.createElement("script")
-            script.src = "https://checkout.razorpay.com/v1/checkout.js"
+            const script = document.createElement("script");
+            script.src = "https://checkout.razorpay.com/v1/checkout.js";
             script.onload = () => {
                 const options = {
                     key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
@@ -309,7 +309,7 @@ const Checkout = ({ packages }) => {
                     currency: "INR",
                     name: "YatraZone",
                     description: "Booking Advance Payment",
-                    order_id: orderId,
+                    order_id: razorpayOrderId, // Use Razorpay order ID for Razorpay modal
                     handler: async (response) => {
                         // Verify payment
                         const verificationResponse = await axios.put("/api/razorpay", {
