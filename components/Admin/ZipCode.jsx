@@ -1,22 +1,14 @@
-
 import React, { useState, useEffect } from 'react';
-import { statesIndia } from '@/lib/IndiaStates';
 import { toast } from 'react-hot-toast';
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel } from "../ui/alert-dialog";
-
-// Unwrap the states array from the imported JSON
-const stateDistrictData = statesIndia;
 
 const ZipCode = () => {
     const [selectedState, setSelectedState] = useState('');
     const [districts, setDistricts] = useState([]);
+    const [view, setView] = useState('states'); // 'states' or 'districts'
+
     const [districtStatus, setDistrictStatus] = useState({}); // { districtName: true/false }
-    const [stateStatus, setStateStatus] = useState(() => {
-        // Initialize all as active by default
-        const obj = {};
-        stateDistrictData.forEach(s => { obj[s.state] = true; });
-        return obj;
-    });
+    const [stateStatus, setStateStatus] = useState({});
     const [selectedDistrict, setSelectedDistrict] = useState('');
     const [pinCode, setPinCode] = useState('');
     const [charges, setCharges] = useState([{ amount: '', label: '' }]);
@@ -25,161 +17,158 @@ const ZipCode = () => {
     const [shippingCharges, setShippingCharges] = useState([]);
     const [editId, setEditId] = useState(null);
     const [deleteDialog, setDeleteDialog] = useState({ open: false, id: null });
+    // State/district data will now be fetched from the API
+    const [stateDistrictData, setStateDistrictData] = useState([]);
+    // console.log(stateDistrictData)
 
-    // Fetch shipping charges
+    // Toggle handlers
+    const handleStateToggle = (stateName) => {
+        setStateStatus(prev => ({
+            ...prev,
+            [stateName]: !prev[stateName]
+        }));
+        // Optionally: add API call to persist
+    };
+    const handleDistrictToggle = (districtName) => {
+        setDistrictStatus(prev => ({
+            ...prev,
+            [districtName]: !prev[districtName]
+        }));
+        // Optionally: add API call to persist
+    };
+
+// Drilldown handlers
+    const handleStateClick = (stateObj) => {
+        setSelectedState(stateObj.state);
+        setDistricts(stateObj.districts || []);
+        setView('districts');
+    };
+    const handleBack = () => {
+        setView('states');
+        setSelectedState('');
+        setDistricts([]);
+    };
+
+    // Fetch state/district data from API on mount
     useEffect(() => {
-        const fetchShippingCharges = async () => {
+        const fetchStateDistrictData = async () => {
             try {
-                const response = await fetch('/api/shippingCharges');
-                const data = await response.json();
-                console.log(data);
-                setShippingCharges(data);
+                const response = await fetch('/api/zipcode');
+                const result = await response.json();
+                if (result.success && Array.isArray(result.data)) {
+                    setStateDistrictData(result.data);
+                } else {
+                    throw new Error(result.error || 'Failed to fetch state/district data');
+                }
             } catch (error) {
-                console.error('Error fetching shipping charges:', error);
-                toast.error('Failed to fetch shipping charges');
+                toast.error('Failed to fetch state/district data');
+                setStateDistrictData([]);
             }
         };
-        fetchShippingCharges();
+        fetchStateDistrictData();
     }, []);
 
-    // Add new row for shipping charges
-    const addChargeRow = () => {
-        setCharges([...charges, { amount: '', label: '' }]);
-    };
+    const renderStatesTable = () => (
+        <div>
+            <h2 className="text-2xl font-bold mb-6 text-center">States</h2>
+            <table className="w-full border border-gray-300 rounded-lg overflow-hidden">
+                <thead>
+                    <tr className="bg-blue-100">
+                        <th className="border px-4 py-2 text-left">State</th>
+                        <th className="border px-4 py-2 text-center">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {stateDistrictData.map((stateObj, idx) => (
+                        <tr key={stateObj.state + '-' + idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                            <td className="border px-4 py-2 font-semibold text-left">
+                                <button
+                                    className="hover:underline text-blue-700 text-lg"
+                                    onClick={() => handleStateClick(stateObj)}
+                                >
+                                    {stateObj.state}
+                                </button>
+                            </td>
+                            <td className="border px-4 py-2 text-center">
+                                <label className="inline-flex items-center cursor-pointer">
+                                    <span className="mr-2 font-semibold">
+                                        {stateStatus[stateObj.state] !== false ? "Active" : "Inactive"}
+                                    </span>
+                                    <span className="relative">
+                                        <input
+                                            type="checkbox"
+                                            checked={stateStatus[stateObj.state] !== false}
+                                            onChange={() => handleStateToggle(stateObj.state)}
+                                            className="sr-only peer"
+                                        />
+                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-400 rounded-full peer peer-checked:bg-blue-500 transition-all"></div>
+                                        <div className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full shadow-md transition-transform peer-checked:translate-x-5"></div>
+                                    </span>
+                                </label>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
 
-    // Handle state change
-    const handleStateChange = (e) => {
-        const state = e.target.value;
-        setSelectedState(state);
-        setSelectedDistrict('');
-        const found = stateDistrictData.find(s => s.state === state);
-        setDistricts(found ? found.districts : []);
-        // Reset district status (default all active)
-        if (found && found.districts) {
-            const newStatus = {};
-            found.districts.forEach(d => { newStatus[d.district] = true; });
-            setDistrictStatus(newStatus);
-        } else {
-            setDistrictStatus({});
-        }
-    };
-
-    // Handle charge amount/label change
-    const handleChargeChange = (idx, field, value) => {
-        setCharges(charges.map((row, i) => i === idx ? { ...row, [field]: value } : row));
-    };
-
-    // Save shipping charges to API
-    const saveShippingCharges = async () => {
-        if (!selectedState || !selectedDistrict || !pinCode || charges.some(c => !c.amount || !c.label)) {
-            setError('Please fill all required fields');
-            return;
-        }
-
-        setLoading(true);
-        setError('');
-
-        try {
-            const shippingData = {
-                state: selectedState,
-                districts: [
-                    {
-                        district: selectedDistrict,
-                        pincodes: [
-                            {
-                                pincode: pinCode,
-                                shippingCharges: charges.map(c => ({
-                                    weight: Number(c.label) || 0,
-                                    shippingCharge: Number(c.amount) || 0
-                                }))
-                            }
-                        ]
-                    }
-                ],
-            };
-
-            const response = await fetch('/api/shippingCharges', {
-                method: editId ? 'PUT' : 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(editId ? { ...shippingData, _id: editId } : shippingData),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to save shipping charges');
-            }
-
-            const data = await response.json();
-            toast.success(editId ? 'Shipping charges updated successfully!' : 'Shipping charges saved successfully!');
-            setSelectedState('');
-            setSelectedDistrict('');
-            setPinCode('');
-            setCharges([{ amount: '', label: '' }]);
-            setEditId(null);
-
-            // Refresh the list after successful save
-            const fetchShippingCharges = async () => {
-                try {
-                    const response = await fetch('/api/shippingCharges');
-                    const data = await response.json();
-                    setShippingCharges(data);
-                } catch (error) {
-                    console.error('Error refreshing shipping charges:', error);
-                    toast.error('Failed to refresh shipping charges');
-                }
-            };
-            fetchShippingCharges();
-        } catch (err) {
-            setError(err.message);
-            toast.error(err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Edit shipping charge entry
-    const handleEdit = (charge) => {
-        setEditId(charge._id);
-        setSelectedState(charge.state);
-        setSelectedDistrict(charge.district);
-        setPinCode(charge.pincode);
-        setCharges(charge.charges.map(c => ({
-            amount: c.shippingCharge.toString(),
-            label: c.weight.toString()
-        })));
-    };
-
-    // Delete shipping charge entry
-    const handleDelete = (id) => {
-        setDeleteDialog({ open: true, id });
-    };
-
-    // Confirm delete
-    const confirmDelete = async () => {
-        const id = deleteDialog.id;
-        setDeleteDialog({ open: false, id: null });
-        try {
-            const response = await fetch(`/api/shippingCharges?id=${id}`, { method: 'DELETE' });
-            if (response.ok) {
-                toast.success('Shipping charges deleted successfully!');
-                await fetchShippingCharges();
-            } else {
-                toast.error('Failed to delete shipping charges');
-            }
-        } catch (error) {
-            toast.error('Failed to delete shipping charges');
-        }
-    };
-
+    // District Table View
+    const renderDistrictsTable = () => (
+        <div>
+            <button
+                className="mb-4 bg-gray-400 hover:bg-gray-500 text-black font-semibold py-2 px-4 rounded"
+                onClick={handleBack}
+            >
+                ← Back to States
+            </button>
+            <h2 className="text-2xl font-bold mb-6 text-center">Districts in {selectedState}</h2>
+            <table className="w-full border border-gray-300 rounded-lg overflow-hidden">
+                <thead>
+                    <tr className="bg-blue-100">
+                        <th className="border px-4 py-2 text-left">District</th>
+                        <th className="border px-4 py-2 text-center">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {districts.map((districtObj, idx) => (
+                        <tr key={districtObj.district + '-' + idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                            <td className="border px-4 py-2 text-left">{districtObj.district}</td>
+                            <td className="border px-4 py-2 text-center">
+                                <label className="inline-flex items-center cursor-pointer">
+                                    <span className="mr-2 font-semibold">
+                                        {districtStatus[districtObj.district] !== false ? "Active" : "Inactive"}
+                                    </span>
+                                    <span className="relative">
+                                        <input
+                                            type="checkbox"
+                                            checked={districtStatus[districtObj.district] !== false}
+                                            onChange={() => handleDistrictToggle(districtObj.district)}
+                                            className="sr-only peer"
+                                        />
+                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-400 rounded-full peer peer-checked:bg-blue-500 transition-all"></div>
+                                        <div className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full shadow-md transition-transform peer-checked:translate-x-5"></div>
+                                    </span>
+                                </label>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
     return (
-        <div className="bg-white min-h-[80vh] flex flex-col justify-start items-center">
+        <div className="bg-white max-w-2xl min-h-[80vh] flex flex-col justify-start items-center">
             {error && (
                 <div className="text-red-500 text-center mb-4">{error}</div>
             )}
+
+            <div>
+                {view === 'states' ? renderStatesTable() : renderDistrictsTable()}
+            </div>
+
             {/* State/District Management UI */}
-            {!selectedState ? (
+            {/* {!selectedState ? (
                 <div className="w-full max-w-2xl mx-auto mt-8">
                     <h2 className="text-2xl font-bold mb-4 text-center">Manage States</h2>
                     <table className="w-full border border-gray-300 rounded-lg overflow-hidden">
@@ -190,7 +179,7 @@ const ZipCode = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {stateDistrictData.map(stateObj => (
+                            {Array.isArray(stateDistrictData) && stateDistrictData.map(stateObj => (
                                 <tr key={stateObj.state} className="hover:bg-blue-50 cursor-pointer">
                                     <td
                                         className="border px-4 py-2 font-semibold hover:underline"
@@ -204,7 +193,7 @@ const ZipCode = () => {
                                     </td>
                                     <td className="border px-4 py-2 text-center">
                                         <div className="flex items-center justify-center gap-2">
-                                            {/* Toggle Switch for state */}
+                                        
                                             <label className="relative inline-flex items-center cursor-pointer">
                                                 <input
                                                     type="checkbox"
@@ -252,7 +241,7 @@ const ZipCode = () => {
                                     <td className="border px-4 py-2">{districtObj.district}</td>
                                     <td className="border px-4 py-2 text-center">
                                         <div className="flex items-center justify-center gap-2">
-                                            {/* Toggle Switch for district */}
+                                          
                                             <label className="relative inline-flex items-center cursor-pointer">
                                                 <input
                                                     type="checkbox"
@@ -276,7 +265,7 @@ const ZipCode = () => {
                         </tbody>
                     </table>
                 </div>
-            )}
+            )} */}
         </div>
     )
 }
