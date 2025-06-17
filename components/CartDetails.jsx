@@ -1,7 +1,8 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useCart } from "../context/CartContext";
 import Link from "next/link";
+import toast from "react-hot-toast"
 import {
   Dialog,
   DialogContent,
@@ -11,7 +12,6 @@ import {
   DialogClose,
 } from "./ui/dialog";
 import { useRouter } from "next/navigation";
-import {statesIndia} from "../lib/IndiaStates";
 const CartDetails = () => {
   // 2. Get price after discount
   const getAfterDiscount = (item) => {
@@ -22,17 +22,17 @@ const CartDetails = () => {
   };
   const { cart: rawCart, updateCartQty, removeFromCart } = useCart();
   const cart = Array.isArray(rawCart) ? rawCart : [];
-  console.log(cart);
+  // console.log(cart);
 
   const router = useRouter();
 
   // Handler for checkout navigation
   const handleCheckout = () => {
     if (!termsChecked) return;
-    
+
     // First, ensure we have the latest cart data
     const currentCart = Array.isArray(rawCart) ? rawCart : [];
-    
+
     // Collect all relevant cart data for checkout
     const checkoutData = {
       cart: currentCart.map((item) => ({
@@ -47,8 +47,8 @@ const CartDetails = () => {
       })),
       subTotal: currentCart.reduce((sum, item) => sum + (item.originalPrice ?? item.price) * item.qty, 0),
       totalDiscount: currentCart.reduce((sum, item) => {
-        const discount = item.discountPercent ? 
-          (item.originalPrice ?? item.price) * (item.discountPercent / 100) : 
+        const discount = item.discountPercent ?
+          (item.originalPrice ?? item.price) * (item.discountPercent / 100) :
           (item.discountAmount || 0);
         return sum + (discount * item.qty);
       }, 0),
@@ -72,10 +72,10 @@ const CartDetails = () => {
         return sum + (price + tax) * item.qty;
       }, 0) + (FinalShipping || 0) - (promoDiscount || 0),
     };
-    
+
     // Save to localStorage before navigation
     localStorage.setItem("checkoutCart", JSON.stringify(checkoutData));
-    
+
     // Redirect to checkout
     router.push("/checkout");
   };
@@ -83,7 +83,10 @@ const CartDetails = () => {
   const [promoCode, setPromoCode] = React.useState("");
   const [promoError, setPromoError] = React.useState("");
   const [termsChecked, setTermsChecked] = React.useState(false);
-  const [shippingCharges] = React.useState(0); // You can update this logic as needed
+  // Calculate total cart weight in grams
+  // Calculate total cart weight in grams (weight is number from DB)
+  const totalWeight = cart.reduce((sum, item) => sum + ((typeof item.weight === "number" ? item.weight : 0) * item.qty), 0);
+
 
   const [pincode, setPincode] = React.useState("");
   const [pincodeResult, setPincodeResult] = React.useState(null);
@@ -101,8 +104,70 @@ const CartDetails = () => {
   const [stateInput, setStateInput] = React.useState("");
   const [districtInput, setDistrictInput] = React.useState("");
   const [pincodeInput, setPincodeInput] = React.useState("");
-  const [loadingShipping, setLoadingShipping] = useState(false);
-  const [FinalShipping,setFinalShipping ]=useState(false)
+  const [loadingShipping, setLoadingShipping] = useState(false);  
+  const [FinalShipping, setFinalShipping] = useState(0);
+  const [shippingTierLabel, setShippingTierLabel] = useState("");
+  const [shippingPerUnit, setShippingPerUnit] = useState(null);
+  const [statesList, setStatesList] = useState([]);
+  // console.log(shippingPerUnit)
+  // cons.ole.log("Cart:", cart);
+  // console.log("Total weight:", totalWeight);
+  // console.log("Final shipping:",   FinalShipping);
+  // Fetch shipping charge whenever cart changes
+  const finalAmount = totalAfterDiscount + FinalShipping;
+
+  useEffect(() => {
+    const fetchShippingCharge = async () => {
+      if (totalWeight === 0) {
+        setFinalShipping(0);
+        setShippingTierLabel("");
+        setShippingPerUnit(null);
+        return;
+      }
+      setLoadingShipping(true);
+      try {
+        const res = await fetch('/api/checkShipping', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ weight: totalWeight }),
+        });
+        const data = await res.json();
+        // console.log(data);
+        if (data.available && data.shippingCharge != null) {
+          setFinalShipping(Number(data.shippingCharge));
+          setShippingTierLabel(data.tierLabel || "");
+          setShippingPerUnit(data.perUnitCharge || null);
+        } else {
+          setFinalShipping(0);
+          setShippingTierLabel("");
+          setShippingPerUnit(null);
+        }
+      } catch (e) {
+        setFinalShipping(0);
+        setShippingTierLabel("");
+        setShippingPerUnit(null);
+      }
+      setLoadingShipping(false);
+    };
+    fetchShippingCharge();
+  }, [cart, totalWeight]);
+
+  useEffect(() => {
+    // Fetch states/districts from API on mount
+    const fetchStates = async () => {
+      try {
+        const res = await fetch('/api/zipcode');
+        const data = await res.json();
+        if (data.success && Array.isArray(data.data)) {
+          setStatesList(data.data);
+        }
+      } catch (e) {
+        setStatesList([]);
+      }
+    };
+
+    fetchStates();
+  }, []);
 
   const handleApplyPincode = () => {
     setIsPincodeConfirmModalOpen(false);
@@ -231,7 +296,7 @@ const CartDetails = () => {
       0
     )
     : 0;
-  const finalShipping = pincodeResult?.price || shippingCharges || 0;
+  const finalShipping = pincodeResult?.price || FinalShipping || 0;
 
   // Remove promo if a discounted/coupon item is present
   const hasDiscountedItem = cart.some(
@@ -264,9 +329,6 @@ const CartDetails = () => {
   const cartTotal =
     totalAfterDiscount + taxTotal + finalShipping - promoDiscount;
 
-  // Demo: valid pincode and price
-  const VALID_PINCODES = { 249201: 100, 110001: 120 }; // add more as needed
-
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => {
     setMounted(true);
@@ -274,13 +336,14 @@ const CartDetails = () => {
   if (!mounted) return null;
   // UI
   return (
-    <div className="w-full px-10 mx-auto p-4 bg-white">
+    <div className="w-full px-5 mx-auto p-4 bg-white">
       <div className="flex justify-between items-center mb-2">
         <h2 className="text-2xl font-bold">Add To Cart</h2>
         {/* <Link href="/shop" className="text-green-700 font-semibold text-sm">Continuew Shopping &gt;&gt;</Link> */}
       </div>
       {cart.length === 0 ? (
         <div className="text-center text-gray-500 py-8">
+          <Link href="/" className="text-green-700 font-semibold text-sm">Continue Shopping &gt;&gt;</Link>
           Your cart is empty.
         </div>
       ) : (
@@ -289,12 +352,13 @@ const CartDetails = () => {
           <div className="w-full md:w-3/2">
             <table className="w-full border-collapse rounded overflow-hidden shadow text-xs md:text-base">
               <thead>
-                <tr className="bg-blue-200 text-black">
-                  <th className="border p-2">Product Image</th>
-                  <th className="border p-2">Product Name / Code</th>
+                <tr className="bg-blue-200 text-black text-sm">
+                  <th className="border p-2">Image</th>
+                  <th className="border p-2">Name / Code</th>
                   <th className="border p-2">Base Price</th>
                   <th className="border p-2">Discount</th>
                   <th className="border p-2">After Discount</th>
+                  <th className="border p-2">Weight</th>
                   <th className="border p-2">CGST %</th>
                   <th className="border p-2">SGST %</th>
                   <th className="border p-2">Qty</th>
@@ -332,6 +396,7 @@ const CartDetails = () => {
                     <td className="border p-2 text-center">
                       ₹{getAfterDiscount(item)}
                     </td>
+                    <td className="border p-2 text-center">{item.weight ?? 0}g</td>
                     <td className="border p-2 text-center">{item.cgst ?? 0}</td>
                     <td className="border p-2 text-center">{item.sgst ?? 0}</td>
                     <td className="border p-2 text-center">
@@ -442,9 +507,7 @@ const CartDetails = () => {
                 </button>
               </div>
 
-              {promoError && (
-                <div className="text-xs text-red-600 mt-1">{promoError}</div>
-              )}
+             
               {/* Note about coupons */}
               <div className="text-xs text-red-600 mb-2">
                 Note : If discount promo code already applied extra additional
@@ -458,11 +521,16 @@ const CartDetails = () => {
                   on your order.
                 </div>
               )}
+               {promoError && (
+                <div className="text-xs text-red-600 mt-1">{promoError}</div>
+              )}
               {/* Shipping Charges */}
               <div className="flex justify-between items-center mt-2">
-                <span className="font-semibold">Shipping Charges</span>
                 <span className="font-semibold">
-                  ₹{finalShipping.toFixed(2)}
+                  Shipping Charges{shippingTierLabel ? ` (${shippingTierLabel})` : ''}
+                </span>
+                <span className="font-semibold">
+                  ₹{FinalShipping.toFixed(2)}
                 </span>
               </div>
               {/* Pincode check UI */}
@@ -499,14 +567,14 @@ const CartDetails = () => {
                   <DialogHeader>
                     <DialogTitle className="text-center text-xl font-bold">
                       We'll instantly let you know if delivery is available,
-                      <br />
                       along with estimated delivery time.
                     </DialogTitle>
                   </DialogHeader>
 
                   <div className="mt-4 space-y-4">
+                    {/* Dynamic State Dropdown from API */}
                     <div className="w-full">
-                      <label className="sr-only">Enter your PIN code</label>
+                      <label className="sr-only">Enter your State</label>
                       <select
                         className="w-full py-3 px-4 rounded-md bg-green-100 border-0 focus:ring-2 focus:ring-green-400"
                         value={stateInput}
@@ -516,12 +584,13 @@ const CartDetails = () => {
                         }}
                       >
                         <option value="">Select State</option>
-                        {statesIndia[0].states.map((s) => (
+                        {statesList.map((s) => (
                           <option key={s.state} value={s.state}>{s.state}</option>
                         ))}
                       </select>
                     </div>
 
+                    {/* Dynamic District Dropdown from API */}
                     <div className="w-full">
                       <select
                         className="w-full py-3 px-4 rounded-md bg-yellow-100 border-0 focus:ring-2 focus:ring-yellow-400"
@@ -530,9 +599,22 @@ const CartDetails = () => {
                         disabled={!stateInput}
                       >
                         <option value="">Select Distt.</option>
-                        {stateInput && statesIndia[0].states.find(s => s.state === stateInput)?.districts.map(d => (
-                          <option key={d} value={d}>{d}</option>
-                        ))}
+                        {(() => {
+                          const stateObj = statesList.find(s => s.state === stateInput);
+                          if (!stateObj) {
+                            return (
+                              <option disabled value="">State not found in database</option>
+                            );
+                          }
+                          if (!Array.isArray(stateObj.districts) || stateObj.districts.length === 0) {
+                            return (
+                              <option disabled value="">No districts found for this state</option>
+                            );
+                          }
+                          return stateObj.districts.map(d => (
+                            <option key={d.district} value={d.district}>{d.district}</option>
+                          ));
+                        })()}
                       </select>
                     </div>
 
@@ -554,8 +636,14 @@ const CartDetails = () => {
                         setPincodeError("");
                         setPincodeResult(null);
                         setLoadingShipping(true);
+                        // Defensive check before API request
+                        if (!stateInput || !districtInput || !pincodeInput || pincodeInput.trim().length !== 6) {
+                          setPincodeError("Please select state, district, and enter a valid 6-digit pincode.");
+                          setLoadingShipping(false);
+                          return;
+                        }
                         try {
-                          const res = await fetch('/api/checkShipping', {
+                          const res = await fetch('/api/zipcode/checkZip', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
@@ -567,23 +655,19 @@ const CartDetails = () => {
                           // console.log('Shipping API status:', res.status);
                           const data = await res.json();
                           // console.log('Shipping API response:', data);
-                          if (data.available) {
+                          if (data.success) {
                             setPincodeResult({
-                              price: data.shippingCharge,
-                              state: stateInput,
-                              district: districtInput,
-                              pincode: pincodeInput
+                              state: data.state,
+                              district: data.district,
+                              pincode: data.pincode
                             });
-                            setFinalShipping(data.shippingCharge);
                             setIsPincodeModalOpen(false);
                             setIsPincodeConfirmModalOpen(true);
                           } else {
                             setPincodeError(data.message || 'Delivery not available');
-                            setFinalShipping(0);
                           }
                         } catch (err) {
                           setPincodeError('Server error. Please try again.');
-                          setFinalShipping(0);
                         } finally {
                           setLoadingShipping(false);
                         }
@@ -592,11 +676,14 @@ const CartDetails = () => {
                     >
                       {loadingShipping ? 'Checking...' : 'SEARCH'}
                     </button>
-                    {pincodeResult && (
+                    {/* {pincodeResult && (
                       <div className="text-green-700 text-xs mt-1">
-                        Delivery available! Shipping Price: ₹{pincodeResult.price}
+                        Delivery available!<br/>
+                        <span>State: <b>{pincodeResult.state}</b></span><br/>
+                        <span>District: <b>{pincodeResult.district}</b></span><br/>
+                        <span>Pincode: <b>{pincodeResult.pincode}</b></span>
                       </div>
-                    )}
+                    )} */}
                     {pincodeError && (
                       <div className="text-red-600 text-xs mt-1">
                         {pincodeError}
@@ -680,7 +767,7 @@ const CartDetails = () => {
               {/* Final Amount */}
               <div className="flex justify-between items-center font-bold text-lg mb-2">
                 <span>Final Amount</span>
-                <span>₹{cartTotal.toFixed(2)}</span>
+                <span>₹{finalAmount.toFixed(2)}</span>
               </div>
 
               {/* Terms and Pay Button */}
@@ -697,18 +784,17 @@ const CartDetails = () => {
                 </label>
               </div>
               <button
-                className="w-full py-3 bg-orange-500 text-white rounded font-bold text-base hover:bg-orange-600 mb-2"
+                className="w-full py-3 bg-orange-500 text-white font-bold text-base hover:bg-orange-600 mb-2"
                 disabled={!termsChecked || !pincodeResult}
                 onClick={() => {
                   if (!pincodeResult) {
-                    setPincodeError('Please check your pincode for delivery before proceeding.');
-                    setIsPincodeModalOpen(true);
+                    toast.error('Please check your pincode before proceeding.');
                     return;
                   }
                   handleCheckout();
                 }}
               >
-                I'm Ready To Pay
+                Continue
               </button>
 
               {/* Secure Payment and Card Icons */}
@@ -759,8 +845,8 @@ const CartDetails = () => {
 
               {/* Continue Shopping Button */}
               <button
-                className="w-full py-3 bg-green-700 text-white rounded font-bold text-base hover:bg-green-800 my-2"
-                onClick={() => (window.location.href = "/shop")}
+                className="w-full py-3 bg-green-700 text-white font-bold text-base hover:bg-green-800 my-2"
+                onClick={() => (window.location.href = "/")}
               >
                 Continue Shopping
               </button>
