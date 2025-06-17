@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 export default function ProductDetailView({ product }) {
+  
   // --- Ask An Expert Modal State ---
   const [showExpertModal, setShowExpertModal] = React.useState(false);
   const [expertForm, setExpertForm] = React.useState({

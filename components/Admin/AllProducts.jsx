@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import toast from "react-hot-toast";
 import {
   Bell,
   UserCircle,
@@ -9,51 +10,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 
-const demoCategories = ["Shawls", "Baskets", "Caps", "Scarves", "Jewelry"];
-
-const demoProducts = [
-  {
-    id: "SKU123456",
-    name: "Handmade Shawl",
-    image: "/shawl.jpg",
-    price: 1299,
-    stock: 12,
-    category: "Shawls",
-    status: "In Stock",
-    productType: "Category",
-    artisan: "Akhil Sharma",
-  },
-  {
-    id: "SKU123457",
-    name: "Bamboo Basket",
-    image: "/basket.jpg",
-    price: 699,
-    stock: 0,
-    category: "Baskets",
-    status: "Out of Stock",
-    productType: "Direct",
-    artisan: "Priya Singh",
-  },
-  {
-    id: "SKU123458",
-    name: "Woolen Cap",
-    image: "/cap.jpg",
-    price: 399,
-    stock: 22,
-    category: "Caps",
-    status: "In Stock",
-    productType: "Category",
-    artisan: "Akhil Sharma",
-  },
-  // Add more demo products as needed
-];
-
-const sortOptions = [
-  { value: "newest", label: "Newest" },
-  { value: "oldest", label: "Oldest" },
-  { value: "priceLow", label: "Price Low to High" },
-  { value: "priceHigh", label: "Price High to Low" },
-];
+import { useEffect } from "react";
 
 const AllProducts = () => {
   const [search, setSearch] = useState("");
@@ -69,14 +26,70 @@ const AllProducts = () => {
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
 
-  const [products, setProducts] = useState(demoProducts);
+  const [products, setProducts] = useState([]);
+  // Delete modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  // console.log(products)
+  // Dynamic artisans from products
+  const artisanObjs = Array.from(
+    new Map(products.filter(p => p.artisan && typeof p.artisan === 'object')
+      .map(p => [p.artisan._id, p.artisan])).values()
+  );
 
-  // Get unique artisan names from products
-  const artisanNames = Array.from(new Set(products.map(p => p.artisan)));
+  // Submenu filter state
+  const [submenu, setSubmenu] = useState("");
+
+  // Fetch categories (with subMenu.products) and build submenuObjs
+  const [categoryObjs, setCategoryObjs] = useState([]);
+  const [submenuObjs, setSubmenuObjs] = useState([]);
+// console.log(submenuObjs)
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Always fetch categories (with populated products)
+        const catRes = await fetch("/api/getAllMenuItems");
+        const categories = await catRes.json();
+        setCategoryObjs(Array.isArray(categories) ? categories : []);
+
+        // Build flat array of all submenus, each with parent title and submenu id
+        let submenus = [];
+        categories.forEach(cat => {
+          if (Array.isArray(cat.subMenu)) {
+            cat.subMenu.forEach(sub => {
+              submenus.push({
+                ...sub,
+                parentTitle: cat.title,
+                parentId: cat._id,
+                submenuId: sub._id || sub.title // fallback if _id missing
+              });
+            });
+          }
+        });
+        setSubmenuObjs(submenus);
+
+        if (submenu) {
+          // Find selected submenu
+          const selected = submenus.find(s => s.submenuId === submenu);
+          setProducts((selected && Array.isArray(selected.products)) ? selected.products : []);
+        } else {
+          // No submenu selected: show all products
+          const prodRes = await fetch("/api/product");
+          const allProducts = await prodRes.json();
+          setProducts(allProducts || []);
+        }
+      } catch (err) {
+        setCategoryObjs([]);
+        setProducts([]);
+        setSubmenuObjs([]);
+      }
+    };
+    fetchData();
+  }, [submenu]);
 
   const handleReset = () => {
     setSearch("");
-    setCategory("");
+    setSubmenu("");
     setProductType("");
     setArtisan("");
     setMinPrice("");
@@ -90,17 +103,17 @@ const AllProducts = () => {
   };
 
   // Filtering logic
-  const filteredProducts = products.filter((p) => {
+  const filteredProducts = Array.isArray(products) ? products.filter((p) => {
     let match = true;
     if (search) {
       match =
-        p.name.toLowerCase().includes(search.toLowerCase()) ||
-        p.id.toLowerCase().includes(search.toLowerCase());
+        (p.name && p.name.toLowerCase().includes(search.toLowerCase())) ||
+        (p.code && p.code.toLowerCase().includes(search.toLowerCase()));
     }
-    if (category && match) match = p.category === category;
-    if (productType && match) match = p.productType === productType;
-    if (artisan && match) match = p.artisan === artisan;
-    if (stockStatus && match) match = p.status === stockStatus;
+    if (category && match) match = p.categoryTag && p.categoryTag._id === category;
+    if (productType && match) match = (p.isDirect ? "Direct" : "Category") === productType;
+    if (artisan && match) match = p.artisan?._id === artisan;
+    if (stockStatus && match) match = (p.stock > 0 ? "Out of  Stock" : "In Stock") === stockStatus;
     if (minPrice && match) match = p.price >= Number(minPrice);
     if (maxPrice && match) match = p.price <= Number(maxPrice);
     // Date, Day, Month, Year filtering (if products have date field, implement here)
@@ -109,8 +122,8 @@ const AllProducts = () => {
     // if (month && match) match = new Date(p.createdAt).getMonth() + 1 === Number(month);
     // if (year && match) match = new Date(p.createdAt).getFullYear() === Number(year);
     return match;
-  });
-  // Sorting
+  }) : [];
+
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     if (sort === "newest") return b.id.localeCompare(a.id);
     if (sort === "oldest") return a.id.localeCompare(b.id);
@@ -121,43 +134,27 @@ const AllProducts = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Top Navbar */}
-      <header className="w-full bg-white shadow-sm px-6 py-4 flex items-center justify-between sticky top-0 z-20">
-        <div className="flex items-center gap-4">
-          <span className="text-xl font-bold text-blue-700">All Products</span>
-        </div>
-        <div className="flex items-center gap-4">
-          <button className="relative">
-            <Bell className="text-xl text-gray-500" size={20} />
-            <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-          </button>
-          <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center">
-            <UserCircle className="text-2xl text-blue-700" size={24} />
-          </div>
-        </div>
-      </header>
       {/* Filter Bar */}
-      <div className="w-full bg-white px-6 py-4 shadow flex flex-wrap gap-3 items-center justify-between border-b">
+      <div className="w-full max-w-7xl bg-white px-4 py-4 shadow flex flex-wrap gap-3 items-center justify-between border-b">
         <div className="flex flex-wrap gap-3 items-center flex-1">
           <div className="relative">
             <input
               type="text"
-              placeholder="Search by name or SKU"
-              className="px-4 py-2 pl-10 border rounded bg-gray-100 focus:outline-none min-w-[200px]"
+              className="px-3 py-2 border rounded bg-gray-100 focus:outline-none min-w-[200px]"
+              placeholder="Search by name, SKU, or code"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            <Search className="absolute left-3 top-3 text-gray-400" size={16} />
           </div>
           <select
-            className="px-3 py-2 border rounded bg-gray-100 focus:outline-none min-w-[120px]"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
+            className="px-3 py-2 border rounded bg-gray-100 focus:outline-none min-w-[220px]"
+            value={submenu}
+            onChange={(e) => setSubmenu(e.target.value)}
           >
-            <option value="">All Categories</option>
-            {demoCategories.map((c) => (
-              <option key={c} value={c}>
-                {c}
+            <option value="">All Submenus</option>
+            {submenuObjs.map((s) => (
+              <option key={s.submenuId} value={s.submenuId}>
+                {s.parentTitle ? `${s.parentTitle} - ${s.title}` : s.title}
               </option>
             ))}
           </select>
@@ -173,92 +170,17 @@ const AllProducts = () => {
           </select>
           {/* Artisan Name Filter */}
           <select
-            className="px-3 py-2 border rounded bg-gray-100 focus:outline-none min-w-[140px]"
+            className="px-5 py-2 border rounded bg-gray-100 focus:outline-none min-w-[140px]"
             value={artisan}
             onChange={(e) => setArtisan(e.target.value)}
           >
             <option value="">All Artisans</option>
-            {artisanNames.map((name) => (
-              <option key={name} value={name}>
-                {name}
+            {artisanObjs.map((a) => (
+              <option key={a?._id || a?.title || a?.name || a} value={a?._id || a?.title || a?.name || a}>
+                {a?.name || ((a?.firstName || "") + (a?.lastName ? " " + a.lastName : "")) || a?.name || a?._id || a}
               </option>
             ))}
           </select>
-          {/* Date, Day, Month, Year Filters */}
-          <input
-            type="date"
-            className="px-3 py-2 border rounded bg-gray-100 focus:outline-none min-w-[150px]"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-          />
-          <select
-            className="px-3 py-2 border rounded bg-gray-100 focus:outline-none min-w-[80px]"
-            value={day}
-            onChange={(e) => setDay(e.target.value)}
-          >
-            <option value="">Day</option>
-            {[...Array(31)].map((_, i) => (
-              <option key={i + 1} value={i + 1}>
-                {i + 1}
-              </option>
-            ))}
-          </select>
-          <select
-            className="px-3 py-2 border rounded bg-gray-100 focus:outline-none min-w-[100px]"
-            value={month}
-            onChange={(e) => setMonth(e.target.value)}
-          >
-            <option value="">Month</option>
-            {[
-              "Jan",
-              "Feb",
-              "Mar",
-              "Apr",
-              "May",
-              "Jun",
-              "Jul",
-              "Aug",
-              "Sep",
-              "Oct",
-              "Nov",
-              "Dec",
-            ].map((m, i) => (
-              <option key={i + 1} value={i + 1}>
-                {m}
-              </option>
-            ))}
-          </select>
-          <select
-            className="px-3 py-2 border rounded bg-gray-100 focus:outline-none min-w-[90px]"
-            value={year}
-            onChange={(e) => setYear(e.target.value)}
-          >
-            <option value="">Year</option>
-            {[2023, 2024, 2025].map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
-          </select>
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              min="0"
-              placeholder="Min Price"
-              className="px-2 py-2 border rounded bg-gray-100 focus:outline-none w-20"
-              value={minPrice}
-              onChange={(e) => setMinPrice(e.target.value)}
-            />
-            <span className="text-gray-400">-</span>
-            <input
-              type="number"
-              min="0"
-              placeholder="Max Price"
-              className="px-2 py-2 border rounded bg-gray-100 focus:outline-none w-20"
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(e.target.value)}
-            />
-          </div>
           <select
             className="px-3 py-2 border rounded bg-gray-100 focus:outline-none min-w-[120px]"
             value={stockStatus}
@@ -268,7 +190,7 @@ const AllProducts = () => {
             <option value="In Stock">In Stock</option>
             <option value="Out of Stock">Out of Stock</option>
           </select>
-          <select
+          {/* <select
             className="px-3 py-2 border rounded bg-gray-100 focus:outline-none min-w-[160px]"
             value={sort}
             onChange={(e) => setSort(e.target.value)}
@@ -279,20 +201,14 @@ const AllProducts = () => {
                 {s.label}
               </option>
             ))}
-          </select>
+          </select> */}
         </div>
         <div className="flex gap-2 mt-3 md:mt-0">
           <button
-            className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 font-medium"
+            className="px-4 py-2 rounded bg-blue-500 text-white font-medium"
             onClick={handleReset}
           >
             Reset Filters
-          </button>
-          <button
-            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 font-medium"
-            // onClick={handleApply}
-          >
-            Apply Filters
           </button>
         </div>
       </div>
@@ -303,7 +219,7 @@ const AllProducts = () => {
             <tr>
               <th className="p-3 text-left">Image</th>
               <th className="p-3 text-left">Product Name</th>
-              <th className="p-3 text-left">SKU / ID</th>
+              <th className="p-3 text-left">ID</th>
               <th className="p-3 text-center">Price</th>
               <th className="p-3 text-center">Stock</th>
               <th className="p-3 text-center">Category</th>
@@ -315,45 +231,70 @@ const AllProducts = () => {
           <tbody>
             {sortedProducts.map((product, idx) => (
               <tr
-                key={product.id}
+                key={
+                  (typeof product._id === 'string' && product._id) ||
+                    (typeof product._id === 'object' && product._id !== null && product._id.toString) ? product._id.toString() :
+                    (typeof product.id === 'string' && product.id) ||
+                      (typeof product.id === 'object' && product.id !== null && product.id.toString) ? product.id.toString() :
+                      `row-${idx}`
+                }
                 className="border-b hover:bg-blue-50 transition-colors"
               >
                 <td className="p-3">
                   <img
-                    src={product.image}
-                    alt={product.name}
+                    src={
+                      (product.gallery && product.gallery.mainImage && product.gallery.mainImage.url)
+                        ? product.gallery.mainImage.url
+                        : (Array.isArray(product.gallery?.subImages) && product.gallery.subImages.length > 0 && product.gallery.subImages[0] && product.gallery.subImages[0].url)
+                          ? product.gallery.subImages[0].url
+                          : "/placeholder.png"
+                    }
+                    alt={product.title || product.code || "Product"}
                     className="w-14 h-14 rounded border object-cover shadow-sm bg-white"
                   />
                 </td>
-                <td className="p-3 font-semibold">{product.name}</td>
-                <td className="p-3 font-mono text-xs">{product.id}</td>
-                <td className="p-3 text-center">₹{product.price}</td>
+                <td className="p-3 font-semibold">{product.title || 'No Title'}</td>
+                <td className="p-3 font-mono text-xs">{product.code || (typeof product._id === 'string' ? product._id : (product._id && product._id.toString ? product._id.toString() : '-'))}</td>
+                <td className="p-3 text-center">
+                  ₹ {
+                    Array.isArray(product?.quantity?.variants) && product.quantity.variants.length > 0 && product.quantity.variants[0].price
+                      ? product.quantity.variants[0].price
+                      : 'No Price'
+                  }
+                </td>
                 <td className="p-3 text-center">
                   <span
                     className={`px-2 py-1 rounded text-xs font-semibold
-                      ${product.status === "In Stock"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-600"}
-                    `}
+    ${Array.isArray(product?.quantity?.variants) && product.quantity.variants.length > 0 && product.quantity.variants[0].qty > 0 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}
+  `}
                   >
-                    {product.status}
+                    {Array.isArray(product?.quantity?.variants) && product.quantity.variants.length > 0 && product.quantity.variants[0].qty > 0 ? "In Stock" : "Out of Stock"}
                   </span>
                 </td>
-                <td className="p-3 text-center">{product.category}</td>
-                <td className="p-3 text-center">{product.productType}</td>
-                <td className="p-3 text-center">{product.artisan}</td>
+                <td className="p-3 text-center">{product.categoryTag?.title || 'No Category'}</td>
+                <td className="p-3 text-center">{product.isDirect ? "Direct" : "Category"}</td>
+                <td className="p-3 text-center">{
+                  product.artisan?.name ||
+                  ((product.artisan?.firstName || "") + (product.artisan?.lastName ? " " + product.artisan.lastName : "")) ||
+                  product.artisan?.name ||
+                  '-'
+                }</td>
                 <td className="p-3 text-center flex gap-2 justify-center">
-                  <button
+                  {/* <button
                     className="p-2 rounded hover:bg-green-100"
                     title="Edit"
                   >
                     <Edit className="text-green-600" size={18} />
-                  </button>
+                  </button> */}
                   <button
                     className="p-2 rounded hover:bg-red-100"
                     title="Delete"
+                    onClick={() => {
+                      setDeleteTarget(product._id);
+                      setShowDeleteModal(true);
+                    }}
                   >
-                    <Trash2 className="text-red-600" size={18} />
+                    <Trash2 className="text-red-600" size={20} />
                   </button>
                 </td>
               </tr>
@@ -361,8 +302,50 @@ const AllProducts = () => {
           </tbody>
         </table>
       </div>
+      {/* Delete Confirmation Dialog */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full">
+            <h2 className="text-lg font-semibold mb-4">Confirm Delete</h2>
+            <p className="mb-6">Are you sure you want to delete this product? This action cannot be undone.</p>
+            <div className="flex justify-end gap-3">
+              <button
+                className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 font-medium"
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteTarget(null);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 font-medium"
+                onClick={async () => {
+                  if (!deleteTarget) return;
+                  try {
+                    const res = await fetch(`/api/product/${deleteTarget}`, { method: 'DELETE' });
+                    if (res.ok) {
+                      setProducts(prev => prev.filter(p => p._id !== deleteTarget));
+                      toast.success('Product deleted successfully');
+                    } else {
+                      const err = await res.json().catch(() => ({}));
+                      toast.error('Failed to delete product: ' + (err.error || 'Unknown error'));
+                    }
+                  } catch {
+                    toast.error('Failed to delete product');
+                  }
+                  setShowDeleteModal(false);
+                  setDeleteTarget(null);
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-};
+}
 
 export default AllProducts;
