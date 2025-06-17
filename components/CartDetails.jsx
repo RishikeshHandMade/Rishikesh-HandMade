@@ -52,6 +52,11 @@ const CartDetails = () => {
           (item.discountAmount || 0);
         return sum + (discount * item.qty);
       }, 0),
+      shipping: FinalShipping || 0,
+      pincode: pincodeInput || null,
+      // city: cityInput || null,
+      state: stateInput || null,
+      district: districtInput || null,
       taxTotal: currentCart.reduce((sum, item) => {
         const price = getAfterDiscount(item);
         const tax = ((item.cgst || 0) + (item.sgst || 0)) / 100 * price * item.qty;
@@ -103,17 +108,13 @@ const CartDetails = () => {
     React.useState(false);
   const [stateInput, setStateInput] = React.useState("");
   const [districtInput, setDistrictInput] = React.useState("");
+  // const [cityInput, setCityInput] = React.useState("");
   const [pincodeInput, setPincodeInput] = React.useState("");
   const [loadingShipping, setLoadingShipping] = useState(false);  
   const [FinalShipping, setFinalShipping] = useState(0);
   const [shippingTierLabel, setShippingTierLabel] = useState("");
   const [shippingPerUnit, setShippingPerUnit] = useState(null);
   const [statesList, setStatesList] = useState([]);
-  // console.log(shippingPerUnit)
-  // cons.ole.log("Cart:", cart);
-  // console.log("Total weight:", totalWeight);
-  // console.log("Final shipping:",   FinalShipping);
-  // Fetch shipping charge whenever cart changes
   const finalAmount = totalAfterDiscount + FinalShipping;
 
   useEffect(() => {
@@ -132,7 +133,6 @@ const CartDetails = () => {
           body: JSON.stringify({ weight: totalWeight }),
         });
         const data = await res.json();
-        // console.log(data);
         if (data.available && data.shippingCharge != null) {
           setFinalShipping(Number(data.shippingCharge));
           setShippingTierLabel(data.tierLabel || "");
@@ -260,12 +260,6 @@ const CartDetails = () => {
     const totalPerItem = afterDiscount + cgstAmount + sgstAmount;
     return totalPerItem * item.qty;
   };
-
-  // 1. Get original price before any discount
-  const getOriginalPrice = (item) => item.originalPrice ?? item.price;
-
-  // 3. Calculate tax
-  const getTaxAmount = (price, percent) => (price * percent) / 100;
 
   // 5. For entire cart
   const subTotal = Array.isArray(cart)
@@ -548,11 +542,6 @@ const CartDetails = () => {
                     </button>
                   </div>
                 </div>
-                {pincodeResult && (
-                  <div className="text-green-700 text-xs mt-1">
-                    Delivery available! Shipping Price: ₹{pincodeResult.price}
-                  </div>
-                )}
                 {pincodeError && (
                   <div className="text-red-600 text-xs mt-1">
                     {pincodeError}

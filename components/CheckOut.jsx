@@ -87,11 +87,11 @@ import { toast } from 'react-hot-toast';
 function buildOrderPayload({
   cart,
   checkoutData,
-  street, city, district, state, zip,
+  street, city, district, state, pincode,
   firstName, lastName, email, phone, altPhone,
   payment, transactionId, orderId, agree
 }) {
-  const fullAddress = [street, city, district, state, zip].filter(Boolean).join(', ');
+  const fullAddress = [street, city, district, state, pincode].filter(Boolean).join(', ');
   return {
     products: cart,
     cartTotal: checkoutData?.cartTotal,
@@ -111,7 +111,7 @@ function buildOrderPayload({
     city,
     district,
     state,
-    zip,
+    pincode,
     address: fullAddress,
     // Payment/order info
     orderId,
@@ -132,9 +132,9 @@ const handleOnlinePaymentWithOrder = async (finalAmount, cart, customer, setLoad
     // 1. Gather all form fields and order data
     const {
       firstName, lastName, email, phone, altPhone,
-      street, city, district, state, zip,
+      street, city, district, state, pincode,
     } = formFields;
-    const address = [street, city, district, state, zip].filter(Boolean).join(', ');
+    const address = [street, city, district, state, pincode].filter(Boolean).join(', ');
     // 2. Create Razorpay order and save in DB
     const orderResponse = await axios.post("/api/razorpay", {
       amount: finalAmount, // in rupees
@@ -250,7 +250,7 @@ const handleOnlinePaymentWithOrder = async (finalAmount, cart, customer, setLoad
       street: checkoutData?.street,
       city: checkoutData?.city,
       state: checkoutData?.state,
-      zip: checkoutData?.zip,
+      pincode: checkoutData?.pincode,
       address: checkoutData?.address || '', // Ensure address is sent
       // Payment/order info
       orderId: razorpayOrderData.id, // Save Razorpay order ID
@@ -375,7 +375,7 @@ const handleOnlinePaymentWithOrder = async (finalAmount, cart, customer, setLoad
       street: checkoutData?.street,
       city: checkoutData?.city,
       state: checkoutData?.state,
-      zip: checkoutData?.zip,
+      pincode: checkoutData?.pincode,
       // Payment/order info
       orderId: checkoutData?.orderId || '', // Razorpay or internal order id
       transactionId: checkoutData?.transactionId || '',
@@ -488,10 +488,17 @@ const handleOnlinePaymentWithOrder = async (finalAmount, cart, customer, setLoad
       }
     };
     if (typeof window !== "undefined" && typeof window.Razorpay === "function") {
-      const rzp = new window.Razorpay(options);
-      rzp.open();
+      try {
+        const rzp = new window.Razorpay(options);
+        console.log('[Razorpay] Opening payment modal...');
+        rzp.open();
+      } catch (modalErr) {
+        setError('Failed to open Razorpay payment modal.');
+        console.error('[Razorpay] Error opening modal:', modalErr);
+      }
     } else {
       setError("Razorpay is not available on window. Check if SDK loaded correctly.");
+      console.error('[Razorpay] Razorpay is not a function on window:', window?.Razorpay);
     }
   } catch (error) {
     setError("Unexpected error: " + error.message);
@@ -506,6 +513,27 @@ import { usePathname, useRouter } from "next/navigation"
 
 
 const CheckOut = () => {
+  // State for address fields
+  const [pincode, setPincode] = useState("");
+  const [state, setState] = useState("");
+  const [district, setDistrict] = useState("");
+
+  useEffect(() => {
+    // Load checkout data from localStorage
+    const data = localStorage.getItem("checkoutCart");
+    if (data) {
+      try {
+        const parsed = JSON.parse(data);
+        console.log(parsed)
+        setPincode(parsed.pincode || "");
+        setState(parsed.state || "");
+        setDistrict(parsed.district || "");
+      } catch (e) {
+        // Optionally handle error
+      }
+    }
+  }, []);
+
   const { data: session, status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
@@ -513,14 +541,16 @@ const CheckOut = () => {
   const [checkoutData, setCheckoutData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false); // Prevents double payment attempts
   const [error, setError] = useState(null);
   // Coupon state
+  // console.log(checkoutData)
   const [couponInput, setCouponInput] = useState("");
   const [loadingCoupon, setLoadingCoupon] = useState(false);
   const [couponError, setCouponError] = useState("")
   const [showOverview, setShowOverview] = useState(false);
   const [confirmedPaymentMethod, setConfirmedPaymentMethod] = useState(null);
-    const [shipping, setShipping] = useState('free');
+  const [shipping, setShipping] = useState('free');
   // Load cart data from localStorage and handle authentication state
   useEffect(() => {
     const loadCartData = () => {
@@ -644,11 +674,11 @@ const CheckOut = () => {
   const [lastName, setLastName] = useState("");
   const [street, setStreet] = useState("");
   const [city, setCity] = useState("");
-  const [state, setState] = useState("");
-  const [zip, setZip] = useState("");
+  // const [state, setState] = useState("");
+  // const [pincode, setpincode] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [district, setDistrict] = useState("");
+  // const [district, setDistrict] = useState("");
   const [altPhone, setAltPhone] = useState("");
 
   React.useEffect(() => { setMounted(true); }, []);
@@ -678,7 +708,7 @@ const CheckOut = () => {
     email,
     phone,
     altPhone,
-    address: `${street}, ${city}, ${state}, ${zip}`,
+    address: `${street}, ${city}, ${state}, ${pincode}`,
     district,
   });
   const updateCartQty = (id, qty) => {
@@ -706,7 +736,7 @@ const CheckOut = () => {
     if (isBuyNow) {
       localStorage.removeItem('buyNowProduct');
     }
-  
+
     setError(null);
 
     try {
@@ -724,7 +754,7 @@ const CheckOut = () => {
           address: street,
           city,
           state,
-          postalCode: zip,
+          postalCode: pincode,
           phone,
           district,
         },
@@ -785,7 +815,7 @@ const CheckOut = () => {
     if (!district.trim()) return 'District is required.';
     if (!state.trim()) return 'State is required.';
     if (!altPhone.trim()) return 'Alt Phone number is required.';
-    if (!zip || !/^[0-9]{5,6}$/.test(zip)) return 'A valid PIN code is required.';
+    if (!pincode || !/^[0-9]{5,6}$/.test(pincode)) return 'A valid PIN code is required.';
     return '';
   };
 
@@ -812,7 +842,7 @@ const CheckOut = () => {
         address: street,
         city,
         state,
-        postalCode: zip,
+        postalCode: pincode,
         phone,
         email,
         district,
@@ -887,13 +917,14 @@ const CheckOut = () => {
 
   // Handler for form submission (step 1 → step 2)
   const handleShowOverview = (e) => {
-    e.preventDefault();
+    // e.preventDefault();
     if (loading) return;
     const validationError = validateForm();
     if (validationError) {
       setError(validationError);
       return;
     }
+    // console.log("Setting showOverview to true");
     setShowOverview(true);
     setConfirmedPaymentMethod(payment); // Save chosen payment method
   };
@@ -904,7 +935,7 @@ const CheckOut = () => {
     try {
       // Build form fields from state for payload
       const formFields = {
-        street, city, district, state, zip,firstName, lastName, email, phone, altPhone
+        street, city, district, state, pincode, firstName, lastName, email, phone, altPhone
       };
       let orderId = checkoutData?.orderId;
       let transactionId = checkoutData?.transactionId;
@@ -1001,29 +1032,40 @@ const CheckOut = () => {
 
 
   if (showOverview) {
+    // console.log("Rendering overview");
     return (
       <CheckOutOverview
-        checkoutData={checkoutData}
-        paymentMethod={confirmedPaymentMethod}
-        onEdit={() => setShowOverview(false)}
-        onConfirm={handleConfirmAndPay} // <-- ensure this is always present!
-        loading={loading}
-        error={error}
-      />
+      checkoutData={{
+        ...checkoutData,
+        firstName,
+        lastName,
+        email,
+        phone,
+        altPhone,
+        street,
+        city,
+        district,
+        state,
+        pincode,
+        address: [street, city, district, state, pincode].filter(Boolean).join(', '),
+      }}
+      paymentMethod={confirmedPaymentMethod}
+      onEdit={() => setShowOverview(false)}
+      onConfirm={handleConfirmAndPay}
+      loading={loading}
+      error={error}
+    />
     );
   }
-
-
-
-
 
   return (
     <div className="flex flex-col md:flex-row gap-10 w-full min-h-screen bg-[#fcf7f2] p-10">
       {/* Billing Details Form */}
       <div className="flex-1 bg-white rounded-lg shadow p-8">
         <div className="border-b border-gray-200 pb-4 mb-6">
-          <h2 className="text-lg font-bold">Dear Customer,</h2>
-          <p className="text-gray-700">To proceed with your order and ensure smooth delivery, we kindly request you to provide the following basic information:</p>
+          <p className="text-xl font-bold">Thanks for being a loyal customer, Your cart is ready. Rishkish Handmade is a trusted growth partner to millions of everyday entrepreneurs.</p>
+          <br />
+          <p className="text-lg font-bold">Dear Customer,To proceed with your order and ensure smooth delivery, we kindly request you to provide the following basic information:</p>
         </div>
 
         <form className="space-y-6" onSubmit={handlePlaceOrder}>
@@ -1071,6 +1113,7 @@ const CheckOut = () => {
                     type="tel"
                     placeholder="Type Number"
                     required
+                    maxLength={10}
                     pattern="[0-9]{10}"
                     value={phone}
                     onChange={e => setPhone(e.target.value)}
@@ -1081,6 +1124,7 @@ const CheckOut = () => {
                   <input
                     className="w-full py-2 px-3 bg-gray-100 rounded-md border-0"
                     type="tel"
+                    maxLength={10}
                     placeholder="Type Number"
                     pattern="[0-9]{10}"
                     value={altPhone}
@@ -1111,10 +1155,11 @@ const CheckOut = () => {
                   className="w-fit py-2 px-3 bg-gray-100 rounded-md border-0"
                   required
                   type="number"
+                  maxLength={6}
                   pattern="[0-9]{6}"
                   placeholder='Enter Pincode'
-                  value={zip}
-                  onChange={e => setZip(e.target.value)}
+                  value={pincode}
+                  onChange={e => setPincode(e.target.value)}
                 />
               </div>
               <div className="grid grid-cols-3 gap-4">
@@ -1245,11 +1290,28 @@ const CheckOut = () => {
                           onClick={() => updateCartQty(item.id, item.qty + 1)}
                         >+</button>
                       </div>
-                      <div className="text-md text-black font-semibold whitespace-nowrap">₹{((item.price - (item.discountAmount || 0)) * item.qty).toFixed(2)}</div>
+                      <div className="text-md text-black font-semibold whitespace-nowrap">₹{(item.originalPrice).toFixed(2)}</div>
                     </div>
-                    {checkoutData.promo && (
-                      <div className="mt-2"><span className="bg-cyan-500 text-white text-xs rounded px-2 py-1 font-semibold">Applied Promocode {checkoutData.promo.discount}% off</span></div>
+                    <div className="flex justify-between items-center text-sm mb-2">
+                      <span className="text-gray-600">CGST ({item.cgst}%)</span>
+                      <span>₹{((item.afterDiscount * item.cgst / 100) * item.qty).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm mb-2">
+                      <span className="text-gray-600">SGST ({item.sgst}%)</span>
+                      <span>₹{((item.afterDiscount * item.sgst / 100) * item.qty).toFixed(2)}</span>
+                    </div>
+                    {item.couponApplied && (
+                      <div className="mt-2">
+                        <span className="bg-cyan-500 text-white text-xs rounded px-2 py-1 font-semibold">
+                          Applied Coupon{" "}
+                          {item.discountPercent
+                            ? `${item.discountPercent}% off`
+                            : `₹${item.discountAmount} off`}
+                        </span>
+                      </div>
                     )}
+
+
                   </div>
                   <button
                     className="absolute top-3 right-0 text-gray-400 hover:text-red-500"
@@ -1276,10 +1338,10 @@ const CheckOut = () => {
                 <span className="text-gray-600">Discount Amount</span>
                 <span className="text-green-600">-₹{checkoutData.totalDiscount?.toFixed(2)}</span>
               </div>
-              {checkoutData.promo && (
+              {checkoutData.couponApplied && (
                 <div className="flex justify-between items-center text-sm mb-2">
-                  <span className="text-gray-600">Promo Code <span className="text-xs text-green-600">({checkoutData.promo.code})</span></span>
-                  <span className="text-green-600">-₹{checkoutData.promo.discount?.toFixed(2)}</span>
+                  <span className="text-gray-600">Coupon <span className="text-xs text-green-600">({checkoutData.coupon.code})</span></span>
+                  <span className="text-green-600">-₹{checkoutData.coupon.discount?.toFixed(2)}</span>
                 </div>
               )}
               <div className="border-t border-gray-200 my-2"></div>
@@ -1290,23 +1352,34 @@ const CheckOut = () => {
               )}
               <div className="text-xs text-gray-500 mb-2">Note : If discount promo code already applied extra additional coupon not applicable</div>
             </div>
-
-
-
             <div className="mb-4">
               <div className="flex justify-between items-center text-sm mb-2">
                 <span className="text-gray-600">Shipping Charges</span>
                 <span>₹{checkoutData.finalShipping?.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between items-center text-sm mb-2">
-                <span className="text-gray-600">Total CGST %</span>
-                <span>₹{(checkoutData.taxTotal / 2)?.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between items-center text-sm mb-2">
-                <span className="text-gray-600">Total SGST %</span>
-                <span>₹{(checkoutData.taxTotal / 2)?.toFixed(2)}</span>
-              </div>
-              <div className="text-xs text-red-500 mb-2">Search Available Pin Code For Confirm Shipment.</div>
+              {(() => {
+                const totalCGST = checkoutData.cart.reduce(
+                  (sum, item) => sum + ((item.afterDiscount * item.cgst / 100) * item.qty),
+                  0
+                );
+                const totalSGST = checkoutData.cart.reduce(
+                  (sum, item) => sum + ((item.afterDiscount * item.sgst / 100) * item.qty),
+                  0
+                );
+                return (
+                  <>
+                    <div className="flex justify-between items-center text-sm mb-2">
+                      <span className="text-gray-600">Total CGST</span>
+                      <span>₹{totalCGST.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm mb-2">
+                      <span className="text-gray-600">Total SGST</span>
+                      <span>₹{totalSGST.toFixed(2)}</span>
+                    </div>
+                  </>
+                );
+              })()}
+              {/* <div className="text-xs text-red-500 mb-2">Search Available Pin Code For Confirm Shipment.</div> */}
             </div>
 
             <div className="border-t border-gray-200 pt-3 mb-4">
@@ -1321,7 +1394,7 @@ const CheckOut = () => {
               <div className="flex gap-2">
                 <input
                   className="border rounded px-3 py-2 flex-1 text-sm bg-blue-50"
-                  placeholder="Apply Promo Code PROMOCODE001"
+                  placeholder="Apply Promo Code"
                   value={couponInput}
                   onChange={e => setCouponInput(e.target.value)}
                   disabled={loadingCoupon}
@@ -1332,7 +1405,6 @@ const CheckOut = () => {
                     if (couponInput.trim().toLowerCase() === 'hello') {
                       setCheckoutData(prev => ({
                         ...prev,
-                        promo: { code: 'hello', discount: 20 },
                         cartTotal: prev.cartTotal - 20
                       }));
                       setCouponError('');
@@ -1405,13 +1477,34 @@ const CheckOut = () => {
           </label>
         </div>
 
+        <pre style={{ fontSize: '12px', background: '#f5f5f5', padding: '8px', borderRadius: '6px', marginBottom: '8px' }}>
+          {JSON.stringify({
+            agree, loading, isProcessingPayment, firstName, lastName, email, phone, street, city, state, pincode, payment
+          }, null, 2)}
+        </pre>
         <button
           className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded font-semibold text-sm transition-colors"
-          disabled={!agree || loading || !firstName || !lastName || !email || !phone || !street || !city || !state || !zip || !payment}
+          disabled={!agree || loading || isProcessingPayment || !firstName || !lastName || !email || !phone || !street || !city || !state || !pincode || !payment}
           type="button"
-          onClick={handleShowOverview}
+          onClick={async () => {
+            if (isProcessingPayment) return;
+            setIsProcessingPayment(true);
+            setError(null);
+            try {
+              await handleShowOverview();
+            } catch (err) {
+              setError(err?.message || 'Unexpected error during payment.');
+            } finally {
+              setIsProcessingPayment(false);
+            }
+          }}
         >
-          {loading ? "Processing..." : `Pay ₹${checkoutData?.cartTotal?.toFixed(2) || '0.00'}`}
+          {isProcessingPayment ? (
+            <>
+              <span className="animate-spin inline-block mr-2">🔄</span> Processing Payment...
+            </>
+          ) : loading ? "Processing..." : `Pay ₹${checkoutData?.cartTotal?.toFixed(2) || '0.00'}`}
+
         </button>
 
       </div>
