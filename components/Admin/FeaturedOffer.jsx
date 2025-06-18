@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Image from "next/image";
 import toast from "react-hot-toast";
-
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '../ui/select';
 import { PencilIcon, Trash2Icon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useRef } from "react";
@@ -16,6 +16,23 @@ import { UploadIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 const FeaturedOffer = () => {
+    const [coupons, setCoupons] = useState([]);
+    const [loadingCoupons, setLoadingCoupons] = useState(false);
+    useEffect(() => {
+        const fetchCoupons = async () => {
+            setLoadingCoupons(true);
+            try {
+                const res = await fetch('/api/discountCoupon');
+                const data = await res.json();
+                if (Array.isArray(data)) setCoupons(data);
+            } catch (err) {
+                // handle error
+            } finally {
+                setLoadingCoupons(false);
+            }
+        };
+        fetchCoupons();
+    }, []);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [offerToDelete, setOfferToDelete] = useState(null);
     const [banners, setBanners] = useState([]);
@@ -23,6 +40,8 @@ const FeaturedOffer = () => {
     const [formData, setFormData] = useState({
         title: "",
         coupon: "",
+        couponPercent: "",
+        couponAmount: "",
         buttonLink: "",
         image: { url: "", key: "" },
         order: 1,
@@ -84,10 +103,22 @@ const FeaturedOffer = () => {
         if (!formData.image.url || !formData.image.key) return toast.error("Please upload an image");
         try {
             const method = editBanner ? "PATCH" : "POST";
+            // Find the selected coupon object
+            let couponObj = null;
+            if (formData.coupon) {
+                couponObj = coupons.find(c => c.couponCode === formData.coupon);
+            }
+            // Compose payload with coupon details
+            const payload = {
+                ...formData,
+                id: editBanner,
+                couponAmount: couponObj?.amount || null,
+                couponPercent: couponObj?.percent || null,
+            };
             const response = await fetch("/api/addFeaturedOffer", {
                 method,
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...formData, id: editBanner }),
+                body: JSON.stringify(payload),
             });
 
             const data = await response.json();
@@ -104,6 +135,8 @@ const FeaturedOffer = () => {
                 setFormData({
                     title: "",
                     coupon: "",
+                    couponPercent: "",
+                    couponAmount: "",
                     buttonLink: "",
                     order: updatedBanners.length + 1,
                     image: { url: "", key: "" },
@@ -122,6 +155,8 @@ const FeaturedOffer = () => {
         setFormData({
             title: banner.title,
             coupon: banner.coupon,
+            couponPercent: banner.couponPercent,
+            couponAmount: banner.couponAmount,
             buttonLink: banner.buttonLink,
             order: banner.order,
             image: banner.image,
@@ -224,17 +259,33 @@ const FeaturedOffer = () => {
                     <Label>Title</Label>
                     <Input name="title" placeholder="Enter title" value={formData.title} onChange={handleInputChange} />
                 </div>
-                <div>
-                    <Label>Coupon Code</Label>
-                    <Input name="coupon" placeholder="Enter coupon code" type="number" value={formData.coupon} onChange={handleInputChange} />
-                </div>
+                <div className="flex-1">
+    <Label>Coupon</Label>
+    <Select
+        value={formData.coupon}
+        onValueChange={val => setFormData(prev => ({ ...prev, coupon: val }))}
+    >
+        <SelectTrigger className="w-full">
+            <SelectValue placeholder={loadingCoupons ? 'Loading...' : 'Select coupon'} />
+        </SelectTrigger>
+        <SelectContent>
+            {(Array.isArray(coupons) && coupons.length === 0) && (
+                <div className="p-2 text-gray-400">No coupons found</div>
+            )}
+            {(Array.isArray(coupons) ? coupons : []).map(coupon => (
+                <SelectItem key={coupon._id} value={coupon.couponCode} disabled={formData.coupon === coupon.couponCode}>
+                    {coupon.couponCode} {coupon.percent ? `(${coupon.percent}% off)` : coupon.amount ? `(-₹${coupon.amount})` : ''}
+                </SelectItem>
+            ))}
+        </SelectContent>
+    </Select>
+</div>
                 <div>
                     <Label>Button Link</Label>
                     <Input name="buttonLink" placeholder="Enter button link" type="url" value={formData.buttonLink} onChange={handleInputChange} />
                 </div>
                 <div>
-                    <Label>Order</Label>
-                    <Input name="order" placeholder="Enter order" type="number" value={formData.order} readOnly className="bg-gray-100 cursor-not-allowed" />
+                    <Label>Order</Label>                    <Input name="order" placeholder="Enter order" type="number" value={formData.order} readOnly className="bg-gray-100 cursor-not-allowed" />
                 </div>
 
                 <div className="flex gap-2 mt-4">

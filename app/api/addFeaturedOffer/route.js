@@ -15,13 +15,13 @@ export async function GET() {
 
 export async function POST(req) {
     try {
-        const { title, coupon, buttonLink, image, order } = await req.json();
+        const { title, coupon, buttonLink, image, couponAmount, couponPercent, order } = await req.json();
 
         // Find the highest order number
         const lastBanner = await FeaturedBanner.findOne().sort({ order: -1 });
         const nextOrder = lastBanner ? lastBanner.order + 1 : 1; // Auto-increment order
 
-        const newBanner = new FeaturedBanner({ title, coupon, buttonLink, order: nextOrder, image });
+        const newBanner = new FeaturedBanner({ title, coupon, buttonLink, order: nextOrder, image, couponAmount, couponPercent });
         await newBanner.save();
         return NextResponse.json(newBanner, { status: 201 });
     } catch (error) {
@@ -31,8 +31,8 @@ export async function POST(req) {
 
 export async function PATCH(req) {
     try {
-        const { id, title, coupon, buttonLink, image, order } = await req.json();
-        const updatedBanner = await FeaturedBanner.findByIdAndUpdate(id, { title, coupon, buttonLink, order, image }, { new: true });
+        const { id, title, coupon, buttonLink, image, order, couponAmount, couponPercent } = await req.json();
+        const updatedBanner = await FeaturedBanner.findByIdAndUpdate(id, { title, coupon, buttonLink, order, image, couponAmount, couponPercent }, { new: true });
         return NextResponse.json(updatedBanner, { status: 200 });
     } catch (error) {
         return NextResponse.json({ error: "Failed to update banner" }, { status: 500 });

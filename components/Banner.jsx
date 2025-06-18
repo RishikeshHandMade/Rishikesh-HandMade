@@ -1,11 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
+    Carousel,
+    CarouselContent,
+    CarouselItem,
+    CarouselNext,
+    CarouselPrevious,
 } from "@/components/ui/carousel";
 
 import Link from "next/link";
@@ -14,7 +14,7 @@ const Banner = () => {
     const [promotinalBanner, setPromotinalBanner] = useState([])
     const [featuredOffer, setFeaturedOffer] = useState([])
     const [isLoading, setIsLoading] = useState(true);
-  
+    console.log(promotinalBanner)
     const fetchPromotinalBanner = async () => {
         try {
             const res = await fetch("/api/addPromotinalBanner");
@@ -62,30 +62,28 @@ const Banner = () => {
                         {promotinalBanner.map((item, idx) => (
                             <div key={idx} className="rounded-2xl flex flex-col h-[350px] md:h-[400px] p-0 overflow-hidden relative group">
                                 <img src={item?.image?.url} alt={item?.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                                <div className="absolute z-10 flex flex-col justify-between gap-2 px-10 p-6 h-full items-start">
+                                <div className="absolute z-10 flex flex-col justify-between gap-5 px-10 p-6 h-full items-start">
                                     {(() => {
-                                        const coupon = item.coupon || item.coupons?.coupon;
-                                        if (!coupon?.couponCode) return null;
-
-                                        const { percent, amount, couponCode } = coupon;
-
-                                        let offerText;
+                                        const percent = item.couponPercent;
+                                        const amount = item.couponAmount;
+                                        const code = item.coupon;
+                                        let offerText = null;
                                         if (typeof percent === 'number' && percent > 0) {
                                             offerText = <>GET {percent}% OFF</>;
                                         } else if (typeof amount === 'number' && amount > 0) {
                                             offerText = <>GET ₹{amount} OFF</>;
-                                        } else {
-                                            offerText = <>Special Offer</>;
+                                        } else if (code) {
+                                            offerText = <>Use code: <b>{code}</b></>;
                                         }
-
+                                        if (!offerText) return null;
                                         return (
-                                            <div className="absolute top-6 left-4 z-10 bg-white rounded-full px-4 py-1 text-sm font-bold shadow text-black tracking-tight" style={{ letterSpacing: 0 }}>
+                                            <div className="bg-white rounded-full px-4 py-1 text-sm font-bold shadow text-black tracking-tight mb-2" style={{ letterSpacing: 0 }}>
                                                 {offerText}
                                             </div>
                                         );
                                     })()}
-                                    <span className="text-2xl md:text-5xl font-bold text-black mb-2 leading-tight w-1/2">{item?.title}</span>
-                                    <Link href={item?.buttonLink || '#'} target="_blank" rel="noopener noreferrer" className="mt-4 px-10 text-md py-2 bg-black text-white hover:bg-gray-800 transition w-fit">View Now</Link>
+                                    <span className="text-2xl md:text-5xl font-bold text-black mb-2 leading-tight max-w-[80%]">{item?.title}</span>
+                                    <Link href={item?.buttonLink || '#'} target="_blank" rel="noopener noreferrer" className="px-10 text-md py-2 bg-black text-white hover:bg-gray-800 transition w-fit">View Now</Link>
                                 </div>
                             </div>
                         ))}
@@ -103,31 +101,29 @@ const Banner = () => {
                                 <CarouselItem key={idx} className="px-2 md:basis-1/3 lg:basis-1/4 ml-5">
                                     <div className="rounded-2xl flex flex-col h-[340px] p-0 overflow-hidden relative bg-white group">
                                         <img src={item.image?.url} alt={item.title} className="absolute inset-0 w-full h-full object-cover object-center opacity-80 transition-transform duration-300 group-hover:scale-105" />
-                                        <div className="relative z-10 flex flex-col justify-between items-start h-full p-6">
-                                            {(() => {
-                                                const coupon = item.coupon || item.coupons?.coupon;
-                                                if (!coupon?.couponCode) return null;
-
-                                                const { percent, amount, couponCode } = coupon;
-
-                                                let offerText;
-                                                if (typeof percent === 'number' && percent > 0) {
-                                                    offerText = <>GET {percent}% OFF</>;
-                                                } else if (typeof amount === 'number' && amount > 0) {
-                                                    offerText = <>GET ₹{amount} OFF</>;
-                                                } else {
-                                                    offerText = <>Special Offer</>;
-                                                }
-
-                                                return (
-                                                    <div className="absolute top-6 left-4 z-10 bg-white rounded-full px-4 py-1 text-sm font-bold shadow text-black tracking-tight" style={{ letterSpacing: 0 }}>
-                                                        {offerText}
-                                                    </div>
-                                                );
-                                            })()}
-                                            <span className="text-2xl md:text-3xl font-extrabold text-black mb-2 leading-tight w-1/2">{item.title}</span>
-                                            <Link href={item.buttonLink || '#'} target="_blank" rel="noopener noreferrer" className="mt-4 px-5 py-3 bg-black text-white rounded-xl hover:bg-gray-800 transition w-fit">View Now</Link>
-                                        </div>
+                                        <div className="absolute z-10 flex flex-col justify-between gap-5 px-10 p-6 h-full items-start">
+                                    {(() => {
+                                        const percent = item.couponPercent;
+                                        const amount = item.couponAmount;
+                                        const code = item.coupon;
+                                        let offerText = null;
+                                        if (typeof percent === 'number' && percent > 0) {
+                                            offerText = <>GET {percent}% OFF</>;
+                                        } else if (typeof amount === 'number' && amount > 0) {
+                                            offerText = <>GET ₹{amount} OFF</>;
+                                        } else if (code) {
+                                            offerText = <>Use code: <b>{code}</b></>;
+                                        }
+                                        if (!offerText) return null;
+                                        return (
+                                            <div className="bg-white rounded-full px-4 py-1 text-sm font-bold shadow text-black tracking-tight mb-2" style={{ letterSpacing: 0 }}>
+                                                {offerText}
+                                            </div>
+                                        );
+                                    })()}
+                                    <span className="text-2xl md:text-5xl font-bold text-black mb-2 leading-tight max-w-[80%]">{item?.title}</span>
+                                    <Link href={item?.buttonLink || '#'} target="_blank" rel="noopener noreferrer" className="px-10 text-md py-2 bg-black text-white hover:bg-gray-800 transition w-fit">View Now</Link>
+                                </div>
                                     </div>
                                 </CarouselItem>
                             ))}
