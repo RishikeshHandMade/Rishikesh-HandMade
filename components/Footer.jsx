@@ -1,6 +1,6 @@
 'use client'
 
-import { Handshake, Phone, Send } from "lucide-react"
+import { Handshake, Phone, Send, MapPin } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from "react"
@@ -78,18 +78,25 @@ const Footer = () => {
                     </div>
                     <div>
                         <h1 className="font-semibold text-xl flex items-center gap-2"><Send className="text-blue-600" /> Send Mail</h1>
-                        <Link href={'mailto:info@rishikeshhandmade.com'} className="my-2 block rounded-full px-5 py-1 font-barlow text-white ">
+                        <Link href={'mailto:info@rishikeshhandmade.com'} className="my-2 block rounded-full px-5 font-barlow text-white ">
                             Info@rishikeshhandmade.com
                         </Link>
-                        <Link href={'mailto:rishikeshhandmade@gmail.com'} className="my-2 block rounded-full px-5 py-1 font-barlow text-white ">
+                        <Link href={'mailto:rishikeshhandmade@gmail.com'} className="my-2 block rounded-full px-5 font-barlow text-white ">
                             rishikeshhandmade@gmail.com
                         </Link>
-                        <Link href={'mailto:Sale@rishikeshhandmade.com'} className="my-2 block rounded-full px-5 py-1 font-barlow text-white ">
+                        <Link href={'mailto:Sale@rishikeshhandmade.com'} className="my-2 block rounded-full px-5 font-barlow text-white ">
                             Sale@rishikeshhandmade.com
                         </Link>
-                        <Link href={'mailto:support@rishikeshhandmade.com'} className="my-2 block rounded-full px-5 py-1 font-barlow text-white ">
+                        <Link href={'mailto:support@rishikeshhandmade.com'} className="my-2 block rounded-full px-5 font-barlow text-white ">
                             support@rishikeshhandmade.com
                         </Link>
+                    </div>
+                    <div>
+                        <h1 className="font-semibold text-xl flex items-center gap-2"><MapPin className="text-blue-600" /> Address</h1>
+                       <p className="my-2 px-5 font-barlow text-white ">Upper Road Dhalwala (Rishikesh) 
+                        <br />
+                        Tehri Garhwal,Uttarakhand 249201
+                       </p>
                     </div>
                 </div>
                 {/* <div className="flex flex-col items-center lg:items-start gap-8">
