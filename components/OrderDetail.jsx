@@ -25,6 +25,13 @@ function formatDateTime(dt) {
 }
 
 const OrderDetail = ({ order }) => {
+  if (!order) {
+    return (
+      <div className="text-center text-red-500 mt-10">
+        No order data found. Please access this page from your order list or dashboard.
+      </div>
+    );
+  }
   const [activeTab, setActiveTab] = useState("history");
   const [showCancelRequest, setShowCancelRequest] = useState(false);
   const [showReturnRequest, setShowReturnRequest] = useState(false);
