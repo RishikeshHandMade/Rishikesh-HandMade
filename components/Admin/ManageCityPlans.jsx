@@ -157,11 +157,11 @@ const ManageCityPlans = () => {
                         </SelectTrigger>
                         <SelectContent className="font-barlow border-2 border-blue-600 bg-blue-100">
                             <SelectGroup>
-                                {statesIndia.sort().map((state, index) => (
+                                {Array.isArray(statesIndia) ? statesIndia.sort().map((state, index) => (
                                     <SelectItem key={index} value={state} className="focus:bg-blue-300 font-bold truncate">
                                         {state}
                                     </SelectItem>
-                                ))}
+                                )) : null}
                             </SelectGroup>
                         </SelectContent>
                     </Select>
@@ -175,14 +175,15 @@ const ManageCityPlans = () => {
                         </SelectTrigger>
                         <SelectContent className="font-barlow border-2 border-blue-600 bg-blue-100">
                             <SelectGroup>
-                                {cities
-                                    .filter(cityGroup => cityGroup.stateName === selectedState)
-                                    .flatMap(cityGroup => cityGroup.cities)
-                                    .map((city, index) => (
-                                        <SelectItem key={index} value={city} className="focus:bg-blue-300 font-bold truncate">
-                                            {city}
-                                        </SelectItem>
-                                    ))}
+                                {Array.isArray(cities) ?
+                                    cities
+                                        .filter(cityGroup => cityGroup.stateName === selectedState)
+                                        .flatMap(cityGroup => cityGroup.cities)
+                                        .map((city, index) => (
+                                            <SelectItem key={index} value={city} className="focus:bg-blue-300 font-bold truncate">
+                                                {city}
+                                            </SelectItem>
+                                        )) : null}
                             </SelectGroup>
                         </SelectContent>
                     </Select>
@@ -193,11 +194,11 @@ const ManageCityPlans = () => {
                         </SelectTrigger>
                         <SelectContent className="font-barlow border-2 border-blue-600 bg-blue-100">
                             <SelectGroup>
-                                {plans.map((plan, index) => (
+                                {Array.isArray(plans) ? plans.map((plan, index) => (
                                     <SelectItem key={index} value={plan.planName} className="focus:bg-blue-300 font-bold truncate">
                                         {plan.planName}
                                     </SelectItem>
-                                ))}
+                                )) : null}
                             </SelectGroup>
                         </SelectContent>
                     </Select>
