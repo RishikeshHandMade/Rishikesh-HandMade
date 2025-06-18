@@ -2,7 +2,9 @@
 import React from 'react';
 import Image from 'next/image';
 
-const CheckOutOverview = ({ checkoutData, paymentMethod, onEdit, onConfirm, loading, error }) => {
+const CheckOutOverview = ({ checkoutData, paymentMethod, onEdit, onConfirm, loading, error, showConfirmationModal, orderId, onGoToDashboard }) => {
+  // Debug: Log modal props
+  // console.log('[CheckOutOverview] showConfirmationModal:', showConfirmationModal, 'orderId:', orderId);
   if (!checkoutData) {
     return (
       <div className="bg-white rounded-lg shadow p-6">
@@ -36,8 +38,47 @@ const CheckOutOverview = ({ checkoutData, paymentMethod, onEdit, onConfirm, load
   // Calculate total quantity
   const totalQty = items.reduce((sum, item) => sum + (item.qty || 0), 0);
 
+  // Confirmation Modal (shown after successful payment/order)
+  
+
   return (
     <div className="min-h-screen bg-[#fcf7f2] flex items-start justify-center py-10 px-2 md:px-10">
+      {showConfirmationModal &&(
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-lg w-full relative flex flex-col items-center">
+          <button
+            className="absolute top-3 right-4 text-2xl text-gray-600 hover:text-black"
+            onClick={onGoToDashboard}
+            aria-label="Close"
+          >
+            &times;
+          </button>
+          <h2 className="text-xl font-bold mb-2 text-center">Thank You for Confirming Your Order</h2>
+          <p className="mb-4 text-center text-gray-700">
+            Thank you for confirming your order with us! We've received your details and your order is now being processed. Our team is preparing your package with care to ensure it reaches you in perfect condition and on time. You’ll receive updates on your order status and tracking information shortly.
+          </p>
+          <p className="mb-4 text-center text-gray-700">
+            If you have any questions or need assistance, our support team is here to help. We truly appreciate your trust in us and look forward to serving you again!
+          </p>
+          <div className="mb-2 font-semibold">Order ID & Date:</div>
+          <div className="mb-4 text-center text-base text-black">{orderId} &nbsp;|&nbsp; {new Date().toLocaleDateString()}</div>
+          <div className="flex flex-col md:flex-row gap-4 w-full justify-center">
+            <button
+              className="bg-black text-white px-6 py-3 rounded-lg font-semibold text-lg w-full md:w-auto mb-2 md:mb-0"
+              onClick={() => window.print()} // Placeholder for receipt functionality
+            >
+              Get receipt (Invoice)
+            </button>
+            <button
+              className="text-red-600 font-bold underline text-lg w-full md:w-auto"
+              onClick={onGoToDashboard}
+            >
+              Or Go To Dashboard &gt;&gt;
+            </button>
+          </div>
+        </div>
+      </div>
+      )}
       <div className="w-full max-w-6xl flex flex-col md:flex-row gap-8">
         {/* LEFT: Billing/Shipping Summary */}
         <div className="flex-1 bg-[#fcf7f2] p-0">
@@ -143,127 +184,3 @@ const CheckOutOverview = ({ checkoutData, paymentMethod, onEdit, onConfirm, load
 };
 
 export default CheckOutOverview;
-//             </div>
-//             <div className="flex-1">
-//               <h3 className="text-sm font-medium text-gray-900 line-clamp-2">
-//                 {item.name}
-//               </h3>
-//               <p className="mt-1 text-sm text-gray-500">Qty: {item.qty}</p>
-//               <div className="mt-1">
-//                 <span className="font-medium text-gray-900">
-//                   ₹{item.afterDiscount?.toFixed(2) || item.price?.toFixed(2)}
-//                 </span>
-//                 {item.originalPrice && item.originalPrice > (item.afterDiscount || item.price) && (
-//                   <span className="ml-2 text-sm text-gray-500 line-through">
-//                     ₹{item.originalPrice.toFixed(2)}
-//                   </span>
-//                 )}
-//               </div>
-//             </div>
-//           </div>
-//         ))}
-//       </div>
-
-//       {/* Order Totals */}
-//       <div className="p-6 border-t border-gray-200">
-//         <div className="space-y-3">
-//           <div className="flex justify-between text-sm">
-//             <span className="text-gray-600">Subtotal</span>
-//             <span>₹{subTotal.toFixed(2)}</span>
-//           </div>
-
-//           {totalDiscount > 0 && (
-//             <div className="flex justify-between text-sm">
-//               <span className="text-gray-600">Discount</span>
-//               <span className="text-green-600">-₹{totalDiscount.toFixed(2)}</span>
-//             </div>
-//           )}
-
-//           {promo && (
-//             <div className="flex justify-between text-sm">
-//               <span className="text-gray-600">
-//                 Promo Code <span className="text-green-600">({promo.code})</span>
-//               </span>
-//               <span className="text-green-600">-₹{promo.discount?.toFixed(2)}</span>
-//             </div>
-//           )}
-
-//           <div className="flex justify-between text-sm">
-//             <span className="text-gray-600">Shipping</span>
-//             <span>
-//               {finalShipping === 0 ? 'Free' : `₹${finalShipping.toFixed(2)}`}
-//             </span>
-//           </div>
-
-//           <div className="flex justify-between text-sm">
-//             <span className="text-gray-600">Tax (GST)</span>
-//             <span>₹{taxTotal.toFixed(2)}</span>
-//           </div>
-
-//           <div className="pt-3 mt-3 border-t border-gray-200 flex justify-between font-medium">
-//             <span>Total</span>
-//             <span className="text-lg font-semibold">₹{cartTotal.toFixed(2)}</span>
-//           </div>
-//         </div>
-
-//         {/* Payment Method */}
-//         {paymentMethod && (
-//           <div className="mt-6 pt-6 border-t border-gray-200">
-//             <h3 className="text-sm font-medium text-gray-900 mb-2">Payment Method</h3>
-//             <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-md">
-//               {paymentMethod === 'cod' ? (
-//                 <>
-//                   <div className="p-2 bg-white rounded-md border">
-//                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-//                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-//                     </svg>
-//                   </div>
-//                   <div>
-//                     <p className="font-medium">Cash on Delivery</p>
-//                     <p className="text-sm text-gray-500">Pay when you receive your order</p>
-//                   </div>
-//                 </>
-//               ) : (
-//                 <>
-//                   <div className="p-2 bg-white rounded-md border">
-//                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-//                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-//                     </svg>
-//                   </div>
-//                   <div>
-//                     <p className="font-medium">Online Payment</p>
-//                     <p className="text-sm text-gray-500">Pay securely with Razorpay</p>
-//                   </div>
-//                 </>
-//               )}
-//             </div>
-//           </div>
-//         )}
-
-//         {/* Edit Cart Button */}
-//         <div className="flex flex-col gap-3 mt-6">
-//           <button
-//             type="button"
-//             onClick={onEdit}
-//             className="w-full py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-//           >
-//             Edit Cart
-//           </button>
-//           <button
-//             type="button"
-//             onClick={onConfirm}
-//             className="w-full py-2 px-4 rounded-md shadow-sm text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-60"
-//             disabled={loading}
-//           >
-//             {loading ? 'Processing...' : 'Confirm & Pay'}
-//           </button>
-//           {error && (
-//             <div className="text-red-600 text-xs mt-2 text-center">{error}</div>
-//           )}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default CheckOutOverview;

@@ -22,40 +22,44 @@ export async function POST(request) {
             currency,
             receipt,
         });
+        console.log('Razorpay order creation response:', razorpayOrder);
 
         if (!razorpayOrder || !razorpayOrder.id) {
-            throw new Error("Failed to create Razorpay order");
+            // console.error('Razorpay order creation failed or missing order id:', razorpayOrder);
+            return NextResponse.json({ error: 'Failed to create Razorpay order', details: razorpayOrder }, { status: 500 });
         }
 
-        // Generate a random 6-character alphanumeric orderId for user-facing use
-        function generateOrderId(length = 6) {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let result = '';
-            for (let i = 0; i < length; i++) {
-                result += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return result;
+        // Save the order in the database
+        // Import the Order model at the top: import Order from "@/models/Order";
+        let dbOrder;
+        try {
+            dbOrder = await Order.create({
+                products,
+                customerName: customer?.name,
+                customerEmail: customer?.email,
+                customerPhone: customer?.phone,
+                address: customer?.address,
+                amount,
+                currency,
+                receipt,
+                razorpayOrderId: razorpayOrder.id,
+                orderId: razorpayOrder.id,
+                status: "Pending",
+                payment: "online",
+                paymentMethod: "razorpay"
+            });
+        } catch (dbErr) {
+            console.error("Failed to save order in DB:", dbErr);
+            return NextResponse.json({ error: "Failed to save order in DB" }, { status: 500 });
         }
-        const userOrderId = generateOrderId(6);
 
-        // Save order in MongoDB (products only)
-        const newOrder = new Order({
-            orderId: userOrderId, // 6-char string for user
-            razorpayOrderId: razorpayOrder.id, // for internal reference
-            products,                  // Array of products
-            name: customer?.name || '',
-            email: customer?.email || '',
-            phone: customer?.phone || '',
-            address: customer?.address || '',
-            amount,
-            status: "Pending",
-            paymentMethod: "online"
+        // Respond with both Razorpay order ID and DB order ID
+        return NextResponse.json({
+            id: razorpayOrder.id, // Razorpay order ID for payment modal
+            orderId: dbOrder._id, // MongoDB order ID for tracking
+            amount: razorpayOrder.amount,
+            currency: razorpayOrder.currency
         });
-
-        await newOrder.save();
-
-        // Return both the Razorpay order and the user-facing orderId
-        return NextResponse.json({ ...razorpayOrder, userOrderId });
     } catch (error) {
         console.error("Error creating Razorpay order:", error);
         return NextResponse.json(
@@ -68,9 +72,14 @@ export async function POST(request) {
 // 📌 Verify Payment & Fetch Payment Details
 export async function PUT(request) {
     await connectDB();
+
     try {
         const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = await request.json();
-
+        // console.log({
+        //     razorpay_payment_id,
+        //     razorpay_order_id,
+        //     razorpay_signature
+        //   });
         // Step 1: Verify Razorpay Signature
         const generatedSignature = crypto
             .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
@@ -85,7 +94,8 @@ export async function PUT(request) {
         }
 
         // Step 2: Update order with transactionId (Razorpay payment ID) and payment details
-        const order = await Order.findOne({ razorpayOrderId: razorpay_order_id });
+        const order = await Order.findOne({ orderId: razorpay_order_id });
+        // console.log("Order found:", order);
         if (!order) {
             return NextResponse.json({ success: false, error: "Order not found for this Razorpay order ID." }, { status: 404 });
         }

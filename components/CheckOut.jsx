@@ -23,61 +23,6 @@ const loadRazorpayScript = () => {
   });
 };
 
-// Function to trigger Razorpay payment modal
-const triggerRazorpay = async ({ cartTotal, orderId, firstName, lastName, email, phone }) => {
-  // 1. Load Razorpay script
-  const loaded = await loadRazorpayScript();
-  if (!loaded) {
-    alert('Failed to load Razorpay SDK. Please try again.');
-    return;
-  }
-
-  // 2. Create Razorpay order via backend
-  const response = await fetch('/api/razorpay', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      amount: cartTotal, // Send in rupees, backend will multiply by 100
-      currency: 'INR',
-      receipt: orderId,
-    }),
-  });
-  const data = await response.json();
-  if (!data.id) {
-    alert('Failed to create Razorpay order.');
-    return;
-  }
-
-  // 3. Open Razorpay checkout
-  const options = {
-    key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-    amount: data.amount, // in paise
-    currency: data.currency,
-    name: 'Rishikesh Handmade',
-    description: 'Order Payment',
-    order_id: data.id, // Use Razorpay's order id here!
-    handler: function (response) {
-      // Payment success handler
-      window.location.href = `/dashboard?orderId=${data.userOrderId}`;
-      // Clear buyNowProduct after successful payment (Buy Now mode)
-      if (typeof window !== "undefined") {
-        const params = new URLSearchParams(window.location.search);
-        if (params.get('mode') === 'buy-now') {
-          localStorage.removeItem('buyNowProduct');
-        }
-      }
-    },
-    prefill: {
-      name: `${firstName || ''} ${lastName || ''}`.trim(),
-      email: email || '',
-      contact: phone || '',
-    },
-  };
-
-  const rzp = new window.Razorpay(options);
-  rzp.open();
-};
-
 
 // Function to handle online payment with explicit backend order creation
 import axios from 'axios';
@@ -89,7 +34,7 @@ function buildOrderPayload({
   checkoutData,
   street, city, district, state, pincode,
   firstName, lastName, email, phone, altPhone,
-  payment, transactionId, orderId, agree
+  payment, transactionId, orderId, agree, paymentMethodValue, statusValue
 }) {
   const fullAddress = [street, city, district, state, pincode].filter(Boolean).join(', ');
   return {
@@ -116,42 +61,55 @@ function buildOrderPayload({
     // Payment/order info
     orderId,
     transactionId,
-    payment,
-    paymentMethod: payment,
-    status: 'Pending',
+    payment: paymentMethodValue, // 'cod', 'online', 'direct'
+    paymentMethod: paymentMethodValue,
+    status: statusValue || 'Pending',
     agree,
     datePurchased: new Date(),
   };
 }
 
 // Unified Handler for Online Payment with Order Creation
-const handleOnlinePaymentWithOrder = async (finalAmount, cart, customer, setLoading, setError, routerInstance, checkoutData, formFields) => {
+const handleOnlinePaymentWithOrder = async (finalAmount, cart, customer, setLoading, setError, routerInstance, checkoutData, formFields, user) => {
   setLoading(true);
   setError(null);
   try {
-    // 1. Gather all form fields and order data
-    const {
-      firstName, lastName, email, phone, altPhone,
-      street, city, district, state, pincode,
-    } = formFields;
-    const address = [street, city, district, state, pincode].filter(Boolean).join(', ');
-    // 2. Create Razorpay order and save in DB
-    const orderResponse = await axios.post("/api/razorpay", {
+    // Build a robust payload for Razorpay order creation (and DB save)
+    const payload = {
+      userId: user?._id,
+      name: formFields.fullName || (formFields.firstName ? `${formFields.firstName} ${formFields.lastName}` : undefined),
+      email: formFields.email,
+      phone: formFields.mobile || formFields.phone,
+      address: formFields.address || [formFields.street, formFields.city, formFields.district, formFields.state, formFields.pincode].filter(Boolean).join(', '),
+      apartment: formFields.apartment,
+      city: formFields.city,
+      state: formFields.state,
+      pincode: formFields.pincode,
+      products: cart,
       amount: finalAmount, // in rupees
       currency: "INR",
       receipt: `order_${Date.now()}`,
-      products: cart,
-      customer: {
-        name: `${firstName} ${lastName}`.trim(),
-        email,
-        phone,
-        address,
-      },
-      // Optionally include any other fields you want to persist
-    });
-    const { id: orderId } = orderResponse.data;
-    if (!orderId) {
-      setError('Failed to create Razorpay order.');
+      instructions: formFields.instructions || '',
+      // Add any additional fields as needed
+    };
+    let orderResponse;
+    try {
+      orderResponse = await axios.post("/api/razorpay", payload);
+    } catch (error) {
+      // console.error('Order creation error:', error, error?.response?.data);
+      setError(error?.response?.data?.error || error.message || 'Order creation failed.');
+      setLoading(false);
+      return;
+    }
+    // console.log('Backend response for order creation:', orderResponse.data);
+    if (orderResponse.data.error) {
+      setError(orderResponse.data.error);
+      setLoading(false);
+      return;
+    }
+    const { id: razorpayOrderId, orderId } = orderResponse.data;
+    if (!razorpayOrderId) {
+      setError('Order creation failed. No order ID returned.');
       setLoading(false);
       return;
     }
@@ -169,30 +127,48 @@ const handleOnlinePaymentWithOrder = async (finalAmount, cart, customer, setLoad
       currency: "INR",
       name: "Rishikesh Handmade",
       description: "Order Payment",
-      order_id: orderId,
+      order_id: razorpayOrderId,
       handler: async (response) => {
+        // console.log("Razorpay handler called", response);
+        toast.dismiss();
         try {
           // 5. Verify payment and update order in DB
-          await axios.put("/api/razorpay", {
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_signature: response.razorpay_signature,
-          });
-          toast.success('Payment successful! Check your email for details.', {
-            style: { borderRadius: '10px', border: '2px solid green' },
-          });
-          if (routerInstance && orderId) {
-            routerInstance.push(`/dashboard?orderId=${orderId}`);
+          try {
+            const verificationResponse = await axios.put("/api/razorpay", {
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+
+            if (verificationResponse.data && verificationResponse.data.success) {
+              toast.success('Payment successful! Check your email for details.', {
+                style: { borderRadius: '10px', border: '2px solid green' },
+              });
+              if (routerInstance && orderId) {
+                setShowConfirmationModal(true);
+                setRecentOrderId(orderId);
+                // console.log('[Razorpay Handler] Modal set: showConfirmationModal = true, recentOrderId =', orderId);
+              }
+            }
+            //  else {
+            //   setError(verificationResponse.data?.error || 'Payment verification or order update failed!');
+            //   toast.error(verificationResponse.data?.error || 'Payment verification or order update failed!');
+            //   return;
+            // }
+          } catch (err) {
+            setError('Payment verification or order update failed!');
+            toast.error('Payment verification or order update failed!');
+            return;
           }
-        } catch (err) {
-          setError('Payment verification or order update failed!');
-          toast.error('Payment verification or order update failed!');
+        } catch (error) {
+          setError(error.message || 'Payment failed. Please try again.');
+          setLoading(false);
         }
       },
       prefill: {
-        name: `${firstName} ${lastName}`.trim(),
-        email,
-        contact: phone,
+        name: payload.name,
+        email: payload.email,
+        contact: payload.phone,
       },
       theme: { color: "#3399cc" },
     };
@@ -206,304 +182,164 @@ const handleOnlinePaymentWithOrder = async (finalAmount, cart, customer, setLoad
 
 
 
-  setLoading(true);
-  setError(null);
-  try {
-    // 1. Ensure Razorpay script is loaded
-    const loaded = await loadRazorpayScript();
-    if (!loaded) {
-      setError("Razorpay SDK failed to load.");
-      setLoading(false);
-      return;
-    }
-    // 2. Create order in backend (only ONCE, before payment)
-    // 1. Create Razorpay order to get a unique orderId
-    const razorpayOrderRes = await fetch('/api/razorpay', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        amount: checkoutData?.cartTotal || finalAmount,
-        currency: 'INR',
-        receipt: 'order_rcptid_' + Date.now(),
-      }),
-    });
-    const razorpayOrderData = await razorpayOrderRes.json();
-    if (!razorpayOrderData.id) {
-      setError('Failed to create Razorpay order.');
-      setLoading(false);
-      return;
-    }
-    const orderPayload = {
-      products: cart, // full cart array
-      cartTotal: checkoutData?.cartTotal || finalAmount,
-      subTotal: checkoutData?.subTotal,
-      totalDiscount: checkoutData?.totalDiscount,
-      totalTax: checkoutData?.totalTax,
-      shippingCost: checkoutData?.shippingCost,
-      promoCode: checkoutData?.promoCode,
-      promoDiscount: checkoutData?.promoDiscount,
-      // Billing/shipping info
-      firstName: checkoutData?.firstName,
-      lastName: checkoutData?.lastName,
-      email: checkoutData?.email,
-      phone: checkoutData?.phone,
-      street: checkoutData?.street,
-      city: checkoutData?.city,
-      state: checkoutData?.state,
-      pincode: checkoutData?.pincode,
-      address: checkoutData?.address || '', // Ensure address is sent
-      // Payment/order info
-      orderId: razorpayOrderData.id, // Save Razorpay order ID
-      transactionId: checkoutData?.transactionId || '',
-      payment: checkoutData?.payment || 'online',
-      status: checkoutData?.status || 'Pending',
-      paymentMethod: checkoutData?.paymentMethod || 'online',
-      bank: checkoutData?.bank,
-      cardType: checkoutData?.cardType,
-      // Misc
-      notes: checkoutData?.notes,
-      agree: checkoutData?.agree,
-      datePurchased: new Date(),
-    };
-    console.log('Order Payload:', orderPayload);
-    console.log('Order Payload:', orderPayload);
-    // POST order (save in DB)
-    const response = await fetch('/api/orders', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(orderPayload),
-    });
-    if (!response.ok) {
-      setError("Failed to create order. Please try again.");
-      setLoading(false);
-      return;
-    }
-    const data = await response.json();
-    const orderId = data.orderId || data.id || data._id;
-    if (!orderId) {
-      setError("Order creation failed. No order ID returned.");
-      setLoading(false);
-      return;
-    }
-    // 3. Call Razorpay checkout
-    const options = {
-      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-      amount: checkoutData?.cartTotal ? Math.round(checkoutData.cartTotal * 100) : Math.round(finalAmount * 100),
-      currency: 'INR',
-      name: customer.name || 'Your Company Name',
-      description: 'Order payment',
-      image: 'https://rishikeshhandmade.com/logo.png',
-      order_id: orderId, // Use your DB orderId or Razorpay orderId if you use a backend Razorpay order creation
-      handler: async function (response) {
-        try {
-          // Only update the existing order (do NOT create a new one)
-          const verificationResponse = await axios.put(`/api/orders/${orderId}`, {
-            status: 'Paid',
-            transactionId: response.razorpay_payment_id,
-            payment: 'online',
-            paymentMethod: 'online',
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature,
-          });
-          if (verificationResponse.data.success) {
-            try {
-              await axios.post('/api/brevo', {
-                to: customer.email,
-                subject: 'Order Confirmation',
-                htmlContent: `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Order Confirmation</title></head><body><div class="container"><div class="header"><h2>Thank you for your order!</h2><p>Hello, ${customer.name}</p></div><div class="footer"><p>Order ID: ${orderId}</p><p>Order Date: ${new Date().toLocaleDateString()}</p></div></div></body></html>`
-              });
-            } catch (e) { /* handle email error */ }
-            if (routerInstance && orderId) {
-              routerInstance.push("/dashboard?orderId=" + orderId);
-            }
-            toast.success('Payment successful! Check your email for details.', {
-              style: { borderRadius: '10px', border: '2px solid green' },
-            });
-          } else {
-            setError('Order update failed after payment.');
-            toast.error('Order update failed after payment!');
-          }
-        } catch (err) {
-          setError('Payment verification or order update failed!');
-          if (typeof toast === 'function') {
-            toast.error('Payment verification or order update failed!');
-          }
-        }
-      },
-      prefill: {
-        name: customer.name,
-        email: customer.email,
-        contact: customer.phone,
-      },
-      theme: { color: '#3399cc' },
-    };
-    const rzp = new window.Razorpay(options);
-    rzp.open();
-    setLoading(false);
-  } catch (error) {
-    setError(error.message || 'Payment failed. Please try again.');
-    setLoading(false);
-  }
 
-  setLoading(true);
-  setError(null);
-  try {
-    // 1. Ensure Razorpay script is loaded
-    const loaded = await loadRazorpayScript();
-    if (!loaded) {
-      setError("Razorpay SDK failed to load.");
-      setLoading(false);
-      return;
-    }
-    // 2. Create order in backend
-    // Build complete order payload
-    const orderPayload = {
-      products: cart, // array of product objects
-      cartTotal: checkoutData?.cartTotal || finalAmount,
-      subTotal: checkoutData?.subTotal,
-      totalDiscount: checkoutData?.totalDiscount,
-      totalTax: checkoutData?.totalTax,
-      shippingCost: checkoutData?.shippingCost,
-      promoCode: checkoutData?.promoCode,
-      promoDiscount: checkoutData?.promoDiscount,
-      // Billing/shipping info
-      firstName: checkoutData?.firstName,
-      lastName: checkoutData?.lastName,
-      email: checkoutData?.email,
-      phone: checkoutData?.phone,
-      street: checkoutData?.street,
-      city: checkoutData?.city,
-      state: checkoutData?.state,
-      pincode: checkoutData?.pincode,
-      // Payment/order info
-      orderId: checkoutData?.orderId || '', // Razorpay or internal order id
-      transactionId: checkoutData?.transactionId || '',
-      payment: checkoutData?.payment || 'online',
-      status: checkoutData?.status || 'Pending',
-      paymentMethod: checkoutData?.paymentMethod || 'online',
-      bank: checkoutData?.bank,
-      cardType: checkoutData?.cardType,
-      // Misc
-      agree: checkoutData?.agree,
-      datePurchased: new Date(),
-    };
+  //   setLoading(true);
+  //   setError(null);
+  //   try {
+  //     // 1. Ensure Razorpay script is loaded
+  //     const loaded = await loadRazorpayScript();
+  //     if (!loaded) {
+  //       setError("Razorpay SDK failed to load.");
+  //       setLoading(false);
+  //       return;
+  //     }
+  //     // 2. Create order in backend
+  //     // Build complete order payload
+  //     const orderPayload = {
+  //       products: cart, // array of product objects
+  //       cartTotal: checkoutData?.cartTotal || finalAmount,
+  //       subTotal: checkoutData?.subTotal,
+  //       totalDiscount: checkoutData?.totalDiscount,
+  //       totalTax: checkoutData?.totalTax,
+  //       shippingCost: checkoutData?.shippingCost,
+  //       promoCode: checkoutData?.promoCode,
+  //       promoDiscount: checkoutData?.promoDiscount,
+  //       // Billing/shipping info
+  //       firstName: checkoutData?.firstName,
+  //       lastName: checkoutData?.lastName,
+  //       email: checkoutData?.email,
+  //       phone: checkoutData?.phone,
+  //       street: checkoutData?.street,
+  //       city: checkoutData?.city,
+  //       state: checkoutData?.state,
+  //       pincode: checkoutData?.pincode,
+  //       // Payment/order info
+  //       orderId: checkoutData?.orderId || '', // Razorpay or internal order id
+  //       transactionId: checkoutData?.transactionId || '',
+  //       payment: checkoutData?.payment || 'online',
+  //       status: checkoutData?.status || 'Pending',
+  //       paymentMethod: checkoutData?.paymentMethod || 'online',
+  //       bank: checkoutData?.bank,
+  //       cardType: checkoutData?.cardType,
+  //       // Misc
+  //       agree: checkoutData?.agree,
+  //       datePurchased: new Date(),
+  //     };
 
-    const response = await fetch('/api/orders', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(orderPayload),
-    });
-    if (!response.ok) {
-      setError("Failed to create order. Please try again.");
-      setLoading(false);
-      return;
-    }
-    const data = await response.json();
-    const orderId = data.orderId || data.id || data._id;
-    if (!orderId) {
-      setError("Order creation failed. No order ID returned.");
-      setLoading(false);
-      return;
-    }
-    // 3. Call Razorpay checkout
-    const options = {
-      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-      amount: data.amount,
-      currency: data.currency,
-      name: customer.name || 'Your Company Name',
-      description: 'Order payment',
-      image: 'https://rishikeshhandmade.com/logo.png',
-      order_id: data.razorpayOrderId || data.orderId || data.id,
-      handler: function (response) {
-        (async () => {
-          try {
-            // Verify payment (PUT for verification as in package checkout)
-            const verificationResponse = await axios.put(`/api/orders/${orderId}`, {
-              status: 'Paid',
-              transactionId: response.razorpay_payment_id,
-              payment: 'online',
-              paymentMethod: 'online',
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-            });
-            if (verificationResponse.data.success) {
-              try {
-                // Send confirmation email (POST as in package checkout)
-                await axios.post('/api/brevo', {
-                  to: customer.email,
-                  subject: 'Order Confirmation',
-                  htmlContent: `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Confirmation</title>
-    <style type="text/css">
-        body { font-family: Arial, sans-serif; background: #f8f9fa; }
-        .container { background: #fff; border-radius: 8px; margin: 32px auto; max-width: 500px; padding: 32px 24px; }
-        .header { text-align: center; }
-        .footer { text-align: center; color: #888; font-size: 13px; margin-top: 32px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        td { padding: 8px 0; border-bottom: 1px solid #e5e7eb; }
-        th { text-align: left; color: #6b7280; font-size: 14px; }
-    </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h2>Thank you for your order!</h2>
-      <p>Hello, ${customer.name}</p>
-    </div>
-    <div class="footer">
-      <p>Order ID: ${orderId}</p>
-      <p>Order Date: ${new Date().toLocaleDateString()}</p>
-    </div>
-  </div>
-</body>
-</html>`
-                });
-              } catch (e) { /* handle email error */ }
-              // Redirect to confirmation page with router
-              if (routerInstance && orderId) {
-                routerInstance.push("/dashboard?orderId=" + orderId);
-              }
-              toast.success('Payment successful! Check your email for details.', {
-                style: { borderRadius: '10px', border: '2px solid green' },
-              });
-            } else {
-              setError('Order update failed after payment.');
-              toast.error('Order update failed after payment!');
-            }
-          } catch (err) {
-            setError('Payment verification or order update failed!');
-            if (typeof toast === 'function') {
-              toast.error('Payment verification or order update failed!');
-            }
-          }
-        })();
-      }
-    };
-    if (typeof window !== "undefined" && typeof window.Razorpay === "function") {
-      try {
-        const rzp = new window.Razorpay(options);
-        console.log('[Razorpay] Opening payment modal...');
-        rzp.open();
-      } catch (modalErr) {
-        setError('Failed to open Razorpay payment modal.');
-        console.error('[Razorpay] Error opening modal:', modalErr);
-      }
-    } else {
-      setError("Razorpay is not available on window. Check if SDK loaded correctly.");
-      console.error('[Razorpay] Razorpay is not a function on window:', window?.Razorpay);
-    }
-  } catch (error) {
-    setError("Unexpected error: " + error.message);
-  }
-  setLoading(false);
+  //     const response = await fetch('/api/orders', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify(orderPayload),
+  //     });
+  //     if (!response.ok) {
+  //       setError("Failed to create order. Please try again.");
+  //       setLoading(false);
+  //       return;
+  //     }
+  //     const data = await response.json();
+  //     console.log("Order creation response:", data);
+  //     const razorpayOrderId = data.id;
+  //     if (!razorpayOrderId) {
+  //       setError("Order creation failed. No order ID returned.");
+  //       setLoading(false);
+  //       return;
+  //     }
+  //     // 3. Call Razorpay checkout
+  //     const options = {
+  //       key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+  //       amount: data.amount,
+  //       currency: data.currency,
+  //       name: customer.name || 'Your Company Name',
+  //       description: 'Order payment',
+  //       image: 'https://rishikeshhandmade.com/logo.png',
+  //       order_id: data.orderId,
+  //       handler: function (response) {
+  //         (async () => {
+  //           try {
+  //             // Verify payment (PUT for verification as in package checkout)
+  //             const verificationResponse = await axios.put('/api/razorpay', {
+  //               razorpay_order_id: response.razorpay_order_id,
+  //               razorpay_payment_id: response.razorpay_payment_id,
+  //               razorpay_signature: response.razorpay_signature,
+  //             });
+  //             if (verificationResponse.data.success) {
+  //               try {
+  //                 // Send confirmation email (POST as in package checkout)
+  //                 await axios.post('/api/brevo', {
+  //                   to: customer.email,
+  //                   subject: 'Order Confirmation',
+  //                   htmlContent: `<!DOCTYPE html>
+  // <html lang="en">
+  // <head>
+  //     <meta charset="UTF-8">
+  //     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  //     <title>Order Confirmation</title>
+  //     <style type="text/css">
+  //         body { font-family: Arial, sans-serif; background: #f8f9fa; }
+  //         .container { background: #fff; border-radius: 8px; margin: 32px auto; max-width: 500px; padding: 32px 24px; }
+  //         .header { text-align: center; }
+  //         .footer { text-align: center; color: #888; font-size: 13px; margin-top: 32px; }
+  //         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  //         td { padding: 8px 0; border-bottom: 1px solid #e5e7eb; }
+  //         th { text-align: left; color: #6b7280; font-size: 14px; }
+  //     </style>
+  // </head>
+  // <body>
+  //   <div class="container">
+  //     <div class="header">
+  //       <h2>Thank you for your order!</h2>
+  //       <p>Hello, ${customer.name}</p>
+  //     </div>
+  //     <div class="footer">
+  //       <p>Order ID: ${razorpayOrderId}</p>
+  //       <p>Order Date: ${new Date().toLocaleDateString()}</p>
+  //     </div>
+  //   </div>
+  // </body>
+  // </html>`
+  //                 });
+  //               } catch (e) { /* handle email error */ }
+  //               // Redirect to confirmation page with router
+  //               if (routerInstance && razorpayOrderId) {
+  //                 setShowConfirmationModal(true);
+  //                 setRecentOrderId(razorpayOrderId);
+  //                 // routerInstance.push("/dashboard?orderId=" + razorpayOrderId);
+  //               }
+  //               toast.success('Payment successful! Check your email for details.', {
+  //                 style: { borderRadius: '10px', border: '2px solid green' },
+  //               });
+  //             } else {
+  //               setError('Order update failed after payment.');
+  //               toast.error('Order update failed after payment!');
+  //             }
+  //           } catch (err) {
+  //             setError('Payment verification or order update failed!');
+  //             if (typeof toast === 'function') {
+  //               toast.error('Payment verification or order update failed!');
+  //             }
+  //           }
+  //         })();
+  //       }
+  //     };
+  //     if (typeof window !== "undefined" && typeof window.Razorpay === "function") {
+  //       try {
+  //         const rzp = new window.Razorpay(options);
+  //         console.log('[Razorpay] Opening payment modal...');
+  //         rzp.open();
+  //       } catch (modalErr) {
+  //         setError('Failed to open Razorpay payment modal.');
+  //         console.error('[Razorpay] Error opening modal:', modalErr);
+  //       }
+  //     } else {
+  //       setError("Razorpay is not available on window. Check if SDK loaded correctly.");
+  //       console.error('[Razorpay] Razorpay is not a function on window:', window?.Razorpay);
+  //     }
+  //   } catch (error) {
+  //     setError("Unexpected error: " + error.message);
+  //   }
+  //   setLoading(false);
 }
 
 
@@ -511,12 +347,18 @@ import CheckOutOverview from './CheckOutOverview';
 import { usePathname, useRouter } from "next/navigation"
 
 
-
+// Debug: Log modal state changes
 const CheckOut = () => {
   // State for address fields
   const [pincode, setPincode] = useState("");
   const [state, setState] = useState("");
   const [district, setDistrict] = useState("");
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [recentOrderId, setRecentOrderId] = useState(null);
+
+  useEffect(() => {
+    // console.log('[CheckOut] showConfirmationModal:', showConfirmationModal, 'recentOrderId:', recentOrderId);
+  }, [showConfirmationModal, recentOrderId]);
 
   useEffect(() => {
     // Load checkout data from localStorage
@@ -524,7 +366,7 @@ const CheckOut = () => {
     if (data) {
       try {
         const parsed = JSON.parse(data);
-        console.log(parsed)
+        // console.log(parsed)
         setPincode(parsed.pincode || "");
         setState(parsed.state || "");
         setDistrict(parsed.district || "");
@@ -574,7 +416,7 @@ const CheckOut = () => {
             });
             setCart([buyNowProduct]); // Update context for downstream compatibility
           } catch (error) {
-            console.error("Error parsing buyNowProduct:", error);
+            // console.error("Error parsing buyNowProduct:", error);
             setCheckoutData(null);
           }
         } else {
@@ -591,7 +433,7 @@ const CheckOut = () => {
           setCheckoutData(parsed);
           setCart(parsed.cart); // Update cart context
         } catch (error) {
-          console.error("Error parsing cart data:", error);
+          // console.error("Error parsing cart data:", error);
           setCheckoutData(null);
         }
       } else if (contextCart?.length > 0) {
@@ -652,7 +494,7 @@ const CheckOut = () => {
         toast.success('Coupon applied successfully!', { style: { borderRadius: '10px', border: '2px solid green' } });
       }
     } catch (error) {
-      console.error('Error applying coupon:', error);
+      // console.error('Error applying coupon:', error);
       setCouponError('Failed to apply coupon');
     } finally {
       setLoadingCoupon(false);
@@ -772,7 +614,7 @@ const CheckOut = () => {
         name: `${firstName} ${lastName}`.trim()
       };
 
-      console.log('Order Payload:', orderData);
+      // console.log('Order Payload:', orderData);
 
       const response = await fetch('/api/orders', {
         method: 'POST',
@@ -792,11 +634,13 @@ const CheckOut = () => {
       setCart([]);
 
       // Redirect to order confirmation page
-      router.push(`/dashboard?orderId=${data.order._id}`);
+      setShowConfirmationModal(true);
+      setRecentOrderId(data.order._id);
+      // router.push(`/dashboard?orderId=${data.order._id}`);
 
       return data.order;
     } catch (error) {
-      console.error('Order creation error:', error);
+      // console.error('Order creation error:', error);
       setError(error.message || 'Failed to create order');
       return null;
     } finally {
@@ -862,7 +706,7 @@ const CheckOut = () => {
         }
         addressSaved = true;
       } catch (err) {
-        console.error('Error saving address:', err);
+        // console.error('Error saving address:', err);
         setError("Failed to save shipping address");
         return;
       }
@@ -899,14 +743,16 @@ const CheckOut = () => {
               })
             });
           } catch (emailError) {
-            console.error('Failed to send confirmation email:', emailError);
+            // console.error('Failed to send confirmation email:', emailError);
             // Don't fail the order if email fails
           }
           // Redirect to order confirmation page
-          router.push(`/dashboard?orderId=${order._id}`);
+          setShowConfirmationModal(true);
+          setRecentOrderId(order._id);
+          // router.push(`/dashboard?orderId=${order._id}`);
         }
       } catch (error) {
-        console.error('Error creating COD order:', error);
+        // console.error('Error creating COD order:', error);
         setError(error.message || 'Failed to create order');
       } finally {
         setLoading(false);
@@ -1000,7 +846,9 @@ const CheckOut = () => {
             })
           });
         } catch (e) { /* handle email error */ }
-        router.push(`/dashboard?orderId=${data.orderId}`);
+        setRecentOrderId(orderId); // orderId should be the Razorpay/order DB ID you get back
+        setShowConfirmationModal(true);
+        // router.push(`/dashboard?orderId=${data.orderId}`);
         setLoading(false);
         return;
       }
@@ -1032,32 +880,33 @@ const CheckOut = () => {
 
 
   if (showOverview) {
-    // console.log("Rendering overview");
     return (
       <CheckOutOverview
-      checkoutData={{
-        ...checkoutData,
-        firstName,
-        lastName,
-        email,
-        phone,
-        altPhone,
-        street,
-        city,
-        district,
-        state,
-        pincode,
-        address: [street, city, district, state, pincode].filter(Boolean).join(', '),
-      }}
-      paymentMethod={confirmedPaymentMethod}
-      onEdit={() => setShowOverview(false)}
-      onConfirm={handleConfirmAndPay}
-      loading={loading}
-      error={error}
-    />
+        checkoutData={{
+          ...checkoutData,
+          firstName,
+          lastName,
+          email,
+          phone,
+          altPhone,
+          street,
+          city,
+          district,
+          state,
+          pincode,
+          address: [street, city, district, state, pincode].filter(Boolean).join(', '),
+        }}
+        paymentMethod={confirmedPaymentMethod}
+        onEdit={() => setShowOverview(false)}
+        onConfirm={handleConfirmAndPay}
+        loading={loading}
+        error={error}
+        showConfirmationModal={showConfirmationModal}
+        orderId={recentOrderId}
+        onGoToDashboard={() => router.push(`/dashboard?orderId=${recentOrderId}`)}
+      />
     );
   }
-
   return (
     <div className="flex flex-col md:flex-row gap-10 w-full min-h-screen bg-[#fcf7f2] p-10">
       {/* Billing Details Form */}

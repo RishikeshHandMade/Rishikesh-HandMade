@@ -27,22 +27,20 @@ const OrderSchema = new Schema({
     lastName: { type: String },
     email: { type: String },
     phone: { type: String },
+    altPhone: { type: String },
     street: { type: String },
     city: { type: String },
     state: { type: String },
-    zip: { type: String },
+    pincode: { type: String },
     address: { type: String },
     // Payment/order info
     orderId: { type: String }, // Razorpay or internal order id
+    razorpayOrderId: { type: String }, // Razorpay order id 
     transactionId: { type: String, default: '' },
     payment: { type: String }, // 'cod' or 'online'
     status: { type: String, default: "Pending" },
     paymentMethod: { type: String },
     datePurchased: { type: Date, default: Date.now },
-    bank: { type: String },
-    cardType: { type: String },
-    // Misc
-    notes: { type: String },
     agree: { type: Boolean },
     // Add any additional checkout fields as needed
 }, { timestamps: true });

@@ -1,6 +1,7 @@
 import connectDB from "@/lib/connectDB";
 import MenuBar from "@/models/MenuBar";
 import { NextResponse } from "next/server";
+import Artisan from "@/models/Artisan"
 import Product from "@/models/Product"
 import Size from '@/models/Size';
 import Color from '@/models/Color';
