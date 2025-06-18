@@ -30,9 +30,9 @@ const AddDirectProduct = ({ productId }) => {
         .then(res => res.json())
         .then(data => {
           setProductData(data);
-          console.log(data)
+          // console.log(data)
           // Add title to the page based on product type
-          document.title = `${data.isDirect ? 'Direct' : 'Category'} Product - ${data.title}`;
+          // document.title = `${data.isDirect ? 'Direct' : 'Category'} Product - ${data.title}`;
           setLoading(false);
         })
         .catch(() => setLoading(false));

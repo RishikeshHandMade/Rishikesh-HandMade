@@ -260,26 +260,26 @@ const FeaturedOffer = () => {
                     <Input name="title" placeholder="Enter title" value={formData.title} onChange={handleInputChange} />
                 </div>
                 <div className="flex-1">
-    <Label>Coupon</Label>
-    <Select
-        value={formData.coupon}
-        onValueChange={val => setFormData(prev => ({ ...prev, coupon: val }))}
-    >
-        <SelectTrigger className="w-full">
-            <SelectValue placeholder={loadingCoupons ? 'Loading...' : 'Select coupon'} />
-        </SelectTrigger>
-        <SelectContent>
-            {(Array.isArray(coupons) && coupons.length === 0) && (
-                <div className="p-2 text-gray-400">No coupons found</div>
-            )}
-            {(Array.isArray(coupons) ? coupons : []).map(coupon => (
-                <SelectItem key={coupon._id} value={coupon.couponCode} disabled={formData.coupon === coupon.couponCode}>
-                    {coupon.couponCode} {coupon.percent ? `(${coupon.percent}% off)` : coupon.amount ? `(-₹${coupon.amount})` : ''}
-                </SelectItem>
-            ))}
-        </SelectContent>
-    </Select>
-</div>
+                    <Label>Coupon</Label>
+                    <Select
+                        value={formData.coupon}
+                        onValueChange={val => setFormData(prev => ({ ...prev, coupon: val }))}
+                    >
+                        <SelectTrigger className="w-full">
+                            <SelectValue placeholder={loadingCoupons ? 'Loading...' : 'Select coupon'} />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {(Array.isArray(coupons) && coupons.length === 0) && (
+                                <div className="p-2 text-gray-400">No coupons found</div>
+                            )}
+                            {(Array.isArray(coupons) ? coupons : []).map(coupon => (
+                                <SelectItem key={coupon._id} value={coupon.couponCode} disabled={formData.coupon === coupon.couponCode}>
+                                    {coupon.couponCode} {coupon.percent ? `(${coupon.percent}% off)` : coupon.amount ? `(-₹${coupon.amount})` : ''}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
                 <div>
                     <Label>Button Link</Label>
                     <Input name="buttonLink" placeholder="Enter button link" type="url" value={formData.buttonLink} onChange={handleInputChange} />

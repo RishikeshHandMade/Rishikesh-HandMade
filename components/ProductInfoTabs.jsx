@@ -1,9 +1,16 @@
 "use client";
-import { useState } from "react";
-
-import React from "react";
+import { useState, useRef, useEffect } from 'react';
+import { Button } from "@/components/ui/button"
+import { Star, Upload, Trash2 } from 'lucide-react';
+// import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+// import { Input } from '../ui/input';
+// import { Textarea } from '../ui/textarea';
+// import { Label } from '../ui/label';
+import Image from 'next/image';
+import toast from 'react-hot-toast';
 
 export default function ProductInfoTabs({ product }) {
+    console.log(product)
     // Example: dynamic tab data from API/product object
     let tabs = [];
     // Collect reviews from product.reviews (array of objects)
@@ -25,35 +32,162 @@ export default function ProductInfoTabs({ product }) {
     // Add Review Button and Form State
     const [showReviewForm, setShowReviewForm] = useState(false);
     const [localReviews, setLocalReviews] = useState(reviews);
-    const [form, setForm] = useState({
-        rating: 0,
-        title: '',
-        createdBy: '',
-        date: '',
-        review: ''
-    });
+    const [createdBy, setCreatedBy] = useState("");
+    const [title, setTitle] = useState("");
+
+    // Fetch reviews from API
+    const fetchReviews = async () => {
+        try {
+            const response = await fetch(`/api/productReviews?productId=${product._id}`);
+            const data = await response.json();
+            if (response.ok) {
+                setLocalReviews(data.reviews || []);
+            }
+        } catch (error) {
+            console.error('Error fetching reviews:', error);
+            toast.error('Failed to fetch reviews');
+        }
+    };
+
+    // Initial fetch of reviews
+    useEffect(() => {
+        if (product._id) {
+            fetchReviews();
+        }
+    }, [product._id]);
+    const [rating, setRating] = useState(0);
+    const [review, setReview] = useState("");
+    const [date, setDate] = useState("");
     const [formError, setFormError] = useState('');
 
     const handleFormChange = (e) => {
         const { name, value } = e.target;
-        setForm(prev => ({ ...prev, [name]: value }));
+        if (name === 'rating') {
+            setRating(Number(value));
+        } else {
+            if (name === 'createdBy') {
+                setCreatedBy(value);
+            } else if (name === 'title') {
+                setTitle(value);
+            } else if (name === 'review') {
+                setReview(value);
+            } else if (name === 'date') {
+                setDate(value);
+            }
+        }
     };
     const handleStarClick = (num) => {
-        setForm(prev => ({ ...prev, rating: num }));
+        setRating(num);
     };
-    const handleSubmitReview = (e) => {
+    const handleSubmitReview = async (e) => {
         e.preventDefault();
-        if (!form.rating || !form.title || !form.createdBy || !form.review) {
+        if (!product._id || !rating || !title || !createdBy || !review) {
             setFormError('Please fill all required fields and rating.');
             return;
         }
-        setLocalReviews(prev => [
-            { ...form, date: form.date || new Date().toISOString() },
-            ...prev
-        ]);
-        setShowReviewForm(false);
-        setForm({ rating: 0, title: '', createdBy: '', date: '', review: '' });
-        setFormError('');
+        try {
+            const response = await fetch('/api/productReviews', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    productId: product._id,
+                    rating,
+                    title,
+                    review,
+                    createdBy,
+                    date: date || new Date().toISOString(),
+                    image: imageObj.url ? {
+                        url: imageObj.url,
+                        key: imageObj.key
+                    } : null
+                })
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                toast.error(data.error || 'Failed to submit review');
+                console.error('API Response:', data);
+                return;
+            }
+            
+            toast.success('Review submitted successfully!');
+            setShowReviewForm(false);
+            // Clear form state
+            setCreatedBy("");
+            setTitle("");
+            setRating(0);
+            setReview("");
+            setDate("");
+            // Clear image state
+            setImageFile(null);
+            setImagePreview(null);
+            setImageObj({ url: '', key: '' });
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+            // Refresh reviews
+            await fetchReviews();
+        } catch (error) {
+            console.error('Error:', error);
+            toast.error('Error submitting review');
+        } finally {
+            setFormError('');
+        }
+    };
+
+    // Image upload state
+    const [imageFile, setImageFile] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
+    const [imageObj, setImageObj] = useState({ url: '', key: '' });
+    const [uploading, setUploading] = useState(false);
+    const fileInputRef = useRef(null);
+
+    const handleImageChange = async (e) => {
+        const file = e.target.files[0];
+        setImageFile(file);
+        if (file) {
+          setUploading(true);
+          toast.loading('Uploading image to Cloudinary...', { id: 'review-image-upload' });
+          
+          // Preview
+          const reader = new FileReader();
+          reader.onloadend = () => setImagePreview(reader.result);
+          reader.readAsDataURL(file);
+
+          // Upload to Cloudinary
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('upload_preset', 'product_reviews');
+
+          try {
+            const res = await fetch('/api/cloudinary', {
+              method: 'POST',
+              body: formData
+            });
+            const data = await res.json();
+            if (res.ok && data.url && data.key) {
+              setImageObj({ url: data.url, key: data.key });
+              toast.success('Image uploaded!', { id: 'review-image-upload' });
+            } else {
+              toast.error('Cloudinary upload failed: ' + (data.error || 'Unknown error'), { id: 'review-image-upload' });
+            }
+          } catch (err) {
+            toast.error('Cloudinary upload error: ' + err.message, { id: 'review-image-upload' });
+          } finally {
+            setUploading(false);
+          }
+        } else {
+          setImagePreview(null);
+          setImageObj({ url: '', key: '' });
+        }
+      };
+
+    const handleRemoveImage = () => {
+        setImageFile(null);
+        setImagePreview(null);
+        setImageObj({ url: '', key: '' });
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
     };
 
     const reviewsTab = {
@@ -75,7 +209,7 @@ export default function ProductInfoTabs({ product }) {
                                 <label className="font-semibold mb-1">Your Name *</label>
                                 <input
                                     name="createdBy"
-                                    value={form.createdBy}
+                                    value={createdBy}
                                     onChange={handleFormChange}
                                     className="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#00b67a]"
                                     required
@@ -85,7 +219,7 @@ export default function ProductInfoTabs({ product }) {
                                 <label className="font-semibold mb-1">Review Title *</label>
                                 <input
                                     name="title"
-                                    value={form.title}
+                                    value={title}
                                     onChange={handleFormChange}
                                     className="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#00b67a]"
                                     required
@@ -98,7 +232,7 @@ export default function ProductInfoTabs({ product }) {
                                 <input
                                     name="date"
                                     type="date"
-                                    value={form.date}
+                                    value={date}
                                     onChange={handleFormChange}
                                     className="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#00b67a]"
                                 />
@@ -109,7 +243,7 @@ export default function ProductInfoTabs({ product }) {
                                     {[1,2,3,4,5].map(num => (
                                         <span
                                             key={num}
-                                            className={num <= form.rating ? 'text-[#00b67a] text-2xl cursor-pointer' : 'text-gray-300 text-2xl cursor-pointer'}
+                                            className={num <= rating ? 'text-[#00b67a] text-2xl cursor-pointer' : 'text-gray-300 text-2xl cursor-pointer'}
                                             onClick={() => handleStarClick(num)}
                                             role="button"
                                             aria-label={`Rate ${num} star${num > 1 ? 's' : ''}`}
@@ -122,12 +256,48 @@ export default function ProductInfoTabs({ product }) {
                             <label className="font-semibold mb-1">Your Review *</label>
                             <textarea
                                 name="review"
-                                value={form.review}
+                                value={review}
                                 onChange={handleFormChange}
                                 rows={4}
                                 className="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#00b67a]"
                                 required
                             />
+                        </div>
+                        <div className="flex flex-col">
+                            <label className="font-semibold mb-1">Upload Image</label>
+                            <div className="flex items-center gap-4">
+                                <Button
+                                    variant="outline"
+                                    className="flex items-center gap-2"
+                                    onClick={() => fileInputRef.current?.click()}
+                                >
+                                    <Upload className="h-4 w-4" />
+                                    Upload Image
+                                </Button>
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    accept="image/*"
+                                    onChange={handleImageChange}
+                                    className="hidden"
+                                />
+                                {imagePreview && (
+                                    <div className="relative w-24 h-24">
+                                        <Image
+                                            src={imagePreview}
+                                            alt="Preview"
+                                            fill
+                                            className="object-cover rounded-lg"
+                                        />
+                                        <button
+                                            onClick={handleRemoveImage}
+                                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                         {formError && <div className="text-red-600 font-semibold">{formError}</div>}
                         <button
@@ -158,15 +328,30 @@ export default function ProductInfoTabs({ product }) {
                                             Verified
                                         </span>
                                     </div>
-                                    <div className="flex items-center gap-2 text-gray-700 text-sm">
-                                        <span className="font-bold text-base">{review.createdBy || 'Anonymous'}</span>
-                                        <span className="text-xs">{review.date ? `${Math.round((Date.now() - new Date(review.date)) / (1000*60*60*24))} days ago` : ''}</span>
-                                    </div>
-                                    <div className="font-bold text-lg text-black mb-1">
-                                        {review.title || 'Untitled Review'}
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
+                                            {review?.image?.url ? (
+                                                <img 
+                                                    src={review.image.url} 
+                                                    alt="Reviewer" 
+                                                    className="h-full w-full rounded-full object-cover"
+                                                />
+                                            ) : (
+                                                <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                </svg>
+                                            )}
+                                        </div>
+
+                                            <span className="font-bold text-base">{review.createdBy || 'Anonymous'}</span>
+                                        <div className="flex items-center gap-2 text-gray-700 text-sm">
+                                            
+                                            <span className="text-xs">{review.createdAt ? `${Math.round((Date.now() - new Date(review.createdAt)) / (1000*60*60*24))} days ago` : ''}</span>
+                                        </div>
                                     </div>
                                     {/* Review content with Read more */}
                                     <div className="relative">
+                                        <span className="font-bold text-base">{review.title || 'Anonymous'}</span>
                                         <div
                                             className={`text-gray-900 transition-all duration-300 mb-2 ${isExpanded ? '' : 'max-h-[65px] overflow-hidden'}`}
                                             style={!isExpanded ? { WebkitMaskImage: 'linear-gradient(180deg, #000 65%, transparent 100%)' } : {}}

@@ -25,6 +25,7 @@ const ProductReviewSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  image: { url: { type: String }, key: { type: String } },
   createdAt: {
     type: Date,
     default: Date.now,

@@ -5,12 +5,98 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
-import { Star } from 'lucide-react';
+import { Star, Upload, Trash2 } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-
+import { useRef } from 'react';
+import { Label } from "../ui/label";
+import Image from 'next/image';
 const ProductReview = ({ productData, productId }) => {
-  const [createdBy, setCreatedBy] = useState("");
+  // Image upload state
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [imageObj, setImageObj] = useState({ url: '', key: '' });
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
+
+  // Image handlers
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    setImageFile(file);
+    if (file) {
+      setUploading(true);
+      toast.loading('Uploading image to Cloudinary...', { id: 'review-image-upload' });
+      
+      // Preview
+      const reader = new FileReader();
+      reader.onloadend = () => setImagePreview(reader.result);
+      reader.readAsDataURL(file);
+
+      // Upload to Cloudinary
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', 'product_reviews');
+
+      try {
+        const res = await fetch('/api/cloudinary', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (res.ok && data.url && data.key) {
+          setImageObj({ url: data.url, key: data.key });
+          toast.success('Image uploaded!', { id: 'review-image-upload' });
+        } else {
+          toast.error('Cloudinary upload failed: ' + (data.error || 'Unknown error'), { id: 'review-image-upload' });
+        }
+      } catch (err) {
+        toast.error('Cloudinary upload error: ' + err.message, { id: 'review-image-upload' });
+      } finally {
+        setUploading(false);
+      }
+    } else {
+      setImagePreview(null);
+      setImageObj({ url: '', key: '' });
+    }
+  };
+
+  // Reset file input after successful upload
+  useEffect(() => {
+    if (imageObj.url && fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }, [imageObj.url]);
+
+  // Image delete handler
+  const handleRemoveImage = async () => {
+    // Remove from UI immediately
+    setImageFile(null);
+    setImagePreview(null);
+    const prevKey = imageObj.key;
+    setImageObj({ url: '', key: '' });
+    if (prevKey) {
+      toast.loading('Deleting image from Cloudinary...', { id: 'review-image-delete' });
+      try {
+        const res = await fetch('/api/cloudinary', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ publicId: prevKey }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          toast.success('Image deleted from Cloudinary!', { id: 'review-image-delete' });
+        } else {
+          toast.error('Cloudinary error: ' + (data.error || 'Failed to delete image from Cloudinary'), { id: 'review-image-delete' });
+        }
+      } catch (err) {
+        toast.error('Failed to delete image from Cloudinary (network or server error)', { id: 'review-image-delete' });
+      }
+    }
+  };
+
+  // Existing state and handlers
   const [viewModal, setViewModal] = useState(false);
+  const [createdBy, setCreatedBy] = useState("");
+  // const [viewModal, setViewModal] = useState(false);
   const [viewedReview, setViewedReview] = useState(null);
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
@@ -30,7 +116,17 @@ const ProductReview = ({ productData, productId }) => {
       const res = await fetch('/api/productReviews', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId, rating, title, review, createdBy })
+        body: JSON.stringify({ 
+          productId, 
+          rating, 
+          title, 
+          review, 
+          createdBy,
+          image: imageObj.url ? {
+            url: imageObj.url,
+            key: imageObj.key
+          } : null
+        })
       });
       const data = await res.json();
       if (!res.ok || data.error) {
@@ -42,6 +138,14 @@ const ProductReview = ({ productData, productId }) => {
         setTitle("");
         setReview("");
         setCreatedBy("");
+        // Clear image state
+        setImageFile(null);
+        setImagePreview(null);
+        setImageObj({ url: '', key: '' });
+        // Reset file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
         fetchReviews();
       }
     } catch (err) {
@@ -85,6 +189,17 @@ const ProductReview = ({ productData, productId }) => {
     setRating(review.rating);
     setTitle(review.title || "");
     setReview(review.review || "");
+    setCreatedBy(review.createdBy || "");
+    if (review.image?.url) {
+      setImagePreview(review.image.url);
+      setImageObj({
+        url: review.image.url,
+        key: review.image.key
+      });
+    } else {
+      setImagePreview(null);
+      setImageObj({ url: '', key: '' });
+    }
     setEditMode(true);
     setEditId(review._id);
   };
@@ -115,12 +230,17 @@ const ProductReview = ({ productData, productId }) => {
         body: JSON.stringify({ reviewId: deleteTargetId, productId })
       });
       const data = await res.json();
-      if (res.ok && data.success) {
-        setReviews(reviews.filter(r => r._id !== deleteTargetId));
-        toast.success('Review deleted!');
-      } else {
-        toast.error(data.error || 'Failed to delete');
+      if (!res.ok || !data.success) {
+        toast.error(data.error || 'Failed to delete review');
+        return;
       }
+      
+      // Update UI immediately
+      setReviews(reviews.filter(r => r._id !== deleteTargetId));
+      toast.success('Review deleted successfully!');
+      
+      // Refresh reviews to ensure consistency
+      fetchReviews();
     } catch (err) {
       toast.error('Error deleting review.');
     } finally {
@@ -140,7 +260,17 @@ const ProductReview = ({ productData, productId }) => {
       const res = await fetch('/api/productReviews', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reviewId: editId, rating, title, review })
+        body: JSON.stringify({ 
+          reviewId: editId, 
+          productId,
+          rating, 
+          title, 
+          review,
+          image: imageObj.url ? {
+            url: imageObj.url,
+            key: imageObj.key
+          } : null
+        })
       });
       const data = await res.json();
       if (!res.ok || data.error) {
@@ -152,6 +282,13 @@ const ProductReview = ({ productData, productId }) => {
         setHoverRating(0);
         setTitle("");
         setReview("");
+        setCreatedBy("");
+        // Clear image state
+        setImageFile(null);
+        setImagePreview(null);
+        setImageObj({ url: '', key: '' });
+        // Reset file input
+        // fileInputRef.current?.value = '';
         fetchReviews();
       }
     } catch (err) {
@@ -169,6 +306,10 @@ const ProductReview = ({ productData, productId }) => {
     setHoverRating(0);
     setTitle("");
     setReview("");
+    setCreatedBy("");
+    setImageFile(null);
+    setImagePreview(null);
+    setImageObj({ url: '', key: '' });
   };
 
 
@@ -204,6 +345,11 @@ const ProductReview = ({ productData, productId }) => {
               <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 h-24 overflow-y-auto">
                 <div className="font-semibold text-gray-800">Review</div>
                 <div className="text-gray-600">{viewedReview.review}</div>
+              </div>
+              <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 h-24 overflow-y-auto">
+                <div className="font-semibold text-gray-800">Image</div>
+                <div className="w-12 h-12 rounded-full">
+                  <img src={viewedReview.image?.url} alt="" /></div>
               </div>
             </div>
           )}
@@ -243,6 +389,48 @@ const ProductReview = ({ productData, productId }) => {
                       readOnly
                     />
                   </div>
+                  {/* Review Image Upload */}
+                  <div className="mb-4">
+                    <Label className="block mb-2 font-bold">Review Image</Label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      ref={fileInputRef}
+                      className="hidden"
+                      id="review-image-input"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="mb-2 flex items-center gap-2 bg-blue-500 text-white"
+                      onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                    >
+                      <span>Select Review Image</span>
+                      <Upload className="w-4 h-4" />
+                    </Button>
+                    {uploading && <div className="text-blue-600 font-semibold">Uploading...</div>}
+                    {imagePreview && (
+                      <div className="relative w-48 h-28 border rounded overflow-hidden mb-2">
+                        <Image
+                          src={imagePreview}
+                          alt="Review Image Preview"
+                          width={192}
+                          height={112}
+                          className="object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleRemoveImage}
+                          className="absolute top-1 right-1 bg-white bg-opacity-80 rounded-full p-1 hover:bg-red-200"
+                          title="Remove image"
+                        >
+                          <Trash2 className="w-5 h-5 text-red-600" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="mb-4">
                     <label htmlFor="createdBy" className="block text-sm font-medium text-gray-700">Created By</label>
                     <Input
@@ -272,6 +460,8 @@ const ProductReview = ({ productData, productId }) => {
                       ))}
                     </div>
                   </div>
+
+                  
                   <div className="mb-4">
                     <label className="form-label">Review Title</label>
                     <Input type="text" className="form-control" placeholder="Review title" value={title} onChange={e => setTitle(e.target.value)} />

@@ -6,6 +6,8 @@ import Image from "next/image";
 import toast from "react-hot-toast";
 import { Skeleton } from "./ui/skeleton";
 import { useRouter } from "next/navigation";
+import { useCart } from "@/context/CartContext";
+// import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSearch } from "@/context/SearchContext";
@@ -13,6 +15,8 @@ import { CalendarClock, MapPin, Search, X } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const HeroSection = () => {
+  const { addToCart } = useCart();
+  const [loading, setLoading] = useState(false);
   const [banners, setBanners] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [api, setApi] = useState();
@@ -238,14 +242,76 @@ const HeroSection = () => {
                         })()}
                       </div>
                       <div className="flex gap-3 mb-4 justify-center">
-                        <a
-                          href={banner.addtoCartLink || '#'}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`bg-white text-black px-5 py-2 font-bold ${!banner.addtoCartLink ? ' opacity-50 pointer-events-none' : ''}`}
+                        <button
+                          onClick={async () => {
+                            if (!banner.addtoCartLink) return;
+                            setLoading(true);
+                            try {
+                              // Extract product ID from URL
+                              const productId = banner.addtoCartLink.split('/').pop();
+                              
+                              // Fetch product data
+                              const response = await fetch(`/api/product/${productId}`);
+                              if (!response.ok) throw new Error('Failed to fetch product');
+                              const product = await response.json();
+                              console.log(product)
+                              
+                              // Calculate price and apply coupon if exists
+                              // Get the first variant's price (or default to 0 if no variants)
+                              let price = product.quantity?.variants?.[0]?.price || 0;
+                              
+                              // If no price found in first variant, try to find price in any variant
+                              if (!price) {
+                                const variantWithPrice = product.quantity?.variants?.find(v => v.price);
+                                price = variantWithPrice?.price || 0;
+                              }
+                              let discountedPrice = price;
+                              let couponApplied = false;
+                              let couponCode;
+                              
+                              if (banner.coupon) {
+                                if (typeof banner.coupon.percent === 'number' && banner.coupon.percent > 0) {
+                                  discountedPrice = price - (price * banner.coupon.percent) / 100;
+                                  couponApplied = true;
+                                  couponCode = banner.coupon.couponCode;
+                                } else if (typeof banner.coupon.amount === 'number' && banner.coupon.amount > 0) {
+                                  discountedPrice = price - banner.coupon.amount;
+                                  couponApplied = true;
+                                  couponCode = banner.coupon.couponCode;
+                                }
+                              }
+                              
+                              // Add to cart with complete product data
+                              addToCart({
+                                id: product._id,
+                                name: product.title,
+                                image: product?.gallery?.mainImage || "/placeholder.jpeg",
+                                price: Math.round(discountedPrice),
+                                originalPrice: price,
+                                qty: 1,
+                                couponApplied,
+                                couponCode: couponApplied ? couponCode : undefined,
+                                productCode: product.code || product.productCode || '',
+                                discountPercent: banner.coupon && typeof banner.coupon.percent === 'number' ? banner.coupon.percent : undefined,
+                                discountAmount: banner.coupon && typeof banner.coupon.amount === 'number' ? banner.coupon.amount : undefined,
+                                cgst: (product.taxes && product.taxes.cgst) || product.cgst || (product.tax && product.tax.cgst) || 0,
+                                sgst: (product.taxes && product.taxes.sgst) || product.sgst || (product.tax && product.tax.sgst) || 0,
+                                quantity:1,
+                              });
+                              
+                              toast.success('Product added to cart!');
+                            } catch (error) {
+                              toast.error('Failed to add product to cart');
+                              console.error('Add to cart error:', error);
+                            } finally {
+                              setLoading(false);
+                            }
+                          }}
+                          disabled={!banner.addtoCartLink}
+                          className={`bg-white text-black px-5 py-2 font-bold ${!banner.addtoCartLink ? ' opacity-50 cursor-not-allowed' : ''}`}
                         >
                           ADD TO CART
-                        </a>
+                        </button>
                         <a
                           href={banner.viewDetailLink || '#'}
                           target="_blank"

@@ -14,7 +14,7 @@ const Banner = () => {
     const [promotinalBanner, setPromotinalBanner] = useState([])
     const [featuredOffer, setFeaturedOffer] = useState([])
     const [isLoading, setIsLoading] = useState(true);
-    console.log(promotinalBanner)
+    // console.log(promotinalBanner)
     const fetchPromotinalBanner = async () => {
         try {
             const res = await fetch("/api/addPromotinalBanner");
