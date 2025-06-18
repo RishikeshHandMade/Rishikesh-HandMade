@@ -1,50 +1,27 @@
 "use client";
-import React, { useState } from "react";
-import { 
-  Search, 
-  Bell, 
-  UserCircle, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  LayoutDashboard, 
-  ShoppingCart, 
-  Users, 
-  Settings, 
-  Store 
+import React, { useState, useEffect } from "react";
+import toast, { Toaster } from "react-hot-toast";
+import {
+  Search,
+  Bell,
+  UserCircle,
+  Edit,
+  Trash2,
+  Eye,
+  LayoutDashboard,
+  ShoppingCart,
+  Users,
+  Settings,
+  Store,
+  X
 } from "lucide-react";
 
-// Demo data
-const demoOrders = [
-  {
-    id: "ORD123456",
-    customer: "Akhil Sharma",
-    products: [
-      { name: "Handmade Shawl", thumbnail: "/shawl.jpg" },
-      { name: "Bamboo Basket", thumbnail: "/basket.jpg" }
-    ],
-    quantity: 2,
-    total: 2499,
-    paymentStatus: "Paid",
-    orderStatus: "Processing",
-    orderDate: "2025-06-10",
-    address: "12, Ganga Vihar, Rishikesh, Uttarakhand, 249201"
-  },
-  {
-    id: "ORD123457",
-    customer: "Priya Singh",
-    products: [
-      { name: "Woolen Cap", thumbnail: "/cap.jpg" }
-    ],
-    quantity: 1,
-    total: 499,
-    paymentStatus: "Pending",
-    orderStatus: "Pending",
-    orderDate: "2025-06-09",
-    address: "45, Laxman Jhula, Rishikesh, Uttarakhand, 249302"
-  },
-  // Add more demo orders as needed
-];
+
+
+function classNames(...classes) {
+  return classes.filter(Boolean).join(" ");
+}
+
 
 const orderStatusOptions = ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"];
 const paymentStatusColors = {
@@ -68,18 +45,19 @@ const sidebarLinks = [
   { name: "Settings", icon: <Settings size={20} />, url: "#" },
 ];
 
-function classNames(...classes) {
-  return classes.filter(Boolean).join(" ");
-}
+// function classNames(...classes) {
+//   return classes.filter(Boolean).join(" ");
+// }
 
 const EnquiryOrder = () => {
-  const [orders, setOrders] = useState(demoOrders);
+
+  const [orders, setOrders] = useState([]);
   const [statusFilter, setStatusFilter] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [viewOrder, setViewOrder] = useState(null); // For modal
   const rowsPerPage = 8;
-
+  console.log(orders)
   // Filtering logic
   const filteredOrders = orders.filter(order =>
     (statusFilter ? order.orderStatus === statusFilter : true) &&
@@ -91,7 +69,22 @@ const EnquiryOrder = () => {
   );
   const paginatedOrders = filteredOrders.slice((page - 1) * rowsPerPage, page * rowsPerPage);
   const totalPages = Math.ceil(filteredOrders.length / rowsPerPage);
-
+  useEffect(() => {
+    async function fetchOrders() {
+      try {
+        let res = await fetch("/api/orders");
+        const data = await res.json();
+        if (data.success && Array.isArray(data.orders)) {
+          setOrders(data.orders);
+        } else {
+          setOrders([]);
+        }
+      } catch (err) {
+        setOrders([]);
+      }
+    }
+    fetchOrders();
+  }, []);
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Main content */}
@@ -137,7 +130,7 @@ const EnquiryOrder = () => {
           <table className="min-w-full bg-white rounded-lg shadow overflow-hidden text-sm">
             <thead className="bg-gray-100">
               <tr>
-                <th className="p-3 text-left">Order ID</th>
+                <th className="p-3 text-left">S.No</th>
                 <th className="p-3 text-left">Customer</th>
                 <th className="p-3 text-left">Products</th>
                 <th className="p-3 text-center">Qty</th>
@@ -156,47 +149,89 @@ const EnquiryOrder = () => {
                 </tr>
               )}
               {paginatedOrders.map((order, idx) => (
-                <tr key={order.id} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                  <td className="p-3 font-mono text-blue-700">{order.id}</td>
-                  <td className="p-3">{order.customer}</td>
-                  <td className="p-3 flex gap-2 items-center">
-                    {order.products.map((p, i) => (
+                <tr key={order._id || idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                  <td className="p-3 font-mono text-blue-700">{idx + 1}</td>
+                  <td className="p-3">{`${order.firstName || ''} ${order.lastName || ''}`.trim() || order.email || order.phone}</td>
+                  <td className="p-3 flex flex-col gap-1 items-start">
+                    {order.products && order.products.slice(0, 2).map((p, i) => (
                       <span key={i} className="flex items-center gap-1">
-                        {p.thumbnail && <img src={p.thumbnail} alt={p.name} className="w-8 h-8 rounded object-cover border" />}
+                        {p.image && p.image.url && <img src={p.image.url} alt={p.name} className="w-8 h-8 rounded object-cover border" />}
                         <span>{p.name}</span>
                       </span>
                     ))}
+                    {order.products && order.products.length > 2 && (
+                      <span className="text-xs text-gray-500 ml-2">+{order.products.length - 2} more</span>
+                    )}
                   </td>
-                  <td className="p-3 text-center">{order.quantity}</td>
-                  <td className="p-3 text-right font-semibold">₹{order.total}</td>
+                  <td className="p-3 text-center">{order.products && order.products.reduce((sum, p) => sum + (Number(p.qty) || 0), 0)}</td>
+                  <td className="p-3 text-right font-semibold">₹{order.cartTotal || order.subTotal || 0}</td>
                   <td className="p-3 text-center">
-                    <span className={classNames(
-                      "px-2 py-1 rounded text-xs font-semibold",
-                      paymentStatusColors[order.paymentStatus] || "bg-gray-100 text-gray-700"
-                    )}>
-                      {order.paymentStatus}
+                    <span
+                      className={classNames(
+                        "px-2.5 py-1 rounded text-xs font-semibold transition-all duration-150",
+                        order.status === "Delivered"
+                          ? "bg-green-100 text-green-700 border border-green-300"
+                          : order.status === "Cancelled"
+                            ? "bg-red-100 text-red-700 border border-red-300"
+                            : order.status === "Processing"
+                              ? "bg-blue-100 text-blue-700 border border-blue-300"
+                              : order.status === "Shipped"
+                                ? "bg-purple-100 text-purple-700 border border-purple-300"
+                                : "bg-gray-100 text-gray-700 border border-gray-200"
+                      )}
+                      title={order.status}
+                    >
+                      {order.status || "Pending"}
                     </span>
                   </td>
                   <td className="p-3 text-center">
-                    <select
-                      className={classNames(
-                        "px-2 py-1 rounded text-xs font-semibold border",
-                        orderStatusColors[order.orderStatus] || "bg-gray-100 text-gray-700"
-                      )}
-                      value={order.orderStatus}
-                      onChange={e => {
-                        const updated = orders.map(o =>
-                          o.id === order.id ? { ...o, orderStatus: e.target.value } : o
-                        );
-                        setOrders(updated);
-                      }}
-                    >
-                      {orderStatusOptions.map(status => (
-                        <option key={status} value={status}>{status}</option>
-                      ))}
-                    </select>
+                    <div className="relative inline-block w-32">
+                      <select
+                        className={classNames(
+                          "block w-full px-3 py-2 pr-8 rounded border text-xs font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-200 appearance-none cursor-pointer transition-all duration-150",
+                          order.status === "Delivered"
+                            ? "bg-green-50 border-green-400 text-green-800"
+                            : order.status === "Cancelled"
+                              ? "bg-red-50 border-red-400 text-red-800"
+                              : order.status === "Processing"
+                                ? "bg-blue-50 border-blue-400 text-blue-800"
+                                : order.status === "Shipped"
+                                  ? "bg-purple-50 border-purple-400 text-purple-800"
+                                  : "bg-gray-50 border-gray-300 text-gray-700"
+                        )}
+                        value={order.status}
+                        onChange={async e => {
+                          const newStatus = e.target.value;
+                          setOrders(orders => orders.map(o =>
+                            o.orderId === order.orderId ? { ...o, status: newStatus } : o
+                          ));
+                          try {
+                            const res = await fetch(`/api/orders/${order._id}`, {
+                              method: 'PUT',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ status: newStatus })
+                            });
+                            const data = await res.json();
+                            if (!data.success) throw new Error(data.error || 'Update failed');
+                            toast.success('Order status updated!');
+                          } catch (err) {
+                            setOrders(orders => orders.map(o =>
+                              o.orderId === order.orderId ? { ...o, status: order.status } : o
+                            ));
+                            toast.error('Failed to update order status: ' + err.message);
+                          }
+                        }}
+                      >
+                        {orderStatusOptions.map(status => (
+                          <option key={status} value={status}>{status}</option>
+                        ))}
+                      </select>
+                      <span className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                        ▼
+                      </span>
+                    </div>
                   </td>
-                  <td className="p-3 text-center">{order.orderDate}</td>
+                  <td className="p-3 text-center">{order.datePurchased ? new Date(order.datePurchased).toLocaleString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}</td>
                   {/* <td className="p-3 max-w-xs truncate">{order.address}</td> */}
                   <td className="p-3 text-center flex gap-2 justify-center">
                     <button className="p-2 rounded hover:bg-blue-100" title="View" onClick={() => setViewOrder(order)}><Eye className="text-blue-600" size={18} /></button>
@@ -251,10 +286,10 @@ const EnquiryOrder = () => {
             </button>
             <h2 className="text-xl font-bold mb-4 text-blue-700">Order Details</h2>
             <div className="mb-3">
-              <span className="font-semibold text-gray-600">Order ID:</span> <span className="font-mono">{viewOrder.id}</span>
+              <span className="font-semibold text-gray-600">Order ID:</span> <span className="font-mono">{viewOrder.orderId}</span>
             </div>
             <div className="mb-3">
-              <span className="font-semibold text-gray-600">Customer:</span> {viewOrder.customer}
+              <span className="font-semibold text-gray-600">Customer:</span> {viewOrder.firstName} {viewOrder.lastName}
             </div>
             <div className="mb-3">
               <span className="font-semibold text-gray-600">Delivery Address:</span>
@@ -265,13 +300,14 @@ const EnquiryOrder = () => {
               <div className="divide-y divide-gray-200 mt-2">
                 {viewOrder.products.map((p, i) => (
                   <div key={i} className="flex items-center gap-3 py-2">
-                    <img src={p.thumbnail} alt={p.name} className="w-12 h-12 rounded border object-cover" />
+                    <img src={p.image.url} alt={p.name} className="w-12 h-12 rounded border object-cover" />
                     <div className="flex-1">
                       <div className="font-semibold">{p.name}</div>
-                      {/* If you have size, show here: */}
-                      {/* <div className="text-xs text-gray-500">Size: {p.size}</div> */}
-                      <div className="text-xs text-gray-500">Quantity: {viewOrder.quantity}</div>
-                      <div className="text-xs text-gray-500">Price: ₹{viewOrder.total}</div>
+                      {p.size && <div className="text-xs text-gray-500">Size: {p.size}</div>}
+                      {p.weight && <div className="text-xs text-gray-500">Weight: {p.weight}</div>}
+                      {p.color && <div className="text-xs text-gray-500">Color: {p.color}</div>}
+                      <div className="text-xs text-gray-500">Quantity: {p.qty}</div>
+                      <div className="text-xs text-gray-500">Price: ₹{p.price}</div>
                     </div>
                   </div>
                 ))}

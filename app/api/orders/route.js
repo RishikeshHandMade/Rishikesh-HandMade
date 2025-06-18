@@ -44,3 +44,15 @@ export async function GET(req) {
     return NextResponse.json({ error: error.message, success: false }, { status: 500 });
   }
 }
+
+// // GET /api/orders/admin - fetch all orders for admin
+// export async function GET_ADMIN(req) {
+//   await connectDB();
+//   try {
+//     const orders = await Order.find({}).sort({ createdAt: -1 });
+//     return NextResponse.json({ orders, success: true }, { status: 200 });
+//   } catch (error) {
+//     return NextResponse.json({ error: error.message, success: false }, { status: 500 });
+//   }
+// }
+

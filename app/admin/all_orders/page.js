@@ -13,7 +13,7 @@ const AllOrdersPage = async () => {
                 </div>
             </header>
             <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-                <h1 className="text-4xl px-12 font-semibold">Add Direct Product</h1>
+                <h1 className="text-4xl px-12 font-semibold">All Orders</h1>
                 <AllOrders />
             </div>
         </SidebarInset>

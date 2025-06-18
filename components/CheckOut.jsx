@@ -138,6 +138,12 @@ const handleOnlinePaymentWithOrder = async (finalAmount, cart, customer, setLoad
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_order_id: response.razorpay_order_id,
               razorpay_signature: response.razorpay_signature,
+              // Send all order/cart/form details for backend merge
+              cart,
+              checkoutData,
+              formFields,
+              user,
+              // You can add any other info needed for a complete order
             });
 
             if (verificationResponse.data && verificationResponse.data.success) {
