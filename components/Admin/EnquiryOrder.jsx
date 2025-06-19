@@ -300,7 +300,7 @@ const EnquiryOrder = () => {
               <div className="divide-y divide-gray-200 mt-2">
                 {viewOrder.products.map((p, i) => (
                   <div key={i} className="flex items-center gap-3 py-2">
-                    <img src={p.image.url} alt={p.name} className="w-12 h-12 rounded border object-cover" />
+                    <img src={p.image?.url} alt={p.name} className="w-12 h-12 rounded border object-cover" />
                     <div className="flex-1">
                       <div className="font-semibold">{p.name}</div>
                       {p.size && <div className="text-xs text-gray-500">Size: {p.size}</div>}

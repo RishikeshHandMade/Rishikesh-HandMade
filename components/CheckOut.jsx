@@ -3,7 +3,14 @@ import React, { useState } from 'react';
 import { useCart } from "../context/CartContext";
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
-
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "./ui/dialog";
 const shippingOptions = [
   { label: 'Free shipping', value: 'free', cost: 0 },
   { label: 'Flat Rate', value: 'flat', cost: 25.75 },
@@ -195,6 +202,9 @@ import { usePathname, useRouter } from "next/navigation"
 
 // Debug: Log modal state changes
 const CheckOut = () => {
+  // --- Buy Now Mode Detection ---
+  const [buyNowMode, setBuyNowMode] = useState(false);
+
   // State for address fields
   const [pincode, setPincode] = useState("");
   const [state, setState] = useState("");
@@ -232,16 +242,25 @@ const CheckOut = () => {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false); // Prevents double payment attempts
   const [error, setError] = useState(null);
   // Coupon state
-  // console.log(checkoutData)
+  console.log(checkoutData)
   const [couponInput, setCouponInput] = useState("");
   const [loadingCoupon, setLoadingCoupon] = useState(false);
-  const [couponError, setCouponError] = useState("")
+  const [couponError, setCouponError] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState("");
+  const [appliedPromoDetails, setAppliedPromoDetails] = useState(null);
   const [showOverview, setShowOverview] = useState(false);
   const [confirmedPaymentMethod, setConfirmedPaymentMethod] = useState(null);
   const [shipping, setShipping] = useState('free');
   // Load cart data from localStorage and handle authentication state
   useEffect(() => {
-    const loadCartData = () => {
+    // Detect buy-now mode from URL
+    let isBuyNow = false;
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      isBuyNow = params.get('mode') === 'buy-now';
+      setBuyNowMode(isBuyNow);
+    }
+    const loadCartData = async () => {
       // Check for buy-now mode in URL
       let isBuyNow = false;
       if (typeof window !== "undefined") {
@@ -254,16 +273,84 @@ const CheckOut = () => {
         if (buyNowRaw) {
           try {
             const buyNowProduct = JSON.parse(buyNowRaw);
-            // Wrap as array for cart compatibility
+            const qty = buyNowProduct.qty || 1;
+            // const subTotal = buyNowProduct.price * qty;
+
+            // Calculate shipping based on quantity (or weight if available)
+            let shippingCost = 0;
+            let shippingTierLabel = '';
+            let shippingPerUnit = null;
+            let totalWeight = 0;
+            if (buyNowProduct.weight) {
+              totalWeight = buyNowProduct.weight * qty;
+            }
+            // Prefer weight-based shipping if weight exists, else per-qty
+            if (totalWeight > 0) {
+              try {
+                const res = await fetch('/api/checkShipping', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ weight: totalWeight }),
+                });
+                const data = await res.json();
+                if (data.available && data.shippingCharge != null) {
+                  shippingCost = Number(data.shippingCharge);
+                  shippingTierLabel = data.tierLabel || '';
+                  shippingPerUnit = data.perUnitCharge || null;
+                }
+              } catch (e) { /* fallback to 0 */ }
+            } else {
+              // fallback: simple per-qty flat rate (e.g., 25 per item)
+              shippingCost = qty * 200;
+              shippingTierLabel = `Flat Rate x${qty}`;
+            }
+
+            // Calculate discount based on originalPrice and price
+            const totalDiscount = buyNowProduct.originalPrice && buyNowProduct.price
+              ? (buyNowProduct.originalPrice - buyNowProduct.price) * qty
+              : 0;
+
+            // Promo code logic
+            const promoCode = buyNowProduct.couponApplied ? buyNowProduct.couponCode : '';
+            const promoDiscount = buyNowProduct.couponApplied ? totalDiscount : 0;
+
+            // Calculate discounted price per unit
+            // const discountedUnitPrice = buyNowProduct.price;
+            // Compute CGST and SGST per unit (after discount)
+            const cgstRate = buyNowProduct.cgst || 0;
+            const sgstRate = buyNowProduct.sgst || 0;
+            const discountedUnitPrice = buyNowProduct.price; // already discounted
+            const subTotal = discountedUnitPrice * qty;
+            const cgstTotal = (discountedUnitPrice * cgstRate / 100) * qty;
+            const sgstTotal = (discountedUnitPrice * sgstRate / 100) * qty;
+            const totalTax = cgstTotal + sgstTotal;
+            const cartTotal = subTotal + totalTax + shippingCost;
+            setCheckoutData({
+              cart: [{ ...buyNowProduct, cgstTotal, sgstTotal }],
+              subTotal,
+              cartTotal,
+              shippingCost,
+              shippingTierLabel,
+              shippingPerUnit,
+              totalTax,
+              totalDiscount,
+              promoCode,
+              promoDiscount,
+            });
+          } catch (err) {
+            // fallback: shippingCost = 0
             setCheckoutData({
               cart: [buyNowProduct],
-              subTotal: buyNowProduct.price * (buyNowProduct.qty || 1),
-              // Add other fields if needed
+              subTotal,
+              cartTotal,
+              shippingCost: 0,
+              shippingTierLabel: '',
+              shippingPerUnit: null,
+              totalTax,
+              totalDiscount,
+              promoCode,
+              promoDiscount,
             });
-            setCart([buyNowProduct]); // Update context for downstream compatibility
-          } catch (error) {
-            // console.error("Error parsing buyNowProduct:", error);
-            setCheckoutData(null);
           }
         } else {
           setCheckoutData(null);
@@ -296,6 +383,95 @@ const CheckOut = () => {
     // Load cart/buy-now data when component mounts or when auth status changes
     loadCartData();
   }, [status]); // Re-run when auth status changes
+  // --- PINCODE CHECK STATE ---
+  const [isPincodeModalOpen, setIsPincodeModalOpen] = useState(false);
+  const [isPincodeConfirmModalOpen, setIsPincodeConfirmModalOpen] = useState(false);
+  const [pincodeInput, setPincodeInput] = useState("");
+  const [stateInput, setStateInput] = useState("");
+  const [districtInput, setDistrictInput] = useState("");
+  const [pincodeError, setPincodeError] = useState("");
+  const [pincodeResult, setPincodeResult] = useState(null);
+  const [loadingShipping, setLoadingShipping] = useState(false);
+  const [statesList, setStatesList] = useState([]);
+  const [pincodeChecked, setPincodeChecked] = useState(false);
+
+  // Fetch states/districts for dropdowns on mount
+  useEffect(() => {
+    fetch('/api/zipcode')
+      .then(res => res.json())
+      .then(data => setStatesList(Array.isArray(data) ? data : []));
+  }, []);
+
+  const handleApplyPincode = () => {
+    setPincodeChecked(true);
+    setIsPincodeConfirmModalOpen(false);
+  };
+
+  // Promo code apply handler (modeled after CartDetails)
+  const handleApplyPromo = async () => {
+    if (!Array.isArray(checkoutData.cart)) {
+      setCouponError("Cart is not loaded. Please refresh the page.");
+      return;
+    }
+    setCouponError("");
+    // Block if any product-level discount/coupon
+    const hasDiscountedItem = checkoutData.cart.some(
+      item => item.discountPercent || item.discountAmount || item.couponApplied
+    );
+    if (hasDiscountedItem) {
+      setCouponError("A product-level discount or coupon is already applied. Promo code cannot be used.");
+      return;
+    }
+    if (!couponInput.trim()) {
+      setCouponError("Please enter a promo code.");
+      return;
+    }
+    if (appliedPromo) {
+      setCouponError(`Promo code "${appliedPromo}" is already applied.`);
+      return;
+    }
+    setLoadingCoupon(true);
+    // Calculate total before promo
+    const totalAfterDiscount = checkoutData.cart.reduce(
+      (sum, item) => sum + (item.price * item.qty),
+      0
+    );
+    const cartTotalBeforePromo = totalAfterDiscount + (checkoutData.totalTax || 0) + (checkoutData.shippingCost || 0);
+
+    try {
+      const res = await fetch("/api/validatePromo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ promoCode: couponInput.trim(), cartTotal: cartTotalBeforePromo }),
+      });
+      const data = await res.json();
+      if (!data.valid) {
+        setCouponError(data.error || "Invalid promo code.");
+        setLoadingCoupon(false);
+        return;
+      }
+      if (data.discount >= cartTotalBeforePromo) {
+        setCouponError("Discount cannot exceed or equal cart total.");
+        setLoadingCoupon(false);
+        return;
+      }
+      setAppliedPromo(couponInput.trim());
+      setAppliedPromoDetails(data.coupon);
+      setCheckoutData(prev => ({
+        ...prev,
+        cartTotal: prev.cartTotal - data.discount,
+        promoCode: couponInput.trim(),
+        promoDiscount: data.discount,
+      }));
+      setCouponInput("");
+      setCouponError("");
+    } catch (err) {
+      setCouponError("Failed to validate promo code. Please try again.");
+    } finally {
+      setLoadingCoupon(false);
+    }
+  };
+
   // Handle coupon application
   const cart = React.useMemo(() => {
     // First try checkoutData, then contextCart, then empty array
@@ -305,7 +481,7 @@ const CheckOut = () => {
     if (items.length > 0 && !checkoutData) {
       setCheckoutData({
         cart: items,
-        subTotal: items.reduce((sum, item) => sum + (item.price * item.qty), 0),
+        subTotal: items.reduce((sum, item) => sum + item.price * item.qty, 0),
       });
     }
 
@@ -389,6 +565,9 @@ const CheckOut = () => {
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
   const shippingCost = shippingOptions.find(opt => opt.value === shipping)?.cost || 0;
   const total = subtotal + shippingCost;
+
+  // --- Helper: Hide coupon UI in buy-now mode ---
+  const showCouponUI = !buyNowMode;
 
   // Collect customer info for Razorpay
   const getCustomerInfo = () => ({
@@ -967,7 +1146,7 @@ const CheckOut = () => {
             <div className="divide-y divide-neutral-200 mb-4">
               {checkoutData.cart.map(item => (
                 <div key={item.id} className="flex items-center gap-3 py-3 relative">
-                  <img src={item.image?.url} alt={item.name} className="w-16 h-16 rounded object-cover border" />
+                  <img src={item.image?.url || item.image} alt={item.name} className="w-16 h-16 rounded object-cover border" />
                   <div className="flex-1">
                     <div className="font-medium text-sm leading-tight mb-1">{item.name}</div>
                     <div className="flex items-center justify-between">
@@ -989,11 +1168,11 @@ const CheckOut = () => {
                     </div>
                     <div className="flex justify-between items-center text-sm mb-2">
                       <span className="text-gray-600">CGST ({item.cgst}%)</span>
-                      <span>₹{((item.afterDiscount * item.cgst / 100) * item.qty).toFixed(2)}</span>
+                      <span>₹{((item.price * item.cgst / 100) * item.qty).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between items-center text-sm mb-2">
                       <span className="text-gray-600">SGST ({item.sgst}%)</span>
-                      <span>₹{((item.afterDiscount * item.sgst / 100) * item.qty).toFixed(2)}</span>
+                      <span>₹{((item.price * item.sgst / 100) * item.qty).toFixed(2)}</span>
                     </div>
                     {item.couponApplied && (
                       <div className="mt-2">
@@ -1005,8 +1184,6 @@ const CheckOut = () => {
                         </span>
                       </div>
                     )}
-
-
                   </div>
                   <button
                     className="absolute top-3 right-0 text-gray-400 hover:text-red-500"
@@ -1047,35 +1224,38 @@ const CheckOut = () => {
               )}
               <div className="text-xs text-gray-500 mb-2">Note : If discount promo code already applied extra additional coupon not applicable</div>
             </div>
-            <div className="mb-4">
-              <div className="flex justify-between items-center text-sm mb-2">
-                <span className="text-gray-600">Shipping Charges</span>
-                <span>₹{checkoutData.finalShipping?.toFixed(2)}</span>
+            {checkoutData?.shippingCost !== undefined && (
+              <div className="flex justify-between items-center mt-2">
+                <span className="font-semibold">
+                  Shipping Charges{checkoutData.shippingTierLabel ? ` (${checkoutData.shippingTierLabel})` : ''}
+                </span>
+                <span className="font-semibold">
+                  ₹{Number(checkoutData.shippingCost).toFixed(2)}
+                </span>
               </div>
-              {(() => {
-                const totalCGST = checkoutData.cart.reduce(
-                  (sum, item) => sum + ((item.afterDiscount * item.cgst / 100) * item.qty),
-                  0
-                );
-                const totalSGST = checkoutData.cart.reduce(
-                  (sum, item) => sum + ((item.afterDiscount * item.sgst / 100) * item.qty),
-                  0
-                );
-                return (
-                  <>
-                    <div className="flex justify-between items-center text-sm mb-2">
-                      <span className="text-gray-600">Total CGST</span>
-                      <span>₹{totalCGST.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm mb-2">
-                      <span className="text-gray-600">Total SGST</span>
-                      <span>₹{totalSGST.toFixed(2)}</span>
-                    </div>
-                  </>
-                );
-              })()}
-              {/* <div className="text-xs text-red-500 mb-2">Search Available Pin Code For Confirm Shipment.</div> */}
-            </div>
+            )}
+            {(() => {
+              const totalCGST = checkoutData.cart.reduce(
+                (sum, item) => sum + ((item.price * item.cgst / 100) * item.qty),
+                0
+              );
+              const totalSGST = checkoutData.cart.reduce(
+                (sum, item) => sum + ((item.price * item.sgst / 100) * item.qty),
+                0
+              );
+              return (
+                <>
+                  <div className="flex justify-between items-center text-sm mb-2">
+                    <span className="text-gray-600">Total CGST</span>
+                    <span>₹{totalCGST.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm mb-2">
+                    <span className="text-gray-600">Total SGST</span>
+                    <span>₹{totalSGST.toFixed(2)}</span>
+                  </div>
+                </>
+              );
+            })()}
 
             <div className="border-t border-gray-200 pt-3 mb-4">
               <div className="flex justify-between items-center font-bold text-lg">
@@ -1086,28 +1266,26 @@ const CheckOut = () => {
 
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2">Have a promo code?</label>
+              {appliedPromo && (
+                <div className="text-green-700 text-xs mt-1">
+                  Promo code "{appliedPromo}" applied successfully!
+                </div>
+              )}
               <div className="flex gap-2">
                 <input
                   className="border rounded px-3 py-2 flex-1 text-sm bg-blue-50"
                   placeholder="Apply Promo Code"
                   value={couponInput}
-                  onChange={e => setCouponInput(e.target.value)}
-                  disabled={loadingCoupon}
+                  onChange={e => {
+                    setCouponInput(e.target.value);
+                    setCouponError("");
+                  }}
+                  disabled={loadingCoupon || !!appliedPromo}
                 />
                 <button
                   className="px-4 py-2 bg-blue-500 text-white rounded font-semibold text-sm disabled:opacity-60"
-                  onClick={() => {
-                    if (couponInput.trim().toLowerCase() === 'hello') {
-                      setCheckoutData(prev => ({
-                        ...prev,
-                        cartTotal: prev.cartTotal - 20
-                      }));
-                      setCouponError('');
-                    } else {
-                      setCouponError('Invalid promo code');
-                    }
-                  }}
-                  disabled={loadingCoupon || !couponInput.trim()}
+                  onClick={handleApplyPromo}
+                  disabled={loadingCoupon || !couponInput.trim() || !!appliedPromo}
                   type="button"
                 >
                   {loadingCoupon ? "Applying..." : "Apply"}
@@ -1115,6 +1293,7 @@ const CheckOut = () => {
               </div>
               {couponError && <div className="text-red-600 text-xs mt-1">{couponError}</div>}
             </div>
+
             <div className="mb-6">
               <h3 className="font-medium mb-3">Payment Method</h3>
               <div className="space-y-3 mb-4">
@@ -1201,5 +1380,9 @@ const CheckOut = () => {
 
   );
 }
+
+// --- Clear buyNowProduct after order ---
+// Add this logic to your order placement handlers (COD & online):
+// if (buyNowMode) localStorage.removeItem('buyNowProduct');
 
 export default CheckOut;

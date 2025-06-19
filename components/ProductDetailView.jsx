@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { Heart, Share2, Ruler, Mail, Star } from "lucide-react"
 import { useCart } from "../context/CartContext";
@@ -12,9 +12,17 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "./ui/dialog";
 import Autoplay from "embla-carousel-autoplay";
 export default function ProductDetailView({ product }) {
-  
+  // console.log(product);
   // --- Ask An Expert Modal State ---
   const [showExpertModal, setShowExpertModal] = React.useState(false);
   const [expertForm, setExpertForm] = React.useState({
@@ -96,9 +104,24 @@ export default function ProductDetailView({ product }) {
   const [showFullDesc, setShowFullDesc] = React.useState(false);
   const desc = product.description?.overview || "No Description";
   const words = desc.split(' ');
-
+  const [shippingTierLabel, setShippingTierLabel] = useState("");
+  const [FinalShipping, setFinalShipping] = useState(0);
+  const [pincode, setPincode] = React.useState("");
+  const [pincodeResult, setPincodeResult] = React.useState(null);
+  const [pincodeError, setPincodeError] = React.useState("");
+  const [isPincodeModalOpen, setIsPincodeModalOpen] = React.useState(false);
+  const [isPincodeConfirmModalOpen, setIsPincodeConfirmModalOpen] =
+    React.useState(false);
+  const [stateInput, setStateInput] = React.useState("");
+  const [districtInput, setDistrictInput] = React.useState("");
+  const [statesList, setStatesList] = useState([]);
+  const [pincodeInput, setPincodeInput] = React.useState("");
+  const [loadingShipping, setLoadingShipping] = useState(false);
+  const [appliedPromoDetails, setAppliedPromoDetails] = useState(null);
+  const [shippingPerUnit, setShippingPerUnit] = useState(null);
   // Extract variants
   const variants = Array.isArray(product?.quantity?.variants) ? product.quantity.variants : [];
+  // console.log(product?.quantity?.variants);
 
   // Get all unique sizes and colors from variants
   const availableSizes = [...new Set(variants.map(v => v.size))];
@@ -112,6 +135,7 @@ export default function ProductDetailView({ product }) {
       (selectedColor ? v.color === selectedColor : true)
     );
   });
+  // console.log(selectedVariant?.price);
 
   // Set default selection on mount or when variants change
   React.useEffect(() => {
@@ -142,7 +166,7 @@ export default function ProductDetailView({ product }) {
     hasDiscount = true;
     couponText = `${coupon.couponCode || ''} (${coupon.percent}% OFF)`;
   } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
-    discountedPrice = selectedVariant.price - coupon.amount;
+    discountedPrice = selectedVariant?.price - coupon.amount;
     hasDiscount = true;
     couponText = `${coupon.couponCode || ''} (₹${coupon.amount} OFF)`;
   }
@@ -169,7 +193,28 @@ export default function ProductDetailView({ product }) {
     setActiveImageIdx(carouselApi.selectedScrollSnap());
     return () => carouselApi.off('select', onSelect);
   }, [carouselApi]);
-  // No need for activeImg, just use allImages[activeImageIdx]
+
+  useEffect(() => {
+    // Fetch states/districts from API on mount
+    const fetchStates = async () => {
+      try {
+        const res = await fetch('/api/zipcode');
+        const data = await res.json();
+        if (data.success && Array.isArray(data.data)) {
+          setStatesList(data.data);
+        }
+      } catch (e) {
+        setStatesList([]);
+      }
+    };
+
+    fetchStates();
+  }, []);
+
+  const handleApplyPincode = () => {
+    setIsPincodeConfirmModalOpen(false);
+    // The pincodeResult is already set, so shipping charges will be updated
+  };
 
   return (
     <div className="flex flex-col lg:flex-row gap-4">
@@ -302,7 +347,7 @@ export default function ProductDetailView({ product }) {
         <div className="mb-4">
           {hasDiscount && (
             <div className="flex items-center gap-2 mb-1">
-              <del className="text-gray-600 font-semibold text-lg mr-2">₹{formatNumeric(selectedVariant.price)}</del>
+              <del className="text-gray-600 font-semibold text-lg mr-2">₹{formatNumeric(selectedVariant?.price)}</del>
               <span className="font-bold text-xl text-black">₹{formatNumeric(Math.round(discountedPrice))}</span>
               <span className="border border-green-500 text-green-700 px-2 py-0.5 rounded text-xs font-semibold bg-green-50">Coupon Applied: {couponText}</span>
             </div>
@@ -350,11 +395,13 @@ export default function ProductDetailView({ product }) {
                   onClick={() => {
                     setSelectedSize(size);
                     setQuantity(1);
-                    const colorForSize = variants.find(v => v.size === size && v.color === selectedColor);
-                    if (!colorForSize) {
-                      const firstColor = variants.find(v => v.size === size)?.color;
-                      setSelectedColor(firstColor);
-                    }
+                    // Get all colors for this size
+                    const colorsForSize = variants.filter(v => v.size === size).map(v => v.color);
+                    const newColor = colorsForSize.includes(selectedColor) ? selectedColor : colorsForSize[0];
+                    setSelectedColor(newColor);
+                    // Get weight for size+color
+                    const weightForSize = variants.find(v => v.size === size && v.color === newColor)?.weight;
+                    setSelectedWeight(weightForSize);
                   }}
                   aria-pressed={selectedSize === size}
                   tabIndex={0}
@@ -567,6 +614,220 @@ export default function ProductDetailView({ product }) {
               );
             })}
           </div>
+
+          {/* Shipping Charges */}
+          {/* <div className="flex justify-between items-center mt-2">
+            <span className="font-semibold">
+              Shipping Charges{shippingTierLabel ? ` (${shippingTierLabel})` : ''}
+            </span>
+            <span className="font-semibold">
+              ₹{FinalShipping.toFixed(2)}
+            </span>
+          </div> */}
+          {/* Pincode check UI */}
+          <div className="flex flex-col gap-1 mt-2 mb-2">
+            <div className="flex gap-2 items-center">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-600">
+                  Check if we deliver to your area:
+                </span>
+                <button
+                  className="text-blue-600 hover:text-blue-800 text-sm font-medium underline focus:outline-none"
+                  onClick={() => setIsPincodeModalOpen(true)}
+                >
+                  {pincodeResult ? `${pincode} ✓` : "Check Pincode"}
+                </button>
+              </div>
+            </div>
+            {pincodeError && (
+              <div className="text-red-600 text-xs mt-1">
+                {pincodeError}
+              </div>
+            )}
+          </div>
+          <Dialog
+            open={isPincodeModalOpen}
+            onOpenChange={setIsPincodeModalOpen}
+          >
+            <DialogContent className="bg-white rounded-lg max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-center text-xl font-bold">
+                  We'll instantly let you know if delivery is available,
+                  along with estimated delivery time.
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className="mt-4 space-y-4">
+                {/* Dynamic State Dropdown from API */}
+                <div className="w-full">
+                  <label className="sr-only">Enter your State</label>
+                  <select
+                    className="w-full py-3 px-4 rounded-md bg-green-100 border-0 focus:ring-2 focus:ring-green-400"
+                    value={stateInput}
+                    onChange={e => {
+                      setStateInput(e.target.value);
+                      setDistrictInput(""); // reset district when state changes
+                    }}
+                  >
+                    <option value="">Select State</option>
+                    {statesList.map((s) => (
+                      <option key={s.state} value={s.state}>{s.state}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Dynamic District Dropdown from API */}
+                <div className="w-full">
+                  <select
+                    className="w-full py-3 px-4 rounded-md bg-yellow-100 border-0 focus:ring-2 focus:ring-yellow-400"
+                    value={districtInput}
+                    onChange={e => setDistrictInput(e.target.value)}
+                    disabled={!stateInput}
+                  >
+                    <option value="">Select Distt.</option>
+                    {(() => {
+                      const stateObj = statesList.find(s => s.state === stateInput);
+                      if (!stateObj) {
+                        return (
+                          <option disabled value="">State not found in database</option>
+                        );
+                      }
+                      if (!Array.isArray(stateObj.districts) || stateObj.districts.length === 0) {
+                        return (
+                          <option disabled value="">No districts found for this state</option>
+                        );
+                      }
+                      return stateObj.districts.map(d => (
+                        <option key={d.district} value={d.district}>{d.district}</option>
+                      ));
+                    })()}
+                  </select>
+                </div>
+
+                <div className="w-full">
+                  <input
+                    type="text"
+                    placeholder="Type PIN Code"
+                    className="w-full py-3 px-4 rounded-md bg-blue-100 border-0 focus:ring-2 focus:ring-blue-400"
+                    value={pincodeInput}
+                    onChange={(e) => setPincodeInput(e.target.value)}
+                    maxLength={6}
+                  />
+                </div>
+
+                <button
+                  className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-md transition-colors"
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    setPincodeError("");
+                    setPincodeResult(null);
+                    setLoadingShipping(true);
+                    // Defensive check before API request
+                    if (!stateInput || !districtInput || !pincodeInput || pincodeInput.trim().length !== 6) {
+                      setPincodeError("Please select state, district, and enter a valid 6-digit pincode.");
+                      setLoadingShipping(false);
+                      return;
+                    }
+                    try {
+                      const res = await fetch('/api/zipcode/checkZip', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          state: stateInput,
+                          district: districtInput,
+                          pincode: pincodeInput
+                        })
+                      });
+                      // console.log('Shipping API status:', res.status);
+                      const data = await res.json();
+                      // console.log('Shipping API response:', data);
+                      if (data.success) {
+                        setPincodeResult({
+                          state: data.state,
+                          district: data.district,
+                          pincode: data.pincode
+                        });
+                        setIsPincodeModalOpen(false);
+                        setIsPincodeConfirmModalOpen(true);
+                      } else {
+                        setPincodeError(data.message || 'Delivery not available');
+                      }
+                    } catch (err) {
+                      setPincodeError('Server error. Please try again.');
+                    } finally {
+                      setLoadingShipping(false);
+                    }
+                  }}
+                  disabled={!pincodeInput || pincodeInput.length !== 6 || !stateInput || !districtInput || loadingShipping}
+                >
+                  {loadingShipping ? 'Checking...' : 'SEARCH'}
+                </button>
+                {/* {pincodeResult && (
+                      <div className="text-green-700 text-xs mt-1">
+                        Delivery available!<br/>
+                        <span>State: <b>{pincodeResult.state}</b></span><br/>
+                        <span>District: <b>{pincodeResult.district}</b></span><br/>
+                        <span>Pincode: <b>{pincodeResult.pincode}</b></span>
+                      </div>
+                    )} */}
+                {pincodeError && (
+                  <div className="text-red-600 text-xs mt-1">
+                    {pincodeError}
+                  </div>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* PIN Code Confirmation Modal */}
+          <Dialog
+            open={isPincodeConfirmModalOpen}
+            onOpenChange={setIsPincodeConfirmModalOpen}
+          >
+            <DialogContent className="bg-white rounded-lg max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-center text-xl font-bold">
+                  Yes, we've confirmed!
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className="mt-4 space-y-4">
+                <p className="text-center">
+                  Your area PIN code is available for shipping.
+                  <br />
+                  You can proceed with your order, and we'll
+                  <br />
+                  ensure a smooth and timely delivery.
+                </p>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-right font-semibold">State</div>
+                  <div className="col-span-2 border-b border-gray-300">
+                    {stateInput}
+                  </div>
+
+                  <div className="text-right font-semibold">Distt.</div>
+                  <div className="col-span-2 border-b border-gray-300">
+                    {districtInput}
+                  </div>
+
+                  <div className="text-right font-semibold">PIN Code</div>
+                  <div className="col-span-2 border-b border-gray-300">
+                    {pincodeInput}
+                  </div>
+                </div>
+
+                <button
+                  className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-md transition-colors"
+                  onClick={handleApplyPincode}
+                >
+                  Apply Now
+                </button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+
           {/* Tags, etc. */}
           <div className="mb-4">
             <div className="text-sm mb-1">
@@ -589,7 +850,6 @@ export default function ProductDetailView({ product }) {
               </div>
             </div>
           </div>
-
         </div>
       </div>
       {/* RIGHT: Price/Offers/Add to Cart Box */}
@@ -626,19 +886,41 @@ export default function ProductDetailView({ product }) {
               className="bg-black text-white py-3 px-8 font-semibold hover:bg-gray-800 w-full"
               onClick={() => {
                 if (!selectedVariant) return;
+                const price = selectedVariant.price;
+                const couponObj = coupon || (product.coupons && product.coupons.coupon);
+                let discountedPrice = price;
+                let couponApplied = false;
+                let couponCode = "";
+
+                if (couponObj && typeof couponObj.percent === 'number' && couponObj.percent > 0) {
+                  discountedPrice = price - (price * couponObj.percent) / 100;
+                  couponApplied = true;
+                  couponCode = couponObj.couponCode;
+                } else if (couponObj && typeof couponObj.amount === 'number' && couponObj.amount > 0) {
+                  discountedPrice = price - couponObj.amount;
+                  couponApplied = true;
+                  couponCode = couponObj.couponCode;
+                }
+
                 addToCart({
                   id: product._id,
                   name: product.title,
-                  image: selectedImage || product.gallery?.mainImage || '/placeholder.png',
-                  price: hasDiscount ? Math.round(discountedPrice) : selectedVariant.price,
-                  originalPrice: selectedVariant.price,
-                  couponApplied: hasDiscount,
-                  couponCode: coupon ? coupon.couponCode : '',
+                  image: product.gallery?.mainImage?.url || '/placeholder.png',
+                  price: Math.round(discountedPrice),
                   size: selectedSize,
                   weight: selectedWeight,
                   color: selectedColor,
-                  uploaderCode: product.uploaderCode || '',
-                }, quantity);
+                  originalPrice: price,
+                  qty: quantity,
+                  couponApplied,
+                  couponCode: couponApplied ? couponCode : undefined,
+                  productCode: product.code || product.productCode || '',
+                  discountPercent: couponObj && typeof couponObj.percent === 'number' ? couponObj.percent : undefined,
+                  discountAmount: couponObj && typeof couponObj.amount === 'number' ? couponObj.amount : undefined,
+                  cgst: Number((product.taxes && product.taxes.cgst) || product.cgst || (product.tax && product.tax.cgst) || 0),
+                  sgst: Number((product.taxes && product.taxes.sgst) || product.sgst || (product.tax && product.tax.sgst) || 0),
+                  quantity: product.quantity || {},
+                });
                 toast.success("Added to cart!");
               }}
             >
@@ -655,7 +937,7 @@ export default function ProductDetailView({ product }) {
                   addToWishlist({
                     id: product._id,
                     name: product.title,
-                    image: selectedImage || product.gallery?.mainImage || '/placeholder.png',
+                    image: typeof selectedImage === "string" ? selectedImage : selectedImage?.url || product.gallery?.mainImage?.url || '/placeholder.png',
                     price: hasDiscount ? Math.round(discountedPrice) : selectedVariant.price,
                     originalPrice: selectedVariant.price,
                     couponApplied: hasDiscount,
@@ -739,23 +1021,93 @@ export default function ProductDetailView({ product }) {
             className="border border-black py-3 font-semibold hover:bg-gray-100 w-full"
             onClick={async () => {
               if (!selectedVariant) return;
+              // Block if pincode is not entered
+              if (!pincodeInput) {
+                toast.error('Please enter your pincode before proceeding.');
+                return;
+              }
               try {
                 // Prepare the buy-now product
+                const price = selectedVariant.price;
+                const couponObj = coupon || (product.coupons && product.coupons.coupon);
+                let discountedPrice = price;
+                let couponApplied = false;
+                let couponCode = "";
+                if (couponObj && typeof couponObj.percent === 'number' && couponObj.percent > 0) {
+                  discountedPrice = price - (price * couponObj.percent) / 100;
+                  couponApplied = true;
+                  couponCode = couponObj.couponCode;
+                } else if (couponObj && typeof couponObj.amount === 'number' && couponObj.amount > 0) {
+                  discountedPrice = price - couponObj.amount;
+                  couponApplied = true;
+                  couponCode = couponObj.couponCode;
+                }
+                const totalWeight = (selectedVariant?.weight || 0) * quantity;
+                console.log(totalWeight);
+                // Fetch shipping charge from API before proceeding
+                let shippingCharge = 0;
+                let shippingTierLabel = '';
+                let shippingPerUnit = null;
+                try {
+                  const res = await fetch('/api/checkShipping', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ weight: totalWeight})
+                  });
+                  const data = await res.json();
+                  console.log(data);
+                  if (data.available && data.shippingCharge != null) {
+                    // CartDetails logic: use per-unit for extra weight
+                    shippingCharge = Number(data.shippingCharge);
+                    shippingTierLabel = data.tierLabel || '';
+                    shippingPerUnit = data.perUnitCharge || null;
+                    // If per-unit charge is present and totalWeight > 1kg, add extra per-unit
+                    if (shippingPerUnit && totalWeight > 1) {
+                      // Example: base charge for 1kg, add per-unit for each extra kg (ceil)
+                      const extraUnits = Math.ceil(totalWeight) - 1;
+                      shippingCharge += extraUnits * Number(shippingPerUnit);
+                    }
+                    setFinalShipping(shippingCharge);
+                    setShippingTierLabel(shippingTierLabel);
+                    setShippingPerUnit(shippingPerUnit);
+                  } else {
+                    setFinalShipping(0);
+                    setShippingTierLabel("");
+                    setShippingPerUnit(null);
+                    toast.error('Shipping not available to this pincode or failed to fetch shipping charge.');
+                    return;
+                  }
+                } catch (err) {
+                  setFinalShipping(0);
+                  setShippingTierLabel("");
+                  setShippingPerUnit(null);
+                  toast.error('Failed to fetch shipping charge.');
+                  return;
+                }
+
                 const buyNowProduct = {
                   id: product._id,
                   name: product.title,
-                  image: selectedImage || product.gallery?.mainImage?.url || '/placeholder.jpeg',
-                  price: hasDiscount ? Math.round(discountedPrice) : selectedVariant.price,
-                  originalPrice: selectedVariant.price,
-                  couponApplied: hasDiscount,
-                  couponCode: coupon ? coupon.couponCode : '',
+                  image: selectedImage || product.gallery?.mainImage?.url || '/placeholder.png',
+                  price: Math.round(discountedPrice),
                   size: selectedSize,
                   weight: selectedWeight,
                   color: selectedColor,
-                  uploaderCode: product.uploaderCode || '',
-                  cgst: selectedVariant.cgst,
-                  sgst: selectedVariant.sgst,
-                  qty: quantity
+                  originalPrice: price,
+                  qty: quantity,
+                  totalWeight,
+                  couponApplied,
+                  finalShipping: FinalShipping,
+                  pincode: pincodeInput || null,
+                  state: stateInput || null,
+                  district: districtInput || null,
+                  couponCode: couponApplied ? couponCode : undefined,
+                  productCode: product.code || product.productCode || '',
+                  discountPercent: couponObj && typeof couponObj.percent === 'number' ? couponObj.percent : undefined,
+                  discountAmount: couponObj && typeof couponObj.amount === 'number' ? couponObj.amount : undefined,
+                  cgst: Number((product.taxes && product.taxes.cgst) || product.cgst || (product.tax && product.tax.cgst) || 0),
+                  sgst: Number((product.taxes && product.taxes.sgst) || product.sgst || (product.tax && product.tax.sgst) || 0),
+                  // quantity: product.quantity || {},
                 };
 
                 // Store the product in localStorage

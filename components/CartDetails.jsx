@@ -22,7 +22,7 @@ const CartDetails = () => {
   };
   const { cart: rawCart, updateCartQty, removeFromCart } = useCart();
   const cart = Array.isArray(rawCart) ? rawCart : [];
-  // console.log(cart);
+  console.log(cart);
 
   const router = useRouter();
 

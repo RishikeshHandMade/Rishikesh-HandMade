@@ -10,7 +10,7 @@ import Image from 'next/image';
 import toast from 'react-hot-toast';
 
 export default function ProductInfoTabs({ product }) {
-    console.log(product)
+    // console.log(product)
     // Example: dynamic tab data from API/product object
     let tabs = [];
     // Collect reviews from product.reviews (array of objects)
@@ -389,30 +389,7 @@ export default function ProductInfoTabs({ product }) {
             content: section.description
         }));
         tabs.push(reviewsTab);
-    } else {
-        tabs = [
-            {
-                label: "Product Details",
-                content: product?.description || "No product details available.",
-            },
-            {
-                label: "Additional Information",
-                content: product?.additionalInfo || "No additional information.",
-            },
-            {
-                label: "Shipping & Return",
-                content: product?.shippingReturn || "Shipping and return policy not provided.",
-            },
-            {
-                label: "Custom Tab",
-                content: product?.customTab || "Custom tab contenadsfasdft.",
-            },
-            {
-                label: "Custom Review",
-                content: product?.customReview || "No reviews yet.",
-            },
-        ];
-    }
+    } 
     const [activeTab, setActiveTab] = useState(0);
     return (
         <div className="w-full mt-10">
@@ -432,7 +409,9 @@ export default function ProductInfoTabs({ product }) {
                 ))}
             </div>
             <div className="py-4 px-2 text-sm text-gray-700 min-h-[64px] w-[80%] mx-auto text-center">
-                {tabs[activeTab].content}
+                {activeTab < tabs.length - 1
+                  ? <div dangerouslySetInnerHTML={{ __html: tabs[activeTab].content }} />
+                  : tabs[activeTab].content}
             </div>
         </div>
     );
