@@ -278,21 +278,21 @@ export default function ProductDetailView({ product }) {
           }
           if (showFullDesc || words.length <= 20) {
             return (
-              <p className="text-gray-700 mb-6 max-w-lg">
-                {desc}
+              <div className="text-gray-700 mb-6 max-w-lg">
+                <div dangerouslySetInnerHTML={{ __html: desc }} />
                 {words.length > 20 && (
                   <>
                     {' '}<button className="text-blue-600 underline ml-2" onClick={() => setShowFullDesc(false)}>Close</button>
                   </>
                 )}
-              </p>
+              </div>
             );
           }
           return (
-            <p className="text-gray-700 mb-6 max-w-lg">
-              {words.slice(0, 20).join(' ')}...{' '}
+            <div className="text-gray-700 mb-6 max-w-lg">
+              <div dangerouslySetInnerHTML={{ __html: words.slice(0, 20).join(' ') + '...' }} />
               <button className="text-blue-600 underline" onClick={() => setShowFullDesc(true)}>Read more</button>
-            </p>
+            </div>
           );
         })()}
 
@@ -343,7 +343,7 @@ export default function ProductDetailView({ product }) {
               return (
                 <button
                   key={size || idx}
-                  className={`relative w-24 px-3 py-2 border rounded-xl bg-white text-sm font-medium transition-all duration-150
+                  className={`relative min-w-24 px-3 py-2 border rounded-xl bg-white text-sm font-medium transition-all duration-150
           ${selectedSize === size ? 'border-black ring-2 ring-black' : 'border-gray-300'}
           hover:bg-gray-100
         `}
@@ -359,7 +359,7 @@ export default function ProductDetailView({ product }) {
                   aria-pressed={selectedSize === size}
                   tabIndex={0}
                 >
-                  <div className="flex justify-between items-center w-full">
+                  <div className="flex justify-between items-center w-full gap-2">
                     <span>{size}</span>
                     <div className="h-4 w-px bg-gray-300" />
                     <span className="text-gray-600 text-md">{weight}g</span>

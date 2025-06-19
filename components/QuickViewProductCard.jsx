@@ -132,21 +132,21 @@ export default function QuickViewProductCard({ product, onClose }) {
           }
           if (showFullDesc || words.length <= 20) {
             return (
-              <p className="text-gray-700 mb-6 max-w-lg">
-                {desc}
+              <div className="text-gray-700 mb-6 max-w-lg">
+                <div dangerouslySetInnerHTML={{ __html: desc }} />
                 {words.length > 20 && (
                   <>
                     {' '}<button className="text-blue-600 underline ml-2" onClick={() => setShowFullDesc(false)}>Close</button>
                   </>
                 )}
-              </p>
+              </div>
             );
           }
           return (
-            <p className="text-gray-700 mb-6 max-w-lg">
-              {words.slice(0, 20).join(' ')}...{' '}
+            <div className="text-gray-700 mb-6 max-w-lg">
+              <div dangerouslySetInnerHTML={{ __html: words.slice(0, 20).join(' ') + '...' }} />
               <button className="text-blue-600 underline" onClick={() => setShowFullDesc(true)}>Read more</button>
-            </p>
+            </div>
           );
         })()}
         {/* Price & Quantity */}

@@ -5,7 +5,57 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { Textarea } from "../ui/textarea";
+import { useEditor, EditorContent } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
+import TextStyle from '@tiptap/extension-text-style'
+import { FontFamily } from '@tiptap/extension-font-family'
+import Typography from '@tiptap/extension-typography'
+import TextAlign from '@tiptap/extension-text-align'
+import Underline from '@tiptap/extension-underline'
+import Link from '@tiptap/extension-link'
+import { Color } from '@tiptap/extension-color'
+import ListItem from '@tiptap/extension-list-item'
+import { Extension } from '@tiptap/core'
+import {
+  Bold,
+  Italic,
+  Underline as UnderlineIcon,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Link as LinkIcon,
+  List,
+  ListOrdered,
+  Quote,
+  Undo,
+  Redo,
+  Strikethrough,
+  Code,
+  Heading1,
+  Heading2,
+  Heading3,
+  PilcrowSquare,
+} from 'lucide-react'
+
+// Create a FontSize extension
+const FontSize = Extension.create({
+  name: 'fontSize',
+  addOptions() {
+    return {
+      types: ['textStyle'],
+    }
+  },
+  addCommands() {
+    return {
+      setFontSize: (fontSize) => ({ commands }) => {
+        return commands.setFontStyle({ fontSize })
+      },
+      unsetFontSize: () => ({ commands }) => {
+        return commands.setFontStyle({ fontSize: undefined })
+      },
+    }
+  },
+})
 const productInfo = ({ productData, productId }) => {
   const [sections, setSections] = useState([]); // Array of {title, description}
   const [tableLoading, setTableLoading] = useState(false);
@@ -15,7 +65,7 @@ const productInfo = ({ productData, productId }) => {
   const [editIndex, setEditIndex] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTargetIndex, setDeleteTargetIndex] = useState(null);
-
+  const [description, setDescription] = useState("");
   // Fetch all sections for the current product
   const fetchSections = async () => {
     setTableLoading(true);
@@ -41,7 +91,102 @@ const productInfo = ({ productData, productId }) => {
   }, [productId]);
 
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      TextStyle,
+      FontFamily,
+      Typography,
+      TextAlign,
+      Underline,
+      Link,
+      Color,
+      ListItem,
+      FontSize,
+    ],
+    content: description,
+    editorProps: {
+      attributes: {
+        class: 'min-h-[200px] border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#00b67a]'
+      }
+    }
+  });
+
+  // Function to get current editor content
+  const getCurrentContent = () => {
+    if (editor) {
+      return editor.getHTML();
+    }
+    return description;
+  };
+
+  // Save handler for form submission
+  const saveSection = async (e) => {
+    e.preventDefault();
+    const content = getCurrentContent();
+    if (!productId || !title) {
+      toast.error('Please provide a title and valid product.');
+      return;
+    }
+    if (!content || content.trim() === '') {
+      toast.error('Please provide a description for this section.');
+      return;
+    }
+    setLoading(true);
+    try {
+      if (editMode && editIndex !== null) {
+        // PATCH request for update
+        const res = await fetch('/api/productInfo', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId, title, description: content, sectionId: sections[editIndex]?._id })
+        });
+        const data = await res.json();
+        if (!res.ok || data.error) {
+          toast.error(data.error || 'Failed to update section');
+        } else {
+          toast.success('Section updated successfully!');
+          setEditMode(false);
+          setEditIndex(null);
+          fetchSections();
+        }
+      } else {
+        // POST request for create
+        const res = await fetch('/api/productInfo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId, title, description: content })
+        });
+        const data = await res.json();
+        if (!res.ok || data.error) {
+          toast.error(data.error || 'Failed to save section');
+        } else {
+          toast.success('Section saved successfully!');
+          fetchSections();
+        }
+      }
+    } catch (err) {
+      toast.error('Error saving section.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Update editor content when description state changes
+  useEffect(() => {
+    if (editor) {
+      editor.commands.setContent(description, false);
+    }
+  }, [description, editor]);
+
+  // Update editor content when description state changes
+  useEffect(() => {
+    if (editor) {
+      editor.commands.setContent(description, false);
+    }
+  }, [description, editor]);
+ 
   const productTitle = productData?.title || "";
   const [loading, setLoading] = useState(false);
 
@@ -55,7 +200,13 @@ const productInfo = ({ productData, productId }) => {
     setEditMode(true);
     setEditIndex(idx);
     setTitle(section.title);
-    setDescription(section.description);
+    // Set description with a small delay to ensure editor is initialized
+    setTimeout(() => {
+      if (editor) {
+        editor.commands.setContent(section.description, false);
+        setDescription(section.description);
+      }
+    }, 100);
   };
 
   const openDeleteModal = (idx) => {
@@ -172,12 +323,120 @@ const productInfo = ({ productData, productId }) => {
                     </div>
                     <label className="form-label">Section Heading</label>
                     <Input value={title} onChange={e => setTitle(e.target.value)} className="mb-2" placeholder="Enter heading (e.g. Product Details, Shipping & Return, etc.)" />
-                    <label className="form-label">Section Description</label>
-                    <Textarea value={description} onChange={e => setDescription(e.target.value)} className="mb-2" placeholder="Enter description for this section" />
+                    <div className="mb-4">
+                      <label className="form-label">Description</label>
+                      <div className="flex flex-col gap-2">
+                        <div className="flex gap-2">
+                          <button type="button"
+                            onClick={() => editor?.chain().focus().toggleBold().run()}
+                            className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('bold') ? 'bg-gray-200' : ''}`}
+                          >
+                            <Bold className="w-4 h-4" />
+                          </button>
+                          <button type="button"
+                            onClick={() => editor?.chain().focus().toggleItalic().run()}
+                            className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('italic') ? 'bg-gray-200' : ''}`}
+                          >
+                            <Italic className="w-4 h-4" />
+                          </button>
+                          <button type="button"
+                            onClick={() => editor?.chain().focus().toggleUnderline().run()}
+                            className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('underline') ? 'bg-gray-200' : ''}`}
+                          >
+                            <UnderlineIcon className="w-4 h-4" />
+                          </button>
+                          <button type="button"
+                            onClick={() => editor?.chain().focus().setParagraph().run()}
+                            className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('paragraph') ? 'bg-gray-200' : ''}`}
+                          >
+                            <PilcrowSquare className="w-4 h-4" />
+                          </button>
+                          <button type="button"
+                            onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
+                            className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('heading', { level: 1 }) ? 'bg-gray-200' : ''}`}
+                          >
+                            <Heading1 className="w-4 h-4" />
+                          </button>
+                          <button type="button"
+                            onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
+                            className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('heading', { level: 2 }) ? 'bg-gray-200' : ''}`}
+                          >
+                            <Heading2 className="w-4 h-4" />
+                          </button>
+                          <button type="button"
+                            onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
+                            className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('heading', { level: 3 }) ? 'bg-gray-200' : ''}`}
+                          >
+                            <Heading3 className="w-4 h-4" />
+                          </button>
+                          <button type="button"
+                            onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                            className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('bulletList') ? 'bg-gray-200' : ''}`}
+                          >
+                            <List className="w-4 h-4" />
+                          </button>
+                          <button type="button"
+                            onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                            className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('orderedList') ? 'bg-gray-200' : ''}`}
+                          >
+                            <ListOrdered className="w-4 h-4" />
+                          </button>
+                          <button type="button"
+                            onClick={() => editor?.chain().focus().toggleBlockquote().run()}
+                            className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('blockquote') ? 'bg-gray-200' : ''}`}
+                          >
+                            <Quote className="w-4 h-4" />
+                          </button>
+                          <button type="button"
+                            onClick={() => editor?.chain().focus().toggleCodeBlock().run()}
+                            className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('codeBlock') ? 'bg-gray-200' : ''}`}
+                          >
+                            <Code className="w-4 h-4" />
+                          </button>
+                          <button type="button"
+                            onClick={() => editor?.chain().focus().toggleStrike().run()}
+                            className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('strike') ? 'bg-gray-200' : ''}`}
+                          >
+                            <Strikethrough className="w-4 h-4" />
+                          </button>
+                          <button type="button"
+                            onClick={() => editor?.chain().focus().undo().run()}
+                            className="p-2 rounded-lg hover:bg-gray-100"
+                          >
+                            <Undo className="w-4 h-4" />
+                          </button>
+                          <button type="button"
+                            onClick={() => editor?.chain().focus().redo().run()}
+                            className="p-2 rounded-lg hover:bg-gray-100"
+                          >
+                            <Redo className="w-4 h-4" />
+                          </button>
+                          <button type="button"
+                            onClick={() => editor?.chain().focus().setTextAlign('left').run()}
+                            className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('textAlign', 'left') ? 'bg-gray-200' : ''}`}
+                          >
+                            <AlignLeft className="w-4 h-4" />
+                          </button>
+                          <button type="button"
+                            onClick={() => editor?.chain().focus().setTextAlign('center').run()}
+                            className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('textAlign', 'center') ? 'bg-gray-200' : ''}`}
+                          >
+                            <AlignCenter className="w-4 h-4" />
+                          </button>
+                          <button type="button"
+                            onClick={() => editor?.chain().focus().setTextAlign('right').run()}
+                            className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('textAlign', 'right') ? 'bg-gray-200' : ''}`}
+                          >
+                            <AlignRight className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <EditorContent editor={editor} />
+                      </div>
+                    </div>
                     <div className="flex gap-2 mt-2">
-                      <Button type="submit" disabled={loading}>{loading ? (editMode ? 'Updating...' : 'Saving...') : (editMode ? 'Update' : 'Add Section')}</Button>
+                      <Button type="submit" disabled={loading} onClick={saveSection}>{loading ? (editMode ? 'Updating...' : 'Saving...') : (editMode ? 'Update' : 'Add Section')}</Button>
                       {editMode && (
-                        <Button type="button" variant="secondary" onClick={() => {
+                        <Button variant="outline" onClick={() => {
                           setEditMode(false);
                           setEditIndex(null);
                           setTitle("");

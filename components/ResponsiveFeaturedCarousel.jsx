@@ -128,7 +128,7 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
                 {/* Color selection */}
                 {colors.length > 0 && (
                   <div className="mb-4">
-                    <div className="font-semibold text-sm mb-1">Color: {selectedColor || <span className="text-gray-400">Select</span>}</div>
+                    <div className="font-semibold text-sm mb-1">Color: {selectedColor || <span className="text-black">Select</span>}</div>
                     <div className="flex gap-3">
                       {colors.map((color, idx) => (
                         <button
@@ -147,12 +147,12 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
                 {/* Size selection */}
                 {sizes.length > 0 && (
                   <div className="mb-4">
-                    <div className="font-semibold text-sm mb-1">Size: {selectedSize || <span className="text-gray-400">Select</span>}</div>
+                    <div className="font-semibold text-sm mb-1">Size: {selectedSize || <span className="text-black">Select</span>}</div>
                     <div className="flex gap-3">
                       {sizes.map((size, idx) => (
                         <button
                           key={size || idx}
-                          className={`w-12 h-10 rounded-full border-2 flex items-center justify-center text-base font-semibold transition-all ${selectedSize === size ? 'border-black bg-gray-100' : 'border-gray-300'}`}
+                          className={`min-w-12 h-12 border-2 flex items-center justify-center text-sm font-semibold transition-all ${selectedSize === size ? 'border-black bg-gray-100' : 'border-gray-300'}`}
                           onClick={() => setSelectedSize(size)}
                         >
                           {size}
