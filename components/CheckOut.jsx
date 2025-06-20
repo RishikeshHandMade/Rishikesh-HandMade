@@ -212,7 +212,7 @@ const CheckOut = () => {
                 user,
                 // You can add any other info needed for a complete order
               });
-  
+
               if (verificationResponse.data && verificationResponse.data.success) {
                 setError(null);
                 toast.success('Payment successful! Check your email for details.', {
@@ -276,9 +276,9 @@ const CheckOut = () => {
               <td>${item.name || ''}</td>
               <td>${item.qty || 1}</td>
               <td>${item.size || '-'}</td>
-              <td>${item.weight ? item.weight + 'g' : '-'}</td>
-              <td>${item.shipping ? item.shipping + 'g' : '-'}</td>
-              <td>₹${item.price ? Number(item.price).toFixed(2) : '-'}</td>
+              <td>${typeof item.weight !== 'undefined' && item.weight !== null ? item.weight + 'g' : '-'}</td>
+<td>${typeof item.shipping !== 'undefined' && item.shipping !== null ? item.shipping + 'g' : '-'}</td>
+<td>₹${typeof item.price !== 'undefined' && item.price !== null ? Number(item.price).toFixed(2) : '-'}</td>
             </tr>
           `).join('') : ''}
         </tbody>
@@ -341,7 +341,7 @@ const CheckOut = () => {
       setError(error.message || 'Payment failed. Please try again.');
       setLoading(false);
     }
-  
+
   }
 
 
@@ -1069,9 +1069,9 @@ const CheckOut = () => {
             <td>${item.name || ''}</td>
             <td>${item.qty || 1}</td>
             <td>${item.size || '-'}</td>
-            <td>${item.weight ? item.weight + 'g' : '-'}</td>
-            <td>${item.shipping ? item.shipping + 'g' : '-'}</td>
-            <td>₹${item.price ? Number(item.price).toFixed(2) : '-'}</td>
+            <td>${typeof item.weight !== 'undefined' && item.weight !== null ? item.weight + 'g' : '-'}</td>
+<td>${typeof item.shipping !== 'undefined' && item.shipping !== null ? item.shipping + 'g' : '-'}</td>
+<td>₹${typeof item.price !== 'undefined' && item.price !== null ? Number(item.price).toFixed(2) : '-'}</td>
           </tr>
         `).join('') : ''}
       </tbody>

@@ -44,41 +44,117 @@ const CheckOutOverview = ({ checkoutData, paymentMethod, onEdit, onConfirm, load
   return (
     <div className="min-h-screen bg-[#fcf7f2] flex items-start justify-center py-10 px-2 md:px-10">
       {showConfirmationModal &&(
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-lg w-full relative flex flex-col items-center">
-          <button
-            className="absolute top-3 right-4 text-2xl text-gray-600 hover:text-black"
-            onClick={onGoToDashboard}
-            aria-label="Close"
-          >
-            &times;
-          </button>
-          <h2 className="text-xl font-bold mb-2 text-center">Thank You for Confirming Your Order</h2>
-          <p className="mb-4 text-center text-gray-700">
-            Thank you for confirming your order with us! We've received your details and your order is now being processed. Our team is preparing your package with care to ensure it reaches you in perfect condition and on time. You’ll receive updates on your order status and tracking information shortly.
-          </p>
-          <p className="mb-4 text-center text-gray-700">
-            If you have any questions or need assistance, our support team is here to help. We truly appreciate your trust in us and look forward to serving you again!
-          </p>
-          <div className="mb-2 font-semibold">Order ID & Date:</div>
-          <div className="mb-4 text-center text-base text-black">{orderId} &nbsp;|&nbsp; {new Date().toLocaleDateString()}</div>
-          <div className="flex flex-col md:flex-row gap-4 w-full justify-center">
-            <button
-              className="bg-black text-white px-6 py-3 rounded-lg font-semibold text-lg w-full md:w-auto mb-2 md:mb-0"
-              onClick={() => window.print()} // Placeholder for receipt functionality
-            >
-              Get receipt (Invoice)
-            </button>
-            <button
-              className="text-red-600 font-bold underline text-lg w-full md:w-auto"
-              onClick={onGoToDashboard}
-            >
-              Or Go To Dashboard &gt;&gt;
-            </button>
-          </div>
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="bg-white rounded-2xl shadow-lg p-8 max-w-2xl w-full relative flex flex-col items-center" id="invoice-print-section">
+      {/* Logo at the top */}
+      <div className="mb-4 flex flex-col items-center w-full">
+        <img src="/logo.png" alt="Rishikesh Handmade Logo" className="h-14 mb-2" style={{objectFit:'contain'}} onError={e => {e.target.style.display='none'}}/>
+      </div>
+      {/* Address and Customer Info */}
+      <div className="mb-4 w-full text-sm text-gray-700 bg-[#fcf7f2] rounded-lg px-4 py-3">
+        <div className="font-semibold text-base mb-2">Shipping/Billing Info</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1">
+          <div><span className="font-medium">Name:</span> {checkoutData.firstName} {checkoutData.lastName}</div>
+          <div><span className="font-medium">Email:</span> {checkoutData.email}</div>
+          <div><span className="font-medium">Phone:</span> {checkoutData.phone}</div>
+          <div><span className="font-medium">Address:</span> {checkoutData.address || `${checkoutData.street}, ${checkoutData.city}, ${checkoutData.state}, ${checkoutData.pincode}`}</div>
+          <div><span className="font-medium">City:</span> {checkoutData.city}</div>
+          <div><span className="font-medium">State:</span> {checkoutData.state}</div>
+          <div><span className="font-medium">Pincode:</span> {checkoutData.pincode}</div>
         </div>
       </div>
-      )}
+      {/* Product Table */}
+      <div className="mb-6 w-full overflow-x-auto">
+        <div className="font-semibold text-base mb-2">Order Details</div>
+        <table className="w-full text-xs md:text-sm border border-gray-200 rounded-lg">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="p-2 border">Image</th>
+              <th className="p-2 border">Name</th>
+              <th className="p-2 border">Qty</th>
+              <th className="p-2 border">Size</th>
+              <th className="p-2 border">Weight</th>
+              <th className="p-2 border">Shipping</th>
+              <th className="p-2 border">Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Array.isArray(checkoutData.cart) && checkoutData.cart.map((item, idx) => (
+              <tr key={idx}>
+                <td className="border p-1"><img src={item.image?.url || item.image || ''} alt={item.name || ''} className="h-10 w-10 object-cover rounded" /></td>
+                <td className="border p-1">{item.name}</td>
+                <td className="border p-1">{item.qty || 1}</td>
+                <td className="border p-1">{item.size || '-'}</td>
+                <td className="border p-1">{typeof item.weight !== 'undefined' && item.weight !== null ? item.weight + 'g' : '-'}</td>
+                <td className="border p-1">{typeof item.shipping !== 'undefined' && item.shipping !== null ? item.shipping + 'g' : '-'}</td>
+                <td className="border p-1">₹{typeof item.price !== 'undefined' && item.price !== null ? Number(item.price).toFixed(2) : '-'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div className="text-right text-base mt-2 font-semibold">Total: ₹{checkoutData.cartTotal ? Number(checkoutData.cartTotal).toFixed(2) : '-'}</div>
+      </div>
+      {/* Rest of the modal content */}
+      <h2 className="text-xl font-bold mb-2 text-center">Thank You for Confirming Your Order</h2>
+      <p className="mb-4 text-center text-gray-700">
+        Thank you for confirming your order with us! We've received your details and your order is now being processed. Our team is preparing your package with care to ensure it reaches you in perfect condition and on time. You’ll receive updates on your order status and tracking information shortly.
+      </p>
+      <p className="mb-4 text-center text-gray-700">
+        If you have any questions or need assistance, our support team is here to help. We truly appreciate your trust in us and look forward to serving you again!
+      </p>
+      <div className="mb-2 font-semibold">Order ID & Date:</div>
+      <div className="mb-4 text-center text-base text-black">{orderId} &nbsp;|&nbsp; {new Date().toLocaleDateString()}</div>
+      <div className="flex flex-col md:flex-row gap-4 w-full justify-center">
+        <button
+  className="bg-black text-white px-6 py-3 rounded-lg font-semibold text-lg w-full md:w-auto mb-2 md:mb-0"
+  onClick={() => {
+    const content = document.getElementById('invoice-print-section');
+    if (!content) return window.print();
+    const printWindow = window.open('', '', 'width=900,height=900');
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Order Invoice</title>
+          <style>
+            body { background: #fff; font-family: Arial, sans-serif; color: #222; }
+            .invoice-section { max-width: 800px; margin: 0 auto; padding: 24px; background: #fff; border-radius: 10px; }
+            .invoice-section img { max-height: 56px; margin-bottom: 12px; }
+            .invoice-section .info, .invoice-section .summary { margin-bottom: 18px; }
+            .invoice-section table { width: 100%; border-collapse: collapse; margin: 18px 0; }
+            .invoice-section th, .invoice-section td { border: 1px solid #e5e7eb; padding: 6px 8px; font-size: 14px; }
+            .invoice-section th { background: #f3f4f6; }
+            .invoice-section .summary { text-align: right; font-size: 16px; }
+            @media print {
+              body { background: #fff; }
+              .invoice-section { box-shadow: none; border: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="invoice-section">${content.innerHTML}</div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 500);
+  }}
+>
+  Get receipt (Invoice)
+</button>
+        <button
+          className="text-red-600 font-bold underline text-lg w-full md:w-auto"
+          onClick={onGoToDashboard}
+        >
+          Or Go To Dashboard &gt;&gt;
+        </button>
+      </div>
+    </div>
+  </div>
+)}
       <div className="w-full max-w-6xl flex flex-col md:flex-row gap-8">
         {/* LEFT: Billing/Shipping Summary */}
         <div className="flex-1 bg-[#fcf7f2] p-0">

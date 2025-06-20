@@ -325,48 +325,6 @@ const HeroSection = () => {
                         <div className="text-lg font-bold text-white">{banner.subtitle || "No Subtitle"}</div>
                         <div className="text-base font-semibold text-white tracking-tight px-10 text-center">{banner.subDescription || "No Sub Description"}</div>
                       </div>
-                      {/* More Category Circular Button */}
-                      {/* <div className="absolute left-1/2 bottom-[-72px] -translate-x-1/2">
-                  <button
-                    className="relative flex items-center justify-center w-20 h-20 group focus:outline-none"
-                    style={{ minWidth: '80px', minHeight: '80px' }}
-                    aria-label="Explore More Category"
-                  >
-           
-                    <svg
-                      viewBox="0 0 100 100"
-                      width="80"
-                      height="80"
-                      className="absolute top-0 left-0 animate-spin-slow"
-                      style={{ animation: 'spin 8s linear infinite' }}
-                    >
-                      <defs>
-                        <path id="circlePath" d="M50,10 a40,40 0 1,1 -0.01,0" />
-                      </defs>
-                      <text fontSize="11" fill="#222" fontWeight="bold" letterSpacing="2">
-                        <textPath href="#circlePath" startOffset="0">
-                          MORE CATEGORY • EXPLORE •
-                        </textPath>
-                      </text>
-                    </svg>
-             
-                    <span className="z-10 flex items-center justify-center w-8 h-8 bg-[#222] rounded-full text-white shadow-lg">
-                      <span className="flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                          <polygon points="6,4 20,12 6,20 6,4" fill="currentColor" />
-                        </svg>
-                      </span>
-                    </span>
-                  </button>
-                  <style jsx>{`
-                    @keyframes spin {
-                      100% { transform: rotate(360deg); }
-                    }
-                    .animate-spin-slow {
-                      animation: spin 8s linear infinite;
-                    }
-                  `}</style>
-                </div> */}
                     </div>
                     {/* Back Image */}
                     <div className="flex-1 flex items-center justify-start h-screen">
@@ -395,134 +353,141 @@ const HeroSection = () => {
         </div>
       </div>
 
-      <div className="block xl:hidden w-full h-full px-4 mt-[20%] relative max-h-[90vh]">
-        <h2 className="text-2xl font-bold text-center mb-1">Search Where to Go</h2>
-        <p className="text-gray-600 text-center w-[80%] mx-auto mb-4">Every soul has a path—find yours. From sacred mountains to hidden shrines, your spiritual journey begins with a single search. Discover destinations that inspire, heal, and uplift. Start now—your path to peace and purpose awaits.</p>
-        <Dialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
-          <DialogTrigger asChild>
-
-            <div
-              className="w-full border-2 border-blue-600 rounded-full px-6 py-4 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer text-left text-gray-700 flex items-center gap-2"
-              onClick={() => setIsSearchOpen(true)}
-            >
-
-              <Search className="h-6 w-6 text-gray-600" />
-              <span className={query ? "text-gray-900" : "text-gray-400"}>
-                {query ? query : "Destination, Attraction"}
-              </span>
-            </div>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[60vh] font-barlow p-4 overflow-y-auto">
-            <div className="relative mt-6">
-              <Search className="absolute left-3 top-4 h-6 w-6 text-gray-600" />
-              <Input
-                type="text"
-                value={query}
-                onChange={handleSearch}
-                placeholder="Destination, Attraction"
-                className="px-10 !py-6 flex-1 w-full placeholder:font-normal placeholder:text-gray-600 border-2 border-blue-600  focus-visible:ring-0 rounded-full shadow-none focus:ring-0 outline-none"
+      <div className="block xl:hidden w-full h-full px-4 pt-8 pb-12 relative max-h-[90vh]">
+        {/* Mobile Carousel: Only show first image, center content over image, add to cart above image */}
+        <Carousel className="w-full max-w-md mx-auto" plugins={[plugin.current]} onMouseLeave={plugin.current.reset} setApi={setApi} >
+          <CarouselContent>
+            {banners.map((banner, index) => (
+              <CarouselItem key={index} className="flex flex-col items-center justify-center relative">
+                <div className="relative w-full flex flex-col items-center">
+                  {/* Centered Content above image */}
+                  <div className="absolute top-6 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center w-full px-2">
+                    <h1 className="text-2xl font-bold text-white drop-shadow mb-2 text-center px-2">
+                      {banner.title || "No Title"}
+                    </h1>
+                    <div className="text-lg font-semibold text-white mb-1">Price</div>
+                    <div className="text-2xl font-extrabold text-white mb-2 flex flex-row items-center gap-2">
+                      {(() => {
+                        const priceNum = Number((banner.price || '').replace(/[^\d.]/g, ''));
+                        let discounted = priceNum;
+                        let hasDiscount = false;
+                        if (!isNaN(priceNum) && priceNum > 0) {
+                          if (banner.couponAmount && !isNaN(Number(banner.couponAmount)) && Number(banner.couponAmount) > 0) {
+                            discounted = priceNum - Number(banner.couponAmount);
+                            hasDiscount = true;
+                          } else if (banner.couponPercent && !isNaN(Number(banner.couponPercent)) && Number(banner.couponPercent) > 0) {
+                            discounted = priceNum - (priceNum * Number(banner.couponPercent)) / 100;
+                            hasDiscount = true;
+                          }
+                        }
+                        if (hasDiscount && discounted < priceNum) {
+                          return (
+                            <span>
+                              <del className="text-white font-bold text-2xl mr-2">₹{priceNum.toLocaleString()}</del>
+                              <span className="font-bold text-2xl text-white px-2">₹{Math.round(discounted)}</span>
+                            </span>
+                          );
+                        } else {
+                          return (
+                            <span className="font-bold text-2xl text-white">₹{priceNum ? priceNum.toLocaleString() : "0.00"}</span>
+                          );
+                        }
+                      })()}
+                    </div>
+                    <div className="flex gap-3 mb-3 justify-center">
+                      <button
+                        onClick={async () => {
+                          if (!banner.addtoCartLink) return;
+                          setLoading(true);
+                          try {
+                            const productId = banner.addtoCartLink.split('/').pop();
+                            const response = await fetch(`/api/product/${productId}`);
+                            if (!response.ok) throw new Error('Failed to fetch product');
+                            const product = await response.json();
+                            let price = product.quantity?.variants?.[0]?.price || 0;
+                            if (!price) {
+                              const variantWithPrice = product.quantity?.variants?.find(v => v.price);
+                              price = variantWithPrice?.price || 0;
+                            }
+                            let discountedPrice = price;
+                            let couponApplied = false;
+                            let couponCode;
+                            if (banner.coupon) {
+                              if (typeof banner.coupon.percent === 'number' && banner.coupon.percent > 0) {
+                                discountedPrice = price - (price * banner.coupon.percent) / 100;
+                                couponApplied = true;
+                                couponCode = banner.coupon.couponCode;
+                              } else if (typeof banner.coupon.amount === 'number' && banner.coupon.amount > 0) {
+                                discountedPrice = price - banner.coupon.amount;
+                                couponApplied = true;
+                                couponCode = banner.coupon.couponCode;
+                              }
+                            }
+                            addToCart({
+                              id: product._id,
+                              name: product.title,
+                              image: product?.gallery?.mainImage || "/placeholder.jpeg",
+                              price: Math.round(discountedPrice),
+                              originalPrice: price,
+                              qty: 1,
+                              couponApplied,
+                              couponCode: couponApplied ? couponCode : undefined,
+                              productCode: product.code || product.productCode || '',
+                              discountPercent: banner.coupon && typeof banner.coupon.percent === 'number' ? banner.coupon.percent : undefined,
+                              discountAmount: banner.coupon && typeof banner.coupon.amount === 'number' ? banner.coupon.amount : undefined,
+                              cgst: (product.taxes && product.taxes.cgst) || product.cgst || (product.tax && product.tax.cgst) || 0,
+                              sgst: (product.taxes && product.taxes.sgst) || product.sgst || (product.tax && product.tax.sgst) || 0,
+                              quantity:1,
+                            });
+                            toast.success('Product added to cart!');
+                          } catch (error) {
+                            toast.error('Failed to add product to cart');
+                            console.error('Add to cart error:', error);
+                          } finally {
+                            setLoading(false);
+                          }
+                        }}
+                        disabled={!banner.addtoCartLink}
+                        className={`bg-white text-black px-5 py-2 font-bold mb-2 ${!banner.addtoCartLink ? ' opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        ADD TO CART
+                      </button>
+                      <a
+                        href={banner.viewDetailLink || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`bg-white text-black px-5 py-2 font-bold mb-2 ${!banner.viewDetailLink ? ' opacity-50 pointer-events-none' : ''}`}
+                      >
+                        VIEW DETAIL
+                      </a>
+                    </div>
+                    <div className="flex flex-col items-center gap-1 mt-1 mb-2">
+                      <div className="text-base font-bold text-white">{banner.subtitle || "No Subtitle"}</div>
+                      <div className="text-sm font-semibold text-white tracking-tight px-4 text-center">{banner.subDescription || "No Sub Description"}</div>
+                    </div>
+                  </div>
+                  {/* Front Image only for mobile */}
+                  <img
+                    src={banner.frontImg?.url || "/placeholder.jpg"}
+                    alt={banner.title ? `${banner.title} Front` : "Front"}
+                    className="object-cover w-full max-h-[60vh] rounded-lg shadow-lg z-0"
+                  />
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          {/* Pagination dots */}
+          <div className="flex justify-center gap-2 mt-4">
+            {banners.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setSelectedIndex(index)}
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${index === selectedIndex ? "bg-black w-6" : "bg-black/30"}`}
+                aria-label={`Go to slide ${index + 1}`}
               />
-            </div>
-
-            {/* Show Search Results first if available */}
-            {query && relatedPackages.length > 0 && (
-              <>
-                <h2 className="mt-4 text-xl font-medium mb-2 font-barlow">Search Results: {query}</h2>
-                <ul className="mt-2 border rounded-md shadow-sm bg-white max-h-[25rem] overflow-y-auto">
-                  {relatedPackages.map((pkg, index) => (
-                    <li
-                      key={index}
-                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center space-x-4"
-                      onClick={() => handlePackageClick(pkg?._id, pkg?.packageName)}
-                    >
-                      <Image
-                        src={typeof pkg?.basicDetails?.thumbnail?.url === "string" && pkg.basicDetails.thumbnail.url.trim() !== "" ? pkg.basicDetails.thumbnail.url : "/placeholder.jpg"}
-                        width={1280} height={720} quality={50}
-                        alt={pkg?.packageName}
-                        className="w-24 h-24 rounded-md object-cover"
-                      />
-                      <div>
-                        <p className="font-medium">{pkg?.packageName}</p>
-                        <p className="text-xs flex items-center font-medium text-gray-500">
-                          <MapPin className="h-4 w-4 mr-1 mt-1 " />
-                          {pkg?.basicDetails?.location}
-                        </p>
-
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-            {/* Show You Might Also Like only if there are packages and either no search or no results */}
-            {(!query || relatedPackages.length === 0) && packages && packages.length > 0 && (
-              <>
-                <h2 className="mt-4 text-xl font-medium mb-2 font-barlow">You Might Also Like</h2>
-                <ul className="border rounded-md shadow-sm bg-white max-h-[25rem] overflow-y-auto">
-                  {packages.map((pkg, index) => (
-                    <li
-                      key={index}
-                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center space-x-4"
-                      onClick={() => handlePackageClick(pkg?._id, pkg?.packageName)}
-                    >
-                      <Image
-                        src={typeof pkg?.basicDetails?.thumbnail?.url === "string" && pkg.basicDetails.thumbnail.url.trim() !== "" ? pkg.basicDetails.thumbnail.url : "/placeholder.jpg"}
-                        width={1280} height={720} quality={50}
-                        alt={pkg?.packageName}
-                        className="w-20 h-20 rounded-md object-cover"
-                      />
-                      <div className="flex items-end gap-4 w-full">
-                        <div>
-                          <p className="font-semibold text-lg">{pkg?.packageName}</p>
-                          <p className="flex flex-row items-center justify-between gap-2 font-barlow text-blue-600 text-sm font-semibold">
-                            <span className="flex items-center gap-2">
-                              <MapPin className="h-4 w-4" />
-                              {pkg?.basicDetails?.location}
-                            </span>
-                            <span className="flex items-center gap-2">
-                              <CalendarClock className="h-4 w-4" />
-                              {pkg?.basicDetails?.duration} Days {pkg?.basicDetails?.duration - 1} Nights
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-
-            {/* Recent Searches */}
-            {recentSearches.length > 0 && (
-              <div className="mt-4">
-                <p className="text-sm text-gray-500">Recent Packages</p>
-                <ul className="mt-2 border rounded-md shadow-sm bg-white">
-                  {recentSearches.map((search, index) => (
-                    <li
-                      key={index}
-                      className="flex justify-between items-center px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                      onClick={() => handlePackageClick(search.id, search.name)}
-                    >
-                      <span>{search.name}</span>
-                      <X className="h-4 w-4 text-gray-400 hover:text-red-500" onClick={(e) => {
-                        e.stopPropagation();
-                        const filteredSearches = recentSearches.filter(item => item.id !== search.id);
-                        setRecentSearches(filteredSearches);
-                        localStorage.setItem("recentSearches", JSON.stringify(filteredSearches));
-                      }} />
-                    </li>
-                  ))}
-                </ul>
-                <button onClick={clearRecentSearches} className="text-sm text-red-500 mt-2 hover:underline">
-                  Clear recent searches
-                </button>
-              </div>
-            )}
-            <div className="sticky bottom-4 pb-4 translate-y-1/2  w-full bg-white">
-              <Button onClick={handleSubmit} className="w-full uppercase text-base mt-4 bg-blue-600 hover:bg-blue-700 mx-auto">Search</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            ))}
+          </div>
+        </Carousel>
       </div>
 
     </section>

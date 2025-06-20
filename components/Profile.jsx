@@ -6,6 +6,8 @@ import toast from "react-hot-toast";
 import { statesIndia } from "@/lib/IndiaStates";
 
 const Profile = () => {
+  // Ensure sortedStates is a sorted copy for dropdown
+  const sortedStates = [...statesIndia].sort();
   const { data: session } = useSession();
   const [newsletter, setNewsletter] = useState(false);
 
@@ -153,12 +155,9 @@ const Profile = () => {
           <label className="block mb-1 font-medium text-[15px]">State</label>
           <select {...form.register("state")} className="w-full border rounded-lg px-4 py-2 bg-white focus:outline-pink-600">
             <option value="">Select State</option>
-            {statesIndia[0].states
-              .map(s => s.state)
-              .sort()
-              .map((state, idx) => (
-                <option key={idx} value={state}>{state}</option>
-              ))}
+            {sortedStates.map((state, idx) => (
+              <option key={idx} value={state}>{state}</option>
+            ))}
           </select>
         </div>
         {/* Postal Code */}
