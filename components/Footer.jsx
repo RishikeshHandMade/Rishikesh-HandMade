@@ -42,15 +42,13 @@ const Footer = () => {
     return (
         <footer className={`print:hidden ${pathName.includes('admin') && 'hidden'}
          ${pathName.includes('artisan') && 'block'} 
-        
         ${pathName.includes('product') && 'block'} ${pathName.includes('customEnquiry') && 'hidden'} ${pathName.includes('checkout') && 'hidden'}  ${pathName.includes('category') && 'block'} 
         bg-black text-white py-4`}>
             <div className="w-full flex justify-center pb-8">
                 <div className="h-[3px] bg-gray-300 w-full mx-auto px-4" />
             </div>
-
-            <div className="flex flex-wrap lg:justify-between justify-evenly md:gap-20 lg:gap-0 gap-12 max-w-[22rem] md:max-w-[45rem] lg:max-w-[60rem] xl:max-w-6xl mx-auto">
-                <div className="flex flex-col gap-2">
+            <div className="flex flex-wrap lg:justify-between px-10 justify-start md:gap-20 lg:gap-0 gap-12 max-w-[22rem] md:maxw-[45rem] lg:max-w-[60rem] xl:max-w-6xl mx-auto">
+                <div className="flex flex-col gap-2 px-5">
                     <h1 className="font-semibold text-xl my-4">Main Menu</h1>
                     {pages.filter(page => !page?.link?.includes('policy')).map(page => (
                         <Link key={page._id} href={page.url} className="block text-white font-barlow ">
@@ -60,16 +58,16 @@ const Footer = () => {
                     <Link href={'/contact'} className="block text-white font-barlow ">Contact</Link>
                 </div>
 
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2 px-6">
                     <h1 className="font-semibold text-xl my-4">Our Policy</h1>
                     {pages.filter(page => page?.link?.includes('policy')).map(page => (
-                        <Link key={page._id} href={page.url} className="block text-white font-barlow ">
+                        <Link key={page._id} href={page.url} className="block text-white font-barlow">
                             {page.title}
                         </Link>
                     ))}
                 </div>
 
-                <div className="flex flex-col  gap-8">
+                <div className="flex flex-col gap-8">
                     <div>
                         <h1 className="font-semibold text-xl flex items-center gap-2"><Phone className="text-blue-600" /> More Inquiry</h1>
                         <Link href={'tel:+917351009107'} className="my-2 block rounded-full px-5 py-1 font-barlow text-white  ">
@@ -79,13 +77,13 @@ const Footer = () => {
                     <div>
                         <h1 className="font-semibold text-xl flex items-center gap-2"><Send className="text-blue-600" /> Send Mail</h1>
                         <Link href={'mailto:info@rishikeshhandmade.com'} className="my-2 block rounded-full px-5 font-barlow text-white ">
-                            Info@rishikeshhandmade.com
+                            info@rishikeshhandmade.com
                         </Link>
                         <Link href={'mailto:rishikeshhandmade@gmail.com'} className="my-2 block rounded-full px-5 font-barlow text-white ">
                             rishikeshhandmade@gmail.com
                         </Link>
-                        <Link href={'mailto:Sale@rishikeshhandmade.com'} className="my-2 block rounded-full px-5 font-barlow text-white ">
-                            Sale@rishikeshhandmade.com
+                        <Link href={'mailto:sale@rishikeshhandmade.com'} className="my-2 block rounded-full px-5 font-barlow text-white ">
+                            sale@rishikeshhandmade.com
                         </Link>
                         <Link href={'mailto:support@rishikeshhandmade.com'} className="my-2 block rounded-full px-5 font-barlow text-white ">
                             support@rishikeshhandmade.com
@@ -93,20 +91,12 @@ const Footer = () => {
                     </div>
                     <div>
                         <h1 className="font-semibold text-xl flex items-center gap-2"><MapPin className="text-blue-600" /> Address</h1>
-                       <p className="my-2 px-5 font-barlow text-white ">Upper Road Dhalwala (Rishikesh) 
+                       <p className="my-2 px-5 font-barlow text-white mb-5">Upper Road Dhalwala (Rishikesh) 
                         <br />
                         Tehri Garhwal,Uttarakhand 249201
                        </p>
                     </div>
                 </div>
-                {/* <div className="flex flex-col items-center lg:items-start gap-8">
-                    <div>
-                        <h1 className="font-semibold text-xl flex justify-center lg:justify-normal items-center gap-2">We Are Here</h1>
-                        <p className="my-2 font-barlow max-w-72 text-justify text-gray-900">
-                            YatraZone is more than just a travel company; we are facilitators of spiritual exploration and cultural immersion tailored for Indian pilgrims and global adventurers.
-                        </p>
-                    </div>
-                </div> */}
             </div>
             {/* Accordance Section */}
             <div className="w-full flex justify-center">
@@ -152,8 +142,8 @@ const Footer = () => {
                 </CardFooter>
             </Card>
             <div className="flex flex-col lg:flex-row items-center justify-center max-w-[25rem] md:max-w-[60rem] xl:max-w-6xl mx-auto font-barlow">
-                <p className="text-black text-center my-4">
-                    &copy; <CurrentYear /> <Link href={'/'} className="font-bold">Rishikesh Handmade</Link>. All rights reserved
+                <p className="text-black text-center my-4 text-white">
+                    &copy; <CurrentYear /> <Link href={'/'} className="font-bold text-white">Rishikesh Handmade</Link>. All rights reserved
                 </p>
             </div>
         </footer >

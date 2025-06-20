@@ -17,17 +17,12 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, se
   const isWishlisted = wishlist?.some?.(i => i.id === pkg._id)
   const formatNumber = (number) => new Intl.NumberFormat('en-IN').format(number)
 
-  // Determine if discount exists
-  const hasDiscount = pkg.originalPrice && pkg.price && pkg.originalPrice > pkg.price;
-
   return (
-    <div className="flex flex-col w-[250px] rounded-3xl mb-2 group cursor-pointer">
+    <div className="flex flex-col w-58 md:w-[250px] rounded-3xl mb-2 group cursor-pointer">
       {/* Image Section */}
       <div className="relative w-full h-80 rounded-3xl overflow-hidden flex items-center justify-center group/image">
         {/* GET 10% OFF Tag */}
         <div className="absolute top-6 left-4 z-10">
-
-
           {(() => {
             const coupon = pkg.coupon || pkg.coupons?.coupon;
             if (!coupon?.couponCode) return null;
@@ -44,7 +39,7 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, se
             }
 
             return (
-              <div className="bg-white rounded-full px-4 py-1 text-sm font-bold shadow text-black tracking-tight" style={{ letterSpacing: 0 }}>
+              <div className="bg-white rounded-full px-4 py-1 text-xs md:text-sm font-bold shadow text-black tracking-tight" style={{ letterSpacing: 0 }}>
                 {offerText}
               </div>
             );
@@ -146,7 +141,7 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, se
         </div>
         <Image
           src={pkg?.gallery?.mainImage?.url || "/product.jpeg"}
-          alt={pkg?.title || "Tour package image"}
+          alt={pkg?.title || "Product Image"}
           width={400}
           height={500}
           quality={60}
@@ -168,7 +163,7 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, se
       <div className="flex flex-col items-start justify-between px-2 pt-4 pb-2 mt-0">
         <Link
           href={`/product/${pkg._id}`}
-          className="font-bold hover:underline text-xl text-gray-900 leading-tight truncate cursor-pointer"
+          className="font-bold hover:underline text-md md:text-xl text-gray-900 leading-tight truncate cursor-pointer"
         >
           {pkg?.title}
         </Link>
@@ -189,17 +184,16 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, se
             discountedPrice = price;
             hasDiscount = true;
           }
-
           if (hasDiscount && discountedPrice < originalPrice) {
             return (
               <span>
-                <span className="font-semibold text-xl text-black px-2">₹{formatNumber(Math.round(discountedPrice))}</span>
-                <del className="text-black font-semibold text-md mr-2">₹{formatNumber(originalPrice)}</del>
+                <span className="font-semibold text-md md:text-xl text-black px-2">₹{formatNumber(Math.round(discountedPrice))}</span>
+                <del className="text-black font-semibold text-md md:text-xl mr-2">₹{formatNumber(originalPrice)}</del>
               </span>
             );
           } else {
             return (
-              <span className="font-semibold text-xl text-black">₹{formatNumber(price)}</span>
+              <span className="font-semibold text-md md:text-xl text-black">₹{formatNumber(price)}</span>
             );
           }
         })()}

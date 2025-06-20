@@ -270,7 +270,7 @@ const RandomTourPackageSection = () => {
   return (
     <section className="bg-[#fcf7f1] md:mt-19 w-full px-4 overflow-hidden max-w-screen overflow-x-hidden">
       <div className=" w-full h-full overflow-hidden max-w-screen">
-        {/* Proudct Section */}
+        {/* Product Section */}
         <div className="w-full py-5 px-1 ">
           <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mt-10 uppercase">
             Trending Products: The Best, Today
@@ -596,9 +596,6 @@ const RandomTourPackageSection = () => {
         {/* Artisan Carousel Section */}
         <div className="w-full md:mt-10">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-8 uppercase">Meet Our Artisans</h2>
-
-
-
           {/* Desktop: Grid/List */}
           <div className="w-full max-w-[90%] mx-auto mb-16">
             <div className="flex flex-col md:flex-row items-start gap-5">

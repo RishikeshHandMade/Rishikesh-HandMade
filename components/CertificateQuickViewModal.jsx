@@ -5,7 +5,7 @@ import { X } from "lucide-react";
 export default function CertificateQuickViewModal({ open, onClose, certificate }) {
   if (!open || !certificate) return null;
   return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-60 flex items-center justify-center  bg-[#fcf7f1]">
+    <div className="fixed inset-0 z-50 bg-black bg-opacity-60 flex items-center justify-center bg-[#fcf7f1]">
       <div className="bg-white rounded-3xl shadow-lg max-w-lg w-full relative overflow-hidden flex flex-col p-0">
         {/* Close button */}
         <button onClick={onClose} className="absolute top-4 right-4 z-20 bg-gray-200 hover:bg-gray-300 rounded-full p-2 shadow-md">
@@ -13,19 +13,19 @@ export default function CertificateQuickViewModal({ open, onClose, certificate }
         </button>
         {/* Full-width image */}
         <img
-          src={certificate.imageUrl || certificate.image}
+          src={certificate.imageUrl?.url || certificate.imageUrl}
           alt={certificate.title}
-          className="w-full h-80 object-cover mb-0 rounded-t-3xl"
+          className="w-full h-60 md:h-80 object-cover mb-0 rounded-t-3xl"
         />
         {/* Text content */}
-        <div className="flex flex-col items-start px-8 py-6">
-          <div className="font-bold text-3xl mb-4 text-gray-900">Name :{certificate.title}</div>
+        <div className="flex flex-col items-start px-5 py-6">
+          <div className="font-bold text-2xl md:text-3xl mb-4 text-gray-900">Name :{certificate.title}</div>
           {certificate.issueDate && <div className="text-lg text-gray-700 mb-2"><span className="font-bold">Issue Date:</span> {certificate.issueDate}</div>}
           {certificate.issuedBy && <div className="text-lg text-gray-700 mb-2"><span className="font-bold">Issued By:</span> {certificate.issuedBy}</div>}
           {certificate.specialization && <div className="text-lg text-gray-700 mb-2"><span className="font-bold">Specialization:</span> {certificate.specialization}</div>}
           {certificate.description && <div className="text-lg text-gray-700 mb-2"><span className="font-semibold">Description:</span> {certificate.description}</div>}
         </div>
-        <div className="flex justify-end pt-2 px-8 pb-6">
+        <div className="flex justify-end pt-2 px-5 pb-6">
           <button onClick={onClose} className="bg-black text-white px-6 py-2 rounded-full hover:bg-gray-800 shadow">Close</button>
         </div>
       </div>

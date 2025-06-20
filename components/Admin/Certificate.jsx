@@ -206,7 +206,7 @@ const Certificate = ({ artisanId, artisanDetails = null }) => {
       issuedBy: certificateIssueFrom,
       description: selectedSpec,
       artisan: selectedArtisan,
-      imageUrl: selectedImage?.url || '',
+      imageUrl: selectedImage || '',
     };
 
     try {
@@ -388,35 +388,35 @@ const Certificate = ({ artisanId, artisanDetails = null }) => {
                       </div>
                     )}
                     {selectedImage && (
-  <div className="flex justify-center mt-3">
-    <button
-      type="button"
-      className="bg-red-600 text-white px-4 py-2 rounded flex items-center justify-center gap-2"
-      onClick={handleRemoveImage}
-      disabled={removingImage}
-    >
-      {removingImage && (
-        <svg className="animate-spin h-4 w-4 mr-1 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-        </svg>
-      )}
-      Remove Image
-    </button>
-  </div>
-)}
+                      <div className="flex justify-center mt-3">
+                        <button
+                          type="button"
+                          className="bg-red-600 text-white px-4 py-2 rounded flex items-center justify-center gap-2"
+                          onClick={handleRemoveImage}
+                          disabled={removingImage}
+                        >
+                          {removingImage && (
+                            <svg className="animate-spin h-4 w-4 mr-1 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                            </svg>
+                          )}
+                          Remove Image
+                        </button>
+                      </div>
+                    )}
 
                   </div>
                   <div className="text-center mt-3">
 
-                  {isEditMode && (
-                    <button type="button" className="bg-gray-400 text-white px-5 py-2 rounded mr-2" onClick={handleCancelEdit} disabled={loading}>
-                      Cancel
+                    {isEditMode && (
+                      <button type="button" className="bg-gray-400 text-white px-5 py-2 rounded mr-2" onClick={handleCancelEdit} disabled={loading}>
+                        Cancel
+                      </button>
+                    )}
+                    <button type="submit" className="bg-red-600 text-white px-5 py-2 rounded" disabled={loading}>
+                      {loading ? 'Saving...' : (isEditMode ? 'Update' : 'Data Save')}
                     </button>
-                  )}
-                  <button type="submit" className="bg-red-600 text-white px-5 py-2 rounded" disabled={loading}>
-                    {loading ? 'Saving...' : (isEditMode ? 'Update' : 'Data Save')}
-                  </button>
                   </div>
                 </div>
               </form>
@@ -528,7 +528,7 @@ const Certificate = ({ artisanId, artisanDetails = null }) => {
                       </div>
                       <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
                         <div className="font-semibold text-gray-800">Image</div>
-                        <div className="text-gray-600"><img src={selectedCertificate.imageUrl} alt="Certificate" className="w-56 h-36 object-cover rounded mt-2" /></div>
+                        <div className="text-gray-600"><img src={selectedCertificate.imageUrl?.url} alt="Certificate" className="w-56 h-36 object-cover rounded mt-2" /></div>
                       </div>
                     </div>
                     <button className=" absolute w-8 h-8 top-2 right-2 text-gray-700 hover:text-red-600" onClick={handleCloseViewModal}>

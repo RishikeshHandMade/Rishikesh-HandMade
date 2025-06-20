@@ -55,7 +55,7 @@ const CategoryPage = async ({ params }) => {
   // products is now an array of full product objects
   const products = Array.isArray(categoryData.products) ? categoryData.products : [];
   const visibleProducts = products.filter(prod => prod.active !== false);
-  console.log(visibleProducts)
+  // console.log(visibleProducts)
   const categoryInfo = await getCategoryInfo(categoryData);
 
   // Fetch category advertisement banner
@@ -114,14 +114,14 @@ const CategoryPage = async ({ params }) => {
 
           {/* Middle Section: Category Cards + Package Cards */}
           <div className="flex-1 gap-4">
+            {/* Category Cards Row */}
             <div>
               <h2 className="text-2xl font-bold px-4">Category</h2>
-              {/* Category Cards Row */}
               <Carousel className="w-full mx-auto my-4">
-                <CarouselContent className=" w-full gap-2">
+                <CarouselContent className="w-full gap-5">
                   {Array.isArray(allCategories) && allCategories.flatMap(cat =>
                     Array.isArray(cat.subMenu) ? cat.subMenu.map((sub, idx) => (
-                      <CarouselItem key={`${cat._id || cat.title || idx}-${sub._id || sub.url || idx}`} className="md:basis-1/5 lg:basis-1/5 min-w-0 snap-start">
+                      <CarouselItem key={`${cat._id || cat.title || idx}-${sub._id || sub.url || idx}`} className="basis-1/2 md:basis-1/5 lg:basis-1/5 min-w-0 snap-start">
                         <CategoryCard category={{
                           title: sub.title,
                           profileImage: sub.profileImage,
@@ -136,8 +136,8 @@ const CategoryPage = async ({ params }) => {
               </Carousel>
             </div>
             < div className="h-[1px] bg-gray-300"></div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 my-4">
-              {/* Package Cards Row */}
+            {/* Product Cards Row */}
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 my-4">
               {visibleProducts.length === 0 ? (
                 <div className="col-span-full text-center py-8">
                   <h3 className="text-xl font-medium text-gray-600">No products found for this category</h3>

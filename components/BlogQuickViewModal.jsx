@@ -19,7 +19,7 @@ export default function BlogQuickViewModal({ open, onClose, blog }) {
         </button>
         {/* Media: image or YouTube */}
         {images.length > 0 ? (
-          <Carousel className="w-full h-80">
+          <Carousel className="w-full h-60 md:h-80">
             <CarouselContent className="">
               {images.map((img, idx) => {
                 if (img.isYoutube || (img.url && /^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//.test(img.url))) {
@@ -39,7 +39,7 @@ export default function BlogQuickViewModal({ open, onClose, blog }) {
                         title={blog.title}
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
-                        className="w-full h-80 border-0 rounded-t-3xl"
+                        className="w-full h-60 md:h-80 border-0 rounded-t-3xl"
                       />
                     </CarouselItem>
                   );
@@ -50,7 +50,7 @@ export default function BlogQuickViewModal({ open, onClose, blog }) {
                       <img
                         src={img.url}
                         alt={blog.title}
-                        className="object-cover w-full h-80 rounded-t-3xl"
+                        className="object-cover w-full h-60 md:h-80 rounded-t-3xl"
                       />
                     </CarouselItem>
                   );
@@ -71,7 +71,7 @@ export default function BlogQuickViewModal({ open, onClose, blog }) {
         )}
         {/* Blog content */}
         <div className="flex flex-col items-start px-6 py-4">
-          <div className="font-bold text-3xl mb-4 text-gray-900">{blog.title}</div>
+          <div className="font-bold text-xl md:text-3xl mb-4 text-gray-900">{blog.title}</div>
           {blog.shortText && <div className="text-xl text-gray-700 mb-2">{blog.shortText}</div>}
           {blog.shortDescription && <div className="text-base text-gray-800 mb-4">{blog.shortDescription}</div>}
           {blog.longDescription && <div className="text-base text-gray-700 whitespace-pre-line mb-2 max-h-32 overflow-y-auto">{blog.longDescription}</div>}

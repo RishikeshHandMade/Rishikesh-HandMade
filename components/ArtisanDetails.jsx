@@ -117,7 +117,7 @@ const CertificateImage = ({ cert, className = "", onClick }) => {
       style={{ cursor: 'pointer' }}
     >
       <img
-        src={cert.imageUrl || cert.image}
+        src={cert.imageUrl?.url || cert.imageUrl}
         alt={cert.title}
         className={`object-cover w-full h-full rounded-2xl transition-transform duration-200 ${hovered ? 'scale-105 brightness-90' : ''}`}
       />
@@ -131,7 +131,7 @@ const CertificateImage = ({ cert, className = "", onClick }) => {
 };
 
 const ArtisanDetails = ({ artisan }) => {
-  console.log(artisan)
+  // console.log(artisan)
   const { addToCart, addToWishlist, removeFromWishlist, wishlist } = useCart();
   // --- Helper for Add to Cart with discount/coupon logic ---
   const handleAddToCart = (item) => {
@@ -190,7 +190,7 @@ const ArtisanDetails = ({ artisan }) => {
       .then(data => setOtherArtisans(data))
       .catch(err => setOtherArtisans([]));
   }, [artisan._id]);
-  console.log(artisan)
+  // console.log(artisan)
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const [showShareBox, setShowShareBox] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -272,54 +272,59 @@ const ArtisanDetails = ({ artisan }) => {
   };
 
   return (
-    <div className="relative min-h-screen  bg-gradient-to-br from-amber-50 to-white flex flex-col items-center px-2 md:px-0">
+    <div className="relative min-h-screen bg-gradient-to-br from-amber-50 to-white flex flex-col items-center px-2 md:px-0">
       {/* Top section: Image left, details right */}
-      <div className="relative w-full overflow-visible  mb-10 bg-[#f9f6f1]">
+      <div className="relative w-full overflow-visible mb-10 bg-[#f9f6f1]">
         {/* Banner Background Image */}
-        <div className="inset-0 h-[300px] w-full object-cover object-center brightness-100 z-0 overflow-hidden">
+        <div className="inset-0 h-[250px] md:h-[300px] w-full object-cover object-center brightness-100 z-0 overflow-hidden object-cover">
           <img src={artisan.artisanBanner?.image?.url || artisan.artisanBanner?.image || "/placeholder.jpeg"} className="w-full h-full object-cover brightness-100 " alt="Office" />
         </div>
         {/* Overlay Content */}
-        <div className="relative w-[80%] mx-auto flex flex-row items-start pt-0 px-0 pb-8">
+        <div className="relative w-full px-2 md:w-[80%] mx-auto flex flex-col md:flex-row items-start pt-0 px-0 pb-8">
           {/* Profile Image: Overlapping Banner */}
-          <div className="absoute 0 flex-shrink-0 -mt-32 ml-12 mr-10">
-            <div className="bg-white rounded-lg shadow-xl border-4 border-white overflow-hidden w-72 h-[350px] flex items-center justify-center">
+          <div className="hidden md:flex absoute flex-shrink-0 -mt-32 ml-12 mr-10">
+            <div className="bg-white rounded-lg shadow-xl border-4 border-white overflow-hidden  w-72 h-[350px] flex items-center justify-center">
               <img src={artisan.image || artisan.profileImage?.url || 'https://randomuser.me/api/portraits/men/32.jpg'} alt={artisan.firstName + ' ' + artisan.lastName} className="object-cover w-full h-full" />
+            </div>
+          </div>
+          <div className="flex md:hidden flex-shrink-0 mx-auto">
+            <div className="bg-white rounded-lg shadow-xl border-4 border-white overflow-hidden w-60 h-[300px] flex items-center justify-center">
+              <img src={artisan.image || artisan.profileImage?.url || 'placeholder.jpeg'} alt={artisan.firstName + ' ' + artisan.lastName} className="object-cover w-full h-full" />
             </div>
           </div>
           {/* Details Card */}
           <div className="flex-1 flex flex-col gap-2 mt-8 md:mt-8 md:ml-0 bg-transparent">
             <div className="flex flex-col gap-2">
-              <div className="text-2xl md:text-2xl font-bold leading-tight flex items-center">Name: <span className="text-2xl md:text-2xl align-middle font-semibold"> {artisan.title}{artisan.firstName} {artisan.lastName}</span></div>
+              <div className="text-md md:text-2xl font-bold leading-tight flex items-center">Name: <span className="text-md md:text-2xl align-middle font-semibold"> {artisan.title}{artisan.firstName} {artisan.lastName}</span></div>
               <div className="flex gap-3">
-                <div className="font-bold text-2xl mt-1 mb-1 text-xl flex items-center pr-2 border-r-4 border-black">SHG : <span className="font-normal text-md ">{artisan.shgName || 'No SHG Name Avaiable'}</span></div>
-                <div className="font-bold text-2xl mt-1 mb-1 text-xl flex items-center"> Artisan Number: <span className="font-normal text-md">{artisan.artisanNumber || 'Artisan Number Not Available'}</span></div>
+                <div className="font-bold text-md mt-1 mb-1 md:text-2xl flex items-center pr-2 border-r-4 border-black">SHG : <span className="font-normal text-md">{artisan.shgName || 'No SHG Name Avaiable'}</span></div>
+                <div className="font-bold text-md mt-1 mb-1 md:text-2xl flex items-center"> Artisan Number: <span className="font-normal text-md">{artisan.artisanNumber || 'Artisan Number Not Available'}</span></div>
               </div>
             </div>
-            <div className="mt-2 text-xl md:text-2xl font-bold text-black">{artisan.yearsOfExperience || '0'} Years of Experience</div>
-            <div className="font-bold text-xl mt-2">Specializations</div>
+            <div className="mt-2 text-md md:text-2xl font-bold text-black">{artisan.yearsOfExperience || '0'} Years of Experience</div>
+            <div className="font-bold text-md md:text-xl mt-2">Specializations:</div>
             <div className="flex gap-3 flex-wrap mb-2">
               {(artisan.specializations || ['No Specializations']).map((spec, i) => (
-                <span key={i} className="bg-gray-200 rounded-full px-5 py-1 text-base font-semibold tracking-tight border border-gray-300">{spec}</span>
+                <span key={i} className="bg-gray-200 rounded-full px-4 py-1 text-base font-semibold tracking-tight border border-gray-300">{spec}</span>
               ))}
             </div>
-            <div className="font-bold mt-2 text-2xl">Pincode: <span className="font-normal text-md">{artisan.address?.pincode || 'No Pincode'}</span></div>
-            <div className="font-bold mt-2 text-2xl">Address: <span className="font-normal text-">{artisan.address?.fullAddress || 'No Address'}</span></div>
-            <div className="flex items-center gap-5 mt-2 mb-2">
+            <div className="font-bold mt-2 text-md md:text-2xl">Pincode: <span className="font-normal text-md">{artisan.address?.pincode || 'No Pincode'}</span></div>
+            <div className="font-bold mt-2 text-md md:text-2xl">Address: <span className="font-normal text-md">{artisan.address?.fullAddress || 'No Address'}</span></div>
+            <div className="flex items-center gap-4 mt-2 mb-2">
               <div className='flex items-center gap-2 mt-2 mb-2 px-4 border-r-4 border-black'>
                 {/* Email icon */}
                 {artisan.contact.email && (
-                  <a href={`mailto:${artisan.contact.email}`} className="text-gray-700 hover:text-emerald-600" title="Email">
+                  <a href={`mailto:${artisan.contact?.email}`} className="text-gray-700 hover:text-emerald-600" title="Email">
                     <Mail size={25} />
                   </a>
                 )}
                 {/* Phone icon */}
                 {artisan.contact.callNumber && (
-                  <a href={`tel:${artisan.contact.callNumber}`} className="text-gray-700 hover:text-lime-600" title="Call">
+                  <a href={`tel:${artisan.contact?.callNumber}`} className="text-gray-700 hover:text-lime-600" title="Call">
                     <Phone size={25} />
                   </a>
                 )}
-                {artisan.contact.whatsappNumber && (
+                {artisan.contact?.whatsappNumber && (
                   <a
                     href={`https://wa.me/${artisan.contact.whatsappNumber}`}
                     className="text-gray-700 hover:text-lime-600 flex items-center "
@@ -389,15 +394,14 @@ const ArtisanDetails = ({ artisan }) => {
                   </a>
                 )}
               </div>
-              <div className="flex flex-row items-center justify-between mt-2 w-[25%]">
+              <div className="flex flex-row items-center justify-center mt-2">
                 <button
-                  className="bg-black text-white font-bold w-full px-10 py-2 rounded-md shadow hover:bg-gray-900 transition-all text-base"
+                  className="bg-black text-white font-bold w-fit px-5 py-2 rounded-md shadow hover:bg-gray-900 transition-all text-base"
                   onClick={() => setShowExpertModal(true)}
                 >
                   Ask An Expert
                 </button>
               </div>
-
               {/* Modal for Ask An Expert */}
               {showExpertModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
@@ -529,13 +533,10 @@ const ArtisanDetails = ({ artisan }) => {
               )}
             </div>
           </div>
-
-
         </div>
       </div>
-
       {/* My Story Section */}
-      {Array.isArray(artisan.artisanStories) && artisan.artisanStories.length > 0 && (
+      {artisan.artisanStories && (
         <div className="w-full max-w-7xl my-5 px-2 md:px-0">
           <h2 className="text-3xl font-bold mb-4 w-fit ">
             <span className='border-t-4 border-black'>
@@ -546,19 +547,19 @@ const ArtisanDetails = ({ artisan }) => {
             {/* <span className="font-bold">( Short Description )</span> */}
             <span className="">{artisan.artisanStories?.shortDescription || 'No short description available.'}</span>
           </div>
-          <div className="flex flex-col md:flex-row gap-8 items-start bg-[#fffaf4] p-6  shadow">
+          <div className="flex flex-col md:flex-row gap-8 items-center bg-[#fffaf4] p-6 shadow">
             {/* Left: Image */}
-            <div className="flex-shrink-0 w-full md:w-[320px] flex justify-center items-center">
+            <div className="flex-shrink-0 w-[250px] md:w-[320px] flex justify-center items-center">
               <img
-                src={artisan.artisanStories?.image || '/placeholder.jpeg'}
+                src={artisan.artisanStories?.images?.url || '/placeholder.jpeg'}
                 alt="Artisan"
-                className="rounded-2xl object-cover w-[350px] h-[350px] shadow-md"
+                className="rounded-2xl object-cover w-[250px] h-[250px] shadow-md"
               />
             </div>
             {/* Right: Detail Description */}
             <div className="flex-1 flex flex-col h-full justify-between w-full">
               <div>
-                <h3 className="text-2xl font-bold mb-2 underline">Detail Description</h3>
+                <h3 className="text-xl md:text-2xl font-bold mb-2 underline">Detail Description</h3>
                 <div className="text-xl font-sans mb-5">
                   {artisan.artisanStories?.title || (
                     <>
@@ -606,11 +607,11 @@ const ArtisanDetails = ({ artisan }) => {
                 products.map((item, index) => (
                   <CarouselItem
                     key={index}
-                    className="pl-5 md:basis-1/2 lg:basis-1/4 min-w-0 snap-start"
+                    className="pl-5 basis-1/2 md:basis-1/2 lg:basis-1/4 min-w-0 snap-start"
                   >
-                    <div className="flex flex-col w-[290px]">
+                    <div className="flex flex-col w-full md:w-[290px]">
                       {/* Image Section */}
-                      <div className="relative w-full h-96 rounded-3xl overflow-hidden flex items-center justify-center group/image">
+                      <div className="relative w-full h-80 md:h-96 rounded-3xl overflow-hidden flex items-center justify-center group/image">
                         {/* --- Dynamic Coupon Tag --- */}
                         {(() => {
                           const coupon = item.coupon || item.coupons?.coupon;
@@ -717,7 +718,7 @@ const ArtisanDetails = ({ artisan }) => {
                       <div className="flex flex-col items-start justify-between px-1 pt-4 pb-2 mt-0">
                         <Link
                           href={`/product/${item._id}`}
-                          className="font-bold hover:underline text-xl text-gray-900 leading-tight truncate cursor-pointer"
+                          className="font-bold hover:underline text-md md:text-xl text-gray-900 leading-tight truncate cursor-pointer"
                         >
                           {item?.title}
                         </Link>
@@ -736,13 +737,13 @@ const ArtisanDetails = ({ artisan }) => {
                           if (hasDiscount && discountedPrice < price) {
                             return (
                               <span>
-                                <del className="text-black font-bold text-xl mr-2">₹{formatNumeric(price)}</del>
-                                <span className="font-bold text-xl text-black px-2">₹{formatNumeric(Math.round(discountedPrice))}</span>
+                                <del className="text-black font-bold text-md md:text-xl mr-2">₹{formatNumeric(price)}</del>
+                                <span className="font-bold text-md md:text-xl text-black px-2">₹{formatNumeric(Math.round(discountedPrice))}</span>
                               </span>
                             );
                           } else {
                             return (
-                              <span className="font-bold text-xl text-black">₹{formatNumeric(price)}</span>
+                              <span className="font-bold text-md md:text-xl text-black">₹{formatNumeric(price)}</span>
                             );
                           }
                         })()}
@@ -758,7 +759,7 @@ const ArtisanDetails = ({ artisan }) => {
       )}
       {/* Blogs Section */}
       {Array.isArray(artisan.artisanBlogs) && artisan.artisanBlogs.length > 0 && (
-        <div className="w-full max-w-7xl mb-10">
+        <div className="w-full max-w-7xl mb-5">
           <h3 className="text-3xl font-bold mb-4 text-gray-800">
             <span className='border-t-4 border-black'>
               Blogs
@@ -784,10 +785,10 @@ const ArtisanDetails = ({ artisan }) => {
                   return (
                     <div
                       key={blog._id}
-                      className="flex flex-row bg-[#FFF3C9] rounded-3xl shadow-md min-h-[220px] w-full md:w-1/2 overflow-hidden"
+                      className="flex flex-col md:flex-row bg-[#FFF3C9] rounded-3xl shadow-md min-h-[220px] w-full md:w-1/2 overflow-hidden"
                     >
                       {/* Image section */}
-                      <div className="flex-shrink-0 w-1/2 md:w-2/5 flex items-center justify-center bg-[#E8A57B]">
+                      <div className="flex-shrink-0 w-full md:w-2/5 flex items-center justify-center bg-[#E8A57B]">
                         {(() => {
                           // Prefer image if present, else youtubeUrl
                           let mediaUrl = undefined;
@@ -855,7 +856,6 @@ const ArtisanDetails = ({ artisan }) => {
                             className="text-gray-700 font-semibold hover:underline flex items-center group transition focus:outline-none"
                           >
                             Read More  &gt;
-
                           </button>
                         </div>
                       </div>
@@ -869,12 +869,11 @@ const ArtisanDetails = ({ artisan }) => {
           </div>
         </div>
       )}
-
       {/* Reviews Section */}
       {Array.isArray(artisan.promotions) && artisan.promotions.length > 0 && (
-        <div className="w-full mx-auto mb-10 relative min-h-[600px] flex items-center justify-end relative">
+        <div className="w-full mx-auto relative min-h-[600px] flex items-center justify-end">
           {/* Background Image */}
-          <div className="absolute inset-0 w-full h-full z-0">
+          <div className="hidden md:flex absolute inset-0 w-full h-full z-0">
             <img
               src="/blogs.jpg"
               alt="Happy client"
@@ -884,8 +883,7 @@ const ArtisanDetails = ({ artisan }) => {
           </div>
 
           {/* Review Card Overlay */}
-          <div className="absolute right-1 top-[40%] z-10 flex flex-col justify-start w-full md:w-1/2 items-end pr-1">
-
+          <div className="hidden md:flex absolute right-1 top-[40%] z-10 flex flex-col justify-start w-full md:w-1/2 items-end pr-1">
             <Carousel className="w-full md:w-[600px]"
               plugins={[Autoplay({ delay: 4000 })]}>
 
@@ -919,7 +917,65 @@ const ArtisanDetails = ({ artisan }) => {
                       <div className="flex items-center justify-between w-full mt-auto">
                         <div className="flex items-center">
                           <img
-                            src={review.image || "/placeholder-user.jpg"}
+                            src={review.image?.url || "/placeholder-user.jpg"}
+                            alt={review.createdBy || 'Anonymous'}
+                            className="w-14 h-14 rounded-full border-4 border-white shadow object-cover"
+                          />
+                          <div className="ml-4 text-left">
+                            <div className="font-bold text-xl text-black">{review.createdBy || review.title || 'Anonymous'}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <div className="flex items-center gap-3">
+                <CarouselPrevious className="absolute top-[85%] left-[65%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
+                <CarouselNext className="absolute top-[85%] left-[80%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
+              </div>
+            </Carousel>
+          </div>
+          {/* Review Card Overlay */}
+          <div className="md:hidden flex flex-col justify-start w-full mb-10 items-start pr-1">
+            <h3 className="text-2xl font-bold mb-4 text-gray-800">
+              <span className='border-t-4 border-black '>
+                Review Section
+              </span></h3>
+            <Carousel className="w-full md:w-[600px]"
+              plugins={[Autoplay({ delay: 4000 })]}>
+
+              <CarouselContent className="w-full">
+                {artisan.promotions.map((review) => (
+                  <CarouselItem
+                    key={review._id}
+                    className="min-w-0 snap-center w-full"
+                  >
+                    <div className="bg-white rounded-3xl px-8 py-5 flex flex-col justify-between h-full min-h-[320px] relative overflow-visible">
+                      {/* Review text */}
+                      <div className="text-md md:text-2xl text-gray-800 font-bold leading-relaxed mb-2 text-left">
+                        {review.title || 'No review text.'}
+                      </div>
+
+                      <div className="absolute right-4 top-4 flex items-center gap-1">
+                        {review.rating && (
+                          <>
+                            {[...Array(review.rating)].map((_, i) => (
+                              <Star key={i} size={22} className="text-yellow-400 fill-yellow-400" />
+                            ))}
+                          </>
+                        )}
+                      </div>
+
+                      <div className="text-md md:text-md text-gray-800 font-medium leading-relaxed mb-2 text-left">
+                        {review.shortDescription || 'No review text.'}
+                      </div>
+
+                      {/* Bottom row: avatar, name, subtitle */}
+                      <div className="flex items-center justify-between w-full mt-auto">
+                        <div className="flex items-center">
+                          <img
+                            src={review.image?.url || "/placeholder-user.jpg"}
                             alt={review.createdBy || 'Anonymous'}
                             className="w-14 h-14 rounded-full border-4 border-white shadow object-cover"
                           />
@@ -942,26 +998,26 @@ const ArtisanDetails = ({ artisan }) => {
       )}
       {/* Certificate And Awards Section */}
       {Array.isArray(artisan.certificates) && artisan.certificates.length > 0 && (
-        <div className="w-full md:w-[90%] mx-auto my-10">
+        <div className="w-full md:w-[90%] my-10 mx-auto">
           <div className="flex flex-col items-start gap-8">
             {/* Left: Heading and description */}
             <div className="flex-1">
-              <h2 className="text-4xl md:text-5xl font-bold mb-2">
+              <h2 className="text-2xl md:text-4xl font-bold mb-2 md:mt-10">
                 <span className="border-t-4 border-black">
                   Certificate And Awards
                 </span>
               </h2>
             </div>
           </div>
-          <div className="w-full h-[500px] mx-auto flex flex-row items-start justify-center px-5 py-1 gap-8">
+          <div className="w-full h-full md:h-[500px] mx-auto flex flex-col md:flex-row items-start justify-center px-5 py-1 gap-8">
             {/* Left Column: Text */}
-            <div className="w-1/2 pr-6 flex flex-col justify-center h-full">
-              <p className="text-gray-700 text-xl text-justify leading-relaxed">
+            <div className="w-full md:w-1/2 pr-6 flex flex-col justify-center h-full">
+              <p className="text-gray-700 text-lg md:text-xl text-justify leading-relaxed">
                 We extend our heartfelt congratulations to you on the remarkable achievement of reaching your goal. Your dedication, skill, and unwavering commitment to excellence have truly set you apart. As an artisan, your work reflects not only your talent but also the passion and perseverance that define true craftsmanship. It is with great pride and admiration that we recognize your outstanding accomplishment. May this milestone be a stepping stone to even greater success in your journey. We are honored to celebrate this moment with you and look forward to your continued excellence.
               </p>
             </div>
             {/* Right Column: Certificate Grid */}
-            <div className="w-1/2 h-full flex flex-col items-center gap-4 overflow-hidden border-4 border-black rounded-xl">
+            <div className="w-full md:w-1/2 h-full flex flex-col items-center gap-4 overflow-hidden border-4 border-black rounded-xl">
               <CertificateSectionGrid
                 certificates={artisan.certificates}
                 onImageClick={(cert) => { setModalCertificate(cert); setShowCertificateModal(true); }}
@@ -971,20 +1027,19 @@ const ArtisanDetails = ({ artisan }) => {
           </div>
         </div>
       )}
-
       {/* Meet Other Artisans Section */}
-      <div className="w-full max-w-[90%] mx-auto mb-16 mt-16">
+      <div className="w-full max-w-[90%] mx-auto mb-16 mt-5">
         <div className="flex flex-col md:flex-row items-start gap-5 ">
           {/* Left: Heading and description */}
           <div className="flex-1 flex flex-col justify-center md:pr-8">
-            <h2 className="text-4xl md:text-4xl font-bold mb-4">Celebrating the Art of Craftsmanship. Honoring the Hands That Shape Beauty</h2>
-            <div className="text-lg md:text-md text-gray-700 mb-6">
+            <h2 className="text-2xl md:text-4xl font-bold mb-4">Celebrating the Art of Craftsmanship. Honoring the Hands That Shape Beauty</h2>
+            <div className="text-lg md:text-xl text-gray-700 mb-6">
               We are proud to recognize and celebrate your exceptional talent and dedication as a skilled handicraft artisan. Your ability to transform raw materials into beautiful, meaningful works of art speaks to your creativity, precision, and passion for the craft. Each piece you create is a testament to the enduring value of handmade artistry and the cultural richness it preserves. With deep appreciation, we commend you for achieving this milestone and look forward to witnessing your continued journey of artistic excellence.
             </div>
             <Link href="/contact" className="bg-black text-white py-3 px-6 rounded-lg font-semibold text-lg w-fit mb-6">Join Our Team</Link>
           </div>
           {/* Right: Top 2 artisan cards in new style */}
-          <div className="flex flex-row  gap-4 justify-end">
+          <div className="hidden md:flex flex-row  gap-4 justify-end">
             {(otherArtisans && otherArtisans.slice(0, 2).map((item, idx) => {
               const card = {
                 id: item._id || idx,
@@ -1069,7 +1124,7 @@ const ArtisanDetails = ({ artisan }) => {
         </div>
         {/* Carousel for remaining artisans in new style */}
         {otherArtisans && otherArtisans.length > 2 && (
-          <div className="mt-10">
+          <div className="hidden md:flex mt-10">
             <Carousel className="w-full">
               <CarouselContent className="flex gap-6">
                 {otherArtisans.slice(2).map((item, idx) => {
@@ -1162,26 +1217,118 @@ const ArtisanDetails = ({ artisan }) => {
             </Carousel>
           </div>
         )}
+         {otherArtisans && otherArtisans.length > 1 && (
+          <div className="md:hidden mt-10">
+            <Carousel className="w-full">
+              <CarouselContent className="flex gap-6">
+                {otherArtisans.map((item, idx) => {
+                  const card = {
+                    id: item._id || idx,
+                    name: `${item.title ? item.title + " " : ""}${item.firstName || ''} ${item.lastName || ''}`.trim() || "Unknown Artisan",
+                    date: item.createdAt ? new Date(item.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase() : "N/A",
+                    image: item.profileImage?.url || item.image || "/bg-custom-1.jpg",
+                    title: item.specializations && item.specializations.length > 0 ? item.specializations.join(", ") : "Artisan",
+                    subtitle: item.shgName || "",
+                    experience: item.yearsOfExperience ? `${item.yearsOfExperience} years experience` : "",
+                    location: item.address ? `${item.address.city}, ${item.address.state}` : "",
+                    socials: [
+                      { icon: "/fb.png", url: item.socialPlugin?.facebook || "#" },
+                      { icon: "/insta-Tranparent.webp", url: item.socialPlugin?.instagram || "#" },
+                      { icon: "/youtube.webp", url: item.socialPlugin?.youtube || "#" },
+                      { icon: "/google.png", url: item.socialPlugin?.google || "#" },
+                      { icon: "/website.png", url: item.socialPlugin?.website || "#" }
+                    ],
+                  };
+                  return (
+                    <CarouselItem key={card.id} className="pl-5 md:basis-1/2 lg:basis-1/4 min-w-0 snap-start">
+                      <div className="relative rounded-2xl overflow-hidden shadow-md group transition-all h-full flex flex-col bg-[#fbeff2]">
+                        {/* Date Badge */}
+                        <div className="absolute top-5 left-5 z-20 flex items-center gap-2">
+                          <span className="bg-white rounded px-3 py-1 text-md font-bold shadow text-gray-800">{card.subtitle}</span>
+                        </div>
+                        {/* Card Image */}
+                        <div className="relative w-full h-96">
+                          <img
+                            src={card.image}
+                            alt={card.name}
+                            className="object-cover w-full h-full"
+                            style={{ objectFit: 'cover' }}
+                          />
+                        </div>
+                        {/* Card Content Overlay */}
+                        <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-6 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
+                          <div>
+                            <Link
+                              href={`/artisan/${card.id}`}
+                              className="font-bold text-2xl text-white mb-3 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
+                              title={card.name}
+                            >
+                              {card.name}
+                            </Link>
+                            <div className="text-md text-white drop-shadow-md">{card.title}</div>
+                          </div>
+                          {/* Arrow Button with Socials on Hover */}
+                          <div className="relative group/arrow">
+                            <button className="bg-white text-black rounded-full w-12 h-12 flex items-center justify-center shadow transition group-hover/arrow:bg-[#e84393] group-hover/arrow:text-white">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                              </svg>
+                            </button>
+                            {/* Social Icons: show on arrow hover */}
+                            <div className="absolute bottom-14 right-0 flex flex-col gap-4 opacity-0 group-hover/arrow:opacity-100 transition-opacity duration-300 z-30 items-center">
+                              {card.socials.slice(0, 6).map((s, i) => (
+                                <a
+                                  key={i}
+                                  href={s.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={`
+                                    bg-white rounded-full w-12 h-12 flex items-center justify-center shadow hover:bg-gray-100 transition
+                                    transform translate-y-5 group-hover/arrow:translate-y-0
+                                  `}
+                                  style={{
+                                    transitionProperty: 'transform, opacity, background-color, box-shadow',
+                                    transitionDuration: '0.6s',
+                                    transitionTimingFunction: 'cubic-bezier(0.4,0,0.2,1)',
+                                    transitionDelay: `${i * 60}ms`
+                                  }}
+                                >
+                                  <img src={s.icon} alt="social" className="w-7 h-7" />
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CarouselItem>
+                  );
+                })}
+              </CarouselContent>
+              <div className="flex items-center gap-3 mt-4 justify-center">
+                <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 p-5 " />
+                <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 p-5" />
+              </div>
+            </Carousel>
+          </div>
+        )}
       </div>
 
-      {/* Quick View Modal */}
-      {
-        quickViewProduct && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setQuickViewProduct(null)}>
-            <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full relative overflow-y-auto max-h-[90vh]" onClick={e => e.stopPropagation()}>
-              {/* Close Button */}
-              <button
-                className="absolute top-4 right-4 text-2xl font-bold text-gray-500 hover:text-black focus:outline-none"
-                onClick={() => setQuickViewProduct(null)}
-                aria-label="Close quick view"
-              >
-                &times;
-              </button>
-              <QuickViewProductCard product={quickViewProduct} onClose={() => setQuickViewProduct(null)} />
+   {/* Quick View Modal */}
+          {quickViewProduct && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setQuickViewProduct(null)}>
+              <div className="bg-white rounded-2xl shadow-xl mx-auto md:max-w-4xl w-full relative overflow-y-auto max-h-[90vh]" onClick={e => e.stopPropagation()}>
+                {/* Close Button */}
+                <button
+                  className="absolute top-4 right-4 text-2xl font-bold text-gray-500 z-50 rounded-full w-8 h-8 border border-black bg-black text-white flex items-center justify-center hover:bg-gray-100 hover:text-black focus:outline-none"
+                  onClick={() => setQuickViewProduct(null)}
+                  aria-label="Close quick view"
+                >
+                  &times;
+                </button>
+                <QuickViewProductCard product={quickViewProduct} onClose={() => setQuickViewProduct(null)} />
+              </div>
             </div>
-          </div>
-        )
-      }
+          )}
       {/* Certificate Quick View Modal */}
       <CertificateQuickViewModal
         open={showCertificateModal}
