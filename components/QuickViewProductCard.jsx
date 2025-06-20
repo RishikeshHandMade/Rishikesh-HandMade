@@ -42,9 +42,9 @@ export default function QuickViewProductCard({ product, onClose }) {
     return new Intl.NumberFormat("en-IN").format(num);
   };
   return (
-    <div className="flex flex-col md:flex-row bg-white shadow-lg w-full md:max-w-5xl min-h-[400px]">
+    <div className="flex flex-col md:flex-row bg-white shadow-lg w-full md:max-w-4xl min-h-[400px]">
       {/* Left: Image Gallery */}
-      <div className="flex flex-col items-center w-full md:w-1/2 relative h-full flex-1">
+      <div className="flex flex-col items-center w-full md:w-1/2 relative h-full flex-1 pr-2 md:pr-0">
         {/* Main Image Gallery - full height, animated swipe */}
         <div className="relative w-full h-full min-h-[400px] overflow-hidden flex items-center justify-center">
           <Carousel
@@ -72,8 +72,8 @@ export default function QuickViewProductCard({ product, onClose }) {
                 </CarouselItem>
               ))}
             </CarouselContent>
-            {/* <CarouselPrevious className="!left-2 !top-1/2 !-translate-y-1/2 z-10" /> */}
-            {/* <CarouselNext className="!right-2 !top-1/2 !-translate-y-1/2 z-10" /> */}
+            <CarouselPrevious className="!left-1 !top-1/2 !-translate-y-1/2 z-50" />
+            <CarouselNext className="!right-1 !top-1/2 !-translate-y-1/2 z-50" />
           </Carousel>
 
           {/* Thumbnails overlayed in top-left, flex-col, z-10 */}
@@ -103,7 +103,7 @@ export default function QuickViewProductCard({ product, onClose }) {
         {/* SALE badge */}
         {/* <span className="bg-black text-white text-xs font-bold px-3 py-1 rounded-full w-max mb-2">SALE 20% OFF</span> */}
         {/* Title & Rating */}
-        <h2 className="text-2xl font-bold mb-1">
+        <h2 className="text-xl md:text-2xl font-bold mb-1">
           {/* Defensive: if title is object, stringify for debug */}
           {typeof product?.title === 'object' ? JSON.stringify(product.title) : (product?.title || "N/A")}
         </h2>
@@ -153,7 +153,7 @@ export default function QuickViewProductCard({ product, onClose }) {
         <div className="flex flex-row items-end justify-start gap-8 mb-5">
           {/* Price section */}
           <div className="flex flex-col items-start">
-            <span className="font-bold text-lg text-black mb-1">Price</span>
+            <span className="font-bold text-md md:text-lg text-black mb-1">Price</span>
             <div className="flex items-baseline gap-3">
               {(() => {
                 const coupon = product.coupon || product.coupons?.coupon;
@@ -180,7 +180,7 @@ export default function QuickViewProductCard({ product, onClose }) {
           </div>
           {/* Quantity section */}
           <div className="flex flex-col items-start">
-            <span className="font-bold text-lg text-black mb-1">Quantity</span>
+            <span className="font-bold text-md md:text-lg text-black">Quantity</span>
             <div className="flex gap-3 items-center">
               <button
                 className="w-10 h-10 rounded-full bg-black text-white text-2xl flex items-center justify-center transition hover:bg-gray-800"
@@ -290,24 +290,25 @@ export default function QuickViewProductCard({ product, onClose }) {
         <hr className="my-1" />
         {/* Info Rows */}
         <div className="text-sm mb-1">
-          <div className="flex flex-wrap gap-2 mt-1 h-24 overflow-y-auto">
-            <span className="font-semibold text-lg">Category:</span>
-            {Array.isArray(product.categoryTag?.tags) && product.categoryTag.tags.length > 0 ? (
-              product.categoryTag.tags.map((tag, index) => (
-                <span
-                  key={index}
-                  className="bg-gray-200 text-black font-semibold px-2 py-1 rounded-full text-sm"
-                >
-                  {tag}
-                </span>
-              ))
-            ) : (
-              <span className="bg-gray-200 text-black font-semibold px-2 py-1 rounded text-sm">
-                {product.category || "No Category"}
-              </span>
-            )}
-          </div>
-        </div>
+  <div className="flex flex-row items-start flex-wrap gap-2 mt-1 max-h-28 overflow-y-auto">
+    <span className="font-semibold text-base flex-shrink-0 mr-2 mt-1">Category:</span>
+    {Array.isArray(product.categoryTag?.tags) && product.categoryTag.tags.length > 0 ? (
+      product.categoryTag.tags.map((tag, index) => (
+        <span
+          key={index}
+          className="bg-gray-200 text-black font-semibold px-2 py-1 rounded-full text-sm shadow-sm whitespace-nowrap border border-gray-300"
+          style={{marginBottom: '1px'}}
+        >
+          {tag}
+        </span>
+      ))
+    ) : (
+      <span className="bg-gray-200 text-black font-semibold px-4 py-2 rounded-full text-sm shadow-sm border border-gray-300 whitespace-nowrap">
+        {product.category || "No Category"}
+      </span>
+    )}
+  </div>
+</div>
 
       </div>
     </div>
