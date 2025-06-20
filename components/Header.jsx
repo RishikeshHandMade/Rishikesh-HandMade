@@ -11,7 +11,7 @@ import { Loader2 } from "lucide-react"
 import LanguageSelector from "./LanguageSelector"
 import SearchBar from "./SearchBar"
 import Cart from "./Cart";
-import { ShoppingCart, Heart,User } from "lucide-react"
+import { ShoppingCart, Heart, User } from "lucide-react"
 import { useCart } from "../context/CartContext";
 import { ArrowDown, Menu, X } from "lucide-react";
 import * as NavigationMenu from "@radix-ui/react-navigation-menu";
@@ -89,69 +89,69 @@ const Header = () => {
         <div className="flex flex-row justify-center items-center gap-4">
           <div className="items-center z-50 gap-4 flex">
             <div className="flex items-center gap-3">
-              
-              <div className="relative">
-              {status === "loading" ? (
-                <Loader2 className="animate-spin text-blue-600" size={36} />
-              ) : isUser ? (
-                <>
-                  {/* Profile Picture Button */}
-                  <button
-                    onClick={() => setIsProfileOpen(!isProfileOpen)}
-                    className="focus:outline-none border-dashed border-4 border-blue-600 rounded-full"
-                  >
-                    <Image
-                      src={session.user.image || "/user.png"}
-                      alt="Profile"
-                      width={44}
-                      height={44}
-                      className="rounded-full cursor-pointer"
-                    />
-                  </button>
 
-                  {/* Dropdown Menu */}
-                  {isProfileOpen && (
-                    <div className="absolute top-14 right-0 mt-2 w-fit text-black bg-white shadow-lg rounded-lg border z-50">
-                      <p className="px-4 pt-2 text-sm font-bold text-gray-700">{session.user.name}</p>
-                      <p className="px-4 pb-2 text-sm text-gray-700">{session.user.email}</p>
-                      <div className="h-px bg-gray-200" />
-                      <Link
-                        href="/dashboard"
-                        className="flex items-center rounded-lg w-full text-left px-4 py-2 hover:bg-blue-100"
-                        onClick={() => setIsProfileOpen(false)}
-                      >
-                        <User2Icon size={20} className="mr-2" /> Dashboard
-                      </Link>
-                      {/* <Link
+              <div className="relative">
+                {status === "loading" ? (
+                  <Loader2 className="animate-spin text-blue-600" size={36} />
+                ) : isUser ? (
+                  <>
+                    {/* Profile Picture Button */}
+                    <button
+                      onClick={() => setIsProfileOpen(!isProfileOpen)}
+                      className="focus:outline-none border-dashed border-4 border-blue-600 rounded-full"
+                    >
+                      <Image
+                        src={session.user.image || "/user.png"}
+                        alt="Profile"
+                        width={44}
+                        height={44}
+                        className="rounded-full cursor-pointer"
+                      />
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {isProfileOpen && (
+                      <div className="absolute top-14 right-0 mt-2 w-fit text-black bg-white shadow-lg rounded-lg border z-50">
+                        <p className="px-4 pt-2 text-sm font-bold text-gray-700">{session.user.name}</p>
+                        <p className="px-4 pb-2 text-sm text-gray-700">{session.user.email}</p>
+                        <div className="h-px bg-gray-200" />
+                        <Link
+                          href="/dashboard"
+                          className="flex items-center rounded-lg w-full text-left px-4 py-2 hover:bg-blue-100"
+                          onClick={() => setIsProfileOpen(false)}
+                        >
+                          <User2Icon size={20} className="mr-2" /> Dashboard
+                        </Link>
+                        {/* <Link
                         href={`/account/${session.user.id}`}
                         className="flex items-center rounded-lg w-full text-left px-4 py-2 hover:bg-blue-100"
                         onClick={() => setIsProfileOpen(false)}
                       >
                         <User2Icon size={20} className="mr-2" /> My Account
                       </Link> */}
-                      <button
-                        className="flex items-center rounded-lg w-full text-red-600 text-left px-4 py-2 hover:bg-blue-100"
-                        onClick={() => signOut()}
-                      >
-                        <LogOutIcon size={20} className="mr-2" /> Sign Out
-                      </button>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="relative">
-                  <button onClick={() => setIsAuthDropdownOpen(!isAuthDropdownOpen)} className="flex items-center px-4 py-2">
-                    <User className="ml-2" size={20} />
-                  </button>
-                  {isAuthDropdownOpen && (
-                    <div className="absolute top-12 right-0 mt-2 w-48 text-black bg-white shadow-lg rounded-lg border">
-                      <Link href="/sign-in" onClick={() => setIsAuthDropdownOpen(false)} className="block px-4 py-2 hover:bg-blue-100">Sign In</Link>
-                      <Link href="/sign-up" onClick={() => setIsAuthDropdownOpen(false)} className="block px-4 py-2 hover:bg-blue-100">Create Account</Link>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+                        <button
+                          className="flex items-center rounded-lg w-full text-red-600 text-left px-4 py-2 hover:bg-blue-100"
+                          onClick={() => signOut()}
+                        >
+                          <LogOutIcon size={20} className="mr-2" /> Sign Out
+                        </button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="relative">
+                    <button onClick={() => setIsAuthDropdownOpen(!isAuthDropdownOpen)} className="flex items-center px-4 py-2">
+                      <User className="ml-2" size={20} />
+                    </button>
+                    {isAuthDropdownOpen && (
+                      <div className="absolute top-12 right-0 mt-2 w-48 text-black bg-white shadow-lg rounded-lg border">
+                        <Link href="/sign-in" onClick={() => setIsAuthDropdownOpen(false)} className="block px-4 py-2 hover:bg-blue-100">Sign In</Link>
+                        <Link href="/sign-up" onClick={() => setIsAuthDropdownOpen(false)} className="block px-4 py-2 hover:bg-blue-100">Create Account</Link>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
               <button
                 className="relative p-2 rounded-full hover:bg-neutral-100 transition"
                 onClick={() => { setInitialCartTab('wishlist'); setIsCartOpen(true); }}
@@ -177,21 +177,21 @@ const Header = () => {
                   </span>
                 )}
               </button>
-            
+
               <Cart open={isCartOpen} onClose={() => setIsCartOpen(false)} initialTab={initialCartTab} />
 
             </div>
-              {/* Mobile Language Selector - only visible on small screens */}
-              <div className="text-right">
-                <LanguageSelector />
-              </div>
+            {/* Mobile Language Selector - only visible on small screens */}
+            <div className="text-right">
+              <LanguageSelector />
+            </div>
           </div>
         </div>
 
       </div>
       <div className="lg:flex hidden items-center z-50 justify-center md:justify-between py-2 md:px-4 ">
         <Link href={"/"}>
-          <img className="w-44 drop-shadow-xl" src="/logo.png" alt="YatraZone" />
+          <img className="w-44 drop-shadow-xl" src="/logo.png" alt="Rishikesh Handmade" />
         </Link>
 
         <div className="relative flex items-center">
@@ -203,23 +203,109 @@ const Header = () => {
 
 
       </div>
-      <div className="lg:hidden flex items-center z-50 justify-center md:justify-between py-1 px-2 md:px-8">
+      <div className="lg:hidden flex items-center z-50 justify-between md:justify-between py-1 px-2">
         <div className="relative flex items-center">
           {/* <MenuBar menuItems={menuItems.filter(item => item.active)} /> */}
           <MenuBar menuItems={menuItems} />
         </div>
         <Link href={"/"}>
-          <img className="w-44 drop-shadow-xl" src="/logo.png" alt="YatraZone" />
+          <img className="w-32 drop-shadow-xl" src="/logo.png" alt="Rishikesh Handmade" />
         </Link>
 
-        <div className="items-center gap-4 flex">
-          <div className="flex items-center gap-3">
-            {/* Mobile Language Selector - only visible on small screens */}
-            <div className="text-right">
-              <LanguageSelector />
-            </div>
-           
+        <div className="flex items-center gap-3">
+
+          <button
+            className="relative p-2 rounded-full hover:bg-neutral-100 transition"
+            onClick={() => { setInitialCartTab('wishlist'); setIsCartOpen(true); }}
+            aria-label="Open Wishlist"
+          >
+            <Heart size={20} />
+            {wishlist.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-pink-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
+                {wishlist.length}
+              </span>
+            )}
+          </button>
+          {/* Cart & Wishlist Icons */}
+          <button
+            className="relative p-2 rounded-full hover:bg-neutral-100 transition"
+            onClick={() => { setInitialCartTab('cart'); setIsCartOpen(true); }}
+            aria-label="Open Cart"
+          >
+            <ShoppingCart size={20} />
+            {cart.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
+                {cart.length}
+              </span>
+            )}
+          </button>
+
+          <Cart open={isCartOpen} onClose={() => setIsCartOpen(false)} initialTab={initialCartTab} />
+
+
+          <div className="relative">
+            {status === "loading" ? (
+              <Loader2 className="animate-spin text-blue-600" size={36} />
+            ) : isUser ? (
+              <>
+                {/* Profile Picture Button */}
+                <button
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="focus:outline-none border-dashed border-4 border-blue-600 rounded-full"
+                >
+                  <Image
+                    src={session.user.image || "/user.png"}
+                    alt="Profile"
+                    width={36}
+                    height={36}
+                    className="rounded-full cursor-pointer"
+                  />
+                </button>
+
+                {/* Dropdown Menu */}
+                {isProfileOpen && (
+                  <div className="absolute top-14 right-0 mt-2 w-fit text-black bg-white shadow-lg rounded-lg border z-50">
+                    <p className="px-4 pt-2 text-sm font-bold text-gray-700">{session.user.name}</p>
+                    <p className="px-4 pb-2 text-sm text-gray-700">{session.user.email}</p>
+                    <div className="h-px bg-gray-200" />
+                    <Link
+                      href="/dashboard"
+                      className="flex items-center rounded-lg w-full text-left px-4 py-2 hover:bg-blue-100"
+                      onClick={() => setIsProfileOpen(false)}
+                    >
+                      <User2Icon size={20} className="mr-2" /> Dashboard
+                    </Link>
+                    {/* <Link
+                        href={`/account/${session.user.id}`}
+                        className="flex items-center rounded-lg w-full text-left px-4 py-2 hover:bg-blue-100"
+                        onClick={() => setIsProfileOpen(false)}
+                      >
+                        <User2Icon size={20} className="mr-2" /> My Account
+                      </Link> */}
+                    <button
+                      className="flex items-center rounded-lg w-full text-red-600 text-left px-4 py-2 hover:bg-blue-100"
+                      onClick={() => signOut()}
+                    >
+                      <LogOutIcon size={20} className="mr-2" /> Sign Out
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="relative">
+                <button onClick={() => setIsAuthDropdownOpen(!isAuthDropdownOpen)} className="flex items-center px-4 py-2">
+                  <User className="ml-2" size={20} />
+                </button>
+                {isAuthDropdownOpen && (
+                  <div className="absolute top-12 right-0 mt-2 w-48 text-black bg-white shadow-lg rounded-lg border">
+                    <Link href="/sign-in" onClick={() => setIsAuthDropdownOpen(false)} className="block px-4 py-2 hover:bg-blue-100">Sign In</Link>
+                    <Link href="/sign-up" onClick={() => setIsAuthDropdownOpen(false)} className="block px-4 py-2 hover:bg-blue-100">Create Account</Link>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
+
         </div>
       </div>
     </header>

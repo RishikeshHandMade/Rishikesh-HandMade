@@ -2,7 +2,7 @@
 export default function ViewNews({ news, onClose }) {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white rounded-none md:rounded-3xl shadow-2xl w-full h-full max-w-none md:max-w-2xl md:h-[90vh] relative animate-fadeIn flex flex-col overflow-y-auto">
+            <div className="bg-white rounded-none md:rounded-3xl shadow-2xl w-full h-[80%] max-w-none md:max-w-2xl md:h-[90vh] relative animate-fadeIn flex flex-col overflow-y-auto">
                 {/* X Close Button */}
                 <button
                     aria-label="Close"
@@ -13,7 +13,7 @@ export default function ViewNews({ news, onClose }) {
                 </button>
                 {/* News image or fallback */}
                 {news.image && news.image.url ? (
-                    <div className="w-full h-80 md:h-72 relative rounded-none md:rounded-t-3xl overflow-hidden">
+                    <div className="w-full h-52 md:h-72 relative rounded-none md:rounded-t-3xl overflow-hidden">
                         <img
                             src={news.image.url}
                             alt="News Image"
@@ -26,12 +26,12 @@ export default function ViewNews({ news, onClose }) {
                     </div>
                 )}
                 {/* News content */}
-                <div className="flex flex-col items-start px-6 py-4 flex-1">
-                    <div className="font-bold text-4xl mb-2 text-gray-900">{news.title}</div>
-                    {news.date && <div className="text-lg border bg-yellow-200 rounded-xl px-2 text-gray-700 mb-2">{news.date}</div>}
-                    {news.description && <div className="text-base text-gray-800 h-52 overflow-y-auto mb-4 whitespace-pre-line">{news.description}</div>}
+                <div className="flex flex-col items-start px-6 py-2 flex-1">
+                    <div className="font-bold text-2xl md:text-4xl mb-2 text-gray-900">{news.title}</div>
+                    {news.date && <div className="text-md md:text-lg border bg-yellow-200 rounded-xl px-2 text-gray-700 mb-2">{news.date}</div>}
+                    {news.description && <div className="text-md md:text-base text-gray-800 h-72 md:h-52 overflow-y-auto whitespace-pre-line">{news.description}</div>}
                 </div>
-                <div className="flex justify-end pt-2 px-6 pb-4">
+                <div className="flex justify-end pt-2 px-6 pb-2">
                     <button onClick={onClose} className="bg-black text-white px-6 py-2 rounded-full hover:bg-gray-800 shadow">Close</button>
                 </div>
             </div>

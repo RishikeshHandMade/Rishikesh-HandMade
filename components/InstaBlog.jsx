@@ -102,7 +102,8 @@ const InstaBlog = () => {
             <div className="w-full flex flex-col items-center mb-12">
                 <div className="w-full flex flex-col md:flex-row gap-8 min-h-[350px]">
                     <div className="flex flex-col md:flex-row w-full gap-8">
-                        <div className="flex-1 bg-[#fcf7f1] rounded-lg p-4 flex flex-col justify-between min-h-[350px] px-10">
+                        {/* Blogs Section */}
+                        <div className="flex-1 bg-[#fcf7f1] rounded-lg flex flex-col justify-between min-h-[350px] px-5 md:px-10">
                             <h2 className="text-3xl font-bold mb-4 uppercase">Upcoming News, Blog and Events</h2>
                             <p className="text-gray-800 mb-8 text-lg md:text-md font-medium">
                                 "We're preparing exciting new content and updates for our users, including upcoming news and events. We’re working behind the scenes to bring you fresh news, upcoming events, and new features to enhance your experience.
@@ -110,7 +111,7 @@ const InstaBlog = () => {
                                 Stay connected — great things are coming soon!"
                             </p>
                             {!isBlogsLoading && blogs && blogs.length > 0 && (
-                                <div className="w-full mx-auto max-w-7xl mb-10 p-2">
+                                <div className="w-full mx-auto md:max-w-7xl mb-8 p-1 md:p-2">
                                     <Carousel className="w-full" plugins={[Autoplay({ delay: 4000 })]}>
                                         <CarouselContent className="">
                                             {blogs.map((blog, idx) => {
@@ -131,11 +132,11 @@ const InstaBlog = () => {
                                                 }
                                                 return (
                                                     <CarouselItem key={blog._id || idx} className="w-full">
-                                                        <div className="flex flex-row bg-[#FFF3C9] rounded-xl min-h-[220px] w-full overflow-hidden">
+                                                        <div className="flex flex-col md:flex-row bg-[#FFF3C9] rounded-xl min-h-[220px] w-full overflow-hidden">
                                                             {/* Image/Video section */}
-                                                            <div className="flex-shrink-0 w-1/2 md:w-2/5 flex items-center justify-center">
+                                                            <div className="w-full h-40 md:w-2/5 md:h-auto flex items-center justify-center rounded-t-xl md:rounded-l-xl md:rounded-t-none overflow-hidden">
                                                                 {isYoutube ? (
-                                                                    <div className="w-full h-full aspect-video rounded-l-xl overflow-hidden flex items-center justify-center">
+                                                                    <div className="w-full h-full aspect-video overflow-hidden flex items-center justify-center">
                                                                         <iframe
                                                                             src={embedUrl}
                                                                             title={blog.title}
@@ -148,25 +149,25 @@ const InstaBlog = () => {
                                                                     <img
                                                                         src={mediaUrl}
                                                                         alt={blog.title}
-                                                                        className="object-cover md:object-cover w-full h-full max-h-[220px] rounded-l-xl"
+                                                                        className="object-cover w-full h-full max-h-[220px]"
                                                                     />
                                                                 ) : (
-                                                                    <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-l-xl text-gray-400">
+                                                                    <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-400">
                                                                         No Image
                                                                     </div>
                                                                 )}
                                                             </div>
                                                             {/* Content section */}
-                                                            <div className="flex flex-col justify-between p-4 flex-1">
+                                                            <div className="flex flex-col justify-between p-2 md:p-4 flex-1 rounded-b-xl md:rounded-r-xl md:rounded-b-none">
                                                                 <div>
-                                                                    <div className="font-bold text-lg md:text-xl text-black mb-2 leading-snug">{blog.title || 'No title available.'}</div>
-                                                                    <div className="text-gray-800 text-base mb-4 line-clamp-3 min-h-[48px]">{blog.shortDescription || blog.shortDesc || 'No description available.'}</div>
+                                                                    <div className="font-bold text-base md:text-xl text-black mb-2 leading-snug">{blog.title || 'No title available.'}</div>
+                                                                    <div className="text-gray-800 text-sm md:text-base mb-1 md:mb-2 line-clamp-3 min-h-[48px] overflow-y-auto">{blog.shortDescription || blog.shortDesc || 'No description available.'}</div>
                                                                 </div>
                                                                 <div className="flex items-center mt-auto">
                                                                     <Link
                                                                         href={`/blogs/${blog._id}`}
                                                                         rel="noopener noreferrer"
-                                                                        className="text-gray-700 font-semibold hover:underline flex items-center group transition focus:outline-none"
+                                                                        className="text-gray-700 font-semibold hover:underline flex items-center group transition focus:outline-none text-sm md:text-base"
                                                                     >
                                                                         Read More  &gt;
                                                                     </Link>
@@ -177,8 +178,10 @@ const InstaBlog = () => {
                                                 );
                                             })}
                                         </CarouselContent>
-                                        <CarouselPrevious className="bg-black text-white py-3 font-bold rounded hover:bg-gray-800 transition-colors text-lg" />
-                                        <CarouselNext className="bg-black text-white py-3 font-bold rounded hover:bg-gray-800 transition-colors text-lg" />
+                                        <div className="flex items-center gap-2 mt-2 md:mt-0 justify-center md:justify-end">
+                                            <CarouselPrevious className="bg-black text-white py-2 px-3 font-bold rounded hover:bg-gray-800 transition-colors text-base md:text-lg" />
+                                            <CarouselNext className="bg-black text-white py-2 px-3 font-bold rounded hover:bg-gray-800 transition-colors text-base md:text-lg" />
+                                        </div>
                                     </Carousel>
                                 </div>
                             )}
@@ -266,19 +269,19 @@ const InstaBlog = () => {
                     <h2 className="text-center font-bold text-2xl md:text-3xl lg:text-4xl uppercase">
                         Don’t just watch the trends — live them!
                     </h2>
-                    <p className="text-gray-600 py-8 text-center font-barlow w-[80%] mx-auto">
+                    <p className="text-gray-600 py-4 text-center font-barlow w-full md:w-[90%] mx-auto">
                         Follow us on social media for your daily dose of Trending
                         Packages, exclusive offers, behind-the-scenes peeks, and
                         real-time updates. Join our community of trendsetters and be the
                         first to explore what’s new, what’s hot, and what everyone’s
                         talking about. Your next favorite find is just a follow away!
                     </p>
-                    <div className="w-full px-5">
+                    <div className="w-full px-3">
                         <Carousel className="w-full" plugins={[Autoplay({ delay: 4000 })]}>
                             <CarouselContent >
                                 {allPosts.map((post, idx) => (
                                     <CarouselItem
-                                        key={post._id || idx}
+                                        key={post._id || idx} 
                                         className={`pl-5 ${allPosts.length <= 3 ? cardBasis : "md:basis-1/5"}`}
                                         style={
                                             allPosts.length <= 3

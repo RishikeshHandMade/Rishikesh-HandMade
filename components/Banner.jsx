@@ -60,9 +60,9 @@ const Banner = () => {
                 <div className="w-full my-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {promotinalBanner.map((item, idx) => (
-                            <div key={idx} className="rounded-2xl flex flex-col h-[350px] md:h-[400px] p-0 overflow-hidden relative group">
+                            <div key={idx} className="rounded-2xl flex flex-col h-[300px] md:h-[400px] p-0 overflow-hidden relative group">
                                 <img src={item?.image?.url} alt={item?.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                                <div className="absolute z-10 flex flex-col justify-between gap-5 px-10 p-6 h-full items-start">
+                                <div className="absolute z-10 flex flex-col justify-between gap-5 md:px-10 px-5 p-6 h-full items-start">
                                     {(() => {
                                         const percent = item.couponPercent;
                                         const amount = item.couponAmount;
@@ -82,7 +82,7 @@ const Banner = () => {
                                             </div>
                                         );
                                     })()}
-                                    <span className="text-2xl md:text-5xl font-bold text-black mb-2 leading-tight max-w-[80%]">{item?.title}</span>
+                                    <span className="text-2xl md:text-4xl font-bold text-black mb-2 leading-tight max-w-[80%]">{item?.title}</span>
                                     <Link href={item?.buttonLink || '#'} target="_blank" rel="noopener noreferrer" className="px-10 text-md py-2 bg-black text-white hover:bg-gray-800 transition w-fit">View Now</Link>
                                 </div>
                             </div>
@@ -95,11 +95,11 @@ const Banner = () => {
             {featuredOffer.length > 0 && (
                 <div className="w-full my-8">
                     <h2 className="text-2xl md:text-3xl font-bold text-center mb-5 uppercase">Featured Offer For You</h2>
-                    <Carousel className=" w-full max-w-full">
+                    <Carousel className="w-full">
                         <CarouselContent>
                             {featuredOffer.map((item, idx) => (
-                                <CarouselItem key={idx} className="px-2 md:basis-1/3 lg:basis-1/4 ml-5">
-                                    <div className="rounded-2xl flex flex-col h-[340px] p-0 overflow-hidden relative bg-white group">
+                                <CarouselItem key={idx} className="md:basis-1/3 lg:basis-1/4">
+                                    <div className="rounded-2xl flex flex-col h-[300px] p-0 overflow-hidden relative bg-white group">
                                         <img src={item.image?.url} alt={item.title} className="absolute inset-0 w-full h-full object-cover object-center opacity-80 transition-transform duration-300 group-hover:scale-105" />
                                         <div className="absolute z-10 flex flex-col justify-between gap-5 px-10 p-6 h-full items-start">
                                     {(() => {
@@ -121,7 +121,7 @@ const Banner = () => {
                                             </div>
                                         );
                                     })()}
-                                    <span className="text-2xl md:text-5xl font-bold text-black mb-2 leading-tight max-w-[80%]">{item?.title}</span>
+                                    <span className="text-2xl md:text-4xl font-bold text-black mb-2 leading-tight max-w-[80%]">{item?.title}</span>
                                     <Link href={item?.buttonLink || '#'} target="_blank" rel="noopener noreferrer" className="px-10 text-md py-2 bg-black text-white hover:bg-gray-800 transition w-fit">View Now</Link>
                                 </div>
                                     </div>
