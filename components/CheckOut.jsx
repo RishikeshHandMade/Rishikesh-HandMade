@@ -77,123 +77,7 @@ function buildOrderPayload({
 }
 
 // Unified Handler for Online Payment with Order Creation
-const handleOnlinePaymentWithOrder = async (finalAmount, cart, customer, setLoading, setError, routerInstance, checkoutData, formFields, user) => {
-  setLoading(true);
-  setError(null);
-  try {
-    // Build a robust payload for Razorpay order creation (and DB save)
-    const payload = {
-      userId: user?._id,
-      name: formFields.fullName || (formFields.firstName ? `${formFields.firstName} ${formFields.lastName}` : undefined),
-      email: formFields.email,
-      phone: formFields.mobile || formFields.phone,
-      address: formFields.address || [formFields.street, formFields.city, formFields.district, formFields.state, formFields.pincode].filter(Boolean).join(', '),
-      apartment: formFields.apartment,
-      city: formFields.city,
-      state: formFields.state,
-      pincode: formFields.pincode,
-      products: cart,
-      amount: finalAmount, // in rupees
-      currency: "INR",
-      receipt: `order_${Date.now()}`,
-      instructions: formFields.instructions || '',
-      // Add any additional fields as needed
-    };
-    let orderResponse;
-    try {
-      orderResponse = await axios.post("/api/razorpay", payload);
-    } catch (error) {
-      // console.error('Order creation error:', error, error?.response?.data);
-      setError(error?.response?.data?.error || error.message || 'Order creation failed.');
-      setLoading(false);
-      return;
-    }
-    // console.log('Backend response for order creation:', orderResponse.data);
-    if (orderResponse.data.error) {
-      setError(orderResponse.data.error);
-      setLoading(false);
-      return;
-    }
-    const { id: razorpayOrderId, orderId } = orderResponse.data;
-    if (!razorpayOrderId) {
-      setError('Order creation failed. No order ID returned.');
-      setLoading(false);
-      return;
-    }
-    // 3. Load Razorpay script
-    const loaded = await loadRazorpayScript();
-    if (!loaded) {
-      setError('Failed to load Razorpay SDK.');
-      setLoading(false);
-      return;
-    }
-    // 4. Open Razorpay modal
-    const options = {
-      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-      amount: finalAmount * 100,
-      currency: "INR",
-      name: "Rishikesh Handmade",
-      description: "Order Payment",
-      order_id: razorpayOrderId,
-      handler: async (response) => {
-        // console.log("Razorpay handler called", response);
-        toast.dismiss();
-        try {
-          // 5. Verify payment and update order in DB
-          try {
-            const verificationResponse = await axios.put("/api/razorpay", {
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_signature: response.razorpay_signature,
-              // Send all order/cart/form details for backend merge
-              cart,
-              checkoutData,
-              formFields,
-              user,
-              // You can add any other info needed for a complete order
-            });
 
-            if (verificationResponse.data && verificationResponse.data.success) {
-              toast.success('Payment successful! Check your email for details.', {
-                style: { borderRadius: '10px', border: '2px solid green' },
-              });
-              if (routerInstance && orderId) {
-                setShowConfirmationModal(true);
-                setRecentOrderId(orderId);
-                // console.log('[Razorpay Handler] Modal set: showConfirmationModal = true, recentOrderId =', orderId);
-              }
-            }
-            //  else {
-            //   setError(verificationResponse.data?.error || 'Payment verification or order update failed!');
-            //   toast.error(verificationResponse.data?.error || 'Payment verification or order update failed!');
-            //   return;
-            // }
-          } catch (err) {
-            setError('Payment verification or order update failed!');
-            toast.error('Payment verification or order update failed!');
-            return;
-          }
-        } catch (error) {
-          setError(error.message || 'Payment failed. Please try again.');
-          setLoading(false);
-        }
-      },
-      prefill: {
-        name: payload.name,
-        email: payload.email,
-        contact: payload.phone,
-      },
-      theme: { color: "#3399cc" },
-    };
-    const rzp = new window.Razorpay(options);
-    rzp.open();
-    setLoading(false);
-  } catch (error) {
-    setError(error.message || 'Payment failed. Please try again.');
-    setLoading(false);
-  }
-
-}
 
 
 import CheckOutOverview from './CheckOutOverview';
@@ -252,6 +136,215 @@ const CheckOut = () => {
   const [confirmedPaymentMethod, setConfirmedPaymentMethod] = useState(null);
   const [shipping, setShipping] = useState('free');
   // Load cart data from localStorage and handle authentication state
+
+  const handleOnlinePaymentWithOrder = async (finalAmount, cart, customer, setLoading, setError, routerInstance, checkoutData, formFields, user) => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Build a robust payload for Razorpay order creation (and DB save)
+      const payload = {
+        userId: user?._id,
+        name: formFields.fullName || (formFields.firstName ? `${formFields.firstName} ${formFields.lastName}` : undefined),
+        email: formFields.email,
+        phone: formFields.mobile || formFields.phone,
+        address: formFields.address || [formFields.street, formFields.city, formFields.district, formFields.state, formFields.pincode].filter(Boolean).join(', '),
+        apartment: formFields.apartment,
+        city: formFields.city,
+        state: formFields.state,
+        pincode: formFields.pincode,
+        products: cart,
+        amount: finalAmount, // in rupees
+        currency: "INR",
+        receipt: `order_${Date.now()}`,
+        // instructions: formFields.instructions || '',
+        // Add any additional fields as needed
+      };
+      let orderResponse;
+      try {
+        orderResponse = await axios.post("/api/razorpay", payload);
+      } catch (error) {
+        // console.error('Order creation error:', error, error?.response?.data);
+        setError(error?.response?.data?.error || error.message || 'Order creation failed.');
+        setLoading(false);
+        return;
+      }
+      // console.log('Backend response for order creation:', orderResponse.data);
+      if (orderResponse.data.error) {
+        setError(orderResponse.data.error);
+        setLoading(false);
+        return;
+      }
+      const { id: razorpayOrderId, orderId } = orderResponse.data;
+      if (!razorpayOrderId) {
+        setError('Order creation failed. No order ID returned.');
+        setLoading(false);
+        return;
+      }
+      // 3. Load Razorpay script
+      const loaded = await loadRazorpayScript();
+      if (!loaded) {
+        setError('Failed to load Razorpay SDK.');
+        setLoading(false);
+        return;
+      }
+      // 4. Open Razorpay modal
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: finalAmount * 100,
+        currency: "INR",
+        name: "Rishikesh Handmade",
+        description: "Order Payment",
+        order_id: razorpayOrderId,
+        handler: async (response) => {
+          // console.log("Razorpay handler called", response);
+          toast.dismiss();
+          try {
+            // 5. Verify payment and update order in DB
+            try {
+              const verificationResponse = await axios.put("/api/razorpay", {
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+                // Send all order/cart/form details for backend merge
+                cart,
+                checkoutData,
+                formFields,
+                user,
+                // You can add any other info needed for a complete order
+              });
+  
+              if (verificationResponse.data && verificationResponse.data.success) {
+                setError(null);
+                toast.success('Payment successful! Check your email for details.', {
+                  style: { borderRadius: '10px', border: '2px solid green' },
+                });
+                // Send order confirmation email using /api/brevo
+                try {
+                  const orderData = verificationResponse.data.order || {};
+                  const customerEmail = (formFields && formFields.email) || (user && user.email) || (customer && customer.email);
+                  const firstName = (formFields && formFields.firstName) || (user && user.firstName) || '';
+                  await fetch('/api/brevo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      to: customerEmail,
+                      subject: 'Order Confirmation',
+                      htmlContent: `<!DOCTYPE html>
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Order Confirmation</title>
+      <style type="text/css">
+        body { font-family: Arial, sans-serif; background: #f8f9fa; }
+        .container { background: #fff; border-radius: 8px; margin: 32px auto; max-width: 600px; padding: 32px 24px; }
+        .header { text-align: center; }
+        .summary-table { width: 100%; border-collapse: collapse; margin: 24px 0; }
+        .summary-table th, .summary-table td { border: 1px solid #e5e7eb; padding: 8px; text-align: left; font-size: 14px; }
+        .summary-table th { background: #f3f4f6; }
+        .product-img { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid #e5e7eb; }
+        .dashboard-btn { display: block; width: 100%; margin: 32px 0 0 0; text-align: center; background: #f97316; color: #fff; padding: 12px 0; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 16px; }
+      </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h2>Thank you for your order!</h2>
+        <p>Hello, ${firstName}</p>
+      </div>
+      <div class="footer">
+        <p>Order ID: ${orderId}</p>
+        <p>Order Date: ${new Date().toLocaleDateString()}</p>
+      </div>
+      <h3 style="margin-top:32px; font-size:18px;">Order Summary</h3>
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Qty</th>
+            <th>Size</th>
+            <th>Weight</th>
+            <th>Shipping Charge</th>
+            <th>Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${Array.isArray(checkoutData?.cart) ? checkoutData.cart.map(item => `
+            <tr>
+              <td><img src="${item.image?.url || item.image || ''}" class="product-img" alt="${item.name || ''}" /></td>
+              <td>${item.name || ''}</td>
+              <td>${item.qty || 1}</td>
+              <td>${item.size || '-'}</td>
+              <td>${item.weight ? item.weight + 'g' : '-'}</td>
+              <td>${item.shipping ? item.shipping + 'g' : '-'}</td>
+              <td>₹${item.price ? Number(item.price).toFixed(2) : '-'}</td>
+            </tr>
+          `).join('') : ''}
+        </tbody>
+      </table>
+      <div style="text-align:right; font-size:16px; margin-top:12px;">
+        <strong>Total: ₹${checkoutData?.cartTotal ? Number(checkoutData.cartTotal).toFixed(2) : '-'}</strong>
+      </div>
+      <a href="https://rishikeshhandmade.com/dashboard?section=orders" class="dashboard-btn">Go to Dashboard</a>
+    </div>
+  </body>
+  </html>`
+                    })
+                  });
+                } catch (emailError) {
+                  // Don't block order completion if email fails
+                }
+                if (routerInstance && orderId) {
+                  // Clear localStorage after successful payment
+                  let isBuyNow = false;
+                  if (typeof window !== 'undefined') {
+                    const params = new URLSearchParams(window.location.search);
+                    isBuyNow = params.get('mode') === 'buy-now';
+                    if (isBuyNow) {
+                      localStorage.removeItem('buyNowProduct');
+                    } else {
+                      localStorage.removeItem('checkoutCart');
+                      localStorage.removeItem('cart');
+                    }
+                  }
+                  setShowConfirmationModal(true);
+                  setRecentOrderId(orderId);
+                  console.log('[Razorpay Handler] Modal set: showConfirmationModal = true, recentOrderId =', orderId);
+                  return;
+                }
+              } else {
+                setError(verificationResponse.data?.error || 'Payment verification or order update failed!');
+                toast.error(verificationResponse.data?.error || 'Payment verification or order update failed!');
+                return;
+              }
+            } catch (err) {
+              setError('Payment verification or order update failed!');
+              toast.error('Payment verification or order update failed!');
+            }
+          } catch (error) {
+            setError(error.message || 'Payment failed. Please try again.');
+            setLoading(false);
+          }
+        },
+        prefill: {
+          name: payload.name,
+          email: payload.email,
+          contact: payload.phone,
+        },
+        theme: { color: "#3399cc" },
+      };
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+      setLoading(false);
+    } catch (error) {
+      setError(error.message || 'Payment failed. Please try again.');
+      setLoading(false);
+    }
+  
+  }
+
+
   useEffect(() => {
     // Detect buy-now mode from URL
     let isBuyNow = false;
@@ -273,8 +366,10 @@ const CheckOut = () => {
         if (buyNowRaw) {
           try {
             const buyNowProduct = JSON.parse(buyNowRaw);
-            const qty = buyNowProduct.qty || 1;
-            // const subTotal = buyNowProduct.price * qty;
+            const qty = Number(buyNowProduct.qty) || 1;
+            const discountedUnitPrice = Number(buyNowProduct.price) || 0;
+            const cgstRate = Number(buyNowProduct.cgst) || 0;
+            const sgstRate = Number(buyNowProduct.sgst) || 0;
 
             // Calculate shipping based on quantity (or weight if available)
             let shippingCost = 0;
@@ -282,7 +377,7 @@ const CheckOut = () => {
             let shippingPerUnit = null;
             let totalWeight = 0;
             if (buyNowProduct.weight) {
-              totalWeight = buyNowProduct.weight * qty;
+              totalWeight = Number(buyNowProduct.weight) * qty;
             }
             // Prefer weight-based shipping if weight exists, else per-qty
             if (totalWeight > 0) {
@@ -293,57 +388,75 @@ const CheckOut = () => {
                   body: JSON.stringify({ weight: totalWeight }),
                 });
                 const data = await res.json();
-                if (data.available && data.shippingCharge != null) {
+                if (data && data.available && data.shippingCharge != null && !isNaN(Number(data.shippingCharge))) {
                   shippingCost = Number(data.shippingCharge);
                   shippingTierLabel = data.tierLabel || '';
                   shippingPerUnit = data.perUnitCharge || null;
+                } else {
+                  shippingCost = 0;
                 }
-              } catch (e) { /* fallback to 0 */ }
+              } catch (e) {
+                shippingCost = 0;
+              }
             } else {
-              // fallback: simple per-qty flat rate (e.g., 25 per item)
+              // fallback: simple per-qty flat rate (e.g., 200 per item)
               shippingCost = qty * 200;
+              if (isNaN(shippingCost)) shippingCost = 0;
               shippingTierLabel = `Flat Rate x${qty}`;
             }
 
-            // Calculate discount based on originalPrice and price
             const totalDiscount = buyNowProduct.originalPrice && buyNowProduct.price
-              ? (buyNowProduct.originalPrice - buyNowProduct.price) * qty
+              ? (Number(buyNowProduct.originalPrice) - discountedUnitPrice) * qty
               : 0;
 
-            // Promo code logic
             const promoCode = buyNowProduct.couponApplied ? buyNowProduct.couponCode : '';
             const promoDiscount = buyNowProduct.couponApplied ? totalDiscount : 0;
 
-            // Calculate discounted price per unit
-            // const discountedUnitPrice = buyNowProduct.price;
-            // Compute CGST and SGST per unit (after discount)
-            const cgstRate = buyNowProduct.cgst || 0;
-            const sgstRate = buyNowProduct.sgst || 0;
-            const discountedUnitPrice = buyNowProduct.price; // already discounted
             const subTotal = discountedUnitPrice * qty;
             const cgstTotal = (discountedUnitPrice * cgstRate / 100) * qty;
             const sgstTotal = (discountedUnitPrice * sgstRate / 100) * qty;
             const totalTax = cgstTotal + sgstTotal;
             const cartTotal = subTotal + totalTax + shippingCost;
+
             setCheckoutData({
               cart: [{ ...buyNowProduct, cgstTotal, sgstTotal }],
               subTotal,
-              cartTotal,
-              shippingCost,
+              cartTotal: Number(subTotal) + Number(totalTax) + Number(shippingCost),
+              shippingCost: Number(shippingCost),
               shippingTierLabel,
               shippingPerUnit,
-              totalTax,
-              totalDiscount,
+              totalTax: Number(totalTax),
+              totalDiscount: Number(totalDiscount),
               promoCode,
-              promoDiscount,
+              promoDiscount: Number(promoDiscount),
             });
+            // Set address fields from buyNowProduct if present
+            if (buyNowProduct.pincode) setPincode(buyNowProduct.pincode);
+            if (buyNowProduct.state) setState(buyNowProduct.state);
+            if (buyNowProduct.district) setDistrict(buyNowProduct.district);
           } catch (err) {
             // fallback: shippingCost = 0
+            // Recalculate all values safely for fallback
+            const qty = Number(buyNowProduct?.qty) || 1;
+            const discountedUnitPrice = Number(buyNowProduct?.price) || 0;
+            const cgstRate = Number(buyNowProduct?.cgst) || 0;
+            const sgstRate = Number(buyNowProduct?.sgst) || 0;
+            const subTotal = discountedUnitPrice * qty;
+            const cgstTotal = (discountedUnitPrice * cgstRate / 100) * qty;
+            const sgstTotal = (discountedUnitPrice * sgstRate / 100) * qty;
+            const totalTax = cgstTotal + sgstTotal;
+            const totalDiscount = buyNowProduct?.originalPrice && buyNowProduct?.price
+              ? (Number(buyNowProduct.originalPrice) - discountedUnitPrice) * qty
+              : 0;
+            const promoCode = buyNowProduct?.couponApplied ? buyNowProduct.couponCode : '';
+            const promoDiscount = buyNowProduct?.couponApplied ? totalDiscount : 0;
+            const shippingCost = 0;
+            const cartTotal = subTotal + totalTax + shippingCost;
             setCheckoutData({
               cart: [buyNowProduct],
               subTotal,
               cartTotal,
-              shippingCost: 0,
+              shippingCost,
               shippingTierLabel: '',
               shippingPerUnit: null,
               totalTax,
@@ -371,10 +484,73 @@ const CheckOut = () => {
         }
       } else if (contextCart?.length > 0) {
         // If no localStorage but we have cart in context, use that
+        // --- Improved Cart Calculation Logic ---
+        const updatedCart = contextCart.map(item => {
+          // Calculate discounted price per item
+          let discountedUnitPrice = Number(item.price) || 0;
+          if (item.discountPercent) {
+            discountedUnitPrice = discountedUnitPrice * (1 - Number(item.discountPercent) / 100);
+          } else if (item.discountAmount) {
+            discountedUnitPrice = discountedUnitPrice - Number(item.discountAmount);
+          }
+          // If coupon applied, override with coupon price/discount
+          if (item.couponApplied && item.couponDiscount) {
+            discountedUnitPrice = discountedUnitPrice - Number(item.couponDiscount);
+          }
+          // Clamp to >= 0
+          discountedUnitPrice = Math.max(0, discountedUnitPrice);
+
+          const qty = Number(item.qty) || 1;
+          const cgstRate = Number(item.cgst) || 0;
+          const sgstRate = Number(item.sgst) || 0;
+          const cgstTotal = (discountedUnitPrice * cgstRate / 100) * qty;
+          const sgstTotal = (discountedUnitPrice * sgstRate / 100) * qty;
+
+          return { ...item, discountedUnitPrice, cgstTotal, sgstTotal };
+        });
+
+        // Calculate original MRP subtotal (before any discount)
+        const mrpSubTotal = updatedCart.reduce((sum, i) => sum + (Number(i.price) || 0) * (Number(i.qty) || 1), 0);
+        const subTotal = updatedCart.reduce((sum, i) => sum + i.discountedUnitPrice * (Number(i.qty) || 1), 0);
+        const totalCGST = updatedCart.reduce((sum, i) => sum + (i.cgstTotal || 0), 0);
+        const totalSGST = updatedCart.reduce((sum, i) => sum + (i.sgstTotal || 0), 0);
+        const totalTax = totalCGST + totalSGST;
+        const totalDiscount = contextCart.reduce((sum, i) => {
+          let discount = 0;
+          if (i.discountPercent) {
+            discount = Number(i.price) * (Number(i.discountPercent) / 100) * (Number(i.qty) || 1);
+          } else if (i.discountAmount) {
+            discount = Number(i.discountAmount) * (Number(i.qty) || 1);
+          }
+          if (i.couponApplied && i.couponDiscount) {
+            discount += Number(i.couponDiscount) * (Number(i.qty) || 1);
+          }
+          return sum + discount;
+        }, 0);
+        // Only allow promo if no item-level coupon/discount
+        const hasProductDiscount = updatedCart.some(i => i.discountPercent || i.discountAmount || i.couponApplied);
+        const promoCode = !hasProductDiscount && appliedPromo ? appliedPromo : '';
+        const promoDiscount = !hasProductDiscount && appliedPromoDetails?.discount ? appliedPromoDetails.discount : 0;
+
+        // Shipping cost logic (reuse your existing/fallback logic)
+        const shippingCost = checkoutData?.shippingCost || 0;
+        // Final amount: subtotal after discount + taxes + shipping - promo discount
+        const cartTotal = subTotal + totalTax + shippingCost - promoDiscount;
+
         setCheckoutData({
-          cart: contextCart,
-          subTotal: contextCart.reduce((sum, item) => sum + (item.price * item.qty), 0),
-          // Add other required checkout data with defaults if needed
+          cart: updatedCart,
+          mrpSubTotal, // original MRP subtotal
+          subTotal,    // subtotal after discount
+          cartTotal,   // final amount
+          shippingCost,
+          shipping,
+          totalTax,
+          totalDiscount,
+          promoCode,
+          promoDiscount,
+          totalCGST,
+          totalSGST,
+          // ...other fields as needed
         });
       }
       setIsLoading(false);
@@ -384,14 +560,7 @@ const CheckOut = () => {
     loadCartData();
   }, [status]); // Re-run when auth status changes
   // --- PINCODE CHECK STATE ---
-  const [isPincodeModalOpen, setIsPincodeModalOpen] = useState(false);
   const [isPincodeConfirmModalOpen, setIsPincodeConfirmModalOpen] = useState(false);
-  const [pincodeInput, setPincodeInput] = useState("");
-  const [stateInput, setStateInput] = useState("");
-  const [districtInput, setDistrictInput] = useState("");
-  const [pincodeError, setPincodeError] = useState("");
-  const [pincodeResult, setPincodeResult] = useState(null);
-  const [loadingShipping, setLoadingShipping] = useState(false);
   const [statesList, setStatesList] = useState([]);
   const [pincodeChecked, setPincodeChecked] = useState(false);
 
@@ -771,7 +940,17 @@ const CheckOut = () => {
             // console.error('Failed to send confirmation email:', emailError);
             // Don't fail the order if email fails
           }
-          // Redirect to order confirmation page
+          if (typeof window !== 'undefined' && isBuyNow) {
+            localStorage.removeItem('buyNowProduct');
+          }
+          if (typeof window !== 'undefined') {
+            if (isBuyNow) {
+              localStorage.removeItem('buyNowProduct');
+            } else {
+              localStorage.removeItem('checkoutCart');
+              localStorage.removeItem('cart');
+            }
+          }
           setShowConfirmationModal(true);
           setRecentOrderId(order._id);
           // router.push(`/dashboard?orderId=${order._id}`);
@@ -850,24 +1029,60 @@ const CheckOut = () => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order Confirmation</title>
     <style type="text/css">
-        body { font-family: Arial, sans-serif; background: #f8f9fa; }
-        .container { background: #fff; border-radius: 8px; margin: 32px auto; max-width: 500px; padding: 32px 24px; }
-        .header { text-align: center; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h2>Thank you for your order!</h2>
-          <p>Hello, ${firstName} ${lastName}</p>
-        </div>
-        <div class="footer">
-          <p>Order ID: ${orderId}</p>
-          <p>Order Date: ${new Date().toLocaleDateString()}</p>
-        </div>
-      </div>
-    </body>
-    </html>`
+      body { font-family: Arial, sans-serif; background: #f8f9fa; }
+      .container { background: #fff; border-radius: 8px; margin: 32px auto; max-width: 600px; padding: 32px 24px; }
+      .header { text-align: center; }
+      .summary-table { width: 100%; border-collapse: collapse; margin: 24px 0; }
+      .summary-table th, .summary-table td { border: 1px solid #e5e7eb; padding: 8px; text-align: left; font-size: 14px; }
+      .summary-table th { background: #f3f4f6; }
+      .product-img { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid #e5e7eb; }
+      .dashboard-btn { display: block; width: 100%; margin: 32px 0 0 0; text-align: center; background: #f97316; color: #fff; padding: 12px 0; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 16px; }
+    </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>Thank you for your order!</h2>
+      <p>Hello, ${firstName} ${lastName}</p>
+    </div>
+    <div class="footer">
+      <p>Order ID: ${orderId}</p>
+      <p>Order Date: ${new Date().toLocaleDateString()}</p>
+    </div>
+    <h3 style="margin-top:32px; font-size:18px;">Order Summary</h3>
+    <table class="summary-table">
+      <thead>
+        <tr>
+          <th>Image</th>
+          <th>Name</th>
+          <th>Qty</th>
+          <th>Size</th>
+          <th>Weight</th>
+          <th>Shipping Charge</th>
+          <th>Price</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${Array.isArray(checkoutData?.cart) ? checkoutData.cart.map(item => `
+          <tr>
+            <td><img src="${item.image?.url || item.image || ''}" class="product-img" alt="${item.name || ''}" /></td>
+            <td>${item.name || ''}</td>
+            <td>${item.qty || 1}</td>
+            <td>${item.size || '-'}</td>
+            <td>${item.weight ? item.weight + 'g' : '-'}</td>
+            <td>${item.shipping ? item.shipping + 'g' : '-'}</td>
+            <td>₹${item.price ? Number(item.price).toFixed(2) : '-'}</td>
+          </tr>
+        `).join('') : ''}
+      </tbody>
+    </table>
+    <div style="text-align:right; font-size:16px; margin-top:12px;">
+      <strong>Total: ₹${checkoutData?.cartTotal ? Number(checkoutData.cartTotal).toFixed(2) : '-'}</strong>
+    </div>
+    <a href="https://rishikeshhandmade.com/dashboard?section=orders" class="dashboard-btn">Go to Dashboard</a>
+  </div>
+</body>
+</html>`
             })
           });
         } catch (e) { /* handle email error */ }
@@ -1234,6 +1449,10 @@ const CheckOut = () => {
                 </span>
               </div>
             )}
+            <div className="flex justify-between items-center text-sm mb-2">
+              <span className="text-gray-600">Shipping Charges</span>
+              <span>₹{checkoutData?.shipping.toFixed(2)}</span>
+            </div>
             {(() => {
               const totalCGST = checkoutData.cart.reduce(
                 (sum, item) => sum + ((item.price * item.cgst / 100) * item.qty),
