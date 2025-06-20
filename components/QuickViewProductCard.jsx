@@ -9,7 +9,7 @@ import Autoplay from "embla-carousel-autoplay";
 import toast from "react-hot-toast"
 export default function QuickViewProductCard({ product, onClose }) {
   // ...existing hooks
-  console.log(product)
+  // console.log(product)
   if (!product) return null;
   const { addToCart, addToWishlist, removeFromWishlist, wishlist } = useCart();
   const [quantity, setQuantity] = useState(1);
@@ -42,13 +42,13 @@ export default function QuickViewProductCard({ product, onClose }) {
     return new Intl.NumberFormat("en-IN").format(num);
   };
   return (
-    <div className="flex flex-col md:flex-row bg-white shadow-lg max-w-5xl min-h-[400px]">
+    <div className="flex flex-col md:flex-row bg-white shadow-lg w-full md:max-w-5xl min-h-[400px]">
       {/* Left: Image Gallery */}
       <div className="flex flex-col items-center w-full md:w-1/2 relative h-full flex-1">
         {/* Main Image Gallery - full height, animated swipe */}
-        <div className="relative w-full h-full min-h-[400px] overflow-hidden flex-1 flex items-center justify-center">
+        <div className="relative w-full h-full min-h-[400px] overflow-hidden flex items-center justify-center">
           <Carousel
-            className="w-full h-full pr-4"
+            className="w-full h-full"
             opts={{ loop: true }}
             plugins={[Autoplay({ delay: 4000 })]}
             setApi={setCarouselApi}
@@ -57,7 +57,7 @@ export default function QuickViewProductCard({ product, onClose }) {
               setActiveImageIdx(idx);
             }}
           >
-            <CarouselContent className="h-[420px] md:h-[500px]">
+            <CarouselContent className="h-[420px] w-full mx-auto md:h-[500px]">
               {images.map((img, idx) => (
                 <CarouselItem key={idx} className="flex items-center justify-center h-full">
                   <div className="relative w-full h-[420px] md:h-[500px] flex items-center justify-center">

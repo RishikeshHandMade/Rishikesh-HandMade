@@ -353,7 +353,7 @@ const HeroSection = () => {
         </div>
       </div>
 
-      <div className="block xl:hidden w-full h-full px-4 pt-8 pb-12 relative max-h-[90vh]">
+      <div className="block xl:hidden w-full h-full pt-8 pb-12 relative max-h-[90vh]">
         {/* Mobile Carousel: Only show first image, center content over image, add to cart above image */}
         <Carousel className="w-full max-w-md mx-auto" plugins={[plugin.current]} onMouseLeave={plugin.current.reset} setApi={setApi} >
           <CarouselContent>
@@ -361,7 +361,7 @@ const HeroSection = () => {
               <CarouselItem key={index} className="flex flex-col items-center justify-center relative">
                 <div className="relative w-full flex flex-col items-center">
                   {/* Centered Content above image */}
-                  <div className="absolute top-6 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center w-full px-2">
+                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center w-full px-2 pb-6">
                     <h1 className="text-2xl font-bold text-white drop-shadow mb-2 text-center px-2">
                       {banner.title || "No Title"}
                     </h1>
@@ -463,7 +463,7 @@ const HeroSection = () => {
                     </div>
                     <div className="flex flex-col items-center gap-1 mt-1 mb-2">
                       <div className="text-base font-bold text-white">{banner.subtitle || "No Subtitle"}</div>
-                      <div className="text-sm font-semibold text-white tracking-tight px-4 text-center">{banner.subDescription || "No Sub Description"}</div>
+                      {/* <div className="text-sm font-semibold text-white tracking-tight px-4 text-center">{banner.subDescription || "No Sub Description"}</div> */}
                     </div>
                   </div>
                   {/* Front Image only for mobile */}

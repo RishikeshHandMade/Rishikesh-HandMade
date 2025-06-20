@@ -1451,7 +1451,7 @@ const CheckOut = () => {
             )}
             <div className="flex justify-between items-center text-sm mb-2">
               <span className="text-gray-600">Shipping Charges</span>
-              <span>₹{checkoutData?.shipping.toFixed(2)}</span>
+              <span>₹{Number(checkoutData?.shipping || 0).toFixed(2)}</span>
             </div>
             {(() => {
               const totalCGST = checkoutData.cart.reduce(

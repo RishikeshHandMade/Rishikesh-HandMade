@@ -103,7 +103,7 @@ const AboutUsSection = () => {
     return (
         <section className="bg-[#fcf7f1] relative py-1 w-full px-10 md:px-5 overflow-hidden max-w-screen overflow-x-hidden">
             <div className="w-full">
-                <h2 className="font-bold text-2xl md:text-4xl text-center mt-7 uppercase">Crafted by Hand, Cherished by Heart.
+                <h2 className="font-bold text-2xl md:text-4xl text-center mt-2 md:mt-7 uppercase">Crafted by Hand, Cherished by Heart.
 
                 </h2>
                 <p className=" text-xl font-lg md:text-xl text-center mt-2">
@@ -111,22 +111,19 @@ const AboutUsSection = () => {
                 </p>
                 <hr className="h-[2px] w-[50%] mx-auto bg-black"/>
 
-                <p className="text-gray-600 py-8 text-center font-barlow  w-[50%] mx-auto">
+                <p className="text-gray-600 md:py-8 py-4 text-center font-barlow md:w-[50%] w-full mx-auto">
                     Welcome to Rishikesh Handmade — your gateway to the soulful artistry of the Himalayan foothills. Rooted in the spiritual heart of India, our collection brings together timeless handicrafts handcrafted by local artisans of Rishikesh. Every item is a reflection of our rich cultural heritage, made with love, care, and generations of tradition. From eco-friendly décor and handwoven textiles to sacred spiritual items and unique wooden carvings, each piece tells a story of craftsmanship and connection. By supporting Rishikesh Handmade,
                     <br />
                      you’re not just buying a product — you’re preserving tradition, empowering local artisans, and bringing home a piece of authentic India.
                 </p>
-                <p className="flex items-center text-gray-600 font-barlow font-bold text-sm md:text-lg xl:text-xl mb-4">
-
-                </p>
-                <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4 mx-auto pl-10">
+                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-4 mx-auto">
                     {loading ? (
                         // Loading skeletons
                         Array.from({ length: 5 }).map((_, idx) => (
                             <div
                                 key={idx}
-                                className="flex flex-col items-center w-56 rounded-3xl animate-pulse"
-                                style={{ padding: "1.5rem 0 0.5rem 0" }}
+                                className="flex flex-col items-center w-52 rounded-3xl animate-pulse"
+                                style={{ padding: "1rem 0 0.5rem 0" }}
                             >
                                 <div className="w-full aspect-[4/5] rounded-2xl overflow-hidden flex items-end justify-center bg-gray-200" />
                                 <div className="mt-4 text-center px-2 w-full flex justify-start">
@@ -138,8 +135,8 @@ const AboutUsSection = () => {
                         featuredPackages.map((item) => (
                             <div
                                 key={item._id}
-                                className="flex flex-col items-center w-56 rounded-3xl group"
-                                style={{ padding: "1.5rem 0 0.5rem 0" }}
+                                className="flex flex-col items-center w-42 mx-auto md:w-52 rounded-3xl group"
+                                style={{ padding: "1rem 0 0.5rem 0" }}
                             >
                                 <div className="w-full aspect-[4/5] rounded-2xl border overflow-hidden flex items-end justify-center">
                                     <img
@@ -150,7 +147,7 @@ const AboutUsSection = () => {
                                 </div>
                                 <div className="mt-4 text-center px-2 w-full flex justify-start">
                                     <Link key={item._id} href={item.link}>
-                                        <div className="font-bold text-xl text-black hover:underline transition cursor-pointer">{item.title}</div>
+                                        <div className="font-bold text-sm md:text-xl text-black hover:underline transition cursor-pointer">{item.title}</div>
                                     </Link>
                                 </div>
                             </div>

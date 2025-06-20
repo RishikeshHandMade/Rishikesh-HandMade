@@ -72,7 +72,7 @@ const EnquiryOrder = () => {
   useEffect(() => {
     async function fetchOrders() {
       try {
-        let res = await fetch("/api/orders");
+        let res = await fetch("/api/orders/admin");
         const data = await res.json();
         if (data.success && Array.isArray(data.orders)) {
           setOrders(data.orders);

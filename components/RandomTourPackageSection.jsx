@@ -274,27 +274,26 @@ const RandomTourPackageSection = () => {
           <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mt-10 uppercase">
             Trending Products: The Best, Today
           </h1>
-          <p className=" text-gray-600 py-8 text-center font-barlow w-[50%] mx-auto">
+          <p className=" text-gray-600 py-4 text-center font-barlow md:w-[50%] w-full mx-auto">
             Discover the hottest deals with our Trending Products! Curated
             daily, these top-rated picks offer the best value and quality —
             handpicked for professionals who demand the best, today. Don’t miss
             out — elevate your experience now!
           </p>
           <Carousel
-            className={`w-full md:w-[95%]  mx-auto my-4 ${products.length > 0 ? "block" : "hidden"}`}
+            className={`w-full md:w-[95%] mx-auto my-4 ${products.length > 0 ? "block" : "hidden"}`}
           >
             <CarouselContent className="w-full gap-2">
               {products.length > 0 &&
                 products.map((item, index) => (
                   <CarouselItem
                     key={index}
-                    className="pl-5  md:basis-1/2 lg:basis-1/4 min-w-0 snap-start"
+                    className="pl-5 md:basis-1/2 lg:basis-1/4 min-w-0 snap-start"
                   >
-                    <div className="flex flex-col w-[290px]">
+                    <div className="flex flex-col md:w-[290px]">
                       {/* Image Section */}
-                      <div className="relative w-full h-96  rounded-3xl overflow-hidden flex items-center justify-center group/image">
+                      <div className="relative w-full md:h-96 rounded-3xl overflow-hidden flex items-center justify-center group/image">
                         {/* GET 10% OFF Tag */}
-
                         {(() => {
                           const coupon = item.coupon || item.coupons?.coupon;
                           if (!coupon?.couponCode) return null;
@@ -386,7 +385,7 @@ const RandomTourPackageSection = () => {
                           </Button>
                         </div>
                         <Image
-                          src={item?.gallery?.mainImage?.url || "/RandomTourPackageImages/u1.jpg"}
+                          src={item?.gallery?.mainImage?.url || "/placeholder.jpeg"}
                           alt={item?.title || "Tour package image"}
                           width={400}
                           height={500}
@@ -406,10 +405,10 @@ const RandomTourPackageSection = () => {
                         </div>
                       </div>
                       {/* Name and Price Section */}
-                      <div className="flex items-center justify-between px-1 pt-4 pb-2  mt-0">
+                      <div className="flex items-center justify-between px-1 pt-4 pb-2 mt-0">
                         <Link
                           href={`/product/${item._id}`}
-                          className="font-bold hover:underline text-xl text-gray-900 leading-tight max-w-[200px] truncate cursor-pointer"
+                          className="font-bold hover:underline text-md md:text-xl text-gray-900 leading-tight max-w-[200px] truncate cursor-pointer"
                         >
                           {item?.title}
                         </Link>
@@ -430,13 +429,13 @@ const RandomTourPackageSection = () => {
                           if (hasDiscount && discountedPrice < price) {
                             return (
                               <span>
-                                <del className="text-black font-bold text-xl mr-2">₹{formatNumeric(price)}</del>
-                                <span className="font-bold text-xl text-black px-2">₹{formatNumeric(Math.round(discountedPrice))}</span>
+                                <del className="text-black font-bold text-md md:text-xl mr-2">₹{formatNumeric(price)}</del>
+                                <span className="font-bold text-md md:text-xl text-black px-2">₹{formatNumeric(Math.round(discountedPrice))}</span>
                               </span>
                             );
                           } else {
                             return (
-                              <span className="font-bold text-xl text-black">₹{formatNumeric(price)}</span>
+                              <span className="font-bold text-md md:text-xl text-black">₹{formatNumeric(price)}</span>
                             );
                           }
                         })()}
@@ -728,10 +727,10 @@ const RandomTourPackageSection = () => {
         {/* Quick View Modal */}
         {quickViewProduct && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setQuickViewProduct(null)}>
-            <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full relative overflow-y-auto max-h-[90vh]" onClick={e => e.stopPropagation()}>
+            <div className="bg-white rounded-2xl shadow-xl mx-auto md:max-w-4xl w-full relative overflow-y-auto max-h-[90vh]" onClick={e => e.stopPropagation()}>
               {/* Close Button */}
               <button
-                className="absolute top-4 right-4 text-2xl font-bold text-gray-500 hover:text-black focus:outline-none"
+                className="absolute top-4 right-4 text-2xl font-bold text-gray-500 z-50 rounded-full w-8 h-8 border border-black bg-black text-white flex items-center justify-center hover:bg-gray-100 hover:text-black focus:outline-none"
                 onClick={() => setQuickViewProduct(null)}
                 aria-label="Close quick view"
               >

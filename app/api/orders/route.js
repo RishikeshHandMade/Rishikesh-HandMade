@@ -62,11 +62,17 @@ export async function POST(req) {
   }
 }
 
-// GET /api/orders - fetch only orders with agree === true
+import { getServerSession } from "next-auth/next";
+
+// GET /api/orders - fetch only orders for the current user with agree === true
 export async function GET(req) {
   await connectDB();
+  const session = await getServerSession();
+  if (!session || !session.user || !session.user.email) {
+    return NextResponse.json({ error: "Unauthorized", success: false }, { status: 401 });
+  }
   try {
-    const orders = await Order.find({ agree: true }).sort({ createdAt: -1 });
+    const orders = await Order.find({ agree: true, email: session.user.email }).sort({ createdAt: -1 });
     return NextResponse.json({ orders, success: true }, { status: 200 });
   } catch (error) {
     return NextResponse.json({ error: error.message, success: false }, { status: 500 });
