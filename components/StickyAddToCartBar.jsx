@@ -54,9 +54,9 @@ function StickyAddToCartBar({ product }) {
       className={`fixed left-0 bottom-0 w-full bg-white shadow-xl z-50 transition-transform duration-300 ${showBar ? "translate-y-0" : "translate-y-full"
         }`}
     >
-      <div className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
+      <div className="flex items-center justify-end md:justify-between px-6 py-4 max-w-6xl mx-auto">
         {/* Product Info */}
-        <div className="flex items-center  gap-4">
+        <div className="hidden md:flex items-center gap-4">
           <img src={product?.gallery?.mainImage?.url || "/placeholder.png"} alt={product?.title} className="w-16 h-16 object-cover rounded" />
           <div>
             <div className="font-semibold text-xl">{product?.title}</div>
@@ -126,7 +126,7 @@ function StickyAddToCartBar({ product }) {
             </>
           )}
           {/* Quantity Selector */}
-          <div className="flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-1">
             <button
               className="w-8 h-8 border border-black rounded flex items-center justify-center font-bold text-lg hover:bg-gray-100"
               onClick={() => setQuantity(q => Math.max(1, q - 1))}

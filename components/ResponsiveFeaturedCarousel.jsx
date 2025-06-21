@@ -109,7 +109,7 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
   }, [optionModal]);
 
   return (
-    <div className="w-full flex flex-row gap-4 rounded-2xl items-center py-8 px-2 sm:px-4 md:px-4 mt-8">
+    <div className="w-full flex flex-col md:flex-row gap-4 rounded-2xl items-center justify-center py-8 px-2 md:px-4 md:mt-4">
       {/* Choose Options Modal */}
       {optionModal.open && optionModal.productIdx != null && (
         (() => {
@@ -192,9 +192,9 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
       )}
 
       {/* Carousel Section (Left) */}
-      <div className="flex-1 max-w-[70%] mx-auto flex flex-row items-start">
-        {/* Carousel with 4 products per slide */}
-        <div className="relative w-full">
+      <div className="flex-1 w-full md:max-w-[70%] mx-auto flex flex-row items-start">
+         {/* Desktop Carousel: 4 products per row */}
+         <div className="hidden md:flex relative w-full">
           <Carousel className="w-full">
             <CarouselContent className="w-full gap-2">
               {chunkArray(displayProducts, 4).map((row, rowIdx) => (
@@ -275,12 +275,99 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
             <CarouselPrevious className="absolute -left-8 top-1/2 -translate-y-1/2" />
             <CarouselNext className="absolute -right-8 top-1/2 -translate-y-1/2" />
           </Carousel>
+        </div>       
+        
+        {/* Mobile Carousel: 2 products per row */}
+        <div className="flex md:hidden relative w-full">
+          <Carousel className="w-full">
+            <CarouselContent className="w-full gap-2">
+              {chunkArray(displayProducts, 2).map((row, rowIdx) => (
+                <CarouselItem key={rowIdx} className="flex gap-4 justify-start">
+                  {row.map((product, idx) => {
+                    const globalIdx = rowIdx * 2 + idx;
+                    return (
+                      <div key={product.id || product._id || globalIdx} className="rounded-2xl border border-gray-200 bg-white p-4 flex flex-col w-44 min-w-[150px] justify-between">
+                        <div>
+                          <div className="w-full h-52 relative mb-3 rounded-xl overflow-hidden flex items-center justify-center bg-gray-50 hover:scale-105 transition-all duration-300">
+                            <Image
+                              src={product.gallery?.mainImage?.url || (product.image && product.image.url) || product.image || "/product.jpeg"}
+                              alt={product.title || product.packageName || "Product image"}
+                              width={120}
+                              height={120}
+                              className="object-contain w-full h-full hover:scale-105 transition-all duration-300"
+                            />
+                          </div>
+                          <div className="mb-2">
+                            <div className="flex items-center gap-2 mb-1">
+                              <input
+                                type="checkbox"
+                                checked={selected[globalIdx]}
+                                onChange={() => handleCheck(globalIdx)}
+                                className="accent-black scale-125 cursor-pointer"
+                                style={{ marginTop: 2 }}
+                              />
+                              <Link
+                                href={`/product/${product._id}`}
+                                className="font-semibold text-[15px] text-black leading-tight hover:underline"
+                                style={{ lineHeight: '1.2' }}
+                              >
+                                {product.title || product.name || product.packageName}
+                              </Link>
+                            </div>
+                            {/* Price block */}
+                            <div className="flex items-center gap-2 mt-1">
+                              {product.oldPrice && (
+                                <span className="text-gray-400 text-[15px] font-semibold line-through">
+                                  ₹{product.oldPrice.toFixed(2)}
+                                </span>
+                              )}
+                              {(() => {
+                                const price = product.quantity?.variants?.[0]?.price || product.price || product.minPrice || 0;
+                                const coupon = product.coupon || product.coupons?.coupon;
+                                let discountedPrice = price;
+                                let couponApplied = false;
+                                if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+                                  discountedPrice = price - (price * coupon.percent) / 100;
+                                  couponApplied = true;
+                                } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+                                  discountedPrice = price - coupon.amount;
+                                  couponApplied = true;
+                                }
+                                if (couponApplied || product.oldPrice) {
+                                  return (
+                                    <span className="text-[17px] font-bold text-black ml-1">₹{Math.round(discountedPrice)?.toLocaleString('en-IN')}</span>
+                                  );
+                                } else {
+                                  return <span className="text-[17px] font-bold text-black">₹{price?.toLocaleString('en-IN')}</span>;
+                                }
+                              })()}
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          className="border border-black rounded-md py-2 px-3 text-sm font-semibold mt-2 hover:bg-black hover:text-white transition"
+                          onClick={() => setOptionModal({ open: true, productIdx: globalIdx })}
+                        >
+                          Choose Options
+                        </button>
+                      </div>
+                    );
+                  })}
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="absolute -left-4 top-1/2 -translate-y-1/2" />
+            <CarouselNext className="absolute -right-4 top-1/2 -translate-y-1/2" />
+          </Carousel>
         </div>
+
+       
+    
       </div>
       {/* Summary Section (Right) */}
-      <div className="flex-shrink-0 w-[320px] ml-8">
+      <div className="flex-shrink-0 w-[320px] md:ml-8">
         <div className="rounded-2xl border border-gray-200 p-6 bg-white flex flex-col items-center">
-          <span className="text-xs text-gray-700 mb-2">Price Total:</span>
+          <span className="text-m md:text-xl font-semibold text-gray-900 mb-2">Price Total:</span>
           {(() => {
             let originalTotal = 0;
             let discountedTotal = 0;
@@ -356,7 +443,7 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
               }
             }}
           >ADD ALL TO CART</button>
-          <div className="text-xs text-center text-gray-700 w-52">Get a 10% discount buying these products together</div>
+          <div className="text-sm font-semibold text-center text-gray-700 w-52">Get a 10% discount buying these products together</div>
         </div>
       </div>
     </div>

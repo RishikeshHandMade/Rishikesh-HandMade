@@ -31,18 +31,17 @@ const ProductVideo = ({ productData, productId }) => {
   if (!videos.length) return null;
 
   return (
-    <div className="w-full px-10 mx-auto py-10">
+    <div className="w-full md:px-10 mx-auto py-10">
       {videos.map((video, idx) => {
         const videoId = getYouTubeId(video.url);
         const isEven = idx % 2 === 1;
         return (
           <div
             key={video.url}
-            className="flex flex-col md:flex-row items-stretch justify-center mb-8 gap-6 w-full"
-            style={{ flexDirection: isEven ? 'row-reverse' : 'row' }}
+            className={`flex flex-col md:flex-row items-stretch justify-center mb-4 gap-6 w-full ${isEven ? 'md:flex-row-reverse' : ''}`}
           >
             {/* Video */}
-            <div className="w-full md:w-[60%] aspect-video rounded-2xl overflow-hidden bg-black flex items-center justify-center">
+            <div className="w-full h-60 md:h-auto md:w-[60%] aspect-video md:aspect-video rounded-2xl overflow-hidden bg-black flex items-center justify-center">
               {videoId ? (
                 <iframe
                   src={`https://www.youtube.com/embed/${videoId}`}
@@ -59,7 +58,7 @@ const ProductVideo = ({ productData, productId }) => {
               )}
             </div>
             {/* Description */}
-            <div className="flex-1 min-w-0 bg-white border border-gray-200 p-6 flex flex-col items-start justify-center text-start rounded-2xl shadow-sm">
+            <div className="w-full min-h-60 md:h-auto md:flex-1 min-w-0 bg-white border border-gray-200 p-6 flex flex-col items-start justify-center text-start rounded-2xl shadow-sm">
               <h2 className="font-bold text-2xl mb-4">{video.title || "Product Video"}</h2>
               <p className="mb-6 text-gray-700 text-base md:text-lg">{video.description || 'Discover more about this product. Get inspired and connect with us for more details!'}</p>
               <Link

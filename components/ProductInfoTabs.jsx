@@ -393,11 +393,11 @@ export default function ProductInfoTabs({ product }) {
     const [activeTab, setActiveTab] = useState(0);
     return (
         <div className="w-full mt-10">
-            <div className="border-b flex space-x-8 justify-center">
+           <div className="border-b grid grid-cols-2 sm:flex flex-wrap justify-center gap-2 sm:gap-4">
                 {tabs.map((tab, idx) => (
                     <button
                         key={tab.label}
-                        className={`py-3 px-2 text-lg font-semibold focus:outline-none transition relative ${
+                        className={`w-full sm:w-auto py-2 sm:py-3 px-2 sm:px-4 text-base sm:text-lg font-semibold focus:outline-none transition relative whitespace-nowrap ${
                             activeTab === idx
                                 ? "text-black border-b-2 border-black"
                                 : "text-gray-900"
@@ -408,7 +408,7 @@ export default function ProductInfoTabs({ product }) {
                     </button>
                 ))}
             </div>
-            <div className="py-4 px-2 text-sm text-gray-700 min-h-[64px] w-[80%] mx-auto text-center">
+            <div className="py-4 px-6 text-sm text-gray-700 min-h-[64px] w-full md:w-[80%] mx-auto text-center">
                 {activeTab < tabs.length - 1
                   ? <div dangerouslySetInnerHTML={{ __html: tabs[activeTab].content }} />
                   : tabs[activeTab].content}

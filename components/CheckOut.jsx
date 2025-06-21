@@ -921,25 +921,7 @@ const CheckOut = () => {
       try {
         const order = await handleCreateOrder('cod');
         if (order) {
-          // Send order confirmation email
-          try {
-            await fetch('/api/send-order-confirmation', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                email,
-                orderId: order._id,
-                orderNumber: order.orderNumber,
-                amount: order.totalAmount,
-                items: order.items,
-                shippingAddress: order.shippingInfo,
-                paymentMethod: 'Cash on Delivery'
-              })
-            });
-          } catch (emailError) {
-            // console.error('Failed to send confirmation email:', emailError);
-            // Don't fail the order if email fails
-          }
+          // ...send confirmation email...
           if (typeof window !== 'undefined' && isBuyNow) {
             localStorage.removeItem('buyNowProduct');
           }

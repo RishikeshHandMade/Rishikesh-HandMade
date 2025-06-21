@@ -52,15 +52,15 @@ function RelatedProductsCarousel({ products }) {
   }
 
   return (
-    <div className="w-full py-10 px-5">
+    <div className="w-full py-10 md:px-5">
       {/* <h2 className="text-xl font-bold mb-8 text-center">Related Products</h2> */}
       <div className="relative">
         <Carousel className="w-full pl-2" plugins={[Autoplay({ delay: 4000 })]}>
           <CarouselContent>
             {safeProducts.map((p, idx) => (
-              <CarouselItem key={p._id || idx} className="pl-5  md:basis-1/2 lg:basis-1/4 min-w-0 snap-start">
+              <CarouselItem key={p._id || idx} className="pl-5 md:basis-1/2 lg:basis-1/4 min-w-0 snap-start">
                 <div
-                  className="rounded-2xl flex flex-col justify-between w-72 min-w-[270px] p-0 relative overflow-hidden"
+                  className="rounded-2xl flex flex-col justify-between w-72 mx-auto min-w-[270px] p-0 relative overflow-hidden"
                 >
                   {(() => {
                     const coupon = p.coupon || p.coupons?.coupon;

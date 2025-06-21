@@ -217,9 +217,9 @@ export default function ProductDetailView({ product }) {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4">
+    <div className="flex flex-col md:flex-row gap-4">
       {/* LEFT: Product Images */}
-      <div className="w-full lg:w-1/3 flex flex-col items-center">
+      <div className="w-full md:w-1/3 flex flex-col items-center">
 
         {/* Main Image Carousel (QuickView style, embla-controlled) */}
         <div className="w-full flex justify-center mb-4">
@@ -230,7 +230,6 @@ export default function ProductDetailView({ product }) {
               plugins={[Autoplay({ delay: 4000 })]}
               setApi={setCarouselApi}
             >
-
               <CarouselContent className="h-[420px] md:h-[500px]">
                 {allImages.map((img, idx) => (
                   <CarouselItem key={idx} className="flex items-center justify-center h-full">
