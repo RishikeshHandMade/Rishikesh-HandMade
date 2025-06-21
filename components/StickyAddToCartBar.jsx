@@ -54,7 +54,7 @@ function StickyAddToCartBar({ product }) {
       className={`fixed left-0 bottom-0 w-full bg-white shadow-xl z-50 transition-transform duration-300 ${showBar ? "translate-y-0" : "translate-y-full"
         }`}
     >
-      <div className="flex items-center justify-end md:justify-between px-6 py-4 max-w-6xl mx-auto">
+      <div className="flex items-center justify-end md:justify-between px-4 py-4 max-w-6xl mx-auto">
         {/* Product Info */}
         <div className="hidden md:flex items-center gap-4">
           <img src={product?.gallery?.mainImage?.url || "/placeholder.png"} alt={product?.title} className="w-16 h-16 object-cover rounded" />

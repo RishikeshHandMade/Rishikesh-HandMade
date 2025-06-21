@@ -782,6 +782,7 @@ const CheckOut = () => {
           name: item.name,
           price: item.price,
           quantity: item.qty,
+          weight: item.weight,
           image: item.image?.url || '',
           discount: item.discountAmount || 0,
           tax: ((item.cgst || 0) + (item.sgst || 0)) / 100 * item.price
