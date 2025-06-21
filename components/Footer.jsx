@@ -76,15 +76,6 @@ const Footer = () => {
                     </div>
                     <div>
                         <h1 className="font-semibold text-xl flex items-center gap-2"><Send className="text-blue-600" /> Send Mail</h1>
-                        <Link href={'mailto:info@rishikeshhandmade.com'} className="my-2 block rounded-full px-5 font-barlow text-white ">
-                            info@rishikeshhandmade.com
-                        </Link>
-                        <Link href={'mailto:rishikeshhandmade@gmail.com'} className="my-2 block rounded-full px-5 font-barlow text-white ">
-                            rishikeshhandmade@gmail.com
-                        </Link>
-                        <Link href={'mailto:sale@rishikeshhandmade.com'} className="my-2 block rounded-full px-5 font-barlow text-white ">
-                            sale@rishikeshhandmade.com
-                        </Link>
                         <Link href={'mailto:support@rishikeshhandmade.com'} className="my-2 block rounded-full px-5 font-barlow text-white ">
                             support@rishikeshhandmade.com
                         </Link>
@@ -105,9 +96,7 @@ const Footer = () => {
                         <AccordionItem value="item-1">
                             <AccordionTrigger className="text-black px-6 py-4 text-base ">#AGREEMENT : IMPORTANT NOTICE</AccordionTrigger>
                             <AccordionContent className="text-gray-900 px-6 pb-6 pt-1 text-sm">
-                                By accessing, using, browsing or booking through our Web Site(s) or Directly or Indirectly through YatraZone: Your Spiritual Travel Solution or its representative(s), you agree that you have read, understood and agree to be bound by these terms and conditions and you agree to comply with all applicable laws, rules and regulations. By accepting our booking terms & conditions, user is also agreeing to terms & conditions of the Spiritual Travel, Hotels, aviation services, Airlines, and other associate service provide from us. All Seasons reserves the right to amend, modify, change, cancel, vary or add to these Policies/Rules or the arrangements and content featured on our website at any time without prior notice. Please check our website regularly for updates to Policy/Rules. Any modification to these Policy/Rules that occurs before your departure is considered a part of your reservations agreement with us.<br /><br />
-                                *Kindly read T&C Policy and All remarks carefully before making your bookings. Once you made your booking, you bound to accept these Terms and Conditions. The information contained in this Web site is intended solely to provide general information for the personal use of the reader, who accepts full responsibility for its use. We accept no responsibility for any errors or omissions, or for the results obtained from the use of this information. All information in this site is provided "as is," with no guarantee of completeness, accuracy, timeliness, or of the results obtained from the use of this information, and without warranty of any kind, expressed or implied, including, but not limited to warranties of performance, merchantability, and fitness for a particular purpose. Neither shall it any extent substitute for the independent investigations and the sound technical and business judgment of the reader. YatraZone reserves the right to change the terms, conditions, and notices under which the Services are offered through the Website, including but not limited to the charges for the Services provided through the Website. The User shall be responsible for regularly reviewing these terms and conditions.
-                            </AccordionContent>
+                            All our handicraft products are handcrafted by skilled artisans, which means each item is unique and may have slight variations in color, texture, or finish. These differences are a mark of authenticity and not defects. We ensure quality checks before dispatch, but due to the delicate nature of handmade goods, please handle them with care. Product images may slightly differ from actual items due to lighting or screen settings. Kindly review our return, shipping, and customization policies before placing an order. For any queries or special requests, feel free to contact our support team.                            </AccordionContent>
                         </AccordionItem>
                     </Accordion>
                 </div>

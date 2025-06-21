@@ -177,17 +177,11 @@ export default function Cart({ open, onClose, initialTab = "cart" }) {
                 <span>₹{subtotal.toFixed(2)}</span>
               </div>
               <div className="flex items-center gap-3 mb-4">
-                <Ship size={36} />
                 <div className="flex-1">
-                  <div className="text-sm font-medium mb-1">
-                    {freeShipping
-                      ? "Congratulations, you've got free shipping!"
-                      : `You're ₹${(150 - subtotal).toFixed(2)} away from free shipping.`}
+                  <div className="text-md font-semibold mb-1 text-center">
+                  "Almost Yours—Just One Step Left!"
                   </div>
-                  <div className="w-full h-1 bg-neutral-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-black" style={{ width: `${shippingProgress * 100}%` }}></div>
-                  </div>
-                </div>
+                </div> 
               </div>
               <Link href="/checkout" className="block w-full">
                 <button

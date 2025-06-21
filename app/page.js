@@ -12,8 +12,8 @@ export default async function Home() {
       <Boxes />
       <HeroSection />
       <AboutUsSection />
-      <RandomTourPackageSection />
       <Banner />
+      <RandomTourPackageSection />
       <InstaBlog />
       <GoToTop />
     </>

@@ -4,8 +4,8 @@ import Link from "next/link";
 const CategoryCard = ({ category }) => {
   return (
     
-      <div className="bg-[#fcf7f1] group w-44 h-52 rounded-xl transition-transform mx-2 my-2 flex flex-col">
-        <div className="relative w-full h-52 overflow-hidden rounded-xl mb-2">
+      <div className="bg-[#fcf7f1] group w-44 h-60 rounded-xl transition-transform mx-2 my-2 flex flex-col">
+        <div className="relative w-full h-60 overflow-hidden rounded-xl mb-2">
           <Image
             src={category.profileImage?.url || "/placeholder.jpeg"}
             alt={category.title}

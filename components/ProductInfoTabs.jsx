@@ -264,7 +264,7 @@ export default function ProductInfoTabs({ product }) {
                             />
                         </div>
                         <div className="flex flex-col">
-                            <label className="font-semibold mb-1">Upload Image</label>
+                            <label className="font-semibold mb-1">Thumb Image</label>
                             <div className="flex items-center gap-4">
                                 <Button
                                     variant="outline"

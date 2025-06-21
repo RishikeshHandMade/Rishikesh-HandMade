@@ -58,6 +58,8 @@ const Banner = () => {
             {/* Promotional Banner Section */}
             {promotinalBanner.length > 0 && (
                 <div className="w-full my-8">
+                    <h2 className="text-2xl md:text-3xl font-bold text-center mb-5 uppercase">Click,Collect,Checkout</h2>
+                    <p className="text-center text-gray-700 mb-5">From everyday essentials to the latest trends, we bring everything to your fingertips. Enjoy easy browsing, secure checkout, and doorstep delivery with exciting deals and free shipping.</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {promotinalBanner.map((item, idx) => (
                             <div key={idx} className="rounded-2xl flex flex-col h-[300px] md:h-[400px] p-0 overflow-hidden relative group">

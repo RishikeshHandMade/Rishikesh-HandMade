@@ -470,16 +470,7 @@ const RandomTourPackageSection = () => {
               plugins={[Autoplay({ delay: 4000 })]}>
 
               <CarouselContent className="w-full">
-                {(normalizedReviews && normalizedReviews.length > 0 ? normalizedReviews : [
-                  {
-                    _id: 1,
-                    rating: 3,
-                    title: 'Joe Doe',
-                    subtitle: 'Undergraduate Student',
-                    shortDescription: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Aliquam aut ipsa corrupti, laudantium eos assumenda sed qui vitae ut. Aut mollitia obcaecati rerum optio repellendus reiciendis, accusamus, dignissimos impedit quisquam in molestias, voluptates voluptatem expedita. Nisi eligendi excepturi, optio ipsam, porro dolore perspiciatis corrupti atque animi ipsa architecto eum laboriosam.architecto eum laboriosam.architecto eum laboriosam.",
-                    image: '/placeholder.jpeg',
-                  },
-                ].map(normalizeReview)).map((review, idx) => (
+                {(normalizedReviews && normalizedReviews.length > 0 ? normalizedReviews : [].map(normalizeReview)).map((review, idx) => (
                   <CarouselItem
                     key={review._id}
                     className="min-w-0 snap-center w-full"
@@ -489,17 +480,6 @@ const RandomTourPackageSection = () => {
                       <div className="text-md md:text-2xl text-gray-800 font-bold leading-relaxed mb-2 text-left">
                         {review.title || 'No review text.'}
                       </div>
-                      <div className="absolute right-4 top-4 flex items-center gap-1">
-                        {review.rating && (
-                          <>
-                            {[...Array(review.rating)].map((_, i) => (
-                              <Star key={i} size={22} className="text-yellow-400 fill-yellow-400" />
-                            ))}
-                          </>
-                        )}
-                      </div>
-
-
                       <div className="text-md md:text-md text-gray-800 font-medium leading-relaxed mb-2 text-left">
                         {review.shortDescription || 'No review text.'}
                       </div>
@@ -516,6 +496,15 @@ const RandomTourPackageSection = () => {
                             <div className="font-bold text-xl text-black">{review.createdBy || review.title || 'Anonymous'}</div>
                           </div>
                         </div>
+                        <div className="absolute right-4 top-4 flex items-center gap-1">
+                        {review.rating && (
+                          <>
+                            {[...Array(review.rating)].map((_, i) => (
+                              <Star key={i} size={22} className="text-yellow-400 fill-yellow-400" />
+                            ))}
+                          </>
+                        )}
+                      </div>
 
                       </div>
                     </div>
@@ -595,13 +584,13 @@ const RandomTourPackageSection = () => {
 
         {/* Artisan Carousel Section */}
         <div className="w-full md:mt-10">
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-8 uppercase">Meet Our Artisans</h2>
           {/* Desktop: Grid/List */}
           <div className="w-full max-w-[90%] mx-auto mb-16">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-start mb-8 uppercase">Meet Our Artisans</h2>
             <div className="flex flex-col md:flex-row items-start gap-5">
               {/* Left: Heading and description */}
               <div className="flex-1 flex flex-col justify-center md:pr-8">
-                <h2 className="text-2xl md:text-4xl font-bold  mb-4">Celebrating the Art of Craftsmanship. Honoring the Hands That Shape Beauty</h2>
+                <h2 className="text-2xl md:text-3xl font-bold mb-4">Celebrating the Art of Craftsmanship. Honoring the Hands That Shape Beauty</h2>
                 <div className="text-lg md:text-md text-gray-700 text-justify mb-6">
                   We are proud to recognize and celebrate your exceptional talent and dedication as a skilled handicraft artisan. Your ability to transform raw materials into beautiful, meaningful works of art speaks to your creativity, precision, and passion for the craft. Each piece you create is a testament to the enduring value of handmade artistry and the cultural richness it preserves. With deep appreciation, we commend you for achieving this milestone and look forward to witnessing your continued journey of artistic excellence.
                 </div>

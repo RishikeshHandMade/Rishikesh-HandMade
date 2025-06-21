@@ -11,17 +11,17 @@ const Boxes = () => {
       <div className="flex flex-col md:flex-row items-center justify-between max-w-5xl mx-auto py-4 px-2 gap-5">
         <div className="flex-1 flex flex-col items-center md:items-start">
           <span className="font-bold text-lg md:text-2xl">FREE SHIPPING OVER ₹2999*</span>
-          <span className="text-md text-gray-500">Plus, two-day delivery on thousands of items.</span>
+          <span className="text-md text-gray-900">We’ll Cover the Shipping – You Just Shop</span>
         </div>
         <div className="hidden md:block w-[1px] h-8 bg-black mx-6"></div>
         <div className="flex-1 flex flex-col items-center md:items-end">
           <span className="font-bold text-lg md:text-2xl">AMAZING VALUE EVERY DAY</span>
-          <span className="text-md text-gray-500">Items you love at prices that fit your budget.</span>
+          <span className="text-md text-gray-900">Items you love at prices that fit your budget.</span>
         </div>
       </div>
     </div>
     {/* Feature Icons Row */}
-    <div className="w-full bg-gray-200">
+    <div className="w-full bg-gray-200 mb-2">
       <div className="flex flex-wrap md:flex-nowrap items-center justify-between max-w-7xl mx-auto py-4 px-2 gap-4">
         <div className="flex items-center gap-2 flex-1 min-w-[120px]">
           <span className="text-xl"><Gift size={25} /></span>
@@ -35,7 +35,7 @@ const Boxes = () => {
         <div className="hidden md:block w-[1px] h-6 bg-black"></div>
         <div className="flex items-center gap-2 flex-1 min-w-[120px]">
           <span className="text-xl"><BadgePercent size={25} /></span>
-          <span className="font-bold text-xs md:text-lg ">STUDENT DISCOUNT</span>
+          <span className="font-bold text-xs md:text-lg ">FAST DELIVERY</span>
         </div>
         <div className="hidden md:block w-[1px] h-6 bg-black"></div>
         <div className="flex items-center gap-2 flex-1 min-w-[120px]">

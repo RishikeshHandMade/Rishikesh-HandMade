@@ -84,7 +84,7 @@ export default function ReviewModal({ open, onClose, onSubmit }) {
 
   return (
     <div className="fixed inset-0 z-[99999] bg-black/40 flex items-center justify-center p-0 overflow-y-auto">
-      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-lg md:h-screen h-[90vh] p-6 flex flex-col overflow-y-auto scrollbar-none" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-lg md:h-screen h-[90vh] p-6 md:p-4 flex flex-col overflow-y-auto scrollbar-none" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <style>{`.scrollbar-none::-webkit-scrollbar { display: none; }`}</style>
         {/* Close X top right */}
         <button
@@ -94,11 +94,11 @@ export default function ReviewModal({ open, onClose, onSubmit }) {
         >
           <X size={28} />
         </button>
-        <h2 className="text-3xl font-bold text-center mb-2">Write Review</h2>
-        <p className="text-center text-md font-semibold mb-2">Help us improve — share your feedback.</p>
+        <h2 className="text-xl font-bold text-center mb-2">Write Review</h2>
+        <p className="text-center text-sm text-gray-600 mb-2">Help us improve — share your feedback.</p>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <div>
-            <label className="block font-semibold mb-1">Name</label>
+            <label className="block mb-1">Name</label>
             <input
               name="name"
               type="text"
@@ -110,7 +110,7 @@ export default function ReviewModal({ open, onClose, onSubmit }) {
             />
           </div>
           <div>
-            <label className="block font-semibold mb-1">Thumb Image</label>
+            <label className="block mb-1">Thumb Image</label>
             <label className="block w-full cursor-pointer">
               <input
                 name="thumb"
@@ -119,7 +119,7 @@ export default function ReviewModal({ open, onClose, onSubmit }) {
                 className="hidden"
                 onChange={handleThumbUpload}
               />
-              <div className="w-full bg-black text-white py-2 rounded text-center font-semibold flex items-center justify-center gap-2">
+              <div className="w-full bg-black text-white py-2 rounded text-center flex items-center justify-center gap-2">
                 Select Image
                 {uploading && <span className="ml-2 text-xs text-yellow-400 animate-pulse">Uploading...</span>}
               </div>
@@ -140,7 +140,7 @@ export default function ReviewModal({ open, onClose, onSubmit }) {
             )}
           </div>
           <div>
-            <label className="block font-semibold mb-1">Email</label>
+            <label className="block mb-1">Email</label>
             <input
               name="email"
               type="email"
@@ -152,7 +152,7 @@ export default function ReviewModal({ open, onClose, onSubmit }) {
             />
           </div>
           <div>
-            <label className="block font-semibold mb-1">Rating</label>
+            <label className="block mb-1">Rating</label>
             <div className="flex gap-1 items-center">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
@@ -167,7 +167,7 @@ export default function ReviewModal({ open, onClose, onSubmit }) {
             </div>
           </div>
           <div>
-            <label className="block font-semibold mb-1">Review Title</label>
+            <label className="block mb-1">Review Title</label>
             <input
               name="title"
               type="text"
@@ -179,7 +179,7 @@ export default function ReviewModal({ open, onClose, onSubmit }) {
             />
           </div>
           <div>
-            <label className="block font-semibold mb-1">Body Of Review (100)</label>
+            <label className="block mb-1">Body Of Review (100)</label>
             <textarea
               name="description"
               rows={4}

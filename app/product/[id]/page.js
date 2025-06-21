@@ -8,7 +8,7 @@ import StickyAddToCartBar from "@/components/StickyAddToCartBar"
 import ProductDetailView from "@/components/ProductDetailView";
 import ProductInfoTabs from "@/components/ProductInfoTabs";
 import ProductVideo from "@/components/ProductVideo";
-
+import CategoryCard from "@/components/Category/category-card";
 const ProductDetailPage = async ({ params }) => {
     // Get the product slug from the URL and decode it
     let { id } = await params;
@@ -33,43 +33,42 @@ const ProductDetailPage = async ({ params }) => {
             </div>
         );
     }
-   // Fetch frequently bought together products
-   let frequentlyBoughtTogether = [];
-   try {
-       const fbtRes = await fetch(
-           `${process.env.NEXT_PUBLIC_BASE_URL}/api/product/frequentlyBoughtTogether?id=${product._id}`,
-           { cache: 'no-store' }
-       );
-       if (fbtRes.ok) {
-           frequentlyBoughtTogether = await fbtRes.json();
-        //    console.log('Fetched frequently bought together products:', frequentlyBoughtTogether);
-       }
-   } catch (error) {
-    //    console.error('Error fetching frequently bought together products:', error);
-   }
+    // Fetch frequently bought together products
+    let frequentlyBoughtTogether = [];
+    try {
+        const fbtRes = await fetch(
+            `${process.env.NEXT_PUBLIC_BASE_URL}/api/product/frequentlyBoughtTogether?id=${product._id}`,
+            { cache: 'no-store' }
+        );
+        if (fbtRes.ok) {
+            frequentlyBoughtTogether = await fbtRes.json();
+            //    console.log('Fetched frequently bought together products:', frequentlyBoughtTogether);
+        }
+    } catch (error) {
+        //    console.error('Error fetching frequently bought together products:', error);
+    }
 
     // Fetch related products only if we have a valid product
-    let relatedProducts = [];
+    let allCategories = [];
     try {
         if (product.category) {  // Only fetch if category exists
-            const relatedRes = await fetch(
-                `${process.env.NEXT_PUBLIC_BASE_URL}/api/product/relatedProducts?id=${product._id}&category=${product.category}`,
+            const allCategoriesRes = await fetch(
+                `${process.env.NEXT_PUBLIC_BASE_URL}/api/getAllMenuItems`,
                 { 
                     cache: 'no-store',  
                 }   
             );
-            if (!relatedRes.ok) {
-                throw new Error(`Failed to fetch related products: ${relatedRes.status}`);
+            if (!allCategoriesRes.ok) {
+                throw new Error(`Failed to fetch all categories: ${allCategoriesRes.status}`);
             }
-            relatedProducts = await relatedRes.json();
+            allCategories = await allCategoriesRes.json();
             // console.log('Fetched related products:', relatedProducts);
         }
     } catch (error) {
-    //    console.error('Error fetching related products:', error);
-        // Don't throw the error, just show the product without related items
     }
 
- 
+
+
 
     // Render the product details page
     return (
@@ -79,23 +78,43 @@ const ProductDetailPage = async ({ params }) => {
                     <ProductDetailView product={product} />
                 </div>
                 <div className="space-y-4">
-                        <ProductVideo productData={product} productId={product._id} />
+                    <ProductVideo productData={product} productId={product._id} />
                 </div>
                 <div className="space-y-4">
-                        <ProductInfoTabs product={product} />
-                    </div>
+                    <ProductInfoTabs product={product} />
+                </div>
                 {/* <ResponsiveFeaturedCarousel /> */}
                 {frequentlyBoughtTogether && frequentlyBoughtTogether.length > 0 && (
-                  <div className="mt-8 px-4 py-2 bg-[#fafafa]">
-                    <h2 className=" text-2xl md:text-4xl font-semibold px-4">Frequently Bought Together</h2>
-                    <ResponsiveFeaturedCarousel products={frequentlyBoughtTogether} />
-                  </div>
+                    <div className="mt-8 px-4 py-2 bg-[#fafafa]">
+                        <h2 className=" text-2xl md:text-4xl font-semibold px-4">Frequently Bought Together</h2>
+                        <ResponsiveFeaturedCarousel products={frequentlyBoughtTogether} />
+                    </div>
                 )}
-                {/* Related Products */}
-                {relatedProducts && relatedProducts.length > 0 && (
+                {/* Category Cards Row */}
+                {allCategories && allCategories.length > 0 && (
                     <div className="mt-8 px-4 py-2">
-                        <h2 className="text-2xl md:text-4xl font-semibold px-4">Related Products</h2>
-                        <RelatedProductsCarousel products={relatedProducts} />
+                        <h2 className="text-2xl md:text-4xl font-semibold px-4">Category</h2>
+                            <div>
+                                <Carousel className="w-full mx-auto my-4">
+                                    <CarouselContent className="w-full gap-5">
+                                        {Array.isArray(allCategories) && allCategories.flatMap(cat =>
+                                            Array.isArray(cat.subMenu) ? cat.subMenu.map((sub, idx) => (
+                                                <CarouselItem key={`${cat._id || cat.title || idx}-${sub._id || sub.url || idx}`} className="basis-1/2 md:basis-1/5 lg:basis-1/5 min-w-0 snap-start">
+                                                    <CategoryCard category={{
+                                                        title: sub.title,
+                                                        profileImage: sub.profileImage,
+                                                        url: `/category/${sub.url}`
+                                                    }} />
+                                                </CarouselItem>
+                                            )) : []
+                                        )}
+                                    </CarouselContent>
+                                    {/* <CarouselPrevious /> */}
+                                    {/* <CarouselNext /> */}
+                                </Carousel>
+                            </div>
+                        
+                        {/* <RelatedProductsCarousel products={relatedProducts} /> */}
                     </div>
                 )}
                 <StickyAddToCartBar product={product} />
