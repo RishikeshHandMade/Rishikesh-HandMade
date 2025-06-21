@@ -12,6 +12,7 @@ import SizeManagement from './SizeManagement';
 import QuantityManagement from './QuantityManagement';
 import ApplyCoupon from './ApplyCoupon';
 import ApplyTax from './ApplyTax';
+import ProductTagLine from './ProductTagLine';
 
 const AddDirectProduct = ({ productId }) => {
 
@@ -72,6 +73,7 @@ const AddDirectProduct = ({ productId }) => {
     { key: 'info', label: 'Product Information', component: (props) => <ProductInfo {...props} productData={productData} productId={productId} /> },
     { key: 'review', label: 'Create Review', component: (props) => <ProductReview {...props} productData={productData} productId={productId} /> },
     { key: 'tag', label: 'Category Tag', component: (props) => <CategoryTag {...props} productData={productData} productId={productId} /> },
+    { key: 'productTag', label: 'Product Tag', component: (props) => <ProductTagLine {...props} productData={productData} productId={productId} /> },
   ];
   const [activeSection, setActiveSection] = useState(sectionConfig[0].key);
 

@@ -147,7 +147,6 @@ const RandomTourPackageSection = () => {
       setIsLoadingPromotions(false);
     }
   };
-
   // Fetch Reviews
   const fetchReviews = async () => {
     try {
@@ -166,6 +165,7 @@ const RandomTourPackageSection = () => {
       setIsLoadingReviews(false);
     }
   };
+  // Fetch Artisan 
   const fetchArtisan = async () => {
     try {
       const res = await fetch("/api/createArtisan");
@@ -185,11 +185,12 @@ const RandomTourPackageSection = () => {
       setIsArtisanLoading(false);
     }
   };
+  // Fetch Prouducts
   const fetchProducts = async () => {
     try {
       const res = await fetch("/api/product");
       const data = await res.json();
-      // console.log("Product API response:", data);
+      console.log("Product API response:", data);
 
       if (data && data.length > 0) {
         setProducts(data);
@@ -294,6 +295,13 @@ const RandomTourPackageSection = () => {
                     <div className="flex flex-col md:w-[290px]">
                       {/* Image Section */}
                       <div className="relative w-full md:h-96 rounded-3xl overflow-hidden flex items-center justify-center group/image">
+                        {item.productTagLine?.tags && item.productTagLine.tags.length > 0 && (
+                          <div className="absolute top-6 left-1 z-10 w-10 h-fit px-4 py-1 text-md font-bold shadow text-black tracking-tight" style={{ letterSpacing: 0 }}>
+                            {item.productTagLine.tags[0].split('').map((char, idx) => (
+                              <span key={idx} style={{ display: 'block', lineHeight: '1.2' }}>{char}</span>
+                            ))}
+                          </div>
+                        )}
                         {/* GET 10% OFF Tag */}
                         {(() => {
                           const coupon = item.coupon || item.coupons?.coupon;
@@ -497,14 +505,14 @@ const RandomTourPackageSection = () => {
                           </div>
                         </div>
                         <div className="absolute right-4 top-4 flex items-center gap-1">
-                        {review.rating && (
-                          <>
-                            {[...Array(review.rating)].map((_, i) => (
-                              <Star key={i} size={22} className="text-yellow-400 fill-yellow-400" />
-                            ))}
-                          </>
-                        )}
-                      </div>
+                          {review.rating && (
+                            <>
+                              {[...Array(review.rating)].map((_, i) => (
+                                <Star key={i} size={22} className="text-yellow-400 fill-yellow-400" />
+                              ))}
+                            </>
+                          )}
+                        </div>
 
                       </div>
                     </div>
@@ -518,7 +526,7 @@ const RandomTourPackageSection = () => {
 
           {/* Review Card (Mobile) */}
           <div className="block md:hidden gap-2 flex flex justify-start w-full md:w-1/2 items-end pr-1">
-          
+
             <Carousel className="w-full md:w-[600px]"
               plugins={[Autoplay({ delay: 4000 })]}>
 
@@ -586,7 +594,7 @@ const RandomTourPackageSection = () => {
         <div className="w-full md:mt-10">
           {/* Desktop: Grid/List */}
           <div className="w-full max-w-[90%] mx-auto mb-16">
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-start mb-8 uppercase">Meet Our Artisans</h2>
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-start mb-8 uppercase">Meet Our Artisans</h2>
             <div className="flex flex-col md:flex-row items-start gap-5">
               {/* Left: Heading and description */}
               <div className="flex-1 flex flex-col justify-center md:pr-8">

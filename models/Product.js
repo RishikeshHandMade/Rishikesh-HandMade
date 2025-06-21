@@ -15,6 +15,10 @@ const ProductSchema = new mongoose.Schema({
   description: { type: mongoose.Schema.Types.ObjectId, ref: 'Description' },
   info: { type: mongoose.Schema.Types.ObjectId, ref: 'Info' },
   categoryTag: { type: mongoose.Schema.Types.ObjectId, ref: 'CategoryTag' },
+  productTagLine: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ProductTagLine',
+  },
   taxes: { type: mongoose.Schema.Types.ObjectId, ref: 'ProductTax' },
   reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ProductReview' }],
   quantity: { type: mongoose.Schema.Types.ObjectId, ref: 'Quantity' },
@@ -24,7 +28,7 @@ const ProductSchema = new mongoose.Schema({
 });
 
 export default mongoose.models.Product || mongoose.model('Product', ProductSchema);
- 
+
 // export { ProductSchema };
 
 // export default models.Package || model("Package", PackageSchema);

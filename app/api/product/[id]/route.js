@@ -14,6 +14,8 @@ import ProductTax from '@/models/ProductTax';
 import ProductCoupons from '@/models/ProductCoupons';
 import Quantity from '@/models/Quantity';
 import Color from '@/models/Color';
+import ProductTagLine from '@/models/ProductTagLine';
+
 // import Tax from '@/models/ProductTax';
 
 import { deleteFileFromCloudinary } from '@/utils/cloudinary';
@@ -35,6 +37,7 @@ export async function GET(req, { params }) {
       .populate('description')
       .populate('info')
       .populate('categoryTag')
+      .populate('productTagLine')
       .populate('reviews')
       .populate('quantity')
       .populate('coupons')
@@ -113,6 +116,11 @@ export async function DELETE(req, { params }) {
     if (product.categoryTag) {
       await CategoryTag.findByIdAndDelete(product.categoryTag);
     }
+    // Delete proudct tag line
+    if (product.productTagLine) {
+      await CategoryTag.findByIdAndDelete(product.productTagLine);
+    }
+    
     // Delete reviews
     if (Array.isArray(product.reviews)) {
       for (const reviewId of product.reviews) {

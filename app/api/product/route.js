@@ -13,6 +13,8 @@ import ProductReview from '@/models/ProductReview';
 import Quantity from '@/models/Quantity';
 import ProductCoupons from '@/models/ProductCoupons';
 import ProductTax from '@/models/ProductTax';
+import ProductTagLine from '@/models/ProductTagLine';
+
 import { deleteFileFromCloudinary } from '@/utils/cloudinary';
 
 export async function POST(req) {
@@ -73,6 +75,7 @@ export async function GET(req) {
         .populate('description')
         .populate('info')
         .populate('categoryTag')
+        .populate('productTagLine')
         .populate('reviews')
         .populate('quantity')
         .populate('coupons')
@@ -101,6 +104,7 @@ export async function GET(req) {
         .populate('description')
         .populate('info')
         .populate('categoryTag')
+        .populate('productTagLine')
         .populate('reviews')
         .populate('quantity')
         .populate('coupons')
@@ -135,6 +139,7 @@ export async function GET(req) {
         .populate('description')
         .populate('info')
         .populate('categoryTag')
+        .populate('productTagLine')
         .populate('reviews')
         .populate('quantity')
         .populate('coupons')

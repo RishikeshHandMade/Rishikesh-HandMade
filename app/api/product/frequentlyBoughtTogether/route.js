@@ -38,6 +38,7 @@ export async function GET(request) {
         'description',
         'info',
         'categoryTag',
+        'productTagLine',
         'quantity',
         'coupons',
         'artisan'

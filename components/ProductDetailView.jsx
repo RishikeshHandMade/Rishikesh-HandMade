@@ -1051,7 +1051,7 @@ export default function ProductDetailView({ product }) {
                   const res = await fetch('/api/checkShipping', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ weight: totalWeight})
+                    body: JSON.stringify({ weight: totalWeight })
                   });
                   const data = await res.json();
                   console.log(data);
