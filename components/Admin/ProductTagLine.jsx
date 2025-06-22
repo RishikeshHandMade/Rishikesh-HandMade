@@ -56,11 +56,11 @@ const ProductTagLine = ({ productData, productId }) => {
       .then(res => res.json())
       .then(data => {
         // Only set a single row for the current product
-        if (data && data.success && data.data && Array.isArray(data.data.tags) && data.data.tags.length > 0) {
+        if (data && data.success && data.data && data.data.tagLine) {
           setCategoryRows([{
             product: productId,
             productName: productData?.title || productTitle || "",
-            tags: data.data.tags,
+            tagLine: data.data.tagLine,
             categoryTagId: data.data._id
           }]);
         } else {
@@ -131,42 +131,41 @@ const ProductTagLine = ({ productData, productId }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedTags.length) {
-      toast.error("Please add at least one Product Tag Line.");
+    const productToSend = productId || selectedProduct;
+    const tagLineToSend = selectedTags[0] || '';
+    if (!productToSend || !tagLineToSend.trim()) {
+      toast.error("Product and tagLine are required.");
       return;
     }
     console.log(selectedTags)
-    // If editing, PATCH; else POST
     try {
-      let res;
-      // Always use productId prop if present, else selectedProduct
       const productToSend = productId || selectedProduct;
-      if (editRow && editRow.categoryTagId) {
-        res = await fetch("/api/productTagLine", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ product: productToSend, tags: selectedTags })
-        });
+      let res, method, url;
+      // If a tag line already exists for this product, PATCH, else POST
+      if (categoryRows.length > 0 && categoryRows[0].categoryTagId) {
+        method = "PATCH";
+        url = "/api/productTagLine";
       } else {
-        res = await fetch("/api/productTagLine", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ product: productToSend, tags: selectedTags }),
-
-        });
+        method = "POST";
+        url = "/api/productTagLine";
       }
+      res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ product: productToSend, tagLine: tagLineToSend })
+      });
       const json = await res.json();
-      if (res.ok) {
-        toast.success(editRow ? "Product Tag Line updated!" : "Product Tag Line created!");
-        // Re-fetch category tags for the current product only
+      if (res.ok && json.success) {
+        toast.success("Product Tag Line saved!");
+        // Refresh the tag line for this product
         fetch(`/api/productTagLine?product=${productToSend}`)
           .then(res => res.json())
           .then(data => {
-            if (data && data.success && data.data && Array.isArray(data.data.tags) && data.data.tags.length > 0) {
+            if (data && data.success && data.data && data.data.tagLine) {
               setCategoryRows([{
                 product: productToSend,
                 productName: productData?.title || productTitle || "",
-                tags: data.data.tags,
+                tagLine: data.data.tagLine,
                 categoryTagId: data.data._id
               }]);
             } else {
@@ -189,7 +188,7 @@ const ProductTagLine = ({ productData, productId }) => {
   const handleEdit = (row) => {
     setEditRow(row);
     setSelectedProduct(row.product);
-    setSelectedTags(row.tags);
+    setSelectedTags([row.tagLine]);
   };
   // Delete handler
   const handleDelete = async (row) => {
@@ -210,11 +209,11 @@ const ProductTagLine = ({ productData, productId }) => {
         fetch(`/api/productTagLine?product=${productToDelete}`)
           .then(res => res.json())
           .then(data => {
-            if (data && data.success && data.data && Array.isArray(data.data.tags) && data.data.tags.length > 0) {
+            if (data && data.success && data.data && data.data.tagLine) {
               setCategoryRows([{
                 product: productToDelete,
                 productName: productData?.title || productTitle || "",
-                tags: data.data.tags,
+                tagLine: data.data.tagLine,
                 categoryTagId: data.data._id
               }]);
             } else {
@@ -307,18 +306,9 @@ const ProductTagLine = ({ productData, productId }) => {
                     ))}
                   </div>
                   {/* Submit button: label changes depending on edit mode */}
-                  {editRow ? (
-                    <div className="flex gap-2 mt-4">
-                      <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">Update</button>
-                      <button type="button" className="bg-gray-400 text-white px-4 py-2 rounded" onClick={() => {
-                        setEditRow(null);
-                        setSelectedTags([]);
-                        setSelectedProduct("");
-                      }}>Cancel</button>
-                    </div>
-                  ) : (
-                    <button type="submit" className="bg-red-600 text-white px-4 py-2 rounded mt-4 w-48 font-bold">Create Tag Line</button>
-                  )}
+                  <button type="submit" className="bg-red-600 text-white px-4 py-2 rounded mt-4 w-48 font-bold">
+                    {categoryRows.length > 0 ? "Update Tag Line" : "Create Tag Line"}
+                  </button>
                 </div>
               </div>
             </div>
@@ -343,11 +333,7 @@ const ProductTagLine = ({ productData, productId }) => {
                       <TableCell>{idx + 1}</TableCell>
                       <TableCell>{row.productName}</TableCell>
                       <TableCell>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                          {row.tags.map(tag => (
-                            <span key={tag} style={{ background: '#eee', padding: '6px', border: '1px solid #ccc', borderRadius: 12 }}>{tag}</span>
-                          ))}
-                        </div>
+                        <span style={{ background: '#eee', padding: '6px', border: '1px solid #ccc', borderRadius: 12 }}>{row.tagLine}</span>
                       </TableCell>
                       <TableCell>
                         <Button size="sm" variant="default" className="bg-yellow-500 text-white px-3 py-1 rounded mr-2" type="button" onClick={() => handleEdit(row)}>Edit</Button>
@@ -357,7 +343,7 @@ const ProductTagLine = ({ productData, productId }) => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-gray-500">No Product Tag Line found.</TableCell>
+                    <TableCell colSpan={4} className="text-center py-8 text-gray-500">No Product Tag Line found.</TableCell>
                   </TableRow>
                 )}
               </TableBody>

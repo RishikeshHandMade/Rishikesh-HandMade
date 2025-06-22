@@ -71,7 +71,10 @@ export default function EditArtisan({ artisan }) {
   const filteredUsers = users.filter(artisan => {
     const matchesName = `${artisan.firstName} ${artisan.lastName}`.toLowerCase().includes(filterName.toLowerCase());
     const matchesNumber = !filterNumber || (artisan.artisanNumber || '').toLowerCase().includes(filterNumber.toLowerCase());
-    const matchesPhone = !filterPhone || (artisan.phoneNumber || '').toLowerCase().includes(filterPhone.toLowerCase());
+    const matchesPhone = !filterPhone || (
+      (artisan.contact.callNumber && artisan.contact.callNumber.toLowerCase().includes(filterPhone.toLowerCase())) ||
+      (artisan.contact.whatsappNumber && artisan.contact.whatsappNumber.toLowerCase().includes(filterPhone.toLowerCase()))
+    );
     return matchesName && matchesNumber && matchesPhone;
   });
 
@@ -104,6 +107,7 @@ export default function EditArtisan({ artisan }) {
           <input
             type="text"
             value={filterPhone}
+            maxLength={10}
             onChange={e => setFilterPhone(e.target.value)}
             className="border rounded px-2 py-1"
             placeholder="Search by phone"
@@ -143,7 +147,7 @@ export default function EditArtisan({ artisan }) {
                   <TableCell className="px-4 py-3">{artisan.firstName} {artisan.lastName}</TableCell>
                   <TableCell className="px-4 py-3">{artisan.artisanNumber}</TableCell>
                   <TableCell className="px-4 py-3">
-                    
+
                     <Link
                       href={`/admin/artisan/${artisan._id}`}
                       onClick={() => {
@@ -158,7 +162,7 @@ export default function EditArtisan({ artisan }) {
                   </TableCell>
                   <TableCell className="px-4 py-3 space-x-2">
                     <Link href={`/admin/artisan_dashboard/${artisan._id}`}>
-                    <Button size="sm" variant="outline">View</Button>
+                      <Button size="sm" variant="outline">View</Button>
                     </Link>
                     {/* <Button size="sm" variant="secondary" onClick={() => onEdit && onEdit(artisan)}>Edit</Button> */}
                     <Button size="sm" variant="destructive" onClick={() => handleDeleteClick(artisan)}>Delete</Button>

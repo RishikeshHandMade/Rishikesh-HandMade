@@ -1,10 +1,11 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { toast } from 'react-hot-toast';
 import Link from "next/link"
+import { ArrowLeftIcon } from 'lucide-react';
 const sectionTitles = [
   'Profile',
   'Promotions Reviews',
@@ -53,7 +54,8 @@ const ArtisanDashboard = () => {
   const [deleteModal, setDeleteModal] = useState({ show: false, type: '', id: null });
   const [catalogLoading, setCatalogLoading] = useState(false);
   const [products, setProducts] = useState([]);
-  console.log(stories)
+  const router = useRouter();
+  // console.log(stories)
   useEffect(() => {
     async function fetchAll() {
       setLoading(true);
@@ -142,8 +144,13 @@ const ArtisanDashboard = () => {
   );
 
   return (
-    <div className="flex" style={{ minHeight: '85vh', background: '#f8f9fa', padding: '20px' }}>
+    <div className="flex relative" style={{ minHeight: '85vh', background: '#f8f9fa', padding: '20px' }}>
       {/* Sidebar */}
+      <div className="absolute -top-5 z-10 ">
+        <button className='px-4 py-1 bg-gray-500 text-white rounded flex items-center' onClick={() => router.back()}>
+          <ArrowLeftIcon className="w-4 h-4 mr-2" /> Back to View Artisan
+        </button>
+      </div>
       <div className="h-fit me-4" style={{ border: '1px solid #ced4da', borderRadius: '8px', background: '#fff', overflowY: 'auto', padding: '15px' }}>
         <div className="flex flex-col gap-2">
           {sectionTitles.map(section => (
@@ -160,9 +167,6 @@ const ArtisanDashboard = () => {
       {/* Main Content */}
       <div className="flex-1" style={{ border: '1px solid #ced4da', borderRadius: '8px', background: '#fff', padding: '20px', height: '100%', overflowY: 'auto' }}>
         <h2 className="mb-4 text-center text-xl" style={{ fontWeight: 600 }}>{activeKey}</h2>
-
-
-
         {/* Profile Section */}
         {activeKey === 'Profile' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

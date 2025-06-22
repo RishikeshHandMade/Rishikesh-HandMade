@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import CreatePromotional from './CreatePromotional';
 import ManageArtisanBlogs from './ManageArtisanBlogs';
@@ -8,6 +8,7 @@ import ArtisonStory from './ArtisonStory';
 import SocialPlugins from './SocialPlugins';
 import Certificate from './Certificate';
 import ArtisanBanner from './ArtisanBanner';
+import { ArrowLeftIcon } from 'lucide-react';
 // import ProductCatalog from './ProductCatalog';
 
 const sectionConfig = [
@@ -48,6 +49,7 @@ const EditInfo = () => {
   const artisanId = params?.id;
   const [activeSection, setActiveSection] = useState(sectionConfig[0].key);
   const [artisanDetails, setArtisanDetails] = useState(null);
+  const router = useRouter();
 
   React.useEffect(() => {
     // Try to get artisan from sessionStorage (set in EditArtisan)
@@ -72,6 +74,11 @@ const EditInfo = () => {
   return (
     <div style={{ minHeight: '85vh', background: '#fff', padding: '20px' }}>
       {/* Show artisan details at the top if present */}
+      <div className="back mb-2">
+        <button className='px-4 py-1 bg-gray-500 text-white rounded flex items-center' onClick={() => router.back()}>
+          <ArrowLeftIcon className="w-4 h-4 mr-2" /> Back to View Artisan
+        </button>
+      </div>
       {artisanDetails && (
         <div className="mb-4 p-4 bg-blue-50 rounded shadow flex gap-8 items-center">
           <div>
