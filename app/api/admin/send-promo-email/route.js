@@ -31,7 +31,7 @@ export async function POST(req) {
     const emailRecipients = users.map(user => ({ email: user.email }));
 
     const emailData = {
-      sender: { name: "Rishikesh HandMade", email: "info@rishikeshhandmade.com" },
+      sender: { name: "Rishikesh HandMade", email: "rishikeshhandmade@gmail.com" },
       to: emailRecipients,
       subject,
       htmlContent: `
@@ -79,7 +79,7 @@ export async function POST(req) {
                 <table class="container" role="presentation" width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
                     <!-- Header -->
                     <tr>
-                        <td style="padding: 30px 0; text-align: center; background-color: #4F46E5; border-top-left-radius: 8px; border-top-right-radius: 8px;">
+                        <td style="padding: 30px 0; text-align: center; background-color:rgb(176, 176, 176); border-top-left-radius: 8px; border-top-right-radius: 8px;">
                             <a href="https://rishikeshhandmade.com/" class="header">
             <img src="https://rishikeshhandmade.com/logo.png" alt="Rishikesh HandMade Logo">
         </a>

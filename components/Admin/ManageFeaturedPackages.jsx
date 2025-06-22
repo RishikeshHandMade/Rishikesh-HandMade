@@ -9,10 +9,11 @@ import { Button } from "../ui/button";
 // import { UploadButton } from "@uploadthing/react"; // Removed UploadThing
 // import { deleteFileFromUploadthing } from "@/utils/Utapi"; // Removed UploadThing
 import { X } from "lucide-react";
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 const ManageFeaturedPackages = () => {
     const [packages, setPackages] = useState([]);
     const [editingPackage, setEditingPackage] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [formData, setFormData] = useState({
         title: "",
         image: { url: "", key: "" }, // Storing both URL & Key
@@ -79,50 +80,62 @@ const ManageFeaturedPackages = () => {
         setFormData({ ...formData, image: { url: "", key: "" } });
     };
 
-    const handleDelete = async (id, imageKey) => {
-        if (window.confirm("Are you sure you want to delete this package?")) {
-            try {
-                // Delete the image from Uploadthing first
-                if (imageKey) {
-                    // Removed UploadThing delete, now just clear image from state(imageKey);
-                }
+    const handleDelete = (id, imageKey) => {
+        setPackageToDelete({ id, imageKey });
+        setShowDeleteModal(true);
+    };
 
-                // Then delete the package from database
-                const response = await fetch(`/api/featured-packages/${id}`, {
-                    method: "DELETE",
-                });
-
-                if (!response.ok) {
-                    throw new Error("Failed to delete package");
-                }
-
-                toast.success("Package deleted successfully");
-
-                // Refresh the list of packages
-                const updatedPackages = await fetch("/api/featured-packages").then((res) => res.json());
-                setPackages(updatedPackages);
-
-                // If we were editing this package, clear the form
-                if (editingPackage === id) {
-                    setEditingPackage(null);
-                    setFormData({ title: "", image: { url: "", key: "" }, link: "" });
-                }
-            } catch (error) {
-                toast.error(error.message);
+    const confirmDelete = async () => {
+        const { id, imageKey } = packageToDelete;
+        try {
+            // Delete the image from Uploadthing first
+            if (imageKey) {
+                // Removed UploadThing delete, now just clear image from state(imageKey);
             }
+
+            // Then delete the package from database
+            const response = await fetch(`/api/featured-packages/${id}`, {
+                method: "DELETE",
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to delete package");
+            }
+
+            toast.success("Package deleted successfully");
+
+            // Refresh the list of packages
+            const updatedPackages = await fetch("/api/featured-packages").then((res) => res.json());
+            setPackages(updatedPackages);
+
+            // If we were editing this package, clear the form
+            if (editingPackage === id) {
+                setEditingPackage(null);
+                setFormData({ title: "", image: { url: "", key: "" }, link: "" });
+            }
+        } catch (error) {
+            toast.error(error.message);
+        } finally {
+            setShowDeleteModal(false);
+            setPackageToDelete({ id: null, imageKey: null });
         }
+    };
+
+    const cancelDelete = () => {
+        setShowDeleteModal(false);
+        setPackageToDelete({ id: null, imageKey: null });
     };
 
     return (
         <div className="p-6 mt-12 mx-auto max-w-7xl w-full ">
             <form onSubmit={handleSubmit} className="bg-white shadow-lg rounded-lg p-6 space-y-4">
                 <Label>Title</Label>
-                <Input name="title" placeholder="e.g. North India Tour Package" value={formData.title} onChange={handleChange} required />
+                <Input name="title" placeholder="e.g. Add Product Title" value={formData.title} onChange={handleChange} required />
                 <Label>Link</Label>
-                <Input name="link" placeholder="e.g. https://example.com/package-details" value={formData.link} onChange={handleChange} required />
+                <Input name="link" placeholder="e.g. Add Product Link" value={formData.link} onChange={handleChange} required />
 
                 {/* Uploadthing Image Upload */}
-                <Label>Upload Image</Label>
+                
                 {formData?.image?.url === "" && (
                     <>
                         <input
@@ -190,15 +203,16 @@ const ManageFeaturedPackages = () => {
                         </div>
                     </div>
                 )}
+                <br />
 
                 <Button className="mt-4 bg-blue-600 hover:bg-blue-700" type="submit">
-                    {editingPackage ? "Update Package" : "Add Package"}
+                    {editingPackage ? "Update Product" : "Add Product"}
                 </Button>
             </form >
 
             {/* Display Existing Packages */}
             < div className="mt-6" >
-                <h2 className="text-xl font-bold">Existing Packages</h2>
+                <h2 className="text-xl font-bold">Existing Products</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
                     {packages.map((pkg) => (
                         <div key={pkg._id} className="p-4 border rounded-lg shadow-md">
@@ -217,6 +231,19 @@ const ManageFeaturedPackages = () => {
                     ))}
                 </div>
             </div >
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Delete Featured Product</DialogTitle>
+                    </DialogHeader>
+                    <p>Are you sure you want to delete this product?</p>
+                    <DialogFooter>
+                        <Button variant="secondary" onClick={cancelDelete}>Cancel</Button>
+                        <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div >
     );
 };

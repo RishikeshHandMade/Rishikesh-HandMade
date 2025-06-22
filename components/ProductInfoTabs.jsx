@@ -108,7 +108,7 @@ export default function ProductInfoTabs({ product }) {
                 console.error('API Response:', data);
                 return;
             }
-            
+
             toast.success('Review submitted successfully!');
             setShowReviewForm(false);
             // Clear form state
@@ -145,41 +145,41 @@ export default function ProductInfoTabs({ product }) {
         const file = e.target.files[0];
         setImageFile(file);
         if (file) {
-          setUploading(true);
-          toast.loading('Uploading image to Cloudinary...', { id: 'review-image-upload' });
-          
-          // Preview
-          const reader = new FileReader();
-          reader.onloadend = () => setImagePreview(reader.result);
-          reader.readAsDataURL(file);
+            setUploading(true);
+            toast.loading('Uploading image to Cloudinary...', { id: 'review-image-upload' });
 
-          // Upload to Cloudinary
-          const formData = new FormData();
-          formData.append('file', file);
-          formData.append('upload_preset', 'product_reviews');
+            // Preview
+            const reader = new FileReader();
+            reader.onloadend = () => setImagePreview(reader.result);
+            reader.readAsDataURL(file);
 
-          try {
-            const res = await fetch('/api/cloudinary', {
-              method: 'POST',
-              body: formData
-            });
-            const data = await res.json();
-            if (res.ok && data.url && data.key) {
-              setImageObj({ url: data.url, key: data.key });
-              toast.success('Image uploaded!', { id: 'review-image-upload' });
-            } else {
-              toast.error('Cloudinary upload failed: ' + (data.error || 'Unknown error'), { id: 'review-image-upload' });
+            // Upload to Cloudinary
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', 'product_reviews');
+
+            try {
+                const res = await fetch('/api/cloudinary', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (res.ok && data.url && data.key) {
+                    setImageObj({ url: data.url, key: data.key });
+                    toast.success('Image uploaded!', { id: 'review-image-upload' });
+                } else {
+                    toast.error('Cloudinary upload failed: ' + (data.error || 'Unknown error'), { id: 'review-image-upload' });
+                }
+            } catch (err) {
+                toast.error('Cloudinary upload error: ' + err.message, { id: 'review-image-upload' });
+            } finally {
+                setUploading(false);
             }
-          } catch (err) {
-            toast.error('Cloudinary upload error: ' + err.message, { id: 'review-image-upload' });
-          } finally {
-            setUploading(false);
-          }
         } else {
-          setImagePreview(null);
-          setImageObj({ url: '', key: '' });
+            setImagePreview(null);
+            setImageObj({ url: '', key: '' });
         }
-      };
+    };
 
     const handleRemoveImage = () => {
         setImageFile(null);
@@ -240,7 +240,7 @@ export default function ProductInfoTabs({ product }) {
                             <div className="flex flex-col flex-1">
                                 <label className="font-semibold mb-1">Rating *</label>
                                 <div className="flex items-center gap-1 mt-1">
-                                    {[1,2,3,4,5].map(num => (
+                                    {[1, 2, 3, 4, 5].map(num => (
                                         <span
                                             key={num}
                                             className={num <= rating ? 'text-[#00b67a] text-2xl cursor-pointer' : 'text-gray-300 text-2xl cursor-pointer'}
@@ -324,16 +324,16 @@ export default function ProductInfoTabs({ product }) {
                                             ))}
                                         </div>
                                         <span className="ml-1 text-[#00b67a] font-bold text-xs flex items-center gap-1">
-                                            <svg className="inline-block" width="16" height="16" viewBox="0 0 24 24" fill="#00b67a"><circle cx="12" cy="12" r="12"/><path fill="#fff" d="M10.5 16.5l-4-4 1.41-1.41L10.5 13.67l5.59-5.59L17.5 9.5z"/></svg>
+                                            <svg className="inline-block" width="16" height="16" viewBox="0 0 24 24" fill="#00b67a"><circle cx="12" cy="12" r="12" /><path fill="#fff" d="M10.5 16.5l-4-4 1.41-1.41L10.5 13.67l5.59-5.59L17.5 9.5z" /></svg>
                                             Verified
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
                                             {review?.image?.url ? (
-                                                <img 
-                                                    src={review.image.url} 
-                                                    alt="Reviewer" 
+                                                <img
+                                                    src={review.image.url}
+                                                    alt="Reviewer"
                                                     className="h-full w-full rounded-full object-cover"
                                                 />
                                             ) : (
@@ -343,10 +343,10 @@ export default function ProductInfoTabs({ product }) {
                                             )}
                                         </div>
 
-                                            <span className="font-bold text-base">{review.createdBy || 'Anonymous'}</span>
+                                        <span className="font-bold text-base">{review.createdBy || 'Anonymous'}</span>
                                         <div className="flex items-center gap-2 text-gray-700 text-sm">
-                                            
-                                            <span className="text-xs">{review.createdAt ? `${Math.round((Date.now() - new Date(review.createdAt)) / (1000*60*60*24))} days ago` : ''}</span>
+
+                                            <span className="text-xs">{review.createdAt ? `${Math.round((Date.now() - new Date(review.createdAt)) / (1000 * 60 * 60 * 24))} days ago` : ''}</span>
                                         </div>
                                     </div>
                                     {/* Review content with Read more */}
@@ -389,19 +389,18 @@ export default function ProductInfoTabs({ product }) {
             content: section.description
         }));
         tabs.push(reviewsTab);
-    } 
+    }
     const [activeTab, setActiveTab] = useState(0);
     return (
         <div className="w-full mt-10">
-           <div className="border-b grid grid-cols-2 sm:flex flex-wrap justify-center gap-2 sm:gap-4">
+            <div className="border-b grid grid-cols-2 sm:flex flex-wrap justify-center gap-2 sm:gap-4">
                 {tabs.map((tab, idx) => (
                     <button
                         key={tab.label}
-                        className={`w-full sm:w-auto py-2 sm:py-3 px-2 sm:px-4 text-base sm:text-lg font-semibold focus:outline-none transition relative whitespace-nowrap ${
-                            activeTab === idx
+                        className={`w-full sm:w-auto py-2 sm:py-3 px-2 sm:px-4 text-base sm:text-lg font-semibold focus:outline-none transition relative whitespace-nowrap ${activeTab === idx
                                 ? "text-black border-b-2 border-black"
                                 : "text-gray-900"
-                        }`}
+                            }`}
                         onClick={() => setActiveTab(idx)}
                     >
                         {tab.label}
@@ -409,9 +408,12 @@ export default function ProductInfoTabs({ product }) {
                 ))}
             </div>
             <div className="py-4 px-6 text-sm text-gray-700 min-h-[64px] w-full md:w-[80%] mx-auto text-center">
-                {activeTab < tabs.length - 1
-                  ? <div dangerouslySetInnerHTML={{ __html: tabs[activeTab].content }} />
-                  : tabs[activeTab].content}
+                {tabs[activeTab]
+                    ? (activeTab < tabs.length - 1
+                        ? <div dangerouslySetInnerHTML={{ __html: tabs[activeTab].content }} />
+                        : tabs[activeTab].content)
+                    : <span>No information available.</span>
+                }
             </div>
         </div>
     );

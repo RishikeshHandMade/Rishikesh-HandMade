@@ -122,7 +122,7 @@ const ContactUs = () => {
                             <ul className="mb-2">
                                 <li className='text-xl'>
                                     For Sales:
-                                    <a href="mailto:Info@rishikeshhandmade.com" className="hover:underline text-xl"> Info@rishikeshhandmade.com</a>
+                                    <a href="mailto:info@rishikeshhandmade.com" className="hover:underline text-xl"> Info@rishikeshhandmade.com</a>
                                 </li>
                                 <li className='text-xl'>
                                     For Support:

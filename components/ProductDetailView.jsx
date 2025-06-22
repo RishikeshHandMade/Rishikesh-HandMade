@@ -303,7 +303,24 @@ export default function ProductDetailView({ product }) {
       </div>
       {/* CENTER: Product Details/Description/Selectors */}
       <div className="w-full lg:w-1/3 max-w-xl mx-auto flex flex-col">
-        <h1 className="text-3xl font-bold mb-1">{product.title}</h1>
+        <div className="flex items-center gap-4 mb-1">
+          <h1 className="text-3xl font-bold">{product.title}</h1>
+          {/* Product Code */}
+          {product.code && (
+            <span className="text-sm text-gray-500 font-mono bg-gray-100 px-2 py-0.5 rounded border border-gray-200">Code: {product.code}</span>
+          )}
+          {/* Stock Status */}
+          {(() => {
+            const inStock = Array.isArray(variants) && variants.some(v => v.qty > 0);
+            return (
+              <span
+                className={`ml-2 px-2 py-0.5 rounded text-xs font-bold border ${inStock ? 'bg-green-100 text-green-700 border-green-400' : 'bg-red-100 text-red-700 border-red-400'}`}
+              >
+                {inStock ? 'IN STOCK' : 'OUT OF STOCK'}
+              </span>
+            );
+          })()}
+        </div>
         <div className="flex items-center gap-2 mb-3">
           <span className="font-semibold flex items-center">
             {(() => {

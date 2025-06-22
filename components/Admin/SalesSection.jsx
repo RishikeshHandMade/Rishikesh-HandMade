@@ -17,7 +17,7 @@ import { useState } from "react";
 import { ViewFormPopup } from "./ViewFormPopup";
 import { Badge } from "../ui/badge";
 
-export default function SalesSectionPage({ enquirys, orders, customOrders }) {
+export default function SalesSectionPage({ enquirys, orders }) {
 
     return (
         <>
@@ -25,31 +25,15 @@ export default function SalesSectionPage({ enquirys, orders, customOrders }) {
                 <h1 className="text-2xl font-bold mb-6">Sales Section</h1>
 
                 <Tabs defaultValue="package">
-                    <TabsList className="grid w-fit py-2 grid-cols-3">
-                        <TabsTrigger value="package" className="py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">Package Checkout</TabsTrigger>
+                    <TabsList className="grid w-fit py-2 grid-cols-2">
+                        <TabsTrigger value="package" className="py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">product Checkout</TabsTrigger>
                         <TabsTrigger value="enquiry" className="py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">Custom Enquiry</TabsTrigger>
-                        <TabsTrigger value="custom" className="py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white">Package Calculator</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="package">
                         <SalesTable
                             data={orders}
                             type="package"
-                            columns={[
-                                "S.No.",
-                                "Package Name",
-                                "User Name",
-                                "Date",
-                                "Status",
-                                "Actions"
-                            ]}
-                        />
-                    </TabsContent>
-
-                    <TabsContent value="custom">
-                        <SalesTable
-                            data={customOrders}
-                            type="custom"
                             columns={[
                                 "S.No.",
                                 "Package Name",

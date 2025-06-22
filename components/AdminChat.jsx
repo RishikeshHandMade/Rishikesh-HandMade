@@ -26,6 +26,8 @@ export default function AdminChat() {
     const [type, setType] = useState("booking")
     const [searchQuery, setSearchQuery] = useState("")
     const [isLoading, setIsLoading] = useState(false)
+    const [userQueries, setUserQueries] = useState([]);
+    const [uqLoading, setUqLoading] = useState(false);
 
     const [unreadCounts, setUnreadCounts] = useState({
         bookings: 0,
@@ -114,7 +116,15 @@ export default function AdminChat() {
 
         markAsRead();
     }, [selectedChat, type]);
-
+    useEffect(() => {
+        if (type === "user-queries") {
+            setUqLoading(true);
+            fetch("/api/chat/user-query")
+                .then(res => res.json())
+                .then(data => setUserQueries(data.queries || []))
+                .finally(() => setUqLoading(false));
+        }
+    }, [type]);
     useEffect(() => {
         fetchChats()
         // Set up polling for new messages
@@ -169,38 +179,63 @@ export default function AdminChat() {
         if (!selectedChat) return;
 
         try {
-            const endpoint = type === "booking"
-                ? `/api/getBookingById/${selectedChat.bookingId}`
-                : `/api/getEnquiryById/${selectedChat.bookingId}`;
+            let endpoint;
+            let method = "PUT";
+            let body;
+
+            if (type === "booking") {
+                endpoint = `/api/getBookingById/${selectedChat.bookingId}`;
+                body = JSON.stringify({ status: newStatus.toLowerCase() });
+            } else if (type === "enquiry") {
+                endpoint = `/api/getEnquiryById/${selectedChat.bookingId}`;
+                body = JSON.stringify({ status: newStatus.toLowerCase() });
+            } else if (type === "user-queries") {
+                // User Queries PATCH endpoint
+                endpoint = `/api/chat/user-query`;
+                method = "PATCH";
+                body = JSON.stringify({ id: selectedChat._id, status: newStatus.toLowerCase() });
+            }
 
             const res = await fetch(endpoint, {
-                method: "PUT",
+                method,
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    status: newStatus.toLowerCase(),
-                }),
+                body,
             });
 
             if (res.ok) {
-                // CORRECT STATE UPDATE - Only update the specific chat
-                setChats(prevChats =>
-                    prevChats.map(chat =>
-                        chat._id === selectedChat._id // Match by _id for exact reference
-                            ? {
-                                ...chat,
-                                status: newStatus.toLowerCase(),
-                                chatStatus: newStatus.toLowerCase()
-                            }
-                            : chat
-                    )
-                );
+                if (type === "user-queries") {
+                    // Update userQueries state
+                    setUserQueries(prev =>
+                        prev.map(q =>
+                            q._id === selectedChat._id
+                                ? { ...q, status: newStatus.toLowerCase() }
+                                : q
+                        )
+                    );
+                    setSelectedChat(prev =>
+                        prev ? { ...prev, status: newStatus.toLowerCase() } : prev
+                    );
+                } else {
+                    // CORRECT STATE UPDATE - Only update the specific chat
+                    setChats(prevChats =>
+                        prevChats.map(chat =>
+                            chat._id === selectedChat._id // Match by _id for exact reference
+                                ? {
+                                    ...chat,
+                                    status: newStatus.toLowerCase(),
+                                    chatStatus: newStatus.toLowerCase()
+                                }
+                                : chat
+                        )
+                    );
 
-                // Update the selectedChat reference
-                setSelectedChat(prev => ({
-                    ...prev,
-                    status: newStatus.toLowerCase(),
-                    chatStatus: newStatus.toLowerCase()
-                }));
+                    // Update the selectedChat reference
+                    setSelectedChat(prev => ({
+                        ...prev,
+                        status: newStatus.toLowerCase(),
+                        chatStatus: newStatus.toLowerCase()
+                    }));
+                }
 
                 toast.success("Status updated successfully!");
             } else {
@@ -227,9 +262,9 @@ export default function AdminChat() {
                 <Tabs defaultValue="booking" className="flex-1 flex flex-col overflow-hidden">
                     <div className="px-4 pt-4">
                         <TabsList className="w-full p-2">
-                            <TabsTrigger value="booking" className="flex-1 flex items-center py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white" onClick={() => { setType("booking"), setShowChat(false) }}>
-                                <Calendar className="mr-2 h-4 w-4" />
-                                Booking Chats
+                            <TabsTrigger value="user-queries" className="flex-1 flex items-center py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white" onClick={() => { setType("user-queries"), setShowChat(false) }}>
+                                <HelpCircle className="mr-2 h-4 w-4" />
+                                User Queries
                             </TabsTrigger>
                             <TabsTrigger value="enquiry" className="flex-1 flex items-center py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white" onClick={() => { setType("enquiry"), setShowChat(false) }}>
                                 <HelpCircle className="mr-2 h-4 w-4" />
@@ -279,20 +314,40 @@ export default function AdminChat() {
                             <span className="sr-only">Refresh</span>
                         </Button>
                     </div>
-
-                    <TabsContent value="booking" className="flex-1 overflow-y-auto m-0 p-0">
-                        <ChatList
-                            chats={filteredChats}
-                            selectedChat={selectedChat}
-                            setShowChat={setShowChat}
-                            showChat={showChat}
-                            setSelectedChat={setSelectedChat}
-                            getStatusColor={getStatusColor}
-                            formatTime={formatTime}
-                            getInitials={getInitials}
-                        />
-                    </TabsContent>
-
+                    <TabsContent value="user-queries" className="flex-1 overflow-y-auto">
+  <div className="p-4">
+    <h2 className="text-lg font-bold mb-4">User Queries</h2>
+    {uqLoading ? (
+      <div>Loading...</div>
+    ) : userQueries.length === 0 ? (
+      <div>No user queries yet.</div>
+    ) : (
+      <ul className="space-y-4">
+        {userQueries.map(q => (
+          <li
+            key={q._id}
+            className={`p-4 border rounded bg-gray-50 cursor-pointer ${selectedChat && selectedChat._id === q._id ? "border-blue-500 bg-blue-50" : ""}`}
+            onClick={() => {
+              setSelectedChat(q);
+              setShowChat(true);
+            }}
+          >
+            <div>
+              <span className="font-semibold">{q.userName || q.userEmail}</span>
+              <span className="text-xs text-gray-500 ml-2">{new Date(q.createdAt).toLocaleString()}</span>
+            </div>
+            <div className="mt-1">{q.question}</div>
+            {q.answer && (
+              <div className="mt-2 text-green-700">
+                <strong>Admin Reply:</strong> {q.answer}
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+</TabsContent>
                     <TabsContent value="enquiry" className="flex-1 overflow-y-auto m-0 p-0">
                         <ChatList
                             chats={filteredChats}
@@ -305,6 +360,7 @@ export default function AdminChat() {
                             getInitials={getInitials}
                         />
                     </TabsContent>
+
                 </Tabs>
             </div>
 
@@ -312,6 +368,24 @@ export default function AdminChat() {
             <div className="flex-1 flex flex-col w-full h-full">
                 {showChat ? (
                     <>
+                        {type === "user-queries" && selectedChat && (
+                            <div className="w-full max-w-xl mx-auto bg-white rounded shadow p-6 my-4 border">
+                                <div className="mb-2">
+                                    <span className="font-semibold">{selectedChat.userName || selectedChat.userEmail}</span>
+                                    <span className="text-xs text-gray-500 ml-2">{selectedChat.createdAt ? new Date(selectedChat.createdAt).toLocaleString() : ""}</span>
+                                </div>
+                                <div className="mb-4">
+                                    <span className="block text-gray-800">{selectedChat.question}</span>
+                                </div>
+                                {selectedChat.answer ? (
+                                    <div className="bg-green-50 border-l-4 border-green-400 p-4 rounded">
+                                        <strong>Admin Reply:</strong> {selectedChat.answer}
+                                    </div>
+                                ) : (
+                                    <div className="italic text-gray-400">No reply yet.</div>
+                                )}
+                            </div>
+                        )}
                         {type === "enquiry" && (
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild className="w-fit !m-4">
@@ -337,30 +411,6 @@ export default function AdminChat() {
                             </DropdownMenu>
                         )}
 
-                        {type === "booking" && (
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild className="w-fit !m-4">
-                                    <Button variant="outline" className={`!p-6 ${selectedChat.status === "pending" && "border-yellow-400 bg-yellow-100 hover:bg-yellow-600"} ${selectedChat.status === "resolved" && "border-green-400 bg-green-100 hover:bg-green-600"} border-2 hover:text-white flex items-center gap-2`}>
-                                        <span className="capitalize">{selectedChat.status}</span>
-                                        <ChevronDown className="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent className='border-2 border-blue-600'>
-                                    {["pending", "resolved"].map((option) => (
-                                        <DropdownMenuItem
-                                            key={option}
-                                            onClick={() => handleStatusChange(option)}
-                                            className="capitalize focus:hover:bg-blue-100 cursor-pointer hover:bg-blue-100"
-                                        >
-                                            {option}
-                                            {selectedChat.status === option && (
-                                                <Check className="h-4 w-4 ml-2" />
-                                            )}
-                                        </DropdownMenuItem>
-                                    ))}
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        )}
                         <div className="flex-1 overflow-hidden p-4">
                             <Chat
                                 type={type}

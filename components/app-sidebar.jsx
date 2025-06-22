@@ -137,7 +137,7 @@ const data = {
 
     // Third group: Content management
     {
-      name: "Manage Featured Packages",
+      name: "Manage Featured Product",
       url: "/admin/manage_featured_packages",
       icon: Image,
     },
@@ -227,12 +227,7 @@ const data = {
       name: "Send Promotional Emails",
       url: "/admin/send_promotional_emails",
       icon: Send,
-    },
-    {
-      name: "Package Calculator Visitors",
-      url: "/admin/contact_custom_visitors",
-      icon: ClockArrowUp,
-    },
+   },
     {
       name: "User Login Logs/Report",
       url: "/admin/user_login_logs",
@@ -244,7 +239,7 @@ const data = {
 const dataManager = {
   user: {
     name: "Welcome, Manager",
-    email: "yatrazone@manager.com",
+    email: "rishikeshhandmade@gmail.com",
   },
   projects: [
     {

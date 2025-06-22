@@ -13,9 +13,11 @@ import QuantityManagement from './QuantityManagement';
 import ApplyCoupon from './ApplyCoupon';
 import ApplyTax from './ApplyTax';
 import ProductTagLine from './ProductTagLine';
+import { ArrowLeftIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 const AddDirectProduct = ({ productId }) => {
-
+  const router = useRouter();
   const [productData, setProductData] = useState(null);
   const [loading, setLoading] = useState(false);
   // console.log(productData)
@@ -31,34 +33,10 @@ const AddDirectProduct = ({ productId }) => {
         .then(res => res.json())
         .then(data => {
           setProductData(data);
-          // console.log(data)
-          // Add title to the page based on product type
-          // document.title = `${data.isDirect ? 'Direct' : 'Category'} Product - ${data.title}`;
           setLoading(false);
         })
         .catch(() => setLoading(false));
     }
-    // console.log(productId)
-    // useEffect(() => {
-    //   if (productId) {
-    //     setLoading(true);
-    //     fetch('/api/product', {
-    //       method: 'POST',
-    //       headers: {
-    //         'Content-Type': 'application/json'
-    //       },
-    //       body: JSON.stringify({
-    //         isDirect: true,
-    //         productId: productId
-    //       })
-    //     })
-    //     .then(res => res.json())
-    //     .then(data => {
-    //       setProductData(data);
-    //       setLoading(false);
-    //     })
-    //     .catch(() => setLoading(false));
-    //   }
   }, [productId]);
 
   const sectionConfig = [
@@ -84,6 +62,11 @@ const AddDirectProduct = ({ productId }) => {
         <div className="text-center text-lg font-semibold">Loading product...</div>
       ) : (
         <Tabs value={activeSection} onValueChange={setActiveSection} className="w-full h-full">
+          <div className="back mb-2">
+            <button className='px-4 py-1 bg-gray-500 text-white rounded flex items-center' onClick={() => router.back()}>
+              <ArrowLeftIcon className="w-4 h-4 mr-2" /> Back to View Product
+            </button>
+          </div>
           <div className="flex h-full">
             {/* Sidebar Tabs */}
             <TabsList className="flex flex-col gap-2 min-w-[220px] w-[220px] bg-gray-300 border-r border-gray-200 py-4 px-2 rounded-l-lg shadow-sm h-fit">

@@ -5,6 +5,7 @@ import RandomTourPackageSection from "@/components/RandomTourPackageSection";
 import Boxes from "@/components/Boxes";
 import InstaBlog from "@/components/InstaBlog";
 import Banner from "@/components/Banner";
+import ChatBot from "@/components/ChatBot";
 
 export default async function Home() {
   return (
@@ -16,6 +17,7 @@ export default async function Home() {
       <RandomTourPackageSection />
       <InstaBlog />
       <GoToTop />
+      <ChatBot/>
     </>
   );
 }
