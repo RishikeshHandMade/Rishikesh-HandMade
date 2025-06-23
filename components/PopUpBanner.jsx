@@ -39,29 +39,57 @@ const PopUpBanner = () => {
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 transition-opacity duration-300">
       <div
-        className={`relative bg-white max-w-[95vw] w-full sm:w-[400px] md:w-[500px] flex flex-col items-center
-        transform transition-all duration-500
-        ${showAnim ? 'translate-x-0 opacity-100 transition-all duration-500' : '-translate-x-[40vw] opacity-0 transition-all duration-500'}`}
+        className={`relative bg-white max-w-4xl w-[95vw] flex flex-col md:flex-row overflow-hidden transform transition-all duration-500
+        ${showAnim ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}
         style={{ transitionProperty: 'transform, opacity' }}
       >
-        {/* Close button top left */}
+        {/* Close button top right */}
         <button
           onClick={handleClose}
-          className="absolute top-2 right-2 z-10 bg-gray-200 rounded-full w-12 h-12 flex items-center justify-center text-black hover:text-white text-2xl font-bold focus:outline-none"
+          className="absolute top-4 right-4 z-10 bg-black/80 hover:bg-black text-white rounded-full w-6 h-6 flex items-center justify-center text-2xl font-bold focus:outline-none transition"
           aria-label="Close popup"
         >
-          <X/>
+          <X size={28} />
         </button>
-        {/* Banner image as clickable link */}
-        <a href={banner.buttonLink || '#'} target="_blank" rel="noopener noreferrer" className="block w-full">
+        {/* Left: Banner image */}
+        <div className="md:w-1/2 w-full bg-gray-100 flex items-center justify-center min-h-[340px]">
           <img
             src={banner.image?.url || '/placeholder.jpeg'}
             alt="Popup Banner"
-            className="w-full h-auto object-contain max-h-[60vh] transition cursor-pointer"
-            style={{ maxHeight: '350px', margin: '0 auto' }}
+            className="w-full h-full object-cover md:rounded-l-[32px] md:rounded-none rounded-t-[32px] md:rounded-t-none"
+            style={{ maxHeight: 380, minHeight: 220, objectFit: 'cover' }}
           />
-        </a>
-      </div>
+        </div>
+        {/* Right: Text content */}
+        <div className="md:w-1/2 w-full px-8 py-4 flex flex-col justify-center items-center">
+          <div className="mb-4">
+            <div className="text-base font-semibold text-center text-gray-500 mb-2">Crafted with Heart</div>
+            <div className="text-2xl font-bold mb-4 text-center text-black leading-tight">
+              Unwrap the Beauty of Handmade<br />
+              <span className="font-normal text-center">– Now on Special Offer!</span>
+            </div>
+            <div className="text-gray-700 text-base mb-8 max-w-md">
+              Discover the beauty of tradition and craftsmanship with our exclusive offer on handcrafted products! Each piece tells a story—made with care, passion, and skill by local artisans.
+            </div>
+            <a
+              href={banner.buttonLink || '#'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full"
+            >
+              <button
+                className="w-full bg-black text-white font-semibold py-3 rounded-none text-lg mb-3 hover:bg-gray-900 transition"
+                style={{letterSpacing: '0.5px'}}
+              >
+                Explore
+              </button>
+            </a>
+            <div className="text-center w-full text-gray-700 text-base font-semibold mt-2 opacity-80">
+              Don’t miss this chance
+            </div>
+          </div>
+        </div>         
+        </div>
     </div>
   );
 };

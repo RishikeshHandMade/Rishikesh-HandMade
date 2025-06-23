@@ -92,6 +92,7 @@ const CheckOut = () => {
   // State for address fields
   const [pincode, setPincode] = useState("");
   const [state, setState] = useState("");
+  const [city, setCity] = useState("");
   const [district, setDistrict] = useState("");
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [recentOrderId, setRecentOrderId] = useState(null);
@@ -106,8 +107,9 @@ const CheckOut = () => {
     if (data) {
       try {
         const parsed = JSON.parse(data);
-        // console.log(parsed)
+        // console.log(city)
         setPincode(parsed.pincode || "");
+        setCity(parsed.city || "");
         setState(parsed.state || "");
         setDistrict(parsed.district || "");
       } catch (e) {
@@ -706,7 +708,7 @@ const CheckOut = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [street, setStreet] = useState("");
-  const [city, setCity] = useState("");
+
   // const [state, setState] = useState("");
   // const [pincode, setpincode] = useState("");
   const [phone, setPhone] = useState("");

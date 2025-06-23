@@ -13,6 +13,7 @@ import { Loader2, Pencil, Trash2, QrCode, Copy } from "lucide-react"
 import { Switch } from "../ui/switch"
 import { Label } from "../ui/label"
 import ProductQrModal from "./ProductQrModal";
+import { useRef } from "react";
 
 const generateCode = () => {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -24,6 +25,54 @@ const generateCode = () => {
 };
 
 const AddProduct = ({ id }) => {
+    // ...existing state and hooks...
+
+    // Editing state
+    const [isEditing, setIsEditing] = useState(false);
+
+    // Scroll ref for form
+    const formRef = useRef(null);
+
+    // Handler to fill form for editing
+    const handleEditProduct = (prod) => {
+        // Use react-hook-form's reset to fill all fields
+        reset({
+            title: prod.title || '',
+            artisan: prod.artisan || '',
+            order: prod.order || 1,
+            active: typeof prod.active === 'boolean' ? prod.active : true,
+            // Add other fields as needed
+        });
+        setProductCode(prod.code || '');
+        setActive(typeof prod.active === 'boolean' ? prod.active : true);
+        setOrder(prod.order || 1);
+        setArtisan(prod.artisan || '');
+        setTitle(prod.title || '');
+        setIsEditing(true);
+        // Optionally scroll to form
+        if (formRef.current) {
+            formRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
+    // Cancel edit handler
+    const handleCancelEdit = () => {
+        reset({
+            title: '',
+            artisan: '',
+            order: 1,
+            active: true,
+            // Add other fields as needed
+        });
+        setProductCode(generateCode());
+        setActive(true);
+        setOrder(1);
+        setArtisan('');
+        setTitle('');
+        setIsEditing(false);
+    };
+
+
     // QR Modal state
     const [qrModalOpen, setQrModalOpen] = useState(false);
     const [qrModalUrl, setQrModalUrl] = useState("");
@@ -152,46 +201,66 @@ const AddProduct = ({ id }) => {
                 isDirect: !subMenuId,
                 ...(subMenuId ? { subMenuId, category: subMenuId } : {})
             };
-            const response = await fetch('/api/admin/website-manage/addPackage', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const result = await response.json();
-            if (response.ok) {
-                toast.success('Product added successfully!');
-                reset();
-                setProductCode(generateCode());
-                // Refetch products
-                if (subMenuId) {
-                    const res = await fetch(`/api/getSubMenuById/${subMenuId}`);
-                    const data = await res.json();
-                    // console.log('Fetched after create:', data);
-                    if (Array.isArray(data.products)) {
-                        setProducts(data.products);
-                        if (data.products.length === 0) {
-                            toast.error('No products found in submenu after create.');
+            let response, result;
+            if (isEditing) {
+                // Use code or _id as identifier. Preferably _id if available in state.
+                // We'll use code for now as per the form structure
+                response = await fetch('/api/admin/website-manage/addPackage', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: productCode, ...payload })
+                });
+                result = await response.json();
+                if (response.ok) {
+                    toast.success('Product updated successfully!');
+                    reset();
+                    setProductCode(generateCode());
+                    setIsEditing(false);
+                    // Refetch products
+                    if (subMenuId) {
+                        const res = await fetch(`/api/getSubMenuById/${subMenuId}`);
+                        const data = await res.json();
+                        if (Array.isArray(data.products)) {
+                            setProducts(data.products);
                         }
                     } else {
-                        setProducts([]);
-                        toast.error('Unexpected response fetching products for submenu.');
+                        const res = await fetch('/api/product?isDirect=true');
+                        const data = await res.json();
+                        if (Array.isArray(data)) {
+                            setProducts(data);
+                        }
                     }
                 } else {
-                    const res = await fetch('/api/product?isDirect=true');
-                    const data = await res.json();
-                    // console.log('Fetched after create:', data);
-                    if (Array.isArray(data)) {
-                        setProducts(data);
-                        if (data.length === 0) {
-                            toast.error('No direct products found after create.');
-                        }
-                    } else {
-                        setProducts([]);
-                        toast.error('Unexpected response fetching direct products.');
-                    }
+                    toast.error(result.message || 'Failed to update product');
                 }
             } else {
-                toast.error(result.message || 'Failed to add product');
+                response = await fetch('/api/admin/website-manage/addPackage', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                result = await response.json();
+                if (response.ok) {
+                    toast.success('Product added successfully!');
+                    reset();
+                    setProductCode(generateCode());
+                    // Refetch products
+                    if (subMenuId) {
+                        const res = await fetch(`/api/getSubMenuById/${subMenuId}`);
+                        const data = await res.json();
+                        if (Array.isArray(data.products)) {
+                            setProducts(data.products);
+                        }
+                    } else {
+                        const res = await fetch('/api/product?isDirect=true');
+                        const data = await res.json();
+                        if (Array.isArray(data)) {
+                            setProducts(data);
+                        }
+                    }
+                } else {
+                    toast.error(result.message || 'Failed to add product');
+                }
             }
         } catch (error) {
             toast.error('Something went wrong');
@@ -315,8 +384,16 @@ const AddProduct = ({ id }) => {
                                             <div className="flex items-center justify-center gap-6">
                                                 <Button size="icon" variant="outline" asChild>
                                                     <Link href={`/admin/add_direct_product/${prod._id}`}>
-                                                        <Pencil className="w-4 h-4" />
+                                                        Edit
                                                     </Link>
+                                                </Button>
+                                                <Button
+                                                    size="icon"
+                                                    variant="outline"
+                                                    onClick={() => handleEditProduct(prod)}
+                                                    title="Edit"
+                                                >
+                                                    <Pencil className="w-4 h-4" />
                                                 </Button>
                                                 <Button size="icon" disabled={isLoading} onClick={() => deletePackage(prod._id)} variant="destructive">
                                                     {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
@@ -340,7 +417,7 @@ const AddProduct = ({ id }) => {
                             })
                         ) : (
                             <TableRow>
-                                <TableCell colSpan="4" className="text-center border font-semibold border-blue-600">
+                                <TableCell colSpan="6" className="text-center border font-semibold border-blue-600">
                                     No packages available.
                                 </TableCell>
                             </TableRow>

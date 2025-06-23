@@ -28,15 +28,15 @@ const ViewBlogs = () => {
   return (
     <div className="bg-[#fff8f2] min-h-screen w-full">
       {/* Header with background image */}
-      <div className="relative h-64 md:h-80 flex items-center justify-center bg-gradient-to-b from-[#fbeff2] to-[#fff8f2]">
+      <div className="relative h-64 md:h-80 flex items-center justify-center">
         <img
-          src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=facearea&w=1200&q=80"
+          src="./BlogBanner.jpg"
           alt="Blog Light Half Image"
-          className="absolute inset-0 w-full h-full object-cover opacity-40"
+          className="absolute inset-0 w-full h-full object-contain"
         />
-        <div className="relative z-10 flex flex-col items-center justify-center w-full">
+        {/* <div className="relative z-10 flex flex-col items-center justify-center w-full">
           <h1 className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg text-center">Blog Light Half Image</h1>
-        </div>
+        </div> */}
       </div>
 
       {/* Blog grid */}

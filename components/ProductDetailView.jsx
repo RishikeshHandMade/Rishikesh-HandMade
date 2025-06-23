@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { Heart, Share2, Ruler, Mail, Star } from "lucide-react"
+import { Heart, Share2, Ruler, Mail, Star, MapPin, InfoIcon } from "lucide-react"
 import { useCart } from "../context/CartContext";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -22,9 +22,11 @@ import {
 } from "./ui/dialog";
 import Autoplay from "embla-carousel-autoplay";
 export default function ProductDetailView({ product }) {
-  // console.log(product);
+  console.log(product);
   // --- Ask An Expert Modal State ---
   const [showExpertModal, setShowExpertModal] = useState(false);
+  // Artisan Modal State
+  const [showArtisanModal, setShowArtisanModal] = useState(false);
   const [expertForm, setExpertForm] = useState({
     name: '',
     email: '',
@@ -106,19 +108,25 @@ export default function ProductDetailView({ product }) {
   const words = desc.split(' ');
   const [shippingTierLabel, setShippingTierLabel] = useState("");
   const [FinalShipping, setFinalShipping] = useState(0);
-  const [pincode, setPincode] = React.useState("");
   const [pincodeResult, setPincodeResult] = React.useState(null);
   const [pincodeError, setPincodeError] = React.useState("");
-  const [isPincodeModalOpen, setIsPincodeModalOpen] = React.useState(false);
-  const [isPincodeConfirmModalOpen, setIsPincodeConfirmModalOpen] =
-    React.useState(false);
   const [stateInput, setStateInput] = React.useState("");
   const [districtInput, setDistrictInput] = React.useState("");
   const [statesList, setStatesList] = useState([]);
   const [pincodeInput, setPincodeInput] = React.useState("");
   const [loadingShipping, setLoadingShipping] = useState(false);
-  const [appliedPromoDetails, setAppliedPromoDetails] = useState(null);
   const [shippingPerUnit, setShippingPerUnit] = useState(null);
+
+  // Restore delivery location from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('deliveryLocation');
+    if (saved) {
+      const loc = JSON.parse(saved);
+      setPincodeInput(loc.pincode);
+      setPincodeResult(loc);
+    }
+  }, []);
+
   // Extract variants
   const variants = Array.isArray(product?.quantity?.variants) ? product.quantity.variants : [];
   // console.log(product?.quantity?.variants);
@@ -641,207 +649,86 @@ export default function ProductDetailView({ product }) {
             </span>
           </div> */}
           {/* Pincode check UI */}
-          <div className="flex flex-col gap-1 mt-2 mb-2">
-            <div className="flex gap-2 items-center">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600">
-                  Check if we deliver to your area:
-                </span>
-                <button
-                  className="text-blue-600 hover:text-blue-800 text-sm font-medium underline focus:outline-none"
-                  onClick={() => setIsPincodeModalOpen(true)}
-                >
-                  {pincodeResult ? `${pincode} ✓` : "Check Pincode"}
-                </button>
-              </div>
+          <div className="my-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-base font-medium flex items-center gap-1">
+                <MapPin size={18} className="inline-block" />
+                Delivery Options
+              </span>
             </div>
-            {pincodeError && (
-              <div className="text-red-600 text-xs mt-1">
-                {pincodeError}
-              </div>
-            )}
-          </div>
-          <Dialog
-            open={isPincodeModalOpen}
-            onOpenChange={setIsPincodeModalOpen}
-          >
-            <DialogContent className="bg-white rounded-lg max-w-md">
-              <DialogHeader>
-                <DialogTitle className="text-center text-xl font-bold">
-                  We'll instantly let you know if delivery is available,
-                  along with estimated delivery time.
-                </DialogTitle>
-              </DialogHeader>
-
-              <div className="mt-4 space-y-4">
-                {/* Dynamic State Dropdown from API */}
-                <div className="w-full">
-                  <label className="sr-only">Enter your State</label>
-                  <select
-                    className="w-full py-3 px-4 rounded-md bg-green-100 border-0 focus:ring-2 focus:ring-green-400"
-                    value={stateInput}
-                    onChange={e => {
-                      setStateInput(e.target.value);
-                      setDistrictInput(""); // reset district when state changes
-                    }}
-                  >
-                    <option value="">Select State</option>
-                    {statesList.map((s) => (
-                      <option key={s.state} value={s.state}>{s.state}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Dynamic District Dropdown from API */}
-                <div className="w-full">
-                  <select
-                    className="w-full py-3 px-4 rounded-md bg-yellow-100 border-0 focus:ring-2 focus:ring-yellow-400"
-                    value={districtInput}
-                    onChange={e => setDistrictInput(e.target.value)}
-                    disabled={!stateInput}
-                  >
-                    <option value="">Select Distt.</option>
-                    {(() => {
-                      const stateObj = statesList.find(s => s.state === stateInput);
-                      if (!stateObj) {
-                        return (
-                          <option disabled value="">State not found in database</option>
-                        );
-                      }
-                      if (!Array.isArray(stateObj.districts) || stateObj.districts.length === 0) {
-                        return (
-                          <option disabled value="">No districts found for this state</option>
-                        );
-                      }
-                      return stateObj.districts.map(d => (
-                        <option key={d.district} value={d.district}>{d.district}</option>
-                      ));
-                    })()}
-                  </select>
-                </div>
-
-                <div className="w-full">
-                  <input
-                    type="text"
-                    placeholder="Type PIN Code"
-                    className="w-full py-3 px-4 rounded-md bg-blue-100 border-0 focus:ring-2 focus:ring-blue-400"
-                    value={pincodeInput}
-                    onChange={(e) => setPincodeInput(e.target.value)}
-                    maxLength={6}
-                  />
-                </div>
-
+            {!pincodeResult ? (
+              <div className="border rounded px-4 py-3 flex items-center gap-2 bg-white max-w-xs">
+                <input
+                  type="text"
+                  className="flex-1 bg-transparent outline-none text-gray-700"
+                  placeholder="Enter pincode"
+                  value={pincodeInput}
+                  onChange={e => setPincodeInput(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
+                  maxLength={6}
+                />
                 <button
-                  className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-md transition-colors"
-                  onClick={async (e) => {
-                    e.preventDefault();
-                    setPincodeError("");
-                    setPincodeResult(null);
+                  className="text-blue-900 font-semibold ml-2"
+                  disabled={loadingShipping || pincodeInput.length !== 6}
+                  onClick={async () => {
+                    setPincodeError('');
                     setLoadingShipping(true);
-                    // Defensive check before API request
-                    if (!stateInput || !districtInput || !pincodeInput || pincodeInput.trim().length !== 6) {
-                      setPincodeError("Please select state, district, and enter a valid 6-digit pincode.");
-                      setLoadingShipping(false);
-                      return;
-                    }
+                    setPincodeResult(null);
                     try {
+                      // You may want to auto-detect state/district from another API if needed.
+                      // Here, we assume checkZip API can find from just pincode.
                       const res = await fetch('/api/zipcode/checkZip', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          state: stateInput,
-                          district: districtInput,
-                          pincode: pincodeInput
-                        })
+                        body: JSON.stringify({ pincode: pincodeInput }),
                       });
-                      // console.log('Shipping API status:', res.status);
                       const data = await res.json();
-                      // console.log('Shipping API response:', data);
                       if (data.success) {
-                        setPincodeResult({
+                        setPincodeResult(data);
+                        setPincodeError("");
+                        // Persist delivery location to localStorage
+                        localStorage.setItem('deliveryLocation', JSON.stringify({
+                          pincode: data.pincode,
+                          city: data.city,
                           state: data.state,
-                          district: data.district,
-                          pincode: data.pincode
-                        });
-                        setIsPincodeModalOpen(false);
-                        setIsPincodeConfirmModalOpen(true);
+                          district: data.district
+                        }));
                       } else {
                         setPincodeError(data.message || 'Delivery not available');
                       }
-                    } catch (err) {
+                    } catch {
                       setPincodeError('Server error. Please try again.');
                     } finally {
                       setLoadingShipping(false);
                     }
                   }}
-                  disabled={!pincodeInput || pincodeInput.length !== 6 || !stateInput || !districtInput || loadingShipping}
                 >
-                  {loadingShipping ? 'Checking...' : 'SEARCH'}
+                  {loadingShipping ? 'Checking...' : 'Check'}
                 </button>
-                {/* {pincodeResult && (
-                      <div className="text-green-700 text-xs mt-1">
-                        Delivery available!<br/>
-                        <span>State: <b>{pincodeResult.state}</b></span><br/>
-                        <span>District: <b>{pincodeResult.district}</b></span><br/>
-                        <span>Pincode: <b>{pincodeResult.pincode}</b></span>
-                      </div>
-                    )} */}
-                {pincodeError && (
-                  <div className="text-red-600 text-xs mt-1">
-                    {pincodeError}
-                  </div>
-                )}
               </div>
-            </DialogContent>
-          </Dialog>
-
-          {/* PIN Code Confirmation Modal */}
-          <Dialog
-            open={isPincodeConfirmModalOpen}
-            onOpenChange={setIsPincodeConfirmModalOpen}
-          >
-            <DialogContent className="bg-white rounded-lg max-w-md">
-              <DialogHeader>
-                <DialogTitle className="text-center text-xl font-bold">
-                  Yes, we've confirmed!
-                </DialogTitle>
-              </DialogHeader>
-
-              <div className="mt-4 space-y-4">
-                <p className="text-center">
-                  Your area PIN code is available for shipping.
-                  <br />
-                  You can proceed with your order, and we'll
-                  <br />
-                  ensure a smooth and timely delivery.
-                </p>
-
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="text-right font-semibold">State</div>
-                  <div className="col-span-2 border-b border-gray-300">
-                    {stateInput}
-                  </div>
-
-                  <div className="text-right font-semibold">Distt.</div>
-                  <div className="col-span-2 border-b border-gray-300">
-                    {districtInput}
-                  </div>
-
-                  <div className="text-right font-semibold">PIN Code</div>
-                  <div className="col-span-2 border-b border-gray-300">
-                    {pincodeInput}
-                  </div>
+            ) : (
+              <div className="border rounded px-4 py-3 bg-white w-fit">
+                <div className="flex items-center gap-2 mb-2">
+                  <MapPin size={18} className="inline-block" />
+                  <span className="font-semibold">Delivery options for {pincodeResult.pincode}</span>
+                  <button
+                    className="ml-auto px-2 py-1 border rounded border-black text-sm"
+                    onClick={() => {
+                      setPincodeInput('');
+                      setPincodeResult(null);
+                    }}
+                  >
+                    Change
+                  </button>
                 </div>
-
-                <button
-                  className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-md transition-colors"
-                  onClick={handleApplyPincode}
-                >
-                  Apply Now
-                </button>
+                <div className="mb-1 text-sm">
+                  Shipping to: <span className="font-semibold">{pincodeResult.city || pincodeResult.district}, {pincodeResult.state}, India</span>
+                </div>
               </div>
-            </DialogContent>
-          </Dialog>
+            )}
+            {pincodeError && (
+              <div className="text-red-600 text-xs mt-1">{pincodeError}</div>
+            )}
+          </div>
 
 
           {/* Tags, etc. */}
@@ -1114,9 +1001,10 @@ export default function ProductDetailView({ product }) {
                   totalWeight,
                   couponApplied,
                   finalShipping: FinalShipping,
-                  pincode: pincodeInput || null,
-                  state: stateInput || null,
-                  district: districtInput || null,
+                  pincode: pincodeResult?.pincode || null,
+                  city: pincodeResult?.city || null,
+                  state: pincodeResult?.state || null,
+                  district: pincodeResult?.district || null,
                   couponCode: couponApplied ? couponCode : undefined,
                   productCode: product.code || product.productCode || '',
                   discountPercent: couponObj && typeof couponObj.percent === 'number' ? couponObj.percent : undefined,

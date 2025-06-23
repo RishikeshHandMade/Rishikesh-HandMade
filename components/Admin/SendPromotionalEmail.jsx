@@ -1,7 +1,7 @@
 "use client"
 
 import dynamic from "next/dynamic"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -35,7 +35,7 @@ export default function SendPromoEmailPage({ allUsers = [] }) {
     const [message, setMessage] = useState("")
     const [selectedEmails, setSelectedEmails] = useState([])
     const [loading, setLoading] = useState(false)
-
+    const [newsletterEmails, setNewsletterEmails] = useState([])
     const handleToggleEmail = (email) => {
         setSelectedEmails((prev) =>
             prev.includes(email)
@@ -43,6 +43,19 @@ export default function SendPromoEmailPage({ allUsers = [] }) {
                 : [...prev, email] // Add if not selected
         )
     }
+    useEffect(() => {
+        fetch('/api/newsLetter')
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              setNewsletterEmails(data.emails || []);
+            }
+          });
+      }, []);
+      
+      const allEmails = [...allUsers.map(u => u.email), ...newsletterEmails]; // deduplicate if needed
+      
+      // Render allEmails in the sidebar for selection
 
     const handleSendEmail = async () => {
         setLoading(true)
@@ -93,21 +106,21 @@ export default function SendPromoEmailPage({ allUsers = [] }) {
         <div className="w-full mx-auto py-8 max-w-7xl md:mt-12 flex xl xl:flex-row flex-col gap-6">
             {/* Sidebar for Email Selection */}
             <div className="w-[500px] mx-auto p-4 border-2 border-blue-600 bg-muted/50 rounded-lg max-h-[700px] overflow-hidden">
-                <p className="text-sm text-gray-600 mb-3">All Registered Users: {formatNumeric(allUsers.length)}</p>
+                <p className="text-sm text-gray-600 mb-3">All Registered Users: {formatNumeric(allEmails.length)}</p>
                 <h3 className="text-lg font-semibold mb-3">Select Recipients <span>({formatNumeric(selectedEmails.length)})</span></h3>
                 <ul className="space-y-2 max-h-[600px] overflow-y-auto">
-                    {(Array.isArray(allUsers) ? allUsers : []).map((user) => (
+                    {(Array.isArray(allEmails) ? allEmails : []).map((user) => (
                         <li
-                            key={user.email}
+                            key={user}
                             className="flex items-center gap-2 p-2 bg-white rounded-md cursor-pointer hover:bg-blue-50"
-                            onClick={() => handleToggleEmail(user.email)}
+                            onClick={() => handleToggleEmail(user)}
                         >
-                            {selectedEmails.includes(user.email) ? (
+                            {selectedEmails.includes(user) ? (
                                 <CheckSquare className="text-blue-600" />
                             ) : (
                                 <Square />
                             )}
-                            <span>{user.email}</span>
+                            <span>{user}</span>
                         </li>
                     ))}
                 </ul>
