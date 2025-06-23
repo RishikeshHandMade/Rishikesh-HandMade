@@ -9,6 +9,7 @@ import ProductDetailView from "@/components/ProductDetailView";
 import ProductInfoTabs from "@/components/ProductInfoTabs";
 import ProductVideo from "@/components/ProductVideo";
 import CategoryCard from "@/components/Category/category-card";
+import { CategoryCarousel } from "@/components/Category/category-card";
 const ProductDetailPage = async ({ params }) => {
     // Get the product slug from the URL and decode it
     let { id } = await params;
@@ -54,15 +55,15 @@ const ProductDetailPage = async ({ params }) => {
         if (product.category) {  // Only fetch if category exists
             const allCategoriesRes = await fetch(
                 `${process.env.NEXT_PUBLIC_BASE_URL}/api/getAllMenuItems`,
-                { 
-                    cache: 'no-store',  
-                }   
+                {
+                    cache: 'no-store',
+                }
             );
             if (!allCategoriesRes.ok) {
                 throw new Error(`Failed to fetch all categories: ${allCategoriesRes.status}`);
             }
             allCategories = await allCategoriesRes.json();
-            // console.log('Fetched related products:', relatedProducts);
+            // console.log('Fetched all categories:', allCategories);
         }
     } catch (error) {
     }
@@ -91,32 +92,21 @@ const ProductDetailPage = async ({ params }) => {
                     </div>
                 )}
                 {/* Category Cards Row */}
-                {allCategories && allCategories.length > 0 && (
-                    <div className="mt-8 px-4 py-2">
-                        <h2 className="text-2xl md:text-4xl font-semibold px-4">Category</h2>
-                            <div>
-                                <Carousel className="w-full mx-auto my-4">
-                                    <CarouselContent className="w-full gap-5">
-                                        {Array.isArray(allCategories) && allCategories.flatMap(cat =>
-                                            Array.isArray(cat.subMenu) ? cat.subMenu.map((sub, idx) => (
-                                                <CarouselItem key={`${cat._id || cat.title || idx}-${sub._id || sub.url || idx}`} className="basis-1/2 md:basis-1/5 lg:basis-1/5 min-w-0 snap-start">
-                                                    <CategoryCard category={{
-                                                        title: sub.title,
-                                                        profileImage: sub.profileImage,
-                                                        url: `/category/${sub.url}`
-                                                    }} />
-                                                </CarouselItem>
-                                            )) : []
-                                        )}
-                                    </CarouselContent>
-                                    {/* <CarouselPrevious /> */}
-                                    {/* <CarouselNext /> */}
-                                </Carousel>
-                            </div>
-                        
-                        {/* <RelatedProductsCarousel products={relatedProducts} /> */}
-                    </div>
-                )}
+                <CategoryCarousel
+                    categories={
+                        Array.isArray(allCategories)
+                            ? allCategories.flatMap(cat =>
+                                Array.isArray(cat.subMenu)
+                                    ? cat.subMenu.map(sub => ({
+                                        title: sub.title,
+                                        profileImage: sub.profileImage.url,
+                                        url: `/category/${sub.url}`
+                                    }))
+                                    : []
+                            )
+                            : []
+                    }
+                />
                 <StickyAddToCartBar product={product} />
             </div>
         </SidebarInset>

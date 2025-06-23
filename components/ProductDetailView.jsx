@@ -24,8 +24,8 @@ import Autoplay from "embla-carousel-autoplay";
 export default function ProductDetailView({ product }) {
   // console.log(product);
   // --- Ask An Expert Modal State ---
-  const [showExpertModal, setShowExpertModal] = React.useState(false);
-  const [expertForm, setExpertForm] = React.useState({
+  const [showExpertModal, setShowExpertModal] = useState(false);
+  const [expertForm, setExpertForm] = useState({
     name: '',
     email: '',
     phone: '',
@@ -262,7 +262,7 @@ export default function ProductDetailView({ product }) {
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselNext className="!right-2 !top-1/2 !-translate-y-1/2 z-10" />
+              <CarouselNext className="!right-2 !top-1/2 !-translate-y-1/2 z-10 " />
               <CarouselPrevious className="!left-1 !top-1/2 !-translate-y-1/2 z-10" />
             </Carousel>
           </div>

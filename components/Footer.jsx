@@ -41,9 +41,7 @@ const Footer = () => {
 
     return (
         <footer className={`print:hidden ${pathName.includes('admin') && 'hidden'}
-         ${pathName.includes('artisan') && 'block'} 
-        ${pathName.includes('product') && 'block'} ${pathName.includes('customEnquiry') && 'hidden'} ${pathName.includes('checkout') && 'hidden'}  ${pathName.includes('category') && 'block'} 
-        bg-black text-white py-4`}>
+         ${pathName.includes('artisan') && 'block'} ${pathName.includes('product') && 'block'} ${pathName.includes('customEnquiry') && 'hidden'} ${pathName.includes('checkout') && 'hidden'}  ${pathName.includes('category') && 'block'} bg-[url('/footerBanner.jpg')] bg-cover bg-center bg-no-repeat py-4 text-white`}>
             <div className="w-full flex justify-center pb-8">
                 <div className="h-[3px] bg-gray-300 w-full mx-auto px-4" />
             </div>

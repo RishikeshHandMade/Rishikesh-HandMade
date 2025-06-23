@@ -189,7 +189,7 @@ const Header = () => {
         </div>
 
       </div>
-      <div className="lg:flex hidden items-center z-50 justify-center md:justify-between py-2 md:px-4 ">
+      <div className="lg:flex relative hidden items-center z-50 justify-center md:justify-between py-2 md:px-4 ">
         <Link href={"/"}>
           <img className="w-44 drop-shadow-xl" src="/logo.png" alt="Rishikesh Handmade" />
         </Link>
@@ -199,7 +199,7 @@ const Header = () => {
           <MenuBar menuItems={menuItems} />
         </div>
 
-        <SearchBar placeholder={"Destination, Attraction"} />
+        <SearchBar />
 
 
       </div>
@@ -261,6 +261,7 @@ const Header = () => {
                     className="rounded-full cursor-pointer"
                   />
                 </button>
+                <SearchBar />
 
                 {/* Dropdown Menu */}
                 {isProfileOpen && (

@@ -113,6 +113,11 @@ const data = {
       url: "/admin/category_advertisment",
       icon: Image
     },
+    {
+      name: "PopUp Banner",
+      url: "/admin/popup_banner",
+      icon: Image
+    },
 
     // Space (empty item)
     { divider: true },
