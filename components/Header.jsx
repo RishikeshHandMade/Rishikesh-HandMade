@@ -189,7 +189,7 @@ const Header = () => {
         </div>
 
       </div>
-      <div className="lg:flex relative hidden items-center z-50 justify-center md:justify-between py-2 md:px-4 ">
+      <div className="lg:flex hidden items-center z-50 justify-center md:justify-between py-2 md:px-4 ">
         <Link href={"/"}>
           <img className="w-44 drop-shadow-xl" src="/logo.png" alt="Rishikesh Handmade" />
         </Link>
@@ -265,7 +265,7 @@ const Header = () => {
 
                 {/* Dropdown Menu */}
                 {isProfileOpen && (
-                  <div className="absolute top-14 right-0 mt-2 w-fit text-black bg-white shadow-lg rounded-lg border z-50">
+                  <div className="absolute top-14 right-0 mt-2 w-fit text-black bg-white shadow-lg rounded-lg border z-100">
                     <p className="px-4 pt-2 text-sm font-bold text-gray-700">{session.user.name}</p>
                     <p className="px-4 pb-2 text-sm text-gray-700">{session.user.email}</p>
                     <div className="h-px bg-gray-200" />
@@ -298,7 +298,7 @@ const Header = () => {
                   <User className="ml-2" size={20} />
                 </button>
                 {isAuthDropdownOpen && (
-                  <div className="absolute top-12 right-0 mt-2 w-48 text-black bg-white shadow-lg rounded-lg border">
+                  <div className="absolute top-12 right-0 mt-2 w-48 text-black bg-white shadow-lg rounded-lg border z-100">
                     <Link href="/sign-in" onClick={() => setIsAuthDropdownOpen(false)} className="block px-4 py-2 hover:bg-blue-100">Sign In</Link>
                     <Link href="/sign-up" onClick={() => setIsAuthDropdownOpen(false)} className="block px-4 py-2 hover:bg-blue-100">Create Account</Link>
                   </div>
