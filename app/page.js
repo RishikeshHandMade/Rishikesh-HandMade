@@ -6,10 +6,12 @@ import Boxes from "@/components/Boxes";
 import InstaBlog from "@/components/InstaBlog";
 import Banner from "@/components/Banner";
 import ChatBot from "@/components/ChatBot";
+import PopUpBanner from "@/components/PopUpBanner";
 
 export default async function Home() {
   return (
     <>
+      <PopUpBanner />
       <Boxes />
       <HeroSection />
       <AboutUsSection />

@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useCart } from "../context/CartContext";
 import toast from "react-hot-toast";
-import { Heart } from "lucide-react";
+import { Globe, Heart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Mail, Phone, Share2, Copy } from 'lucide-react';
@@ -369,35 +369,33 @@ const ArtisanDetails = ({ artisan }) => {
               </div>
 
               {/* Social Icons Row */}
-              <div className="flex items-center gap-2 mt-2 mb-2">
-                {getSocialLink(artisan.socialPlugin, 'facebook') && (
-                  <a href={getSocialLink(artisan.socialPlugin, 'facebook')} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition" title="Facebook">
-                    {/* Facebook SVG */}
-                    <svg width="30" height="30" fill="#1877F3" viewBox="0 0 24 24"><path d="M22.675 0h-21.35C.595 0 0 .592 0 1.326v21.348C0 23.408.595 24 1.325 24h11.495v-9.294H9.691v-3.622h3.129V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.797.143v3.24l-1.918.001c-1.504 0-1.797.715-1.797 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116C23.406 24 24 23.408 24 22.674V1.326C24 .592 23.406 0 22.675 0" /></svg>
+              <div className="flex justify-start gap-2 mb-2">
+                {artisan.socialPlugin?.facebook && (
+                  <a href={artisan.socialPlugin.facebook} target="_blank" rel="noopener noreferrer" title="Facebook">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-facebook-icon lucide-facebook"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>
                   </a>
                 )}
-                {getSocialLink(artisan.socialPlugin, 'instagram') && (
-                  <a href={getSocialLink(artisan.socialPlugin, 'instagram')} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition" title="Instagram">
-                    {/* Instagram SVG */}
-                    <svg width="32" height="32" viewBox="0 0 448 512" fill="#E4405F"><path d="M224.1 141c-63.6 0-115 51.4-115 115s51.4 115 115 115 115-51.4 115-115-51.4-115-115-115zm0 190c-41.6 0-75-33.4-75-75s33.4-75 75-75 75 33.4 75 75-33.4 75-75 75zm146.4-194.1c0 14.9-12.1 27-27 27s-27-12.1-27-27 12.1-27 27-27 27 12.1 27 27zm76.1 27.2c-1.7-35.3-9.9-66.7-36.2-92.9S388.6 7.6 353.3 5.9C317.7 4.2 130.3 4.2 94.7 5.9 59.4 7.6 28 15.8 1.7 42.1S7.6 59.4 5.9 94.7C4.2 130.3 4.2 317.7 5.9 353.3c1.7 35.3 9.9 66.7 36.2 92.9s57.6 34.5 92.9 36.2c35.6 1.7 223 1.7 258.6 0 35.3-1.7 66.7-9.9 92.9-36.2s34.5-57.6 36.2-92.9c1.7-35.6 1.7-223 0-258.6zM398.8 388c-7.8 19.6-22.9 34.7-42.5 42.5-29.4 11.7-99.2 9-132.3 9s-102.9 2.6-132.3-9c-19.6-7.8-34.7-22.9-42.5-42.5-11.7-29.4-9-99.2-9-132.3s-2.6-102.9 9-132.3c7.8-19.6 22.9-34.7 42.5-42.5 29.4-11.7 99.2-9 132.3-9s102.9-2.6 132.3 9c19.6 7.8 34.7 22.9 42.5 42.5 11.7 29.4 9 99.2 9 132.3s2.6 102.9-9 132.3z" /></svg>
+                {artisan.socialPlugin?.instagram && (
+                  <a href={artisan.socialPlugin.instagram} target="_blank" rel="noopener noreferrer" title="Instagram">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-instagram-icon lucide-instagram"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
                   </a>
                 )}
-                {getSocialLink(artisan.socialPlugin, 'youtube') && (
-                  <a href={getSocialLink(artisan.socialPlugin, 'youtube')} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition" title="YouTube">
-                    {/* YouTube SVG */}
-                    <svg width="32" height="32" viewBox="0 0 576 512" fill="#FF0000"><path d="M549.655 124.083c-6.281-23.65-24.836-42.205-48.486-48.486C465.685 64 288 64 288 64s-177.685 0-213.169 11.597c-23.65 6.281-42.205 24.836-48.486 48.486C16 159.567 16 256 16 256s0 96.433 10.345 131.917c6.281 23.65 24.836 42.205 48.486 48.486C110.315 448 288 448 288 448s177.685 0 213.169-11.597c23.65-6.281 42.205-24.836 48.486-48.486C560 352.433 560 256 560 256s0-96.433-10.345-131.917zM232 336V176l142.857 80L232 336z" /></svg>
+                {artisan.socialPlugin?.youtube && (
+                  <a href={artisan.socialPlugin.youtube} target="_blank" rel="noopener noreferrer" title="YouTube">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-youtube-icon lucide-youtube"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" /><path d="m10 15 5-3-5-3z" /></svg>
                   </a>
                 )}
-                {getSocialLink(artisan.socialPlugin, 'google') && (
-                  <a href={getSocialLink(artisan.socialPlugin, 'google')} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition" title="Google">
-                    {/* Google SVG */}
-                    <svg width="32" height="32" viewBox="0 0 48 48"><g><path fill="#4285F4" d="M43.611 20.083H42V20H24v8h11.303c-1.623 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c2.611 0 5.019.845 6.979 2.252l6.545-6.545C34.058 5.173 29.284 3 24 3 12.954 3 4 11.954 4 23s8.954 20 20 20c11.046 0 20-8.954 20-20 0-1.341-.138-2.651-.389-3.917z" /><path fill="#34A853" d="M6.306 14.691l6.571 4.819C14.64 16.478 19.004 13 24 13c2.611 0 5.019.845 6.979 2.252l6.545-6.545C34.058 5.173 29.284 3 24 3c-7.732 0-14.442 4.41-17.694 10.691z" /><path fill="#FBBC05" d="M24 43c5.167 0 9.883-1.977 13.463-5.191l-6.197-5.238C29.283 34.091 26.772 35 24 35c-5.202 0-9.601-3.322-11.215-7.957l-6.553 5.047C9.478 40.125 16.227 43 24 43z" /><path fill="#EA4335" d="M43.611 20.083H42V20H24v8h11.303c-1.623 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c2.611 0 5.019.845 6.979 2.252l6.545-6.545C34.058 5.173 29.284 3 24 3c-7.732 0-14.442 4.41-17.694 10.691z" /></g></svg>
+                {artisan.socialPlugin?.google && (
+                  <a href={artisan.socialPlugin.google} target="_blank" rel="noopener noreferrer" title="Google">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="black" viewBox="0 0 24 24">
+                      <path d="M21.35 11.1h-9.18v2.83h5.43c-.24 1.38-1.42 4.04-5.43 4.04-3.27 0-5.94-2.71-5.94-6.05s2.67-6.05 5.94-6.05c1.86 0 3.11.8 3.82 1.49l2.6-2.57C17.36 3.43 15.01 2.5 12 2.5 6.95 2.5 2.9 6.53 2.9 11.5S6.95 20.5 12 20.5c6.89 0 9.1-4.82 9.1-7.22 0-.48-.05-.8-.15-1.18z" />
+                    </svg>
                   </a>
                 )}
-                {getSocialLink(artisan.socialPlugin, 'website') && (
-                  <a href={getSocialLink(artisan.socialPlugin, 'website')} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition" title="Website">
-                    {/* Website SVG */}
-                    <svg width="30" height="30" viewBox="0 0 24 24" fill="#222"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm5 10c0 .34-.02.674-.05 1H7.05A8.063 8.063 0 017 12c0-.34.02-.674.05-1h9.9c.03.326.05.66.05 1zm-1.357-3H8.357A7.978 7.978 0 0112 4.062 7.978 7.978 0 0115.643 9zm-9.615 2a8.06 8.06 0 01.822-2.449l2.122 2.122A7.98 7.98 0 007.05 11zm.822 4.449A8.06 8.06 0 016.028 13h2.122a7.98 7.98 0 00.822 2.449zM12 19.938A7.978 7.978 0 018.357 15h7.286A7.978 7.978 0 0112 19.938zm4.95-4.489A7.98 7.98 0 0016.95 13h2.122a8.06 8.06 0 01-.822 2.449zM19.938 12c0 .34-.02.674-.05 1h-2.122a7.98 7.98 0 00-.822-2.449z" /></svg>
+
+                {artisan.socialPlugin?.website && (
+                  <a href={artisan.socialPlugin.website} target="_blank" rel="noopener noreferrer" title="Website">
+                    <Globe />
                   </a>
                 )}
               </div>

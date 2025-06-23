@@ -783,6 +783,11 @@ const RandomTourPackageSection = () => {
                 </Carousel>
               </div>
             )}
+            <div className="flex justify-end items-center my-2" >
+              <Link href="/allArtisans" className="bg-black text-white py-1 px-2 font-medium text-md w-fit mb-6 hover:underline hover:decoration-2 hover:underline-offset-4 transition">
+                View All Artisan &gt;&gt;
+              </Link>
+            </div>
             {/* Carousel for remaining artisans in new style */}
             {artisan && artisan.length > 1 && (
               <div className="md:hidden lg:hidden mt-10">

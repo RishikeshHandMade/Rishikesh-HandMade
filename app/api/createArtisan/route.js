@@ -15,6 +15,7 @@ import '@/models/CategoryTag';
 import '@/models/Quantity';
 import '@/models/ProductCoupons';
 import '@/models/ProductReview';
+
 // Ensures all subcomponent models are registered for cascading delete
 import { addSpecializationIfNotExists } from "@/lib/specialization";
 import { deleteFileFromCloudinary } from "@/utils/cloudinary";
@@ -87,7 +88,12 @@ export async function GET(req) {
       query._id = { $ne: excludeId };
     }
     const artisans = await Artisan.find(query)
-      .populate('socialPlugin')
+    .populate('promotions')
+    .populate('artisanBlogs')
+    .populate('artisanStories')
+    .populate('certificates')
+    .populate('socialPlugin')
+    .populate('artisanBanner')
       .sort({ createdAt: -1 });
     return new Response(JSON.stringify(artisans), { status: 200 });
   } catch (error) {
