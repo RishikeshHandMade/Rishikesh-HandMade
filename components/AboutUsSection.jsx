@@ -22,27 +22,6 @@ const AboutUsSection = () => {
             location: "Uttarakhand, India",
             footertext: "A journey to rejuvenate your soul",
         },
-        {
-            _id: "2",
-            link: "#",
-            image: { url: "https://dummyimage.com/1280x720/333/fff" },
-            headerText: "Divine Experience",
-            title: "Temple Tour",
-            subTitle: "Sacred sites across India",
-            location: "Varanasi, India",
-            footertext: "Explore the roots of spirituality",
-        },
-        {
-            _id: "3",
-            link: "#",
-            image: { url: "https://dummyimage.com/1280x720/666/fff" },
-            headerText: "Cultural Journey",
-            title: "Ancient Wonders",
-            subTitle: "Historical & spiritual landmarks",
-            location: "Rajasthan, India",
-            footertext: "Step into history and faith",
-        },
-
     ];
 
     useEffect(() => {
@@ -116,7 +95,7 @@ const AboutUsSection = () => {
                     <br />
                      you’re not just buying a product — you’re preserving tradition, empowering local artisans, and bringing home a piece of authentic India.
                 </p>
-                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-4 mx-auto">
+                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 mx-auto">
                     {loading ? (
                         // Loading skeletons
                         Array.from({ length: 5 }).map((_, idx) => (
@@ -135,7 +114,7 @@ const AboutUsSection = () => {
                         featuredPackages.map((item) => (
                             <div
                                 key={item._id}
-                                className="flex flex-col items-center w-42 mx-auto md:w-52 rounded-3xl group"
+                                className="flex flex-col items-center w-42 mx-auto md:w-60 rounded-3xl group"
                                 style={{ padding: "1rem 0 0.5rem 0" }}
                             >
                                 <div className="w-full aspect-[4/5] rounded-2xl border overflow-hidden flex items-end justify-center">

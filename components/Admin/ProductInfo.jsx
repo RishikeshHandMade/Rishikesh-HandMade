@@ -509,7 +509,7 @@ const productInfo = ({ productData, productId }) => {
               </div>
               <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
                 <div className="font-semibold text-gray-800">Description</div>
-                <div className="text-gray-600">{viewedSection.description}</div>
+                <div dangerouslySetInnerHTML={{__html:viewedSection.description}} className="text-gray-600 h-44 overflow-y-auto"></div>
               </div>
             </div>
           )}

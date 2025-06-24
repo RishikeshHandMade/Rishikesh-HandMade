@@ -22,7 +22,7 @@ import {
 import VisuallyHidden from '@/components/VisuallyHidden';
 import Autoplay from "embla-carousel-autoplay";
 export default function ProductDetailView({ product }) {
-  // console.log(product);
+  console.log(product);
   // --- Ask An Expert Modal State ---
   const [showExpertModal, setShowExpertModal] = useState(false);
   // Artisan Modal State
@@ -646,16 +646,6 @@ export default function ProductDetailView({ product }) {
               );
             })}
           </div>
-
-          {/* Shipping Charges */}
-          {/* <div className="flex justify-between items-center mt-2">
-            <span className="font-semibold">
-              Shipping Charges{shippingTierLabel ? ` (${shippingTierLabel})` : ''}
-            </span>
-            <span className="font-semibold">
-              ₹{FinalShipping.toFixed(2)}
-            </span>
-          </div> */}
           {/* Pincode check UI */}
           <div className="my-4">
             <div className="flex items-center gap-2 mb-2">
@@ -737,8 +727,6 @@ export default function ProductDetailView({ product }) {
               <div className="text-red-600 text-xs mt-1">{pincodeError}</div>
             )}
           </div>
-
-
           {/* Tags, etc. */}
           <div className="mb-4">
             <div className="text-sm mb-1">
@@ -755,7 +743,7 @@ export default function ProductDetailView({ product }) {
                   ))
                 ) : (
                   <span className="bg-gray-200 text-black font-medium px-3 py-1 rounded-full text-sm">
-                    {product.category || "No Category"}
+                    {"No Category"}
                   </span>
                 )}
               </div>
@@ -999,7 +987,7 @@ export default function ProductDetailView({ product }) {
                 const buyNowProduct = {
                   id: product._id,
                   name: product.title,
-                  image: selectedImage || product.gallery?.mainImage?.url || '/placeholder.png',
+                  image: selectedImage || product.gallery?.mainImage?.url || '/placeholder.jpeg',
                   price: Math.round(discountedPrice),
                   size: selectedSize,
                   weight: selectedWeight,

@@ -26,7 +26,7 @@ const CategoryTag = ({ productData, productId }) => {
   // Table state
   const [categoryRows, setCategoryRows] = useState([]); // [{ product, productName, tags, categoryTagId }]
   const [editRow, setEditRow] = useState(null); // { product, tags, categoryTagId }
-  console.log(categoryRows)
+  // console.log(categoryRows)
   const [productTitle, setProductTitle] = useState("")
   useEffect(() => {
     if (!productData && productId) {
@@ -140,7 +140,7 @@ const CategoryTag = ({ productData, productId }) => {
       toast.error("Please add at least one tag.");
       return;
     }
-    console.log(selectedTags)
+    // console.log(selectedTags)
     // If editing, PATCH; else POST
     try {
       let res;
@@ -208,7 +208,7 @@ const CategoryTag = ({ productData, productId }) => {
         method: "DELETE"
       });
       const json = await res.json();
-      console.log("Delete API response:", json, "Status:", res.status);
+      // console.log("Delete API response:", json, "Status:", res.status);
       if (res.ok && json.success) {
         toast.success("Category deleted!");
         // Re-fetch the category rows for the current product
@@ -231,7 +231,7 @@ const CategoryTag = ({ productData, productId }) => {
       }
     } catch (err) {
       toast.error("API error");
-      console.error("Delete error:", err);
+      // console.error("Delete error:", err);
     }
   };
 
@@ -245,10 +245,10 @@ const CategoryTag = ({ productData, productId }) => {
             <h3 className="my-4 text-center">Category Tag</h3>
             <div className="card my-2">
               <div className="card-body px-4 py-2">
-                <div className="mb-6 flex flex-col items-center justify-center">
-                  <Label className="font-bold mb-2 text-center">Product Name</Label>
+                <div className="mb-6 flex flex-col items-start justify-center">
+                  <Label className="font-bold mb-2 text-start">Product Name</Label>
                   <Input
-                    className="mb-4 w-80 font-black text-center border-gray-300"
+                    className="mb-4 w-80 font-black text-start border-gray-300"
                     value={productName}
                     disabled
                     readOnly
@@ -261,8 +261,8 @@ const CategoryTag = ({ productData, productId }) => {
                     </div>
                   )}
                 </div>
-                <div className="flex flex-col gap-2 mb-4 items-center justify-center">
-                  <label className="font-bold text-center">Tags</label>
+                <div className="flex flex-col gap-2 mb-4 items-start justify-center">
+                  <label className="font-bold text-start">Tags</label>
                   <div className="flex flex-row gap-2 items-center justify-center mb-4">
                     {/* Select dropdown for existing tags */}
                     <select

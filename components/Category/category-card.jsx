@@ -41,7 +41,7 @@ const CategoryCard = ({ category }) => {
       <div className="group w-44 h-60 transition-transform mx-2 my-2 flex flex-col">
         <div className="relative w-full h-60 overflow-hidden rounded-xl mb-2">
           <Image
-            src={category.profileImage || "/placeholder.jpeg"}
+            src={category.profileImage?.url || "/placeholder.jpeg"}
             alt={category.title}
             fill
             className="object-cover object-top h-full w-full rounded-xl group-hover:-translate-y-3 transition-transform duration-200"

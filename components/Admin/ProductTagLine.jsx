@@ -137,7 +137,7 @@ const ProductTagLine = ({ productData, productId }) => {
       toast.error("Product and tagLine are required.");
       return;
     }
-    console.log(selectedTags)
+    // console.log(selectedTags)
     try {
       const productToSend = productId || selectedProduct;
       let res, method, url;
@@ -202,7 +202,7 @@ const ProductTagLine = ({ productData, productId }) => {
         method: "DELETE"
       });
       const json = await res.json();
-      console.log("Delete API response:", json, "Status:", res.status);
+      // console.log("Delete API response:", json, "Status:", res.status);
       if (res.ok && json.success) {
         toast.success("Product Tag Line deleted!");
         // Re-fetch the category rows for the current product
@@ -239,10 +239,10 @@ const ProductTagLine = ({ productData, productId }) => {
             {/* <h3 className="my-4 text-center">Product Tag Line</h3> */}
             <div className="card my-2">
               <div className="card-body px-4 py-2">
-                <div className="mb-6 flex flex-col items-center justify-center">
+                <div className="mb-6 flex flex-col items-start justify-center">
                   <Label className="font-bold text-md mb-2 text-center">Product Name</Label>
                   <Input
-                    className="mb-4 w-80 font-black text-center border-gray-300"
+                    className="mb-4 w-80 font-black text-start border-gray-300"
                     value={productName}
                     disabled
                     readOnly
@@ -255,7 +255,7 @@ const ProductTagLine = ({ productData, productId }) => {
                     </div>
                   )}
                 </div>
-                <div className="flex flex-col gap-2 mb-4 items-center justify-center">
+                <div className="flex flex-col gap-2 mb-4 items-start justify-center">
                   <label className="font-bold text-center">Product Tag Line</label>
                   <div className="flex flex-row gap-2 items-center justify-center mb-4">
                     {/* Select dropdown for existing tags */}

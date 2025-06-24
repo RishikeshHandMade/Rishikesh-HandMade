@@ -42,31 +42,12 @@ const data = {
       url: "/admin/create_user",
       icon: User,
     },
-
-    // Space (empty item)
     { divider: true },
-
-    // Second group: Basic setup
     {
       name: "Manage Banner",
       url: "/admin/change_banner_image",
       icon: Image,
     },
-    // {
-    //   name: "Create City",
-    //   url: "/admin/create_city",
-    //   icon: MapPin,
-    // },
-    // {
-    //   name: "Create Package Plan Type",
-    //   url: "/admin/create_package_plan_type",
-    //   icon: ShoppingBag,
-    // },
-    // {
-    //   name: "Manage City Plans",
-    //   url: "/admin/manage_city_plans",
-    //   icon: Flame,
-    // },
     { divider: true },
     {
       name: "Create Artisan",
@@ -166,12 +147,6 @@ const data = {
       url: "/admin/all_products",
       icon: Boxes,
     },
-    
-    // {
-    //   name: "Add Direct Package",
-    //   url: "/admin/add_direct_package",
-    //   icon: Plus,
-    // },
     {
       name: "Approve/Reject Reviews",
       url: "/admin/manage_reviews",
@@ -227,12 +202,12 @@ const data = {
     { divider: true },
 
     // Sixth group: Reports & tools
-    
+
     {
       name: "Send Promotional Emails",
       url: "/admin/send_promotional_emails",
       icon: Send,
-   },
+    },
     {
       name: "User Login Logs/Report",
       url: "/admin/user_login_logs",

@@ -99,7 +99,7 @@ const ProductDetailPage = async ({ params }) => {
                                 Array.isArray(cat.subMenu)
                                     ? cat.subMenu.map(sub => ({
                                         title: sub.title,
-                                        profileImage: sub.profileImage.url,
+                                        profileImage: sub.profileImage,
                                         url: `/category/${sub.url}`
                                     }))
                                     : []

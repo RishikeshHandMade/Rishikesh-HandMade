@@ -116,7 +116,6 @@ const VideoManagement = ({ productData, productId }) => {
   // View handler
   const handleView = (videoObj) => {
     setSelectedVideo({ ...videoObj, productName: getProductName(productId) });
-    setVideoDescription(videoObj.description || '');
     setShowViewModal(true);
   };
 
@@ -212,7 +211,7 @@ const VideoManagement = ({ productData, productId }) => {
                   <div className="text-center">
                     <Button type="submit" className="bg-red-500 px-5" disabled={loading}>{loading ? (isEditMode ? 'Updating...' : 'Saving...') : (isEditMode ? 'Update' : 'Data Save')}</Button>
                     {isEditMode && (
-                      <Button type="button" variant="secondary" className="ml-2" onClick={() => { setIsEditMode(false); setEditTargetUrl(null); setVideoUrl(""); }}>Cancel Edit</Button>
+                      <Button type="button" variant="secondary" className="ml-2" onClick={() => { setIsEditMode(false); setEditTargetUrl(null); setVideoUrl(""); setVideoDescription(""); }}>Cancel Edit</Button>
                     )}
                   </div>
                 </div>

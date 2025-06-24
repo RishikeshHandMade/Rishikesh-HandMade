@@ -85,16 +85,16 @@ const CategoryPage = async ({ params }) => {
                   <div key={ad._id || idx} className="w-full max-w-xl rounded-2xl overflow-hidden shadow mb-4 flex flex-col items-center">
                     {ad.image && ad.buttonLink ? (
                       <a href={ad.buttonLink} target="_blank" rel="noopener noreferrer">
-                        <img
-                          src={ad.image?.url || ad.image}
+                        <Image
+                          src={ad.image?.url || ad.image || "/placeholder.jpeg"}
                           alt={"Category Advertisement"}
                           className="object-contain w-full max-h-[500px] cursor-pointer hover:opacity-90 transition"
                           style={{ height: "auto", maxHeight: "500px" }}
                         />
                       </a>
                     ) : ad.image ? (
-                      <img
-                        src={ad.image?.url || ad.image}
+                      <Image
+                        src={ad.image?.url || ad.image || "/placeholder.jpeg"}
                         alt={"Category Advertisement"}
                         className="object-contain w-full max-h-[500px]"
                         style={{ height: "auto", maxHeight: "500px" }}
