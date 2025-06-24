@@ -28,7 +28,10 @@ export async function GET(req, { params }) {
     } catch (e) {}
     // Strictly fetch by MongoDB _id
     let product = await Product.findById(id)
-      .populate('artisan')
+      .populate({
+        path: 'artisan',
+        populate: { path: 'artisanStories' }
+      })
       .populate('size')
       // .populate('color') 
       .populate('price')

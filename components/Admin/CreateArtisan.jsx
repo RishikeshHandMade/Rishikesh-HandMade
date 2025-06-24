@@ -168,7 +168,7 @@ const CreateArtisan = () => {
   const [selectedSpecs, setSelectedSpecs] = useState(
     Array.isArray(editForm?.specializations) ? editForm.specializations : []
   );
-  
+
   // If you want to sync with form reset/edit, add an effect:
   useEffect(() => {
     if (Array.isArray(editForm?.specializations)) {
@@ -179,6 +179,8 @@ const CreateArtisan = () => {
 
   const { register, handleSubmit, setValue, reset, watch, formState: { errors } } = useForm({
     defaultValues: {
+      pincode: '',
+      city: '',
       title: "Mr.",
       fatherHusbandType: "Father",
       fatherHusbandTitle: "Mr.",
@@ -235,6 +237,7 @@ const CreateArtisan = () => {
         uploadedImage && uploadedImage.url && uploadedImage.key
           ? uploadedImage
           : { url: "", key: "" },
+      order: data.order,
     };
     setLoading(true);
     try {
@@ -342,6 +345,7 @@ const CreateArtisan = () => {
       city: artisan.address?.pincode || "",
       state: artisan.address?.state || "",
       profileImage: artisan.profileImage || "",
+      order: 1,
     });
     // Populate form fields
     setValue("title", artisan.title || "Mr.");
@@ -368,6 +372,7 @@ const CreateArtisan = () => {
     setValue("pincode", artisan.address?.pincode || "");
     setValue("state", artisan.address?.state || "");
     setSelectedImage(artisan.profileImage?.url || "");
+    setValue("order", 1);
     // Ensure uploadedImage is set for editing (needed for Cloudinary removal)
     setUploadedImage(
       artisan.profileImage?.url && artisan.profileImage?.key
@@ -430,9 +435,10 @@ const CreateArtisan = () => {
       address: {
         fullAddress: formData.address || "",
         city: formData.city || "",
-        pincode:formData.pincode||"",
+        pincode: formData.pincode || "",
         state: formData.state || "",
       },
+      order: formData.order,
       ...(uploadedImage && uploadedImage.url && uploadedImage.key
         ? { profileImage: uploadedImage }
         : {})
@@ -498,6 +504,15 @@ const CreateArtisan = () => {
     fetchUsers();
     fetchSpecializations();
   }, []);
+
+  const [order, setOrder] = useState(users.length + 1);
+
+  useEffect(() => {
+    if (!editingUser) {
+      setOrder(users.length + 1);
+      setValue('order', users.length + 1, { shouldValidate: true });
+    }
+  }, [users, editingUser, setValue]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 py-10">
@@ -761,6 +776,16 @@ const CreateArtisan = () => {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          <div>
+            <label>Order</label>
+            <Input
+              placeholder="Type Order Here"
+              type="number"
+              value={order}
+              readOnly
+              {...register("order")}
+            />
           </div>
           {editingUser ? (
             <div className="flex gap-4 mt-4">
@@ -1186,7 +1211,7 @@ const CreateArtisan = () => {
                 >
                   {imageUploading ? 'Uploading...' : 'Upload Image'}
                 </Button>
-              
+
               </div>
               <div>
                 <label className="font-semibold">First Name</label>
@@ -1343,21 +1368,27 @@ const CreateArtisan = () => {
                 />
               </div>
               <div>
-                <label className="font-semibold">City</label>
-                <Input
-                  name="city"
-                  value={editForm.city || ""}
-                  onChange={handleEditFormChange}
-                />
-              </div>
+  <label className="font-semibold">City</label>
+  <Input
+    name="city"
+    placeholder="Enter city"
+    {...register("city", { required: "City is required" })}
+    value={watch("city") || editForm.city || ""}
+    onChange={handleEditFormChange}
+  />
+  {errors.city && <span className="text-red-500 text-xs">{errors.city.message}</span>}
+</div>
               <div>
-                <label className="font-semibold">Pincode</label>
-                <Input
-                  name="pincode"
-                  value={editForm.pincode || ""}
-                  onChange={handleEditFormChange}
-                />
-              </div>
+  <label className="font-semibold">Pincode</label>
+  <Input
+    name="pincode"
+    placeholder="Enter pincode"
+    {...register("pincode", { required: "Pincode is required" })}
+    value={watch("pincode") || editForm.pincode || ""}
+    onChange={handleEditFormChange}
+  />
+  {errors.pincode && <span className="text-red-500 text-xs">{errors.pincode.message}</span>}
+</div>
               <div>
                 <label className="font-semibold">State</label>
                 <Select

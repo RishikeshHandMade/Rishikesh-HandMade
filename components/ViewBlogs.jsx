@@ -30,13 +30,10 @@ const ViewBlogs = () => {
       {/* Header with background image */}
       <div className="relative h-64 md:h-80 flex items-center justify-center">
         <img
-          src="./BlogBanner.jpg"
+          src="/BlogBanner.jpg"
           alt="Blog Light Half Image"
-          className="absolute inset-0 w-full h-full object-contain"
+          className="absolute inset-0 w-full h-full object-cover"
         />
-        {/* <div className="relative z-10 flex flex-col items-center justify-center w-full">
-          <h1 className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg text-center">Blog Light Half Image</h1>
-        </div> */}
       </div>
 
       {/* Blog grid */}

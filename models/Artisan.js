@@ -5,6 +5,7 @@ const artisanSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  order: { type: Number, required: true },
   title: {
     type: String,
     required: true,

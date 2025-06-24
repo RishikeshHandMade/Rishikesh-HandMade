@@ -9,12 +9,16 @@ import {
     CarouselNext,
     CarouselPrevious,
 } from "@/components/ui/carousel";
+import Image from "next/image";
 
 
 const BannerSection = () => (
-    <div className="w-full bg-[#ff4f00] py-10 flex flex-col items-center justify-center">
-        <h1 className="text-5xl md:text-6xl font-extrabold text-center text-[#662100] tracking-wider mb-2">BANNER IMAGE</h1>
-        <div className="text-xl md:text-2xl text-black font-semibold">Tag Line</div>
+    <div className="relative h-64 md:h-80 flex items-center justify-center">
+        <img
+            src="/artisanBanner.jpg"
+            alt="Artisan Banner"
+            className="absolute inset-0 w-full h-full object-cover"
+        />
     </div>
 );
 
@@ -134,15 +138,15 @@ const ArtisanList = () => {
                 {/* Row 1: First 6 artisans */}
                 <div className="flex flex-col md:flex-row w-full">
                     <LeftTextBlock />
-                    <div className="flex-1 w-full px-2 flex flex-col">
+                    <div className="flex-1 w-full px-2 flex flex-col overflow-hidden">
                         {isLoading ? (
                             <div className="text-center py-16 text-lg">Loading artisans...</div>
                         ) : (
                             <>
                                 {/* Desktop Carousel: 4 per row */}
-                                <div className="hidden md:flex mt-4">
+                                <div className="mt-4">
                                     <Carousel className="w-full">
-                                        <CarouselContent className="flex gap-4">
+                                        <CarouselContent className="flex gap-4 flex-nowrap w-full">
                                             {firstRowArtisans.map((item, idx) => {
                                                 const card = {
                                                     id: item._id || idx,
@@ -153,36 +157,6 @@ const ArtisanList = () => {
                                                     subtitle: item.shgName || "",
                                                     experience: item.yearsOfExperience ? `${item.yearsOfExperience} years experience` : "",
                                                     location: item.address ? `${item.address.city}, ${item.address.state}` : "",
-                                                    //     <div className="flex justify-start gap-2 mb-2">
-                                                    //     {item.socialPlugin?.facebook && (
-                                                    //         <a href={item.socialPlugin.facebook} target="_blank" rel="noopener noreferrer" title="Facebook">
-                                                    //             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-facebook-icon lucide-facebook"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>
-                                                    //         </a>
-                                                    //     )}
-                                                    //     {item.socialPlugin?.instagram && (
-                                                    //         <a href={item.socialPlugin.instagram} target="_blank" rel="noopener noreferrer" title="Instagram">
-                                                    //             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-instagram-icon lucide-instagram"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
-                                                    //         </a>
-                                                    //     )}
-                                                    //     {item.socialPlugin?.youtube && (
-                                                    //         <a href={item.socialPlugin.youtube} target="_blank" rel="noopener noreferrer" title="YouTube">
-                                                    //             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-youtube-icon lucide-youtube"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" /><path d="m10 15 5-3-5-3z" /></svg>
-                                                    //         </a>
-                                                    //     )}
-                                                    //     {item.socialPlugin?.google && (
-                                                    //         <a href={item.socialPlugin.google} target="_blank" rel="noopener noreferrer" title="Google">
-                                                    //             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="black" viewBox="0 0 24 24">
-                                                    //                 <path d="M21.35 11.1h-9.18v2.83h5.43c-.24 1.38-1.42 4.04-5.43 4.04-3.27 0-5.94-2.71-5.94-6.05s2.67-6.05 5.94-6.05c1.86 0 3.11.8 3.82 1.49l2.6-2.57C17.36 3.43 15.01 2.5 12 2.5 6.95 2.5 2.9 6.53 2.9 11.5S6.95 20.5 12 20.5c6.89 0 9.1-4.82 9.1-7.22 0-.48-.05-.8-.15-1.18z" />
-                                                    //             </svg>
-                                                    //         </a>
-                                                    //     )}
-
-                                                    //     {item.socialPlugin?.website && (
-                                                    //         <a href={item.socialPlugin.website} target="_blank" rel="noopener noreferrer" title="Website">
-                                                    //             <Globe />
-                                                    //         </a>
-                                                    //     )}
-                                                    // </div>
                                                     socials: [
                                                         {
                                                             icon: (
@@ -214,7 +188,10 @@ const ArtisanList = () => {
                                                     ],
                                                 };
                                                 return (
-                                                    <CarouselItem key={card.id} className="pl-5 md:basis-1/3 lg:basis-1/4 min-w-0 snap-start">
+                                                    <CarouselItem
+                                                        key={card.id}
+                                                        className="flex justify-center basis-1/3 min-w-0"
+                                                    >
                                                         <ArtisanCard card={card} />
                                                     </CarouselItem>
                                                 );

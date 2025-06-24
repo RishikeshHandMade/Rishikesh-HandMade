@@ -15,6 +15,7 @@ import '@/models/CategoryTag';
 import '@/models/Quantity';
 import '@/models/ProductCoupons';
 import '@/models/ProductReview';
+import '@/models/Promotion'
 
 // Ensures all subcomponent models are registered for cascading delete
 import { addSpecializationIfNotExists } from "@/lib/specialization";
@@ -26,12 +27,14 @@ export async function POST(req) {
     const data = await req.json();
 
     // Validate required fields
-    if (!data.title || !data.firstName || !data.lastName || !data.fatherHusbandType || !data.fatherHusbandTitle || !data.fatherHusbandName || 
-        !data.fatherHusbandLastName || !data.shgName || !data.artisanNumber || !data.yearsOfExperience || 
-        !data.callNumber || !data.address || !data.city || !data.pincode || !data.state) {
+    if (!data.title || !data.firstName || !data.lastName || !data.fatherHusbandType || !data.fatherHusbandTitle || !data.fatherHusbandName ||
+      !data.fatherHusbandLastName || !data.shgName || !data.artisanNumber || !data.yearsOfExperience ||
+      !data.callNumber || !data.address || !data.city || !data.pincode || !data.state) {
       return new Response(JSON.stringify({ message: 'Missing required fields' }), { status: 400 });
     }
-
+    // Find the highest order number
+    const lastBanner = await Artisan.findOne().sort({ order: -1 });
+    const nextOrder = lastBanner ? lastBanner.order + 1 : 1; // Auto-increment order
     // Accept profileImage as a URL (and optionally key)
     const profileImage = data.profileImage ? data.profileImage : null;
 
@@ -58,6 +61,7 @@ export async function POST(req) {
         pincode: data.pincode,
         state: data.state
       },
+      order: nextOrder,
       profileImage: (typeof profileImage === 'object' && profileImage !== null && profileImage.url && profileImage.key)
         ? { url: profileImage.url, key: profileImage.key }
         : { url: '', key: '' }
@@ -88,13 +92,13 @@ export async function GET(req) {
       query._id = { $ne: excludeId };
     }
     const artisans = await Artisan.find(query)
-    .populate('promotions')
-    .populate('artisanBlogs')
-    .populate('artisanStories')
-    .populate('certificates')
-    .populate('socialPlugin')
-    .populate('artisanBanner')
-      .sort({ createdAt: -1 });
+      .populate('promotions')
+      .populate('artisanBlogs')
+      .populate('artisanStories')
+      .populate('certificates')
+      .populate('socialPlugin')
+      .populate('artisanBanner')
+      .sort({ order: 1 });
     return new Response(JSON.stringify(artisans), { status: 200 });
   } catch (error) {
     return new Response(JSON.stringify({ message: 'Error fetching artisans', error: error.message }), { status: 500 });
@@ -123,7 +127,7 @@ export async function PATCH(req) {
     if (typeof updateFields.specializations === 'string') {
       try {
         updateFields.specializations = JSON.parse(updateFields.specializations);
-      } catch {}
+      } catch { }
     }
     if (!Array.isArray(updateFields.specializations)) {
       updateFields.specializations = updateFields.specializations ? [updateFields.specializations] : [];
@@ -132,7 +136,7 @@ export async function PATCH(req) {
     if (typeof updateFields.active !== 'undefined') {
       updateFields.active = !!updateFields.active;
     }
-    console.log('PATCH updateFields:', updateFields); // Debug log
+    // console.log('PATCH updateFields:', updateFields); // Debug log
     // If profileImage is being updated or cleared, delete the old image from Cloudinary
     if (Object.prototype.hasOwnProperty.call(updateFields, 'profileImage')) {
       const artisan = await Artisan.findById(id);
@@ -163,7 +167,7 @@ export async function PATCH(req) {
 
 export async function DELETE(req) {
   try {
-    await connectDB();  
+    await connectDB();
     const { id } = await req.json();
     const artisan = await Artisan.findById(id);
     if (!artisan) {

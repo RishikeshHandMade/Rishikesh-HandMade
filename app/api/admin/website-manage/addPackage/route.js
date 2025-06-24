@@ -79,48 +79,38 @@ export async function POST(req) {
 
 export async function PUT(req) {
     await connectDB();
-
     try {
         const body = await req.json();
-
-        if (!body.pkgId) {
-            return NextResponse.json({ message: "Package ID is required" }, { status: 400 });
+        // Support either code or _id as identifier
+        const identifier = body._id ? { _id: body._id } : { code: body.code };
+        if (!identifier._id && !identifier.code) {
+            return NextResponse.json({ message: 'Product identifier (code or _id) required' }, { status: 400 });
         }
-
-        // Fetch existing package to avoid overwriting missing fields
-        const existingPackage = await Package.findById(body.pkgId);
-
-        if (!existingPackage) {
-            return NextResponse.json({ message: "Package not found" }, { status: 404 });
+        // Find the product
+        const existingProduct = await Product.findOne(identifier);
+        if (!existingProduct) {
+            return NextResponse.json({ message: 'Product not found' }, { status: 404 });
         }
-
-        // Merge new data with existing data (to prevent missing fields)
-        const updatedData = {
-            packageName: body.packageName ?? existingPackage.packageName,
-            price: body.price ?? existingPackage.price,
-            priceUnit: body.priceUnit ?? existingPackage.priceUnit,
-            link: body.link ?? existingPackage.link,
-            active: body.active ?? existingPackage.active,
-            order: body.order ?? existingPackage.order,
-            packageCode: body.packageCode ?? existingPackage.packageCode,
-
-            basicDetails: {
-                ...existingPackage.basicDetails,
-                ...body.basicDetails
+        // Track old artisan for removal if changed
+        const oldArtisanId = existingProduct.artisan?.toString();
+        // Prepare update fields (do not allow code overwrite)
+        const updateFields = { ...body };
+        delete updateFields._id;
+        delete updateFields.code;
+        // Update product
+        const updatedProduct = await Product.findOneAndUpdate(identifier, updateFields, { new: true });
+        // If artisan changed, update artisan references
+        if (body.artisan && oldArtisanId !== body.artisan) {
+            if (oldArtisanId) {
+                await Artisan.findByIdAndUpdate(oldArtisanId, { $pull: { products: existingProduct._id } });
             }
-        };
-
-        const updatedPackage = await Package.findByIdAndUpdate(
-            body.pkgId,
-            { $set: updatedData },
-            { new: true, runValidators: true }
-        );
-
-        return NextResponse.json({ message: "Package updated successfully!", package: updatedPackage });
+            await Artisan.findByIdAndUpdate(body.artisan, { $addToSet: { products: existingProduct._id } });
+        }
+        return NextResponse.json({ message: 'Product updated successfully!', product: updatedProduct });
     } catch (error) {
-        console.error("Error updating package:", error);
-        return NextResponse.json({ message: error.message || "Internal Server Error" }, { status: 500 });
+        return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });
     }
+
 }
 
 
