@@ -17,15 +17,15 @@ const BannerSection = () => (
         <img
             src="/artisanBanner.jpg"
             alt="Artisan Banner"
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover object-top px-2"
         />
     </div>
 );
 
 const LeftTextBlock = () => (
-    <div className="bg-black text-white flex flex-col justify-center items-start p-8 h-96 w-full md:w-[25%] mt-4">
-        <h2 className="text-4xl font-extrabold mb-4">ARTISAN</h2>
-        <div className="text-md font-medium mb-2">Celebrating the Art of Craftsmanship.<br />Honoring the Hands That Shape Beauty</div>
+    <div className="bg-black text-white flex flex-col justify-center items-center p-8 h-96 w-full md:w-[25%] mt-4">
+        <h2 className="text-5xl font-extrabold mb-4 text-center">ARTISAN</h2>
+        <div className="text-md font-medium mb-2 text-center">Celebrating the Art of Craftsmanship.<br />Honoring the Hands That Shape Beauty</div>
     </div>
 );
 
@@ -207,15 +207,17 @@ const ArtisanList = () => {
                         )}
                     </div>
                 </div>
-                <h2 className="text-xl my-2 font-medium uppercase text-center md:text-left w-full bg-black text-white p-2">Meet Our Artisans</h2>
+                {artisan.length > 6 && (
+                    <h2 className="text-xl my-1 font-medium uppercase text-center md:text-left w-full bg-black text-white p-2">Meet Our Artisans</h2>
+                )}
                 {/* Row 2: Feature Table (full width) */}
                 {artisan.length > 6 && (
-                    <div className="w-full flex flex-row gap-8 bg-gray-200">
+                    <div className="w-full flex flex-row gap-2 bg-gray-200">
                         <div className="left w-[25%] p-2">
                             {/* Left: Heading and description */}
-                            <div className="flex-1 flex flex-col justify-center">
-                                <h2 className="text-xl font-bold mb-4">Celebrating the Art of Craftsmanship. Honoring the Hands That Shape Beauty</h2>
-                                <div className="text-md text-gray-700 text-justify mb-6">
+                            <div className="flex flex-col justify-center">
+                                <h2 className="text-3xl font-bold mb-4">Celebrating the Art of Craftsmanship. Honoring the Hands That Shape Beauty</h2>
+                                <div className="text-lg text-gray-700 text-justify mb-6">
                                     We are proud to recognize and celebrate your exceptional talent and dedication as a skilled handicraft artisan. Your ability to transform raw materials into beautiful, meaningful works of art speaks to your creativity, precision, and passion for the craft. Each piece you create is a testament to the enduring value of handmade artistry and the cultural richness it preserves. With deep appreciation, we commend you for achieving this milestone and look forward to witnessing your continued journey of artistic excellence.
                                 </div>
                                 <Link href="/contact" className="bg-black text-white py-3 px-6 rounded-lg font-semibold text-lg w-fit mb-6">Join Our Team</Link>
@@ -224,7 +226,7 @@ const ArtisanList = () => {
                         <div className="right w-[75%] p-2">
                             {paginatedArtisans.map((item, idx) => {
                                 return (
-                                    <div key={item._id || idx} className="relative flex flex-col md:flex-row bg-[#f8f5ef] rounded-2xl  md:items-center gap-6">
+                                    <div key={item._id || idx} className="relative flex flex-col md:flex-row bg-[#f8f5ef] rounded-2xl my-2 md:items-center gap-6">
                                         {/* Image */}
                                         <div className="flex-shrink-0 flex justify-center items-center">
                                             <img
@@ -276,7 +278,7 @@ const ArtisanList = () => {
                                                 <div className="font-bold text-md md:text-xl mt-1 flex items-center"> Artisan Number: <span className="font-normal text-md">{item.artisanNumber || 'Artisan Number Not Available'}</span></div>
                                             </div>
                                             <div className="mt-2 text-lg font-bold text-black">{item.yearsOfExperience || '0'} Years of Experience</div>
-                                            <div className="font-bold text-md md:text-xl h-8 overflow-y-auto">Address: <span className="font-normal text-md">{item.address?.fullAddress || 'No Address'}</span></div>
+                                            <div className="font-bold text-md md:text-xl h-14 overflow-y-auto">Address: <span className="font-normal text-md">{item.address?.fullAddress || 'No Address'}</span></div>
                                             <div className="flex gap-4">
                                                 <div className="font-bold text-md md:text-xl">City: <span className="font-normal text-md">{item.address?.city || 'No City'}</span></div>
                                                 <div className="font-bold text-md md:text-xl">State: <span className="font-normal text-md">{item.address?.state || 'No State'}</span></div>

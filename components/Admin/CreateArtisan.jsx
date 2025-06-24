@@ -165,18 +165,6 @@ const CreateArtisan = () => {
     }
   };
 
-  const [selectedSpecs, setSelectedSpecs] = useState(
-    Array.isArray(editForm?.specializations) ? editForm.specializations : []
-  );
-
-  // If you want to sync with form reset/edit, add an effect:
-  useEffect(() => {
-    if (Array.isArray(editForm?.specializations)) {
-      setSelectedSpecs(editForm.specializations);
-      setValue("specializations", editForm.specializations, { shouldValidate: true });
-    }
-  }, [editForm.specializations]);
-
   const { register, handleSubmit, setValue, reset, watch, formState: { errors } } = useForm({
     defaultValues: {
       pincode: '',
@@ -187,6 +175,15 @@ const CreateArtisan = () => {
       // Add other defaults if needed
     },
   });
+
+  const [selectedSpecs, setSelectedSpecs] = useState(
+    Array.isArray(editForm?.specializations) ? editForm.specializations : []
+  );
+
+  // Always keep selectedSpecs and react-hook-form in sync
+  useEffect(() => {
+    setValue("specializations", selectedSpecs, { shouldValidate: true });
+  }, [selectedSpecs, setValue]);
 
   const fetchSpecializations = async () => {
     try {
@@ -342,13 +339,23 @@ const CreateArtisan = () => {
       email: artisan.contact?.email || "",
       address: artisan.address?.fullAddress || "",
       city: artisan.address?.city || "",
-      city: artisan.address?.pincode || "",
+      pincode: artisan.address?.pincode || "",
       state: artisan.address?.state || "",
       profileImage: artisan.profileImage || "",
-      order: 1,
+      order: artisan.order || 1,
     });
+    // Specializations: support both string and array
+    let specs = [];
+    if (Array.isArray(artisan.specializations)) {
+      specs = artisan.specializations;
+    } else if (artisan.specializations) {
+      specs = [artisan.specializations];
+    }
+    setSelectedSpecs(specs);
+    setValue("specializations", specs, { shouldValidate: true });
     // Populate form fields
     setValue("title", artisan.title || "Mr.");
+    setValue("order", artisan.order || 1, { shouldValidate: true });
     setValue("firstName", artisan.firstName || "");
     setValue("lastName", artisan.lastName || "");
     setValue("fatherHusbandType", artisan.fatherHusbandType || "Father");
@@ -372,7 +379,7 @@ const CreateArtisan = () => {
     setValue("pincode", artisan.address?.pincode || "");
     setValue("state", artisan.address?.state || "");
     setSelectedImage(artisan.profileImage?.url || "");
-    setValue("order", 1);
+    setValue("order", artisan.order || 1, { shouldValidate: true });
     // Ensure uploadedImage is set for editing (needed for Cloudinary removal)
     setUploadedImage(
       artisan.profileImage?.url && artisan.profileImage?.key
@@ -396,6 +403,10 @@ const CreateArtisan = () => {
     setSelectedImage("");
     setUploadedImage(null);
     setUploadProgress(0);
+    setSelectedSpecs([]); // <-- Clear specialization UI state
+    // Set order to next available for new artisan
+    setValue('order', users.length + 1, { shouldValidate: true });
+    setValue('specializations', [], { shouldValidate: true });
   };
 
   const clearEditState = () => {
@@ -404,9 +415,12 @@ const CreateArtisan = () => {
     setShowEditModal(false);
     setUploadedImage(null);
     setSelectedImage(null);
-    setSelectedSpecs([]);
+    setSelectedSpecs([]); // <-- Clear specialization UI state
     setUploadProgress(0);
     reset();
+    // Set order to next available for new artisan
+    setValue('order', users.length + 1, { shouldValidate: true });
+    setValue('specializations', [], { shouldValidate: true });
   };
 
   const handleEditSubmit = async (e) => {
@@ -507,12 +521,18 @@ const CreateArtisan = () => {
 
   const [order, setOrder] = useState(users.length + 1);
 
+  // Only set order for new artisan when not editing and edit modal is closed
   useEffect(() => {
-    if (!editingUser) {
-      setOrder(users.length + 1);
+    if (!editingUser && !showEditModal) {
       setValue('order', users.length + 1, { shouldValidate: true });
     }
-  }, [users, editingUser, setValue]);
+    // When entering edit mode, set order to artisan's order
+    if (editingUser && showEditModal) {
+      setValue('order', editingUser.order || 1, { shouldValidate: true });
+    }
+  }, [users, editingUser, showEditModal, setValue]);
+
+
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 py-10">
@@ -782,9 +802,9 @@ const CreateArtisan = () => {
             <Input
               placeholder="Type Order Here"
               type="number"
-              value={order}
-              readOnly
-              {...register("order")}
+              {...register("order", { required: "Order is required" })}
+              value={watch("order") || ""}
+              onChange={e => setValue("order", e.target.value, { shouldValidate: true })}
             />
           </div>
           {editingUser ? (
@@ -933,7 +953,7 @@ const CreateArtisan = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  S.No.
+                  Order
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Artisan Name
@@ -962,7 +982,7 @@ const CreateArtisan = () => {
               ) : (
                 users.map((artisan, idx) => (
                   <tr key={artisan._id}>
-                    <td className="px-6 py-4 whitespace-nowrap">{idx + 1}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{artisan.order}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {artisan.firstName} {artisan.lastName}
                     </td>
@@ -1368,27 +1388,27 @@ const CreateArtisan = () => {
                 />
               </div>
               <div>
-  <label className="font-semibold">City</label>
-  <Input
-    name="city"
-    placeholder="Enter city"
-    {...register("city", { required: "City is required" })}
-    value={watch("city") || editForm.city || ""}
-    onChange={handleEditFormChange}
-  />
-  {errors.city && <span className="text-red-500 text-xs">{errors.city.message}</span>}
-</div>
+                <label className="font-semibold">City</label>
+                <Input
+                  name="city"
+                  placeholder="Enter city"
+                  {...register("city", { required: "City is required" })}
+                  value={watch("city") || editForm.city || ""}
+                  onChange={handleEditFormChange}
+                />
+                {errors.city && <span className="text-red-500 text-xs">{errors.city.message}</span>}
+              </div>
               <div>
-  <label className="font-semibold">Pincode</label>
-  <Input
-    name="pincode"
-    placeholder="Enter pincode"
-    {...register("pincode", { required: "Pincode is required" })}
-    value={watch("pincode") || editForm.pincode || ""}
-    onChange={handleEditFormChange}
-  />
-  {errors.pincode && <span className="text-red-500 text-xs">{errors.pincode.message}</span>}
-</div>
+                <label className="font-semibold">Pincode</label>
+                <Input
+                  name="pincode"
+                  placeholder="Enter pincode"
+                  {...register("pincode", { required: "Pincode is required" })}
+                  value={watch("pincode") || editForm.pincode || ""}
+                  onChange={handleEditFormChange}
+                />
+                {errors.pincode && <span className="text-red-500 text-xs">{errors.pincode.message}</span>}
+              </div>
               <div>
                 <label className="font-semibold">State</label>
                 <Select
@@ -1409,6 +1429,21 @@ const CreateArtisan = () => {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div>
+                <label className="font-semibold">Order</label>
+                <Input
+                  name="order"
+                  type="number"
+                  placeholder="Enter order"
+                  {...register("order", { required: "Order is required" })}
+                  value={watch("order") || editForm.order || ""}
+                  onChange={e => {
+                    handleEditFormChange(e);
+                    setValue("order", e.target.value, { shouldValidate: true });
+                  }}
+                />
+                {errors.order && <span className="text-red-500 text-xs">{errors.order.message}</span>}
               </div>
               <div className="col-span-2 flex justify-end mt-4">
                 <Button type="submit">Update</Button>
