@@ -1161,6 +1161,13 @@ const CreateArtisan = () => {
                       "-"
                     }
                   />
+                       <DetailBox
+                    label="Order Number"
+                    value={
+                      selectedUser.order ||
+                      "-"
+                    }
+                  />
                 </div>
               </div>
             </div>

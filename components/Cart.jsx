@@ -41,14 +41,12 @@ export default function Cart({ open, onClose, initialTab = "cart" }) {
 
   // Sync cart to backend on change
   useEffect(() => {
-    if (isLoggedIn) {
-      // console.log('[Cart.jsx] Syncing cart to backend', cart);
-      fetch("/api/sync-cart", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, cart }),
-      });
-    }
+    if (!isLoggedIn || !userId) return; // Extra guard for guests
+    fetch("/api/sync-cart", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, cart }),
+    });
   }, [cart, isLoggedIn, userId]);
 
   // Sync wishlist to backend on change

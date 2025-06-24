@@ -80,7 +80,6 @@ const RandomTourPackageSection = () => {
   // State and effect for fetching all reviews
 
   const artisanReviews = [...customReview, ...allReviews];
-  // console.log(allReviews)
 
   // Normalize reviews to a standard format
   function normalizeReview(review) {
@@ -190,7 +189,7 @@ const RandomTourPackageSection = () => {
     try {
       const res = await fetch("/api/product");
       const data = await res.json();
-      console.log("Product API response:", data);
+      // console.log("Product API response:", data);
 
       if (data && data.length > 0) {
         setProducts(data);
@@ -496,7 +495,7 @@ const RandomTourPackageSection = () => {
                         {/* Avatar, Name, Subtitle */}
                         <div className="flex items-center">
                           <img
-                            src={review.image || "/placeholder-user.jpg"}
+                            src={review.image?.url || "/placeholder.jpeg"}
                             alt={review.createdBy || 'Anonymous'}
                             className="w-14 h-14 rounded-full border-4 border-white shadow object-cover"
                           />

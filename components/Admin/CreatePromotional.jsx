@@ -340,8 +340,8 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
           <label className="block font-semibold mb-1"> Description</label>
           <TiptapEditor value={shortDescription} onChange={value => {
             const wordCount = value.trim().split(/\s+/).filter(Boolean).length;
-            if (wordCount > 50) {
-              toast.error('Word limit exceeded! Maximum 50 words allowed.');
+            if (wordCount > 100) {
+              toast.error('Word limit exceeded! Maximum 100 words allowed.');
               return;
             }
             setShortDescription(value);

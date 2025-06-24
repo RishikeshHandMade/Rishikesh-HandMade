@@ -82,32 +82,8 @@ const HeroSection = () => {
     }
   }, [selectedIndex, api]);
 
-  const [query, setQuery] = useState("");
-  const [relatedPackages, setRelatedPackages] = useState([]);
-  const [packages, setPackages] = useState([]);
-  const [recentSearches, setRecentSearches] = useState([]);
   const { isSearchOpen, setIsSearchOpen } = useSearch();
   const router = useRouter();
-
-  useEffect(() => {
-    const storedSearches = JSON.parse(localStorage.getItem("recentSearches")) || [];
-    setRecentSearches(storedSearches);
-
-    const fetchPackages = async () => {
-      try {
-        const res = await fetch("/api/getSearchPackages");
-        const data = await res.json();
-        // console.log(data)
-        if (data.packages && data.packages.length > 0) {
-          setPackages(data.packages);
-        }
-      } catch (error) {
-        console.error("Error fetching packages:", error);
-      }
-    };
-
-    fetchPackages();
-  }, []);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -120,48 +96,6 @@ const HeroSection = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const handleSearch = async (event) => {
-    const value = event.target.value;
-    setQuery(value);
-
-    if (value.trim().length < 2) {
-      setRelatedPackages([]);
-      return;
-    }
-
-    try {
-      const res = await fetch(`/api/packages/search?q=${value}`);
-      if (res.ok) {
-        const data = await res.json();
-        setRelatedPackages(data);
-      } else {
-        setRelatedPackages([]);
-      }
-    } catch (error) {
-      console.error("Error fetching packages:", error);
-      setRelatedPackages([]);
-    }
-  };
-
-  const handlePackageClick = (id, name) => {
-    const updatedSearches = [{ id, name }, ...recentSearches.filter(item => item.id !== id)].slice(0, 5);
-    setRecentSearches(updatedSearches);
-    localStorage.setItem("recentSearches", JSON.stringify(updatedSearches));
-
-    router.push(`/package/${encodeURIComponent(id)}`);
-    setIsSearchOpen(false);
-  };
-
-  const handleSubmit = () => {
-    if (!query.trim()) return;
-    router.push(`/search?q=${encodeURIComponent(query)}`);
-    setIsSearchOpen(false);
-  };
-
-  const clearRecentSearches = () => {
-    localStorage.removeItem("recentSearches");
-    setRecentSearches([]);
-  };
 
   if (isLoading) {
     return (
@@ -322,7 +256,7 @@ const HeroSection = () => {
                         </a>
                       </div>
                       <div className="flex flex-col items-center gap-1 mt-1 mb-2">
-                        <div className="text-lg font-bold text-white">{banner.subtitle || "No Subtitle"}</div>
+                        <div className="text-lg font-bold text-white px-4">{banner.subtitle || "No Subtitle"}</div>
                         <div className="text-base font-semibold text-white tracking-tight px-10 text-center">{banner.subDescription || "No Sub Description"}</div>
                       </div>
                     </div>

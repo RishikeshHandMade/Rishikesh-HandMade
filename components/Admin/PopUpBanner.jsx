@@ -220,7 +220,7 @@ const PopUpBanner = () => {
                             </button>
                         </div>
                     )}
-                </div>                
+                </div>
                 <div>
                     <Label>Button Link</Label>
                     <Input name="buttonLink" placeholder="Enter button link" type="url" value={formData.buttonLink} onChange={handleInputChange} />
@@ -268,7 +268,7 @@ const PopUpBanner = () => {
                         banners.map((banner) => (
                             <TableRow key={banner._id}>
                                 <TableCell>{banner.order}</TableCell>
-                                <TableCell> 
+                                <TableCell>
                                     <TooltipProvider>
                                         <Tooltip>
                                             <TooltipTrigger asChild>
@@ -281,7 +281,13 @@ const PopUpBanner = () => {
                                     </TooltipProvider>
                                 </TableCell>
                                 <TableCell>
-                                    <Image src={banner.image.url} alt="Promotinal Image" width={100} height={50} className="rounded-xl" />
+                                    <Image
+                                        src={banner.image?.url || "/placeholder.jpeg"}
+                                        alt="Promotional Image"
+                                        width={100}
+                                        height={50}
+                                        className="rounded-xl"
+                                    />
                                 </TableCell>
                                 <TableCell>
                                     <Button variant="outline" size="icon" onClick={() => handleEdit(banner)} className="mr-2 "><PencilIcon /></Button>

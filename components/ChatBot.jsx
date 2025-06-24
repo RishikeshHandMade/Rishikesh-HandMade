@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useRef } from "react";
+import React, { useState, useRef,useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Send, MessageCircle, X } from "lucide-react";
 
@@ -10,36 +10,47 @@ function isLoggedIn(session) {
   return !!session?.user;
 }
 
-const predefinedQnA = [
+const productQnA = [
   {
-    q: "What is your return policy?",
-    a: "We offer a 7-day return policy on most items. Please visit our Return Policy page for details.",
+    q: "🛍 Product Information",
+    a: `Q: Is this product available in stock?\nA: Yes, the product is currently available.\n\nQ: What sizes/colors are available?\nA: This product comes in [List Sizes/Colors]. Please select your preferred option from the dropdown menu.\n\nQ: Is this product genuine/original?\nA: Yes, we only sell 100% genuine and authentic products.\n\nQ: Can I see more pictures of the product?\nA: Sure! You can find multiple images in the product gallery. Let us know if you need a close-up of any specific feature.\n\nQ: Does this product have a warranty?\nA: Yes, it comes with a [Duration] warranty provided by the manufacturer.`
   },
   {
-    q: "Do you ship internationally?",
-    a: "Yes, we ship internationally. Shipping charges and delivery times vary by destination.",
+    q: "🚚 Shipping & Delivery",
+    a: `Q: When will I receive my order?\nA: Delivery usually takes [3 to 7 days], depending on your location.\n\nQ: Do you offer free shipping?\nA: We offer free shipping on orders over ₹2,999. Shipping fees apply to orders below that.\n\nQ: Can I track my order?\nA: Yes, once shipped, you will receive a tracking link via email/SMS or your client dashboard.`
   },
   {
-    q: "How can I track my order?",
-    a: "Once your order is shipped, you'll receive a tracking link via email.",
+    q: "💳 Payment & Checkout",
+    a: `Q: What payment methods do you accept?\nA: We accept credit/debit cards, UPI, PayPal, and Cash on Delivery (COD) in selected areas.\n\nQ: Is it safe to make a payment on your site?\nA: Absolutely. Our website uses SSL encryption and secure payment gateways to protect your data.`
   },
   {
-    q: "How do I contact support?",
-    a: "You can reach our support team using the contact form or email us at support@example.com.",
+    q: "🔁 Returns & Refunds",
+    a: `Q: Can I return this product?\nA: Yes, we have a 30-day return policy. The product must be unused and in original condition.\n\nQ: How long does a refund take?\nA: Refunds are processed within 30 business days after we receive the returned item.`
   },
+  {
+    q: "📦 Order Status",
+    a: `Q: Can I track my order?\nA: Yes, once shipped, you will receive a tracking link via email/SMS or your client dashboard.\n\nQ: Can I change or cancel my order?\nA: You can cancel or modify your order within a certain period after placing it. Please contact us immediately for assistance.`
+  },
+  {
+    q: "🧑‍💬 Talk to Support",
+    a: `Yes, our customer support is available [Days & Hours]. You can also email us at support@rishikeshhandmade.com or call +91 7351009107, 9411571947.`
+  }
 ];
 
 export default function ChatBot() {
   const { data: session, status } = useSession();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { from: "bot", text: "Hi! How can I help you today?" },
+    { from: "bot", text: "..." }
   ]);
-  const [customSent, setCustomSent] = useState(false);
   const [input, setInput] = useState("");
-  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [step, setStep] = useState(0); // 0: greet, 1: small talk, 2: contact, 3: product, 4: menu, 5: qna
+  const [contact, setContact] = useState({ name: "", phone: "", email: "" });
+  const [product, setProduct] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [loginPrompt, setLoginPrompt] = useState(false);
+  const [showCustomInput, setShowCustomInput] = useState(false);
   const chatWindowRef = useRef(null);
 
   // Scroll to bottom when messages change
@@ -48,27 +59,100 @@ export default function ChatBot() {
       chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
     }
   };
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, open]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMessages([
+        { from: "bot", text: "Hi there! 👋 Welcome to Rishikesh Handmade! I’m AI Support Intelligence from our online store – your virtual assistant here to help you with anything you need." }
+      ]);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Handlers for each step
+  const handleSmallTalk = (e) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+    setMessages(msgs => [...msgs, { from: "user", text: input }, { from: "bot", text: "Nice to meet you!" }]);
+    setInput("");
+    setStep(2);
+  };
+
+  const handleContact = (e) => {
+    e.preventDefault();
+    if (!contact.name.trim() || !contact.email.trim()) {
+      setError("Please enter your name and email.");
+      return;
+    }
+    setMessages(msgs => [
+      ...msgs,
+      { from: "user", text: `Name: ${contact.name}\nEmail: ${contact.email}${contact.phone ? `\nPhone: ${contact.phone}` : ""}` },
+      { from: "bot", text: "Thank you! To help you better, could you please share the product name or product code/SKU you’re referring to?\n📝 Example: 'Nike Air Max 270' or 'SKU: NKM270-BLK'" }
+    ]);
+    setInput("");
+    setError("");
+    setStep(3);
+  };
+
+  const handleProduct = async (e) => {
+    e.preventDefault();
+    if (!product.trim()) {
+      setError("Please enter a product name or code.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/product/search?q=${product}`);
+      const data = await response.json();
+      if (data.product) {
+        setMessages(msgs => [
+          ...msgs,
+          { from: "user", text: product },
+          { from: "bot", text: `Product: ${data.product.name}\nPrice: ₹${data.product.price}\nDescription: ${data.product.description}` }
+        ]);
+      } else {
+        setMessages(msgs => [
+          ...msgs,
+          { from: "user", text: product },
+          { from: "bot", text: "Sorry, product not found." }
+        ]);
+      }
+    } catch (e) {
+      setMessages(msgs => [...msgs, { from: "bot", text: "Sorry, something went wrong." }]);
+    }
+    setLoading(false);
+    setProduct("");
+    setError("");
+    setStep(4);
+  };
+
+  // Reset chat on close
+  const handleClose = () => {
+    setOpen(false);
+    setStep(0);
+    setMessages([
+      { from: "bot", text: "..." }
+    ]);
+    setInput("");
+    setContact({ name: "", phone: "", email: "" });
+    setProduct("");
+    setError("");
+  };
 
   const handleBubbleClick = () => {
     setOpen(true);
     setTimeout(scrollToBottom, 200);
   };
 
-  const handleClose = () => {
-    setOpen(false);
-    setShowCustomInput(false);
-    setLoginPrompt(false);
-    setInput("");
-  };
-
-  const handlePredefined = (question) => {
-    const answerObj = predefinedQnA.find((qna) => qna.q === question);
+  const handleMainMenu = (qna) => {
     setMessages((msgs) => [
       ...msgs,
-      { from: "user", text: question },
-      { from: "bot", text: answerObj ? answerObj.a : "Sorry, I don't have an answer for that." },
+      { from: "user", text: qna.q },
+      { from: "bot", text: qna.a + "\n\nFor more help, contact us at support@rishikeshhandmade.com or call +91 7351009107, 9411571947." },
     ]);
-    setTimeout(scrollToBottom, 200);
   };
 
   const handleAskMore = () => {
@@ -117,13 +201,12 @@ export default function ChatBot() {
     setTimeout(scrollToBottom, 200);
   };
 
-
   return (
     <>
       {/* Floating chat bubble */}
       {!open && (
         <button
-          className="fixed bottom-2 right-6 z-50 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg w-16 h-16 flex items-center justify-center transition-all duration-300"
+          className="fixed bottom-6 right-4 z-100 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg w-16 h-16 flex items-center justify-center transition-all duration-300"
           aria-label="Open chat"
           onClick={handleBubbleClick}
         >
@@ -132,14 +215,14 @@ export default function ChatBot() {
       )}
       {/* Chat window */}
       {open && (
-        <div className="fixed bottom-6 right-6 z-50 w-80 max-w-[95vw] bg-white rounded-xl shadow-2xl flex flex-col border border-gray-200 animate-fadeIn">
+        <div className="fixed bottom-2 right-[4%] z-50 w-80 h-[30rem] max-w-[95vw] bg-white rounded-xl shadow-2xl flex flex-col border border-gray-200 animate-fadeIn">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-blue-600 rounded-t-xl">
             <span className="text-white font-semibold">Chat with us</span>
             <button onClick={handleClose} className="text-white hover:text-gray-200"><X className="w-5 h-5" /></button>
           </div>
           {/* Chat body */}
-          <div ref={chatWindowRef} className="flex-1 overflow-y-auto px-3 py-2 space-y-2 bg-blue-50" style={{ maxHeight: 350 }}>
+          <div ref={chatWindowRef} className="flex-1 overflow-y-auto px-3 py-2 space-y-2 bg-blue-50" style={{ maxHeight: 420 }}>
             {messages.map((msg, idx) => (
               <div
                 key={idx}
@@ -148,8 +231,8 @@ export default function ChatBot() {
                 <div
                   className={`px-4 py-2 rounded-2xl text-sm shadow-sm max-w-[80%] whitespace-pre-wrap "
                   ${msg.from === "user"
-                    ? "bg-white text-gray-900 border border-gray-200"
-                    : "bg-blue-600 text-white border border-blue-600"}
+                      ? "bg-white text-gray-900 border border-gray-200"
+                      : "bg-blue-600 text-white border border-blue-600"}
                   `}
                 >
                   {msg.text}
@@ -163,16 +246,94 @@ export default function ChatBot() {
               </div>
             )}
           </div>
-          {/* Predefined questions & input */}
+          {/* Guided chat flow input area */}
           <div className="px-4 py-3 border-t border-gray-100 bg-white rounded-b-xl">
-            {!showCustomInput && !loginPrompt && (
+            {/* Step 0: Small talk */}
+            {step === 0 && (
+              <form onSubmit={handleSmallTalk} className="flex gap-2">
+                <input
+                  type="text"
+                  className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-blue-500 bg-gray-50"
+                  placeholder="Say hi or ask anything..."
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-3 py-2 flex items-center justify-center disabled:opacity-60"
+                  disabled={!input.trim()}
+                  aria-label="Send"
+                >
+                  <Send className="w-5 h-5" />
+                </button>
+              </form>
+            )}
+            {/* Step 2: Contact info */}
+            {step === 2 && (
+              <form onSubmit={handleContact} className="flex flex-col gap-2">
+                <input
+                  type="text"
+                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-blue-500 bg-gray-50"
+                  placeholder="Your Name (required)"
+                  value={contact.name}
+                  onChange={e => setContact({ ...contact, name: e.target.value })}
+                  autoFocus
+                />
+                <input
+                  type="email"
+                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-blue-500 bg-gray-50"
+                  placeholder="Your Email (required)"
+                  value={contact.email}
+                  onChange={e => setContact({ ...contact, email: e.target.value })}
+                />
+                <input
+                  type="tel"
+                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-blue-500 bg-gray-50"
+                  placeholder="Your Phone (optional)"
+                  value={contact.phone}
+                  onChange={e => setContact({ ...contact, phone: e.target.value })}
+                />
+                {error && <div className="text-red-500 text-xs">{error}</div>}
+                <button
+                  type="submit"
+                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-3 py-2 font-semibold mt-1"
+                >
+                  Continue
+                </button>
+              </form>
+            )}
+            {/* Step 3: Product info */}
+            {step === 3 && (
+              <form onSubmit={handleProduct} className="flex gap-2">
+                <input
+                  type="text"
+                  className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-blue-500 bg-gray-50"
+                  placeholder="Product Name or Code (required)"
+                  value={product}
+                  onChange={e => setProduct(e.target.value)}
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-3 py-2 flex items-center justify-center disabled:opacity-60"
+                  disabled={!product.trim()}
+                  aria-label="Send"
+                >
+                  <Send className="w-5 h-5" />
+                </button>
+                {error && <div className="text-red-500 text-xs">{error}</div>}
+              </form>
+            )}
+            {/* Step 4: Main menu */}
+            {step === 4 && (
               <>
                 <div className="flex flex-wrap gap-2 mb-2">
-                  {predefinedQnA.map((qna) => (
+                  {productQnA.map((qna) => (
                     <button
                       key={qna.q}
                       className="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-full text-xs font-medium transition"
-                      onClick={() => handlePredefined(qna.q)}
+                      onClick={() => handleMainMenu(qna)}
                       disabled={loading}
                     >
                       {qna.q}
@@ -181,24 +342,20 @@ export default function ChatBot() {
                 </div>
                 <button
                   className="w-full mt-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition"
-                  onClick={handleAskMore}
+                  onClick={() => setStep(0)}
                   disabled={loading}
                 >
-                  Ask more
+                  New Question
                 </button>
               </>
             )}
-            {/* Login prompt if not logged in */}
             {loginPrompt && (
               <div className="flex flex-col items-center gap-2">
                 <span className="text-sm text-gray-700 mb-2">Please log in or sign up to ask a custom question.</span>
                 <div className="flex gap-2 w-full">
-                  <Link href="/sign-in" className="flex-1 text-center bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition">Log in</Link>
-                  <Link href="/sign-up" className="flex-1 text-center bg-gray-200 text-blue-700 py-2 rounded-lg font-semibold hover:bg-gray-300 transition">Sign up</Link>
                 </div>
               </div>
             )}
-            {/* Custom question input */}
             {showCustomInput && !loginPrompt && (
               <form onSubmit={handleInputSend} className="flex gap-2 mt-1">
                 <input
@@ -221,7 +378,7 @@ export default function ChatBot() {
               </form>
             )}
           </div>
-        </div>
+          </div>
       )}
     </>
   );
