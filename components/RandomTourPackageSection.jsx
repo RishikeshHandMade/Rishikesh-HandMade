@@ -484,15 +484,16 @@ const RandomTourPackageSection = () => {
                   >
                     <div className="bg-white rounded-3xl px-8 py-5 flex flex-col justify-between h-full min-h-[320px] relative overflow-visible">
                       {/* Review text */}
-                      <div className="text-md md:text-2xl text-gray-800 font-bold leading-relaxed mb-2 text-left">
+                      <div className="text-md md:text-2xl text-gray-800 font-bold leading-relaxed text-left">
                         {review.title || 'No review text.'}
                       </div>
-                      <div className="text-md md:text-md text-gray-800 font-medium leading-relaxed mb-2 text-left">
+                      <div className="text-md md:text-md text-gray-800 font-medium leading-relaxed text-left">
                         {review.shortDescription || 'No review text.'}
                       </div>
                       {/* Bottom row: avatar, name, subtitle, nav buttons */}
-                      <div className="flex items-center justify-between w-full mt-auto">
-                        {/* Avatar, Name, Subtitle */}
+
+                      {/* Avatar, Name, Subtitle */}
+                      <div className="flex items-center justify-between">
                         <div className="flex items-center">
                           <img
                             src={review.image?.url || "/placeholder.jpeg"}
@@ -503,7 +504,7 @@ const RandomTourPackageSection = () => {
                             <div className="font-bold text-xl text-black">{review.createdBy || review.title || 'Anonymous'}</div>
                           </div>
                         </div>
-                        <div className="absolute right-4 top-4 flex items-center gap-1">
+                        <div className="flex items-center gap-1">
                           {review.rating && (
                             <>
                               {[...Array(review.rating)].map((_, i) => (
@@ -512,7 +513,6 @@ const RandomTourPackageSection = () => {
                             </>
                           )}
                         </div>
-
                       </div>
                     </div>
                   </CarouselItem>
@@ -546,15 +546,7 @@ const RandomTourPackageSection = () => {
                   >
                     <div className="bg-white rounded-3xl px-8 py-5 flex flex-col justify-between h-full md:min-h-[320px] relative overflow-visible">
                       {/* Review text */}
-                      <div className="absolute right-4 top-4 flex items-center gap-1">
-                        {review.rating && (
-                          <>
-                            {[...Array(review.rating)].map((_, i) => (
-                              <Star key={i} size={22} className="text-yellow-400 fill-yellow-400" />
-                            ))}
-                          </>
-                        )}
-                      </div>
+
                       <div className="text-md md:text-2xl text-gray-800 font-bold leading-relaxed mt-4 text-left">
                         {review.title || 'No review text.'}
                       </div>
@@ -564,14 +556,25 @@ const RandomTourPackageSection = () => {
                       {/* Bottom row: avatar, name, subtitle, nav buttons */}
                       <div className="flex items-center justify-between w-full mt-auto">
                         {/* Avatar, Name, Subtitle */}
-                        <div className="flex items-center">
-                          <img
-                            src={review.image || "/placeholder-user.jpg"}
-                            alt={review.createdBy || 'Anonymous'}
-                            className="w-14 h-14 rounded-full border-4 border-white shadow object-cover"
-                          />
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <img
+                              src={review.image || "/placeholder.jpeg"}
+                              alt={review.createdBy || 'Anonymous'}
+                              className="w-14 h-14 rounded-full border-4 border-white shadow object-cover"
+                            />
                           <div className="ml-4 text-left">
                             <div className="font-bold text-xl text-black">{review.createdBy || review.title || 'Anonymous'}</div>
+                          </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            {review.rating && (
+                              <>
+                                {[...Array(review.rating)].map((_, i) => (
+                                  <Star key={i} size={22} className="text-yellow-400 fill-yellow-400" />
+                                ))}
+                              </>
+                            )}
                           </div>
                         </div>
 

@@ -124,7 +124,7 @@ const CertificateImage = ({ cert, className = "", onClick }) => {
       <div
         className={`absolute inset-0 flex items-end pb-10 justify-center transition-opacity duration-200 ${hovered ? 'opacity-100' : 'opacity-0'}`}
       >
-        <span className="text-white text-2xl font-bold px-4 text-center">{cert.title}</span>
+        <span className="text-black text-2xl font-bold px-4 text-center">{cert.title}</span>
       </div>
     </div>
   );
@@ -369,7 +369,7 @@ const ArtisanDetails = ({ artisan }) => {
               </div>
 
               {/* Social Icons Row */}
-              <div className="flex justify-start gap-2 mb-2">
+              <div className="flex justify-start gap-2">
                 {artisan.socialPlugin?.facebook && (
                   <a href={artisan.socialPlugin.facebook} target="_blank" rel="noopener noreferrer" title="Facebook">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-facebook-icon lucide-facebook"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>
@@ -399,7 +399,7 @@ const ArtisanDetails = ({ artisan }) => {
                   </a>
                 )}
               </div>
-              <div className="flex flex-row items-center justify-center mt-2">
+              <div className="flex flex-row items-center justify-center">
                 <button
                   className="bg-black text-white font-bold w-fit px-5 py-2 rounded-md shadow hover:bg-gray-900 transition-all text-base"
                   onClick={() => setShowExpertModal(true)}
@@ -900,7 +900,7 @@ const ArtisanDetails = ({ artisan }) => {
                   >
                     <div className="bg-white rounded-3xl px-8 py-5 flex flex-col justify-between h-full min-h-[320px] relative overflow-visible">
                       {/* Review text */}
-                      <div className="text-md md:text-2xl text-gray-800 font-bold leading-relaxed mb-2 text-left">
+                      <div className="text-md md:text-2xl text-gray-800 font-bold leading-relaxed my-4 flex-wrap text-left">
                         {review.title || 'No review text.'}
                       </div>
 
