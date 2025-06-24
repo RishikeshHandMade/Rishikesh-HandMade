@@ -17,7 +17,7 @@ export default function ViewNews({ news, onClose }) {
                         <img
                             src={news.image.url}
                             alt="News Image"
-                            className="w-full h-full object-cover rounded-none md:rounded-t-3xl"
+                            className="w-full h-full object-cover object-top rounded-none md:rounded-t-3xl"
                         />
                     </div>
                 ) : (
