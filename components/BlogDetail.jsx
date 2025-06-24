@@ -60,13 +60,6 @@ const BlogDetail = () => {
     fetchBlog();
   }, [blogId]);
 
-  // if (loading) return <div>Loading blog details...</div>;
-  // if (error) return <div className="text-red-500">Error: {error}</div>;
-  // if (!blog) return <div className="text-red-500">No blog found.
-  // <Button className="mt-4" onClick={() => router.back()}>
-  //   Go Back
-  // </Button>
-  // </div>;
 
   // News Quick View Modal
   const handleCloseNewsModal = () => setQuickViewNews(null);
@@ -141,7 +134,7 @@ const BlogDetail = () => {
                   ) : blog?.images && blog?.images?.length > 0 ? (
                     <div className="w-full rounded-2xl overflow-hidden mb-8">
                       <img
-                      loading="lazy"
+                        loading="lazy"
                         src={blog?.images[0]?.url}
                         alt={blog?.title}
                         className="w-full object-cover rounded-2xl"

@@ -77,10 +77,15 @@ const ViewBlogs = () => {
               )}
             </div>
             {/* Right: Content */}
-            <div className="flex-1 flex flex-col justify-between bg-yellow-100 p-8 md:rounded-r-3xl">
+            <div className="flex-1 flex flex-col justify-between bg-yellow-100 p-4 md:rounded-r-3xl">
               <div>
                 <span className="inline-block bg-black text-white text-sm px-4 py-1 rounded font-bold mb-6 mt-2 md:mt-0">{blog.createdAt ? new Date(blog.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : ''}</span>
-                <h3 className="font-bold text-2xl md:text-3xl text-gray-900 mb-4 mt-4">{blog.title}</h3>
+                <h3 className="font-bold text-xl md:text-xl text-gray-900 mb-4 mt-4">
+                  {blog.title.split(" ").length > 10
+                    ? blog.title.split(" ").slice(0, 10).join(" ") + "..."
+                    : blog.title}
+                </h3>
+
                 {/* <p className="text-gray-800 text-lg mb-8 md:mb-10">{blog.shortDescription}</p> */}
               </div>
               <div className="flex items-center mt-auto">

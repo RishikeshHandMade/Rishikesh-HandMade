@@ -20,6 +20,8 @@ const ManageFeaturedPackages = () => {
         link: "",
     });
     const [uploading, setUploading] = useState(false);
+    // Add this line to fix delete button bug
+    const [packageToDelete, setPackageToDelete] = useState({ id: null, imageKey: null });
 
     useEffect(() => {
         const fetchPackages = async () => {
@@ -28,7 +30,7 @@ const ManageFeaturedPackages = () => {
                 const data = await response.json();
                 setPackages(data);
             } catch (error) {
-                toast.error("Failed to fetch packages");
+                toast.error("Failed to fetch Product");
             }
         };
         fetchPackages();
@@ -61,10 +63,10 @@ const ManageFeaturedPackages = () => {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || "Failed to save package");
+                throw new Error(errorData.message || "Failed to save Product");
             }
 
-            toast.success("Package saved successfully");
+            toast.success("Product saved successfully");
             setEditingPackage(null);
             setFormData({ title: "", image: { url: "", key: "" }, link: "" });
 
@@ -102,7 +104,7 @@ const ManageFeaturedPackages = () => {
                 throw new Error("Failed to delete package");
             }
 
-            toast.success("Package deleted successfully");
+            toast.success("Product deleted successfully");
 
             // Refresh the list of packages
             const updatedPackages = await fetch("/api/featured-packages").then((res) => res.json());
@@ -135,7 +137,7 @@ const ManageFeaturedPackages = () => {
                 <Input name="link" placeholder="e.g. Add Product Link" value={formData.link} onChange={handleChange} required />
 
                 {/* Uploadthing Image Upload */}
-                
+
                 {formData?.image?.url === "" && (
                     <>
                         <input

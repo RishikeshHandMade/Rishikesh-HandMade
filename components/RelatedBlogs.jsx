@@ -36,7 +36,7 @@ const RelatedBlogs = ({ excludeId }) => {
                         src={blog.images[0].url}
                         alt={blog.title}
                         className="object-cover w-full h-full md:h-auto md:w-full md:max-w-[340px] aspect-square md:aspect-auto md:rounded-l-3xl rounded-t-3xl md:rounded-t-none"
-                        style={{ minHeight: '250px', maxHeight: '250px',objectFit: 'cover' }}
+                        style={{ minHeight: '250px', maxHeight: '250px', objectFit: 'cover' }}
                       />
                     ) : blog.youtubeUrl ? (
                       <div className="w-full h-full flex items-center justify-center md:max-w-[340px] aspect-video md:aspect-auto md:rounded-l-3xl rounded-t-3xl md:rounded-t-none overflow-hidden" style={{ minHeight: '250px', maxHeight: '270px' }}>
@@ -65,11 +65,11 @@ const RelatedBlogs = ({ excludeId }) => {
                   <div className="flex-1 flex flex-col justify-between bg-yellow-100 p-8 ">
                     <div className='gap-2'>
                       <span className="inline-block bg-black text-white text-sm px-4 rounded font-bold mb-6 md:mt-0">{blog.createdAt ? new Date(blog.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : ''}</span>
-                      <h3 className="font-bold text-2xl text-gray-900 my-2">
-  {blog.title.split(' ').length > 10
-    ? blog.title.split(' ').slice(0, 10).join(' ') + '...'
-    : blog.title}
-</h3>
+                      <h3 className="font-bold text-xl text-gray-900 my-2">
+                        {blog.title.split(' ').length > 10
+                          ? blog.title.split(' ').slice(0, 10).join(' ') + '...'
+                          : blog.title}
+                      </h3>
                       {/* <p className="text-gray-800 text-lg mb-8 md:mb-10">{blog.shortDescription}</p> */}
                     </div>
                     <div className="flex items-center mt-auto">
@@ -85,7 +85,7 @@ const RelatedBlogs = ({ excludeId }) => {
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious/>
+          <CarouselPrevious />
           <CarouselNext />
         </Carousel>
       </div>

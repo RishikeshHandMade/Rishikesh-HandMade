@@ -437,7 +437,7 @@ const RandomTourPackageSection = () => {
                           if (hasDiscount && discountedPrice < price) {
                             return (
                               <span>
-                                <del className="text-black font-bold text-md md:text-xl mr-2">₹{formatNumeric(price)}</del>
+                                <del className="text-black font-bold text-md md:text-xl">₹{formatNumeric(price)}</del>
                                 <span className="font-bold text-md md:text-xl text-black px-2">₹{formatNumeric(Math.round(discountedPrice))}</span>
                               </span>
                             );
@@ -604,7 +604,7 @@ const RandomTourPackageSection = () => {
                 <div className="text-lg md:text-md text-gray-700 text-justify mb-6">
                   We are proud to recognize and celebrate your exceptional talent and dedication as a skilled handicraft artisan. Your ability to transform raw materials into beautiful, meaningful works of art speaks to your creativity, precision, and passion for the craft. Each piece you create is a testament to the enduring value of handmade artistry and the cultural richness it preserves. With deep appreciation, we commend you for achieving this milestone and look forward to witnessing your continued journey of artistic excellence.
                 </div>
-                <Link href="/contact" className="bg-black text-white py-3 px-6 rounded-lg font-semibold text-lg w-fit mb-6">Join Our Team</Link>
+                <Link href="/allArtisans" className="bg-black text-white py-3 px-6 rounded-lg font-semibold text-lg w-fit mb-6">View All Artisans</Link>
               </div>
               {/* Right: Top 2 artisan cards in new style */}
               <div className="hidden md:flex flex-row gap-4 justify-end">
@@ -785,11 +785,6 @@ const RandomTourPackageSection = () => {
                 </Carousel>
               </div>
             )}
-            <div className="flex justify-end items-center my-2" >
-              <Link href="/allArtisans" className="bg-black text-white py-1 px-2 font-medium text-md w-fit mb-6 hover:underline hover:decoration-2 hover:underline-offset-4 transition">
-                View All Artisan &gt;&gt;
-              </Link>
-            </div>
             {/* Carousel for remaining artisans in new style */}
             {artisan && artisan.length > 1 && (
               <div className="md:hidden lg:hidden mt-10">

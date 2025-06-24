@@ -7,6 +7,7 @@ import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
+import CategoryAds from "@/components/CategoryAds";
 import CategoryCard from "@/components/Category/category-card";
 import { Heart } from "lucide-react";
 import {
@@ -63,7 +64,7 @@ const CategoryPage = async ({ params }) => {
   const adRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/categoryAdvertisment`, { cache: 'no-store' });
   const categoryAds = await adRes.json();
   const categoryAdList = Array.isArray(categoryAds) && categoryAds.length > 0 ? categoryAds : [];
-
+  // console.log(categoryAdList)
   // Fetch all categories for the category cards row
   const allCategoriesRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/getAllMenuItems`, { cache: 'no-store' });
   const allCategories = await allCategoriesRes.json();
@@ -77,43 +78,13 @@ const CategoryPage = async ({ params }) => {
 
         <div className="flex flex-col md:flex-row gap-6 w-full mt-4">
           {/* Left Image Section */}
-          <div className="hidden md:flex flex-col w-full max-w-xs justify-start items-center">
+          <div className="flex flex-col w-72 max-w-xs flex-shrink-0 justify-start items-center">
             {/* Category Advertisement Banner */}
-            {categoryAdList.length > 0 ? (
-              <>
-                {categoryAdList.map((ad, idx) => (
-                  <div key={ad._id || idx} className="w-full max-w-xl rounded-2xl overflow-hidden shadow mb-4 flex flex-col items-center">
-                    {ad.image && ad.buttonLink ? (
-                      <a href={ad.buttonLink} target="_blank" rel="noopener noreferrer">
-                        <Image
-                          src={ad.image?.url || ad.image || "/placeholder.jpeg"}
-                          alt={"Category Advertisement"}
-                          className="object-contain w-full max-h-[500px] cursor-pointer hover:opacity-90 transition"
-                          style={{ height: "auto", maxHeight: "500px" }}
-                        />
-                      </a>
-                    ) : ad.image ? (
-                      <Image
-                        src={ad.image?.url || ad.image || "/placeholder.jpeg"}
-                        alt={"Category Advertisement"}
-                        className="object-contain w-full max-h-[500px]"
-                        style={{ height: "auto", maxHeight: "500px" }}
-                      />
-                    ) : (
-                      <div className="w-full flex-1 flex items-center justify-center text-gray-400" style={{ minHeight: "120px" }}>No Image</div>
-                    )}
-                  </div>
-                ))}
-              </>
-            ) : (
-              <div className="w-full max-w-xl h-full rounded-2xl overflow-hidden shadow flex items-center justify-center text-gray-400">
-                No Advertisement
-              </div>
-            )}
+            <CategoryAds categoryAdList={categoryAdList} />
           </div>
 
           {/* Middle Section: Category Cards + Package Cards */}
-          <div className="flex-1 gap-4">
+          <div className="flex-1 min-w-0 gap-4">
             {/* Category Cards Row */}
             <div>
               <h2 className="text-2xl font-bold px-4">Category</h2>
@@ -121,7 +92,7 @@ const CategoryPage = async ({ params }) => {
                 <CarouselContent className="w-full gap-5">
                   {Array.isArray(allCategories) && allCategories.flatMap(cat =>
                     Array.isArray(cat.subMenu) ? cat.subMenu.map((sub, idx) => (
-                      <CarouselItem key={`${cat._id || cat.title || idx}-${sub._id || sub.url || idx}`} className="basis-1/2 md:basis-1/5 lg:basis-1/5 min-w-0 snap-start">
+                      <CarouselItem key={`${cat._id || cat.title || idx}-${sub._id || sub.url || idx}`} className="basis-1/2 md:basis-1/6 lg:basis-1/6 min-w-0 snap-start">
                         <CategoryCard category={{
                           title: sub.title,
                           profileImage: sub.profileImage,
@@ -195,4 +166,3 @@ const PackageCardSkeleton = ({ count = 3 }) => {
 }
 
 export default CategoryPage
-

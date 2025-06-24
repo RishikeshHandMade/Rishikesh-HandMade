@@ -151,7 +151,7 @@ const Footer = () => {
                 </CardFooter>
             </Card>
             <div className="flex flex-col lg:flex-row items-center justify-center max-w-[25rem] md:max-w-[60rem] xl:max-w-6xl mx-auto font-barlow">
-                <p className="text-black text-center my-4">
+                <p className="text-black font-bold text-center my-4">
                     &copy; <CurrentYear /> <Link href={'/'} className="font-bold text-black">Rishikesh Handmade</Link>. All rights reserved
                 </p>
             </div>
