@@ -219,10 +219,6 @@ export default function ProductDetailView({ product }) {
     fetchStates();
   }, []);
 
-  const handleApplyPincode = () => {
-    setIsPincodeConfirmModalOpen(false);
-    // The pincodeResult is already set, so shipping charges will be updated
-  };
 
   return (
     <div className="flex flex-col md:flex-row gap-4">
@@ -313,22 +309,11 @@ export default function ProductDetailView({ product }) {
       <div className="w-full lg:w-1/3 max-w-xl mx-auto flex flex-col">
         <div className="flex items-center gap-4 mb-1">
           <h1 className="text-3xl font-bold">{product.title}</h1>
-          {/* Product Code */}
-          {product.code && (
-            <span className="text-sm text-gray-500 font-mono bg-gray-100 px-2 py-0.5 rounded border border-gray-200">Code: {product.code}</span>
-          )}
-          {/* Stock Status */}
-          {(() => {
-            const inStock = Array.isArray(variants) && variants.some(v => v.qty > 0);
-            return (
-              <span
-                className={`ml-2 px-2 py-0.5 rounded text-xs font-bold border ${inStock ? 'bg-green-100 text-green-700 border-green-400' : 'bg-red-100 text-red-700 border-red-400'}`}
-              >
-                {inStock ? 'IN STOCK' : 'OUT OF STOCK'}
-              </span>
-            );
-          })()}
         </div>
+        {/* Product Code */}
+        {product.code && (
+          <span className="text-sm text-black my-2 w-fit font-mono bg-gray-100 px-2 py-1 rounded border border-gray-200">Code: {product.code}</span>
+        )}
         <div className="flex items-center gap-2 mb-3">
           <span className="font-semibold flex items-center">
             {(() => {
@@ -342,22 +327,22 @@ export default function ProductDetailView({ product }) {
         </div>
         {/* Artisan Bar */}
         {product.artisan && (
-        <div
-          className="bg-gray-200 gap-2 px-2 py-1 text-black w-fit flex items-center cursor-pointer rounded"
-          onClick={() => setShowArtisanModal(true)}
-        >
-          <span className="font-bold">Artisan Name : {product.artisan?.title + " " + product.artisan?.firstName + " " + product.artisan?.lastName || ""}</span>
-          <span className="text-xl font-bold">▼</span>
-        </div>
+          <div
+            className="bg-gray-200 gap-2 px-2 py-1 text-black w-fit flex items-center cursor-pointer rounded"
+            onClick={() => setShowArtisanModal(true)}
+          >
+            <span className="font-bold">Artisan Name : {product.artisan?.title + " " + product.artisan?.firstName + " " + product.artisan?.lastName || ""}</span>
+            <span className="text-xl font-bold">▼</span>
+          </div>
         )}
         {(() => {
 
           if (desc === "No Description") {
-            return <p className="text-gray-700 mb-6 max-w-lg">No Description</p>;
+            return <p className="text-gray-700 mb-4 max-w-lg">No Description</p>;
           }
           if (showFullDesc || words.length <= 20) {
             return (
-              <div className="text-gray-700 mb-6 max-w-lg">
+              <div className="text-gray-700 my-6 text-md max-w-lg">
                 <div dangerouslySetInnerHTML={{ __html: desc }} />
                 {words.length > 20 && (
                   <>
@@ -368,7 +353,7 @@ export default function ProductDetailView({ product }) {
             );
           }
           return (
-            <div className="text-gray-700 mb-6 max-w-lg">
+            <div className="text-gray-700 my-4 text-md max-w-lg">
               <div dangerouslySetInnerHTML={{ __html: words.slice(0, 20).join(' ') + '...' }} />
               <button className="text-blue-600 underline" onClick={() => setShowFullDesc(true)}>Read more</button>
             </div>
@@ -376,17 +361,29 @@ export default function ProductDetailView({ product }) {
         })()}
         {/* Selectors */}
         {/* Price and Coupon Section */}
-        <div className="mb-4">
+        <div className="mb-4 flex items-center gap-2">
           {hasDiscount && (
             <div className="flex items-center gap-2 mb-1">
               <del className="text-gray-600 font-semibold text-lg mr-2">₹{formatNumeric(selectedVariant?.price)}</del>
               <span className="font-bold text-xl text-black">₹{formatNumeric(Math.round(discountedPrice))}</span>
               <span className="border border-green-500 text-green-700 px-2 py-0.5 rounded text-xs font-semibold bg-green-50">Coupon Applied: {couponText}</span>
             </div>
+
           )}
           {!hasDiscount && (
             <span className="font-bold text-xl text-black">₹{price}</span>
           )}
+          {/* Stock Status */}
+          {(() => {
+            const inStock = Array.isArray(variants) && variants.some(v => v.qty > 0);
+            return (
+              <span
+                className={`ml-2 px-2 py-0.5 rounded text-xs font-bold border ${inStock ? 'bg-green-100 text-green-700 border-green-400' : 'bg-red-100 text-red-700 border-red-400'}`}
+              >
+                {inStock ? 'IN STOCK' : 'OUT OF STOCK'}
+              </span>
+            );
+          })()}
         </div>
         <div className="flex flex-col gap-4 mb-6">
           {/* Quantity */}

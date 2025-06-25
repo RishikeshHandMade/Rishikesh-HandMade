@@ -97,7 +97,7 @@ const InstaBlog = () => {
         allPosts.length <= 3 ? `basis-1/${allPosts.length}` : "md:basis-1/5";
 
     return (
-        <div className='bg-[#fcf7f1] md:mt-19 w-full px-4 overflow-hidden max-w-screen overflow-x-hidden py-9'>
+        <div className='bg-[#fcf7f1] w-full px-4 overflow-hidden max-w-screen overflow-x-hidden py-20'>
             {/*Blogs /  News & Announcement Section */}
             <div className="w-full flex flex-col items-center mb-12">
                 <div className="w-full flex flex-col md:flex-row gap-8 min-h-[350px]">
@@ -194,7 +194,7 @@ const InstaBlog = () => {
                         )}
                         {/* News box */}
                         {news && news.length > 0 && (
-                            <div className="flex-1 bg-[#fcf7f1] rounded-lg p-4 flex flex-col min-h-[350px] border border-black">
+                            <div className="flex-1 bg-[#fcf7f1] rounded-lg p-4 flex flex-col min-h-[350px] border-[1px] border-black">
                                 <div className="flex-1 pr-2 mb-4">
                                     <div className="font-bold text-2xl mb-4 px-2">Latest News</div>
                                     <div className="h-[400px] overflow-y-auto p-0 border-none rounded-xl">
@@ -268,7 +268,7 @@ const InstaBlog = () => {
 
             {/* Instagram-like Image Carousel using Carousel classes */}
             {!isInstaLoading && !isFbLoading && allPosts.length > 0 && (
-                <div className="w-full flex flex-col items-center mt-12">
+                <div className="w-full flex flex-col items-center mt-12 bg-blue-100">
                     <h2 className="text-center font-bold text-2xl md:text-3xl lg:text-4xl uppercase">
                         Don’t just watch the trends — live them!
                     </h2>
@@ -292,7 +292,7 @@ const InstaBlog = () => {
                                                 : {}
                                         }
                                     >
-                                        <div className="relative group rounded-lg overflow-hidden w-full h-60 md:h-52 bg-gray-100">
+                                        <div className="relative group overflow-hidden w-full h-60 md:h-52 bg-gray-100">
                                             <Image
                                                 src={post.image}
                                                 alt={`${post.type === "facebook" ? "Facebook" : "Instagram"} ${idx}`}

@@ -115,10 +115,7 @@ const ArtisanDetails = ({ artisan }) => {
   const [otherArtisans, setOtherArtisans] = useState([]);
   const [showBlogModal, setShowBlogModal] = useState(false);
   const [modalBlog, setModalBlog] = useState(null);
-  const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [modalCertificate, setModalCertificate] = useState(null);
-  // Helper for safe social links
-  const getSocialLink = (plugin, key) => (plugin && plugin[key]) ? plugin[key] : '';
 
   // Fetch other artisans (excluding current one)
   useEffect(() => {
@@ -211,7 +208,7 @@ const ArtisanDetails = ({ artisan }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const fullText = artisan.artisanStories?.longDescription || "Long description";
-  const wordLimit = 100;
+  const wordLimit = 130;
 
   const getPreview = (text) => {
     const words = text.split(" ");
@@ -222,13 +219,13 @@ const ArtisanDetails = ({ artisan }) => {
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-amber-50 to-white flex flex-col items-center px-2 md:px-0">
       {/* Top section: Image left, details right */}
-      <div className="relative w-full overflow-visible mb-10 bg-[#f9f6f1]">
+      <div className="relative w-full overflow-visible mb-10">
         {/* Banner Background Image */}
         <div className="inset-0 h-[250px] md:h-[300px] w-full object-cover object-center brightness-100 z-0 overflow-hidden object-cover">
           <img src={artisan.artisanBanner?.image?.url || artisan.artisanBanner?.image || "/placeholder.jpeg"} className="w-full h-full object-cover brightness-100 " alt="Office" />
         </div>
         {/* Overlay Content */}
-        <div className="relative w-full px-2 md:w-full justify-center mx-auto flex flex-col md:flex-row items-start pt-0 px-0 pb-8">
+        <div className="relative bg-blue-100 w-full px-2 md:w-full justify-center mx-auto flex flex-col md:flex-row items-start pt-0 px-0 pb-8">
           {/* Profile Image: Overlapping Banner */}
           <div className="hidden md:flex absoute flex-shrink-0 -mt-32 ml-12 mr-10">
             <div className="bg-white rounded-lg shadow-xl border-4 border-white overflow-hidden w-72 h-[350px] flex items-center justify-center">
@@ -243,14 +240,11 @@ const ArtisanDetails = ({ artisan }) => {
           {/* Details Card */}
           <div className="flex flex-col md:flex-row items-center justify-center gap-4 mt-8 md:mt-8 md:ml-0 bg-transparent">
             <div className="flex flex-col gap-2 border-r-2 border-black px-2">
-              <div className="text-md md:text-xl font-bold leading-tight flex items-center">Name: <span className="text-md md:text-xl align-middle font-semibold"> {artisan.title}{artisan.firstName} {artisan.lastName}</span></div>
-              <div className="flex gap-3">
-                <div className="font-bold text-md mt-1 mb-1 md:text-xl flex items-center pr-2 border-r-4 border-black">SHG : <span className="font-normal text-md">{artisan.shgName || 'No SHG Name Avaiable'}</span></div>
-                <div className="font-bold text-md mt-1 mb-1 md:text-xl flex items-center"> Artisan Number: <span className="font-normal text-md">{artisan.artisanNumber || 'Artisan Number Not Available'}</span></div>
-              </div>
-
-              <div className="mt-2 text-md md:text-xl font-bold text-black">{artisan.yearsOfExperience || '0'} Years of Experience</div>
-              <div className="font-bold text-md md:text-xl mt-2">Specializations:</div>
+              <div className="text-md font-bold leading-tight flex items-center">Name: <span className="text-md align-middle font-normal"> {artisan.title}{artisan.firstName} {artisan.lastName}</span></div>
+              <div className="font-bold text-md flex items-center">SHG Name: <span className="font-normal text-md">{artisan.shgName || 'No SHG Name Avaiable'}</span></div>
+              <div className="font-bold text-md flex items-center"> Artisan No: <span className="font-normal text-md">{artisan.artisanNumber || 'Artisan Number Not Available'}</span></div>
+              <div className="text-md font-semibold text-black">{artisan.yearsOfExperience || '0'} Years of Experience</div>
+              <div className="font-bold text-md mt-2">Specializations:</div>
               <div className="flex gap-3 flex-wrap mb-2">
                 {(artisan.specializations || ['No Specializations']).map((spec, i) => (
                   <span key={i} className="bg-gray-200 rounded-full px-4 py-1 text-base font-semibold tracking-tight border border-gray-300">{spec}</span>
@@ -258,7 +252,7 @@ const ArtisanDetails = ({ artisan }) => {
               </div>
               {/* Social Icons Row */}
               <div className="flex items-center gap-2">
-                <div className="font-bold text-md md:text-xl">Social:</div>
+                <div className="font-bold text-md">Social:</div>
                 {artisan.socialPlugin?.facebook && (
                   <a href={artisan.socialPlugin.facebook} target="_blank" rel="noopener noreferrer" title="Facebook">
                     <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-facebook-icon lucide-facebook"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>
@@ -290,13 +284,13 @@ const ArtisanDetails = ({ artisan }) => {
               </div>
             </div>
             <div className="flex flex-col gap-2">
-              <div className="font-bold mt-2 text-md md:text-xl">City: <span className="font-normal text-md">{artisan.address?.city || 'No City'}</span></div>
-              <div className="font-bold mt-2 text-md md:text-xl">State: <span className="font-normal text-md">{artisan.address?.state || 'No State'}</span></div>
-              {/* <div className="font-bold mt-2 text-md w-44 md:text-xl">Address: <span className="font-normal text-md">{artisan.address?.fullAddress || 'No Address'}</span></div> */}
+              <div className="font-bold mt-2 text-md">City: <span className="font-normal text-md">{artisan.address?.city || 'No City'}</span></div>
+              <div className="font-bold mt-2 text-md">State: <span className="font-normal text-md">{artisan.address?.state || 'No State'}</span></div>
+              {/* <div className="font-bold mt-2 text-md w-44">Address: <span className="font-normal text-md">{artisan.address?.fullAddress || 'No Address'}</span></div> */}
               <div className="flex flex-col items-center gap-4 mt-2 mb-2">
                 <div className="flex items-center gap-2">
                   <div className='flex items-center gap-2 mt-2 mb-2'>
-                  <h3 className="font-bold text-md md:text-xl">Share :</h3>
+                    <h3 className="font-bold text-md">Share Profile:</h3>
                     {/* Email icon */}
                     {artisan.contact.email && (
                       <a href={`mailto:${artisan.contact?.email}`} className="text-gray-700 hover:text-emerald-600" title="Email">
@@ -502,11 +496,11 @@ const ArtisanDetails = ({ artisan }) => {
               My Story
             </span>
           </h2>
-          <div className="mb-4 text-lg text-justify font-medium">
+          <div className="mb-4 text-md text-justify font-medium">
             {/* <span className="font-bold">( Short Description )</span> */}
             <span className="">{artisan.artisanStories?.shortDescription || 'No short description available.'}</span>
           </div>
-          <div className="flex flex-col md:flex-row gap-8 items-center bg-[#fffaf4] p-6 shadow">
+          <div className="flex flex-col md:flex-row gap-8 items-center p-6 ">
             {/* Left: Image */}
             <div className="flex-shrink-0 w-1/2 flex justify-center items-center">
               <img
@@ -519,14 +513,14 @@ const ArtisanDetails = ({ artisan }) => {
             <div className="w-1/2 flex flex-col h-full justify-between w-full">
               <div>
                 <h3 className="text-xl md:text-2xl font-bold mb-2 underline">Detail Description</h3>
-                <div className="text-xl font-sans mb-5">
+                <div className="text-md font-sans mb-5">
                   {artisan.artisanStories?.title || (
                     <>
                       {artisan.artisanStories?.title || "Story title"}
                     </>
                   )}
                 </div>
-                <div className="text-lg font-sans mb-8 h-80 text-justify overflow-y-auto">
+                <div className="text-md font-sans mb-8 h-80 text-justify overflow-y-auto">
                   {isExpanded ? fullText : getPreview(fullText)}
 
                   {fullText.split(" ").length > wordLimit && (
@@ -561,8 +555,8 @@ const ArtisanDetails = ({ artisan }) => {
       )}
       {/* Products Carousel */}
       {Array.isArray(artisan.products) && artisan.products.length > 0 && (
-        <div className="w-full max-w-7xl my-5">
-          <h3 className="text-3xl font-bold mb-4 text-gray-800">
+        <div className="w-full p-20 bg-blue-100">
+          <h3 className="text-3xl font-bold mb-5 text-gray-800">
             <span className='border-t-4 border-black'>
               Product We Develop
             </span></h3>
@@ -724,7 +718,7 @@ const ArtisanDetails = ({ artisan }) => {
       )}
       {/* Blogs Section */}
       {Array.isArray(artisan.artisanBlogs) && artisan.artisanBlogs.length > 0 && (
-        <div className="w-full max-w-7xl mb-5">
+        <div className="w-full px-20 py-10 mb-5 bg-blue-100">
           <h3 className="text-3xl font-bold mb-4 text-gray-800">
             <span className='border-t-4 border-black'>
               Blogs
@@ -963,21 +957,16 @@ const ArtisanDetails = ({ artisan }) => {
       )}
       {/* Certificate And Awards Section */}
       {Array.isArray(artisan.certificates) && artisan.certificates.length > 0 && (
-        <div className="w-full md:w-[90%] my-10 mx-auto">
-          <div className="flex flex-col items-start gap-4">
-            {/* Left: Heading and description */}
-            <div className="flex-1">
-              <h2 className="text-2xl md:text-4xl font-bold mb-2 md:mt-10">
+        <div className="w-full px-20 mx-auto bg-blue-100">
+          <div className="w-full h-full md:h-[500px] mx-auto flex flex-col md:flex-row items-start justify-center px-5 py-1 gap-8">
+            {/* Left Column: Text */}
+            <div className="w-full md:w-1/2 flex flex-col justify-center gap-10 h-full">
+              <h2 className="text-2xl md:text-3xl font-bold mb-2 md:mt-10">
                 <span className="border-t-4 border-black">
                   Certificate And Awards
                 </span>
               </h2>
-            </div>
-          </div>
-          <div className="w-full h-full md:h-[500px] mx-auto flex flex-col md:flex-row items-start justify-center px-5 py-1 gap-8">
-            {/* Left Column: Text */}
-            <div className="w-full md:w-1/2 flex flex-col justify-center gap-4  h-full">
-              <p className="text-gray-700 text-lg md:text-xl text-justify leading-relaxed">
+              <p className="text-gray-700 text-md text-justify leading-relaxed">
                 We extend our heartfelt congratulations to you on the remarkable achievement of reaching your goal. Your dedication, skill, and unwavering commitment to excellence have truly set you apart. As an artisan, your work reflects not only your talent but also the passion and perseverance that define true craftsmanship. It is with great pride and admiration that we recognize your outstanding accomplishment. May this milestone be a stepping stone to even greater success in your journey. We are honored to celebrate this moment with you and look forward to your continued excellence.
               </p>
               <Link href="/contact" className="bg-black text-white py-3 px-6 my-2 rounded-lg font-semibold text-lg w-fit mb-6">Connect With Us</Link>
@@ -994,19 +983,18 @@ const ArtisanDetails = ({ artisan }) => {
       )}
       {/* Meet Other Artisans Section */}
       <div className="w-full max-w-[90%] mx-auto mb-16 mt-5">
-        <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-start mb-8 uppercase">
-          <span className="border-t-4 border-black">
-            Meet Our Artisans
-          </span>
-        </h2>
         <div className="flex flex-col md:flex-row items-start gap-5 ">
           {/* Left: Heading and description */}
-          <div className="flex-1 flex flex-col justify-center md:pr-8">
-            <h2 className="text-2xl md:text-4xl font-bold mb-4">Celebrating the Art of Craftsmanship. Honoring the Hands That Shape Beauty</h2>
-            <div className="text-lg md:text-xl text-gray-700 mb-6">
+          <div className="flex-1 flex flex-col justify-center my-4 md:pr-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-start mb-2 uppercase">
+              <span className="border-t-4 border-black">
+                Meet Our Artisans
+              </span>
+            </h2>
+            <h2 className="text-2xl font-bold mb-4">Celebrating the Art of Craftsmanship. Honoring the Hands That Shape Beauty</h2>
+            <div className="text-md text-gray-700 mb-6">
               We are proud to recognize and celebrate your exceptional talent and dedication as a skilled handicraft artisan. Your ability to transform raw materials into beautiful, meaningful works of art speaks to your creativity, precision, and passion for the craft. Each piece you create is a testament to the enduring value of handmade artistry and the cultural richness it preserves. With deep appreciation, we commend you for achieving this milestone and look forward to witnessing your continued journey of artistic excellence.
             </div>
-            <Link href="/contact" className="bg-black text-white py-3 px-6 rounded-lg font-semibold text-lg w-fit mb-6">Join Our Team</Link>
           </div>
           {/* Right: Top 2 artisan cards in new style */}
           <div className="hidden md:flex flex-row  gap-4 justify-end">

@@ -80,9 +80,11 @@ const AboutUsSection = () => {
         );
     }
     return (
-        <section className="bg-[#fcf7f1] relative py-1 w-full px-10 md:px-5 overflow-hidden max-w-screen overflow-x-hidden">
+        <section className="bg-[#fcf7f1] relative py-10 w-full px-10 md:px-5 overflow-hidden max-w-screen overflow-x-hidden">
             <div className="w-full">
-                <h2 className="font-bold text-2xl md:text-4xl text-center mt-2 md:mt-7 uppercase">Crafted by Hand, Cherished by Heart.
+                <h2 className="font-bold text-2xl md:text-4xl text-center mt-2 md:mt-7 uppercase">
+                    <span className="italic">Crafted by Hand,</span>
+                    <span> Cherished by Heart.</span>
 
                 </h2>
                 <p className=" text-xl font-lg md:text-xl text-center mt-2">

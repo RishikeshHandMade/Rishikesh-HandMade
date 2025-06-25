@@ -37,13 +37,13 @@ const PopUpBanner = () => {
   if (!banner || !open) return null;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 transition-opacity duration-300">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 ` transition-opacity duration-300">
       <div
         className={`relative bg-white max-w-3xl w-[85vw] px-5 flex flex-col md:flex-row overflow-hidden transform transition-all duration-500
         ${showAnim ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}
         style={{ transitionProperty: 'transform, opacity' }}
       >
-        {/* Close button top right */}
+        {/* Close button top right */}  
         <button
           onClick={handleClose}
           className="absolute top-4 right-4 z-10 bg-black/80 hover:bg-black text-white rounded-full p-1 flex items-center justify-center text-2xl font-bold focus:outline-none transition"

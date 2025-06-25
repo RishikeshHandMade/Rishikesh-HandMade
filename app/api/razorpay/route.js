@@ -33,6 +33,9 @@ export async function POST(request) {
         // Import the Order model at the top: import Order from "@/models/Order";
         let dbOrder;
         try {
+            // If user is logged in, always use their session email
+            // Only customer?.email is available here; user is not defined in POST
+            let userEmail = customer?.email;
             dbOrder = await Order.create({
                 products,
                 customerName: customer?.name,
@@ -48,7 +51,7 @@ export async function POST(request) {
                 payment: "online",
                 paymentMethod: "razorpay",
                 agree: true, // Always set agree true for online orders
-                email: customer?.email // Always set email for online orders
+                email: userEmail // Always set email for online orders, prefer session user
             });
         } catch (dbErr) {
             console.error("Failed to save order in DB:", dbErr);
@@ -109,29 +112,29 @@ export async function PUT(request) {
         // Merge additional details from frontend if provided
         if (cart) order.products = cart;
         if (checkoutData) {
-          order.cartTotal = checkoutData.cartTotal;
-          order.subTotal = checkoutData.subTotal;
-          order.totalDiscount = checkoutData.totalDiscount;
-          order.totalTax = checkoutData.totalTax;
-          order.shippingCost = checkoutData.shippingCost;
-          order.promoCode = checkoutData.promoCode;
-          order.promoDiscount = checkoutData.promoDiscount;
+            order.cartTotal = checkoutData.cartTotal;
+            order.subTotal = checkoutData.subTotal;
+            order.totalDiscount = checkoutData.totalDiscount;
+            order.totalTax = checkoutData.totalTax;
+            order.shippingCost = checkoutData.shippingCost;
+            order.promoCode = checkoutData.promoCode;
+            order.promoDiscount = checkoutData.promoDiscount;
         }
         if (formFields) {
-          order.firstName = formFields.firstName || formFields.fullName || order.firstName;
-          order.lastName = formFields.lastName || order.lastName;
-          order.email = formFields.email || order.email;
-          order.phone = formFields.mobile || formFields.phone || order.phone;
-          order.altPhone = formFields.altPhone || order.altPhone;
-          order.street = formFields.street || order.street;
-          order.city = formFields.city || order.city;
-          order.district = formFields.district || order.district;
-          order.state = formFields.state || order.state;
-          order.pincode = formFields.pincode || order.pincode;
-          order.address = formFields.address || [formFields.street, formFields.city, formFields.district, formFields.state, formFields.pincode].filter(Boolean).join(', ');
+            order.firstName = formFields.firstName || formFields.fullName || order.firstName;
+            order.lastName = formFields.lastName || order.lastName;
+            order.email = formFields.email || order.email;
+            order.phone = formFields.mobile || formFields.phone || order.phone;
+            order.altPhone = formFields.altPhone || order.altPhone;
+            order.street = formFields.street || order.street;
+            order.city = formFields.city || order.city;
+            order.district = formFields.district || order.district;
+            order.state = formFields.state || order.state;
+            order.pincode = formFields.pincode || order.pincode;
+            order.address = formFields.address || [formFields.street, formFields.city, formFields.district, formFields.state, formFields.pincode].filter(Boolean).join(', ');
         }
         if (user) {
-          order.userId = user._id || order.userId;
+            order.userId = user._id || order.userId;
         }
         // Fetch Full Payment Details from Razorpay
         const paymentResponse = await fetch(
@@ -152,10 +155,10 @@ export async function PUT(request) {
             order.cardType = paymentDetails.card?.type || null;
         }
         // Always set email for online orders (on update)
-        if (formFields && formFields.email) {
-            order.email = formFields.email;
-        } else if (user && user.email) {
+        if (user && user.email) {
             order.email = user.email;
+        } else if (formFields && formFields.email) {
+            order.email = formFields.email;
         } // else leave as-is if already present
         order.agree = true; // Always set agree true for online orders (on update)
         await order.save();
