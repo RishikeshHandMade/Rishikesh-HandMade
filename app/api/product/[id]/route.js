@@ -23,9 +23,6 @@ export async function GET(req, { params }) {
   try {
     await connectDB();
     let { id } = await params;
-    try {
-      id = decodeURIComponent(id);
-    } catch (e) {}
     // Strictly fetch by MongoDB _id
     let product = await Product.findById(id)
       .populate({
