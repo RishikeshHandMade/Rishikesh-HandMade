@@ -36,29 +36,42 @@ export async function generateMetadata({ params }) {
 }
 
 // Get category information
-const getCategoryInfo = async (categoryId) => {
+const getCategoryInfo = async (categoryData) => {
   return (
     {
-      title: `${(categoryId?.title)} Products`,
-      bannerImage: `${(categoryId?.banner?.url) || `${process.env.NEXT_PUBLIC_BASE_URL}/categoryBanner.jpg`}`,
+      title: categoryData?.title || "Category Title",
+      bannerImage: categoryData?.banner?.url || `${process.env.NEXT_PUBLIC_BASE_URL}/categoryBanner.jpg`,
     }
   )
 }
 
 const CategoryPage = async ({ params }) => {
   const { id } = await params;
+  // Fetch all menu items to get the main category name
+  const menuRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/getAllMenuItems`);
+  const menuItems = await menuRes.json();
+  
+  // Find the main category that contains this subcategory
+  const mainCategory = menuItems.find(mainCat => 
+    mainCat.subMenu?.some(subCat => subCat.url === id)
+  );
+  
+  // Fetch category data
   const categoryRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/getCategoryBanner/${id}`);
-  let categoryData;
-  try {
-    categoryData = await categoryRes.json();
-  } catch {
-    categoryData = {};
-  }
+  let categoryData = await categoryRes.json();
+  
+  // Combine main category title with category data
+  categoryData = {
+    ...categoryData,
+    mainCategoryTitle: mainCategory?.title
+  };
   // products is now an array of full product objects
   const products = Array.isArray(categoryData.products) ? categoryData.products : [];
   const visibleProducts = products.filter(prod => prod.active !== false);
   // console.log(visibleProducts)
   const categoryInfo = await getCategoryInfo(categoryData);
+  console.log('Category Info:', categoryInfo);
+  console.log('Category Data:', categoryData);
 
   // Fetch category advertisement banner
 
@@ -75,7 +88,12 @@ const CategoryPage = async ({ params }) => {
     <SidebarInset>
       <div className="min-h-screen p-2 bg-[#fcf7f1]">
         {/* Category Banner at the top */}
-        <CategoryBanner title={categoryInfo.title} bannerImage={categoryInfo.bannerImage} />
+        <CategoryBanner 
+        title={categoryData.title} 
+        bannerImage={categoryInfo.bannerImage} 
+        mainCategory={categoryData.mainCategoryTitle || categoryData.title} 
+        subCategory={categoryData.title} 
+      />
 
         <div className="flex flex-col md:flex-row gap-6 w-full mt-4">
           {/* Left Image Section */}

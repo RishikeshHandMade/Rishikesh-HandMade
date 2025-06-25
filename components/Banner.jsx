@@ -54,10 +54,10 @@ const Banner = () => {
         fetchFeaturedOffer();
     }, [])
     return (
-        <div className="bg-[#fcf7f1] md:mt-19 w-full overflow-hidden max-w-screen overflow-x-hidden">
+        <div className="bg-[#fcf7f1] w-full overflow-hidden max-w-screen overflow-x-hidden">
             {/* Promotional Banner Section */}
             {promotinalBanner.length > 0 && (
-                <div className="w-full my-5 py-10 bg-blue-100">
+                <div className="w-full py-10 bg-blue-100">
                     <h2 className="text-2xl md:text-4xl font-bold text-center mb-5 uppercase">
                         <span className="italic">Click</span>,
                         <span >Collect</span>,

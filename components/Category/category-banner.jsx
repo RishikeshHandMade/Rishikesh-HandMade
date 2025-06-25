@@ -1,9 +1,36 @@
 import Image from "next/image"
+import Link from "next/link"
 
-const CategoryBanner = ({ title, bannerImage }) => {
+const CategoryBanner = ({ title, bannerImage, mainCategory, subCategory }) => {
   return (
-    <div className="relative h-[150px] md:h-[250px] overflow-hidden w-full">
-      <Image src={bannerImage} alt={title} quality={100} width={1280} height={720} className="w-full h-full object-cover" priority />
+    <div className="relative w-full h-[200px] md:h-[300px]">
+      {/* Background image */}
+      <Image
+        src={bannerImage}
+        alt={title || mainCategory}
+        fill
+        className="object-cover w-full h-full"
+        quality={100}
+        priority
+      />
+
+      {/* Text on right-bottom */}
+      <div className="absolute bottom-6 right-6 text-white text-right">
+        <h1 className="text-xl md:text-5xl font-extrabold drop-shadow">
+          {mainCategory|| "Main Category Name"}
+        </h1>
+        <div className="text-sm md:text-xl font-medium mt-1">
+          <Link href="/" className="hover:underline px-1">Home</Link>
+          {title && <span className="mx-1">|</span>}
+          {title && <span>{title}</span>}
+          {/* {subCategory && (
+            <>
+              <span className="mx-1">|</span>
+              <span>{subCategory}</span>
+            </>
+          )} */}
+        </div>
+      </div>
     </div>
   )
 }

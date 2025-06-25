@@ -80,7 +80,7 @@ const AboutUsSection = () => {
         );
     }
     return (
-        <section className="bg-[#fcf7f1] relative py-10 w-full px-10 md:px-5 overflow-hidden max-w-screen overflow-x-hidden">
+        <section className="bg-[url('/aboutUsBanner.jpg')] bg-no-repeat bg-cover bg-center relative py-10 w-full px-10 md:px-5 overflow-hidden max-w-screen overflow-x-hidden">
             <div className="w-full">
                 <h2 className="font-bold text-2xl md:text-4xl text-center mt-2 md:mt-7 uppercase">
                     <span className="italic">Crafted by Hand,</span>
