@@ -22,7 +22,7 @@ import {
 import VisuallyHidden from '@/components/VisuallyHidden';
 import Autoplay from "embla-carousel-autoplay";
 export default function ProductDetailView({ product }) {
-  console.log(product);
+  // console.log(product);
   // --- Ask An Expert Modal State ---
   const [showExpertModal, setShowExpertModal] = useState(false);
   // Artisan Modal State

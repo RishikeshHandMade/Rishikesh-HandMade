@@ -158,6 +158,7 @@ const CheckOut = () => {
         amount: finalAmount, // in rupees
         currency: "INR",
         receipt: `order_${Date.now()}`,
+        agree: true, // Always set agree true for online orders
         // instructions: formFields.instructions || '',
         // Add any additional fields as needed
       };
@@ -212,6 +213,7 @@ const CheckOut = () => {
                 checkoutData,
                 formFields,
                 user,
+                agree: true, // Always set agree true for online orders
                 // You can add any other info needed for a complete order
               });
 

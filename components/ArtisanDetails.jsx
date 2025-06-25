@@ -11,121 +11,59 @@ import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext
 import QuickViewProductCard from "./QuickViewProductCard";
 import Autoplay from "embla-carousel-autoplay";
 import BlogQuickViewModal from "./BlogQuickViewModal";
-import CertificateQuickViewModal from "./CertificateQuickViewModal";
 import { Star } from 'lucide-react';
 
-const CertificateSectionGrid = ({ certificates, onImageClick }) => {
+const CertificateSectionCarousel = ({ certificates, onImageClick }) => {
   if (!certificates || certificates.length === 0) return <div className="text-gray-500 text-center">No certificates available.</div>;
-  // Layout logic
-  let grid;
-  if (certificates.length === 1) {
-    grid = (
-      <div className="flex flex-row gap-8 w-full items-stretch">
-        <div className="flex-1 flex items-center justify-center">
-          <CertificateImage
-            cert={certificates[0]}
-            className="w-[400px] h-[400px] object-cover rounded-2xl cursor-pointer"
-            onClick={() => { onImageClick(certificates[0]); }}
-          />
-        </div>
-      </div>
-    );
-  } else if (certificates.length === 2) {
-    grid = (
-      <div className="flex flex-row gap-8 w-full items-stretch">
-        <div className="flex-1 flex flex-col gap-4 items-center justify-center">
-          {certificates.map((cert, idx) => (
-            <CertificateImage
-              key={cert._id}
-              cert={cert}
-              className="w-[400px] h-[220px] object-cover rounded-2xl cursor-pointer"
-              onClick={() => { onImageClick(cert); }}
-            />
-          ))}
-        </div>
-      </div>
-    );
-  } else if (certificates.length === 3) {
-    grid = (
-      <div className="flex flex-row gap-8 w-full items-stretch">
-        <div className="flex-1 flex flex-col gap-4 items-center justify-center">
-          <div className="flex flex-row gap-4">
-            {certificates.slice(0, 2).map((cert, idx) => (
-              <CertificateImage
-                key={cert._id}
-                cert={cert}
-                className="w-[200px] h-[200px] object-cover rounded-2xl cursor-pointer"
-                onClick={() => { onImageClick(cert); }}
-              />
-            ))}
-          </div>
-          <CertificateImage
-            cert={certificates[2]}
-            className="w-[400px] h-[200px] object-cover rounded-2xl cursor-pointer"
-            onClick={() => { onImageClick(certificates[2]); }}
-          />
-        </div>
-      </div>
-    );
-  } else if (certificates.length === 4) {
-    grid = (
-      <div className="flex flex-row gap-8 w-full items-stretch">
-        <div className="flex-1 grid grid-rows-2 grid-cols-2 gap-4 items-center justify-center">
-          {certificates.slice(0, 4).map((cert, idx) => (
-            <CertificateImage
-              key={cert._id}
-              cert={cert}
-              className="w-[200px] h-[200px] object-cover rounded-2xl cursor-pointer"
-              onClick={() => { onImageClick(cert); }}
-            />
-          ))}
-        </div>
-      </div>
-    );
-  } else {
-    // For more than 4, show first 4 as above, or you can expand logic as needed
-    grid = (
-      <div className="flex flex-row gap-8 w-full items-stretch">
-        <div className="flex-1 grid grid-rows-2 grid-cols-2 gap-4 items-center justify-center">
-          {certificates.slice(0, 4).map((cert, idx) => (
-            <CertificateImage
-              key={cert._id}
-              cert={cert}
-              className="w-[200px] h-[200px] object-cover rounded-2xl cursor-pointer"
-              onClick={() => { onImageClick(cert); }}
-            />
-          ))}
-        </div>
-      </div>
-    );
-  }
-  return (
-    <div className="py-8 px-2 md:px-8">
-      {grid}
-    </div>
-  );
-};
 
-const CertificateImage = ({ cert, className = "", onClick }) => {
-  const [hovered, setHovered] = React.useState(false);
+  // Group certificates into pairs for 2-per-row
+  const certificatePairs = [];
+  for (let i = 0; i < certificates.length; i += 2) {
+    certificatePairs.push(certificates.slice(i, i + 2));
+  }
+
   return (
-    <div
-      className={`relative w-[200px] h-[200px] rounded-2xl overflow-hidden shadow-lg ${className}`}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onClick={onClick}
-      style={{ cursor: 'pointer' }}
-    >
-      <img
-        src={cert.imageUrl?.url || cert.imageUrl}
-        alt={cert.title}
-        className={`object-cover w-full h-full rounded-2xl transition-transform duration-200 ${hovered ? 'scale-105 brightness-90' : ''}`}
-      />
-      <div
-        className={`absolute inset-0 flex items-end pb-10 justify-center transition-opacity duration-200 ${hovered ? 'opacity-100' : 'opacity-0'}`}
-      >
-        <span className="text-black text-2xl font-bold px-4 text-center">{cert.title}</span>
-      </div>
+    <div className="py-8 px-2">
+      <Carousel className="w-full">
+        <CarouselContent className="w-full">
+          {certificatePairs.map((pair, idx) => (
+            <CarouselItem key={idx} className="flex gap-2 justify-center items-center">
+              {pair.map((cert) => (
+                <div
+                  key={cert._id}
+                  className="flex flex-col w-full max-w-3xl bg-white rounded-2xl overflow-hidden border border-gray-200"
+                  style={{ minHeight: 320 }}
+                >
+                  {/* Left: Image */}
+                  <div className="w-full flex items-center justify-center bg-gray-50">
+                    <img
+                      src={cert.imageUrl?.url || cert.imageUrl}
+                      alt={cert.title}
+                      className="object-cover w-full h-full max-h-72 rounded-none"
+                      style={{ maxHeight: 200 }}
+                      onClick={() => { onImageClick(cert); }}
+                    />
+                  </div>
+                  {/* Right: Info */}
+                  <div className="w-full flex flex-col items-start justify-center px-5 py-6">
+                    <div className="font-bold text-xl md:text-2xl mb-2 text-gray-900">Name: {cert.title}</div>
+                    {cert.issueDate && <div className="text-base text-gray-700 mb-1"><span className="font-bold">Issue Date:</span> {cert.issueDate}</div>}
+                    {cert.issuedBy && <div className="text-base text-gray-700 mb-1"><span className="font-bold">Issued By:</span> {cert.issuedBy}</div>}
+                    {cert.description && <div className="text-base text-gray-700 mb-1"><span className="font-semibold">Specialization:</span> {cert.description}</div>}
+                    <div className="flex-1" />
+                  </div>
+                </div>
+              ))}
+              {/* If only one card in last row, fill space for symmetry */}
+              {pair.length === 1 && <div className="w-full max-w-3xl" />}
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        <div className="flex justify-end w-full mt-2">
+          <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 p-5" />
+          <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 p-5" />
+        </div>
+      </Carousel>
     </div>
   );
 };
@@ -290,10 +228,10 @@ const ArtisanDetails = ({ artisan }) => {
           <img src={artisan.artisanBanner?.image?.url || artisan.artisanBanner?.image || "/placeholder.jpeg"} className="w-full h-full object-cover brightness-100 " alt="Office" />
         </div>
         {/* Overlay Content */}
-        <div className="relative w-full px-2 md:w-[80%] mx-auto flex flex-col md:flex-row items-start pt-0 px-0 pb-8">
+        <div className="relative w-full px-2 md:w-full justify-center mx-auto flex flex-col md:flex-row items-start pt-0 px-0 pb-8">
           {/* Profile Image: Overlapping Banner */}
           <div className="hidden md:flex absoute flex-shrink-0 -mt-32 ml-12 mr-10">
-            <div className="bg-white rounded-lg shadow-xl border-4 border-white overflow-hidden  w-72 h-[350px] flex items-center justify-center">
+            <div className="bg-white rounded-lg shadow-xl border-4 border-white overflow-hidden w-72 h-[350px] flex items-center justify-center">
               <img src={artisan.image || artisan.profileImage?.url || 'https://randomuser.me/api/portraits/men/32.jpg'} alt={artisan.firstName + ' ' + artisan.lastName} className="object-cover w-full h-full" />
             </div>
           </div>
@@ -303,101 +241,42 @@ const ArtisanDetails = ({ artisan }) => {
             </div>
           </div>
           {/* Details Card */}
-          <div className="flex-1 flex flex-col gap-2 mt-8 md:mt-8 md:ml-0 bg-transparent">
-            <div className="flex flex-col gap-2">
-              <div className="text-md md:text-2xl font-bold leading-tight flex items-center">Name: <span className="text-md md:text-2xl align-middle font-semibold"> {artisan.title}{artisan.firstName} {artisan.lastName}</span></div>
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 mt-8 md:mt-8 md:ml-0 bg-transparent">
+            <div className="flex flex-col gap-2 border-r-2 border-black px-2">
+              <div className="text-md md:text-xl font-bold leading-tight flex items-center">Name: <span className="text-md md:text-xl align-middle font-semibold"> {artisan.title}{artisan.firstName} {artisan.lastName}</span></div>
               <div className="flex gap-3">
-                <div className="font-bold text-md mt-1 mb-1 md:text-2xl flex items-center pr-2 border-r-4 border-black">SHG : <span className="font-normal text-md">{artisan.shgName || 'No SHG Name Avaiable'}</span></div>
-                <div className="font-bold text-md mt-1 mb-1 md:text-2xl flex items-center"> Artisan Number: <span className="font-normal text-md">{artisan.artisanNumber || 'Artisan Number Not Available'}</span></div>
-              </div>
-            </div>
-            <div className="mt-2 text-md md:text-2xl font-bold text-black">{artisan.yearsOfExperience || '0'} Years of Experience</div>
-            <div className="font-bold text-md md:text-xl mt-2">Specializations:</div>
-            <div className="flex gap-3 flex-wrap mb-2">
-              {(artisan.specializations || ['No Specializations']).map((spec, i) => (
-                <span key={i} className="bg-gray-200 rounded-full px-4 py-1 text-base font-semibold tracking-tight border border-gray-300">{spec}</span>
-              ))}
-            </div>
-            <div className="font-bold mt-2 text-md md:text-xl">Pincode: <span className="font-normal text-md">{artisan.address?.pincode || 'No Pincode'}</span></div>
-            <div className="font-bold mt-2 text-md md:text-xl">City: <span className="font-normal text-md">{artisan.address?.city || 'No City'}</span></div>
-            <div className="font-bold mt-2 text-md md:text-xl">State: <span className="font-normal text-md">{artisan.address?.state || 'No State'}</span></div>
-            <div className="font-bold mt-2 text-md md:text-xl">Address: <span className="font-normal text-md">{artisan.address?.fullAddress || 'No Address'}</span></div>
-            <div className="flex items-center gap-4 mt-2 mb-2">
-              <div className='flex items-center gap-2 mt-2 mb-2 px-4 border-r-4 border-black'>
-                {/* Email icon */}
-                {artisan.contact.email && (
-                  <a href={`mailto:${artisan.contact?.email}`} className="text-gray-700 hover:text-emerald-600" title="Email">
-                    <Mail size={25} />
-                  </a>
-                )}
-                {/* Phone icon */}
-                {artisan.contact.callNumber && (
-                  <a href={`tel:${artisan.contact?.callNumber}`} className="text-gray-700 hover:text-lime-600" title="Call">
-                    <Phone size={25} />
-                  </a>
-                )}
-                {artisan.contact?.whatsappNumber && (
-                  <a
-                    href={`https://wa.me/${artisan.contact.whatsappNumber}`}
-                    className="text-gray-700 hover:text-lime-600 flex items-center "
-                    title="WhatsApp"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <img src="/whatapp.png" alt="WhatsApp" width={35} height={35} style={{ display: 'inline', verticalAlign: 'middle' }} />
-                  </a>
-                )}
-                {/* Share icon */}
-                <button
-                  type="button"
-                  className="text-gray-700 hover:text-orange-600 focus:outline-none relative"
-                  title="Share profile"
-                  onClick={() => setShowShareBox((prev) => !prev)}
-                >
-                  <Share2 size={25} />
-                </button>
-                {/* Share box */}
-                {showShareBox && (
-                  <div ref={shareBoxRef} className="absolute left-50 bottom-[100px] z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-4 flex items-center gap-2 animate-fade-in" style={{ minWidth: 260 }}>
-                    <input
-                      type="text"
-                      readOnly
-                      value={typeof window !== 'undefined' ? window.location.href : ''}
-                      className="border px-2 py-1 rounded flex-1 text-gray-800 bg-gray-100 text-xs"
-                      style={{ minWidth: 120 }}
-                    />
-                    <button
-                      onClick={handleCopy}
-                      className={`ml-2 p-1 rounded hover:bg-gray-200 transition ${copied ? 'bg-green-100' : ''}`}
-                      title={copied ? 'Copied!' : 'Copy URL'}
-                    >
-                      <Copy size={18} className={copied ? 'text-green-600' : 'text-gray-700'} />
-                    </button>
-                    {copied && <span className="ml-2 text-green-600 text-xs font-semibold">Copied!</span>}
-                  </div>
-                )}
+                <div className="font-bold text-md mt-1 mb-1 md:text-xl flex items-center pr-2 border-r-4 border-black">SHG : <span className="font-normal text-md">{artisan.shgName || 'No SHG Name Avaiable'}</span></div>
+                <div className="font-bold text-md mt-1 mb-1 md:text-xl flex items-center"> Artisan Number: <span className="font-normal text-md">{artisan.artisanNumber || 'Artisan Number Not Available'}</span></div>
               </div>
 
+              <div className="mt-2 text-md md:text-xl font-bold text-black">{artisan.yearsOfExperience || '0'} Years of Experience</div>
+              <div className="font-bold text-md md:text-xl mt-2">Specializations:</div>
+              <div className="flex gap-3 flex-wrap mb-2">
+                {(artisan.specializations || ['No Specializations']).map((spec, i) => (
+                  <span key={i} className="bg-gray-200 rounded-full px-4 py-1 text-base font-semibold tracking-tight border border-gray-300">{spec}</span>
+                ))}
+              </div>
               {/* Social Icons Row */}
-              <div className="flex justify-start gap-2">
+              <div className="flex items-center gap-2">
+                <div className="font-bold text-md md:text-xl">Social:</div>
                 {artisan.socialPlugin?.facebook && (
                   <a href={artisan.socialPlugin.facebook} target="_blank" rel="noopener noreferrer" title="Facebook">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-facebook-icon lucide-facebook"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-facebook-icon lucide-facebook"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>
                   </a>
                 )}
                 {artisan.socialPlugin?.instagram && (
                   <a href={artisan.socialPlugin.instagram} target="_blank" rel="noopener noreferrer" title="Instagram">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-instagram-icon lucide-instagram"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-instagram-icon lucide-instagram"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
                   </a>
                 )}
                 {artisan.socialPlugin?.youtube && (
                   <a href={artisan.socialPlugin.youtube} target="_blank" rel="noopener noreferrer" title="YouTube">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-youtube-icon lucide-youtube"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" /><path d="m10 15 5-3-5-3z" /></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-youtube-icon lucide-youtube"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" /><path d="m10 15 5-3-5-3z" /></svg>
                   </a>
                 )}
                 {artisan.socialPlugin?.google && (
                   <a href={artisan.socialPlugin.google} target="_blank" rel="noopener noreferrer" title="Google">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="black" viewBox="0 0 24 24">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="black" viewBox="0 0 24 24">
                       <path d="M21.35 11.1h-9.18v2.83h5.43c-.24 1.38-1.42 4.04-5.43 4.04-3.27 0-5.94-2.71-5.94-6.05s2.67-6.05 5.94-6.05c1.86 0 3.11.8 3.82 1.49l2.6-2.57C17.36 3.43 15.01 2.5 12 2.5 6.95 2.5 2.9 6.53 2.9 11.5S6.95 20.5 12 20.5c6.89 0 9.1-4.82 9.1-7.22 0-.48-.05-.8-.15-1.18z" />
                     </svg>
                   </a>
@@ -409,144 +288,209 @@ const ArtisanDetails = ({ artisan }) => {
                   </a>
                 )}
               </div>
-              <div className="flex flex-row items-center justify-center">
-                <button
-                  className="bg-black text-white font-bold w-fit px-5 py-2 rounded-md shadow hover:bg-gray-900 transition-all text-base"
-                  onClick={() => setShowExpertModal(true)}
-                >
-                  Ask An Expert
-                </button>
-              </div>
-              {/* Modal for Ask An Expert */}
-              {showExpertModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                  <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative animate-fade-in">
-                    <button
-                      className="absolute top-2 right-2 text-gray-500 hover:text-black text-4xl font-bold"
-                      onClick={() => setShowExpertModal(false)}
-                      aria-label="Close"
-                    >
-                      ×
-                    </button>
-                    <h2 className="text-xl font-bold mb-2 text-center">Ask An Expert</h2>
-                    <form onSubmit={handleExpertSubmit} className="flex flex-col gap-4">
-                      <div className="text-center text-gray-500 text-sm mb-2">We will follow up with you via email within 24–36 hours</div>
-                      <hr className="" />
-                      <div className="text-center text-base mb-2">Please answer the following questionnaire</div>
-                      <input
-                        type="text"
-                        name="name"
-                        value={expertForm.name}
-                        onChange={handleExpertInputChange}
-                        placeholder="Your Name"
-                        className="border rounded px-3 py-2"
-                        required
-                      />
-                      <input
-                        type="email"
-                        name="email"
-                        value={expertForm.email}
-                        onChange={handleExpertInputChange}
-                        placeholder="Email Address"
-                        className="border rounded px-3 py-2"
-                        required
-                      />
-                      <input
-                        type="text"
-                        name="phone"
-                        value={expertForm.phone}
-                        onChange={handleExpertInputChange}
-                        placeholder="Phone Number"
-                        className="border rounded px-3 py-2"
-                        required
-                      />
-                      <div className="flex flex-row gap-6 items-center mt-2">
-                        <span className="text-sm">Do You Need</span>
-                        <label className="flex items-center gap-1 text-sm">
-                          <input
-                            type="radio"
-                            name="need"
-                            value="Appointment"
-                            checked={expertForm.need === 'Appointment'}
-                            onChange={handleExpertInputChange}
-                            required
-                          /> Appointment
-                        </label>
-                        <label className="flex items-center gap-1 text-sm">
-                          <input
-                            type="radio"
-                            name="need"
-                            value="Business"
-                            checked={expertForm.need === 'Business'}
-                            onChange={handleExpertInputChange}
-                            required
-                          /> Business
-                        </label>
-                        <label className="flex items-center gap-1 text-sm">
-                          <input
-                            type="radio"
-                            name="need"
-                            value="Personal"
-                            checked={expertForm.need === 'Personal'}
-                            onChange={handleExpertInputChange}
-                          /> Personal
-                        </label>
-                      </div>
-                      <div>
-                        <label className="block text-sm mb-1">What Can I Help You With Today?</label>
-                        <textarea
-                          name="question"
-                          value={expertForm.question}
-                          onChange={handleExpertInputChange}
-                          placeholder="Describe your question or issue"
-                          className="border rounded px-3 py-2 w-full h-24 "
-                          rows={4}
-                          required
-                        />
-                      </div>
-                      <div className="mt-2">
-                        <span className="block text-sm mb-1">How Would You Like Me To Contact You?</span>
-                        <div className="flex flex-row gap-6">
-                          <label className="flex items-center gap-1 text-sm">
-                            <input
-                              type="radio"
-                              name="contactMethod"
-                              value="Phone"
-                              checked={expertForm.contactMethod === 'Phone'}
-                              onChange={handleExpertInputChange}
-                            /> Phone
-                          </label>
-                          <label className="flex items-center gap-1 text-sm">
-                            <input
-                              type="radio"
-                              name="contactMethod"
-                              value="Email"
-                              checked={expertForm.contactMethod === 'Email'}
-                              onChange={handleExpertInputChange}
-                            /> Email
-                          </label>
-                          <label className="flex items-center gap-1 text-sm">
-                            <input
-                              type="radio"
-                              name="contactMethod"
-                              value="Both"
-                              checked={expertForm.contactMethod === 'Both'}
-                              onChange={handleExpertInputChange}
-                            /> Both
-                          </label>
-                        </div>
-                      </div>
-                      <button
-                        type="submit"
-                        className="bg-black text-white rounded px-6 py-2 font-bold hover:bg-gray-900 transition mt-2"
+            </div>
+            <div className="flex flex-col gap-2">
+              <div className="font-bold mt-2 text-md md:text-xl">City: <span className="font-normal text-md">{artisan.address?.city || 'No City'}</span></div>
+              <div className="font-bold mt-2 text-md md:text-xl">State: <span className="font-normal text-md">{artisan.address?.state || 'No State'}</span></div>
+              {/* <div className="font-bold mt-2 text-md w-44 md:text-xl">Address: <span className="font-normal text-md">{artisan.address?.fullAddress || 'No Address'}</span></div> */}
+              <div className="flex flex-col items-center gap-4 mt-2 mb-2">
+                <div className="flex items-center gap-2">
+                  <div className='flex items-center gap-2 mt-2 mb-2'>
+                  <h3 className="font-bold text-md md:text-xl">Share :</h3>
+                    {/* Email icon */}
+                    {artisan.contact.email && (
+                      <a href={`mailto:${artisan.contact?.email}`} className="text-gray-700 hover:text-emerald-600" title="Email">
+                        <Mail size={25} />
+                      </a>
+                    )}
+                    {/* Phone icon */}
+                    {artisan.contact.callNumber && (
+                      <a href={`tel:${artisan.contact?.callNumber}`} className="text-gray-700 hover:text-lime-600" title="Call">
+                        <Phone size={25} />
+                      </a>
+                    )}
+                    {artisan.contact?.whatsappNumber && (
+                      <a
+                        href={`https://wa.me/${artisan.contact.whatsappNumber}`}
+                        className="text-gray-700 hover:text-lime-600 flex items-center "
+                        title="WhatsApp"
+                        target="_blank"
+                        rel="noopener noreferrer"
                       >
-                        SEND QUESTION
-                      </button>
-                    </form>
+                        <img src="/whatapp.png" alt="WhatsApp" width={35} height={35} style={{ display: 'inline', verticalAlign: 'middle' }} />
+                      </a>
+                    )}
+                    {/* Share icon */}
+                    <button
+                      type="button"
+                      className="text-gray-700 hover:text-orange-600 focus:outline-none relative"
+                      title="Share profile"
+                      onClick={() => setShowShareBox((prev) => !prev)}
+                    >
+                      <Share2 size={25} />
+                    </button>
+                    {/* Share box */}
+                    {showShareBox && (
+                      <div ref={shareBoxRef} className="absolute left-50 bottom-[100px] z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-4 flex items-center gap-2 animate-fade-in" style={{ minWidth: 260 }}>
+                        <input
+                          type="text"
+                          readOnly
+                          value={typeof window !== 'undefined' ? window.location.href : ''}
+                          className="border px-2 py-1 rounded flex-1 text-gray-800 bg-gray-100 text-xs"
+                          style={{ minWidth: 120 }}
+                        />
+                        <button
+                          onClick={handleCopy}
+                          className={`ml-2 p-1 rounded hover:bg-gray-200 transition ${copied ? 'bg-green-100' : ''}`}
+                          title={copied ? 'Copied!' : 'Copy URL'}
+                        >
+                          <Copy size={18} className={copied ? 'text-green-600' : 'text-gray-700'} />
+                        </button>
+                        {copied && <span className="ml-2 text-green-600 text-xs font-semibold">Copied!</span>}
+                      </div>
+                    )}
                   </div>
                 </div>
-              )}
+                <div className="flex items-center justify-center">
+                  <button
+                    className="bg-black text-white font-bold w-full px-10 py-2 rounded-md shadow hover:bg-gray-900 transition-all text-base"
+                    onClick={() => setShowExpertModal(true)}
+                  >
+                    Ask An Expert
+                  </button>
+                </div>
+                {/* Modal for Ask An Expert */}
+                {showExpertModal && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                    <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative animate-fade-in">
+                      <button
+                        className="absolute top-2 right-2 text-gray-500 hover:text-black text-4xl font-bold"
+                        onClick={() => setShowExpertModal(false)}
+                        aria-label="Close"
+                      >
+                        ×
+                      </button>
+                      <h2 className="text-xl font-bold mb-2 text-center">Ask An Expert</h2>
+                      <form onSubmit={handleExpertSubmit} className="flex flex-col gap-4">
+                        <div className="text-center text-gray-500 text-sm mb-2">We will follow up with you via email within 24–36 hours</div>
+                        <hr className="" />
+                        <div className="text-center text-base mb-2">Please answer the following questionnaire</div>
+                        <input
+                          type="text"
+                          name="name"
+                          value={expertForm.name}
+                          onChange={handleExpertInputChange}
+                          placeholder="Your Name"
+                          className="border rounded px-3 py-2"
+                          required
+                        />
+                        <input
+                          type="email"
+                          name="email"
+                          value={expertForm.email}
+                          onChange={handleExpertInputChange}
+                          placeholder="Email Address"
+                          className="border rounded px-3 py-2"
+                          required
+                        />
+                        <input
+                          type="text"
+                          name="phone"
+                          value={expertForm.phone}
+                          onChange={handleExpertInputChange}
+                          placeholder="Phone Number"
+                          className="border rounded px-3 py-2"
+                          required
+                        />
+                        <div className="flex flex-row gap-6 items-center mt-2">
+                          <span className="text-sm">Do You Need</span>
+                          <label className="flex items-center gap-1 text-sm">
+                            <input
+                              type="radio"
+                              name="need"
+                              value="Appointment"
+                              checked={expertForm.need === 'Appointment'}
+                              onChange={handleExpertInputChange}
+                              required
+                            /> Appointment
+                          </label>
+                          <label className="flex items-center gap-1 text-sm">
+                            <input
+                              type="radio"
+                              name="need"
+                              value="Business"
+                              checked={expertForm.need === 'Business'}
+                              onChange={handleExpertInputChange}
+                              required
+                            /> Business
+                          </label>
+                          <label className="flex items-center gap-1 text-sm">
+                            <input
+                              type="radio"
+                              name="need"
+                              value="Personal"
+                              checked={expertForm.need === 'Personal'}
+                              onChange={handleExpertInputChange}
+                            /> Personal
+                          </label>
+                        </div>
+                        <div>
+                          <label className="block text-sm mb-1">What Can I Help You With Today?</label>
+                          <textarea
+                            name="question"
+                            value={expertForm.question}
+                            onChange={handleExpertInputChange}
+                            placeholder="Describe your question or issue"
+                            className="border rounded px-3 py-2 w-full h-24 "
+                            rows={4}
+                            required
+                          />
+                        </div>
+                        <div className="mt-2">
+                          <span className="block text-sm mb-1">How Would You Like Me To Contact You?</span>
+                          <div className="flex flex-row gap-6">
+                            <label className="flex items-center gap-1 text-sm">
+                              <input
+                                type="radio"
+                                name="contactMethod"
+                                value="Phone"
+                                checked={expertForm.contactMethod === 'Phone'}
+                                onChange={handleExpertInputChange}
+                              /> Phone
+                            </label>
+                            <label className="flex items-center gap-1 text-sm">
+                              <input
+                                type="radio"
+                                name="contactMethod"
+                                value="Email"
+                                checked={expertForm.contactMethod === 'Email'}
+                                onChange={handleExpertInputChange}
+                              /> Email
+                            </label>
+                            <label className="flex items-center gap-1 text-sm">
+                              <input
+                                type="radio"
+                                name="contactMethod"
+                                value="Both"
+                                checked={expertForm.contactMethod === 'Both'}
+                                onChange={handleExpertInputChange}
+                              /> Both
+                            </label>
+                          </div>
+                        </div>
+                        <button
+                          type="submit"
+                          className="bg-black text-white rounded px-6 py-2 font-bold hover:bg-gray-900 transition mt-2"
+                        >
+                          SEND QUESTION
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
+
           </div>
         </div>
       </div>
@@ -1020,7 +964,7 @@ const ArtisanDetails = ({ artisan }) => {
       {/* Certificate And Awards Section */}
       {Array.isArray(artisan.certificates) && artisan.certificates.length > 0 && (
         <div className="w-full md:w-[90%] my-10 mx-auto">
-          <div className="flex flex-col items-start gap-8">
+          <div className="flex flex-col items-start gap-4">
             {/* Left: Heading and description */}
             <div className="flex-1">
               <h2 className="text-2xl md:text-4xl font-bold mb-2 md:mt-10">
@@ -1032,17 +976,17 @@ const ArtisanDetails = ({ artisan }) => {
           </div>
           <div className="w-full h-full md:h-[500px] mx-auto flex flex-col md:flex-row items-start justify-center px-5 py-1 gap-8">
             {/* Left Column: Text */}
-            <div className="w-full md:w-1/2 pr-6 flex flex-col justify-center h-full">
+            <div className="w-full md:w-1/2 flex flex-col justify-center gap-4  h-full">
               <p className="text-gray-700 text-lg md:text-xl text-justify leading-relaxed">
                 We extend our heartfelt congratulations to you on the remarkable achievement of reaching your goal. Your dedication, skill, and unwavering commitment to excellence have truly set you apart. As an artisan, your work reflects not only your talent but also the passion and perseverance that define true craftsmanship. It is with great pride and admiration that we recognize your outstanding accomplishment. May this milestone be a stepping stone to even greater success in your journey. We are honored to celebrate this moment with you and look forward to your continued excellence.
               </p>
+              <Link href="/contact" className="bg-black text-white py-3 px-6 my-2 rounded-lg font-semibold text-lg w-fit mb-6">Connect With Us</Link>
             </div>
             {/* Right Column: Certificate Grid */}
-            <div className="w-full md:w-1/2 h-full flex flex-col items-center gap-4 overflow-hidden border-4 border-black rounded-xl">
-              <CertificateSectionGrid
+            <div className="w-full md:w-1/2 h-full flex flex-col items-center overflow-hidden">
+              <CertificateSectionCarousel
                 certificates={artisan.certificates}
-                onImageClick={(cert) => { setModalCertificate(cert); setShowCertificateModal(true); }}
-              // imageClassName="w-full h-full object-cover rounded-lg shadow-md"
+                onImageClick={(cert) => { setModalCertificate(cert); }}
               />
             </div>
           </div>
@@ -1399,12 +1343,6 @@ const ArtisanDetails = ({ artisan }) => {
           </div>
         </div>
       )}
-      {/* Certificate Quick View Modal */}
-      <CertificateQuickViewModal
-        open={showCertificateModal}
-        certificate={modalCertificate}
-        onClose={() => { setShowCertificateModal(false); setModalCertificate(null); }}
-      />
       {/* Blog Quick View Modal */}
       <BlogQuickViewModal
         open={showBlogModal}

@@ -28,6 +28,7 @@ export async function POST(req) {
     }
 
     // ✅ Save the order
+    body.agree = true; // Always set agree true for all new orders
     const order = await Order.create(body);
 
     // ✅ Update quantity of each product

@@ -115,8 +115,7 @@ const CartDetails = () => {
   const [shippingTierLabel, setShippingTierLabel] = useState("");
   const [shippingPerUnit, setShippingPerUnit] = useState(null);
   const [statesList, setStatesList] = useState([]);
-  const finalAmount = totalAfterDiscount + FinalShipping;
-
+ 
   useEffect(() => {
     const fetchShippingCharge = async () => {
       if (totalWeight === 0) {
@@ -279,17 +278,7 @@ const CartDetails = () => {
       0
     )
     : 0;
-  const taxTotal = Array.isArray(cart)
-    ? cart.reduce(
-      (sum, item) =>
-        sum +
-        ((getAfterDiscount(item) *
-          ((Number(item.cgst) || 0) + (Number(item.sgst) || 0))) /
-          100) *
-        item.qty,
-      0
-    )
-    : 0;
+
   const finalShipping = pincodeResult?.price || FinalShipping || 0;
 
   // Remove promo if a discounted/coupon item is present
@@ -319,10 +308,17 @@ const CartDetails = () => {
     const maxDiscount = totalAfterDiscount + taxTotal + finalShipping;
     if (promoDiscount > maxDiscount) promoDiscount = maxDiscount;
   }
-
-  const cartTotal =
-    totalAfterDiscount + taxTotal + finalShipping - promoDiscount;
-
+    const taxTotal = cart.reduce(
+      (sum, item) =>
+        sum +
+        ((getAfterDiscount(item) *
+          ((Number(item.cgst) || 0) + (Number(item.sgst) || 0))) /
+          100) *
+        item.qty,
+      0
+    );
+    const finalAmount = totalAfterDiscount + taxTotal + FinalShipping - (promoDiscount || 0);
+  
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => {
     setMounted(true);
@@ -441,7 +437,7 @@ const CartDetails = () => {
                   Subtotal{" "}
                   <span className="text-xs text-gray-500 font-normal">
                     (INR)
-                  </span>
+                </span>
                 </span>
                 <span className="font-semibold text-base">
                   {subTotal.toFixed(2)}

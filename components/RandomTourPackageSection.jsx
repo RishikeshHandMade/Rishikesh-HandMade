@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { CalendarClock, MapPin, Heart, Bookmark, ArrowRight } from "lucide-react";
+import { CalendarClock, MapPin, Heart, Bookmark, ArrowRight, Globe } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Carousel,
@@ -563,9 +563,9 @@ const RandomTourPackageSection = () => {
                               alt={review.createdBy || 'Anonymous'}
                               className="w-14 h-14 rounded-full border-4 border-white shadow object-cover"
                             />
-                          <div className="ml-4 text-left">
-                            <div className="font-bold text-xl text-black">{review.createdBy || review.title || 'Anonymous'}</div>
-                          </div>
+                            <div className="ml-4 text-left">
+                              <div className="font-bold text-xl text-black">{review.createdBy || review.title || 'Anonymous'}</div>
+                            </div>
                           </div>
                           <div className="flex items-center gap-1">
                             {review.rating && (
@@ -619,11 +619,33 @@ const RandomTourPackageSection = () => {
                     experience: item.yearsOfExperience ? `${item.yearsOfExperience} years experience` : "",
                     location: item.address ? `${item.address.city}, ${item.address.state}` : "",
                     socials: [
-                      { icon: "/fb.png", url: item.socialPlugin?.facebook || "#" },
-                      { icon: "/insta-Tranparent.webp", url: item.socialPlugin?.instagram || "#" },
-                      { icon: "/youtube.webp", url: item.socialPlugin?.youtube || "#" },
-                      { icon: "/google.png", url: item.socialPlugin?.google || "#" },
-                      { icon: "/website.png", url: item.socialPlugin?.website || "#" }
+                      {
+                        icon: (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-facebook-icon lucide-facebook"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>
+                        ), url: item.socialPlugin?.facebook || "#"
+                      },
+                      {
+                        icon: (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-instagram-icon lucide-instagram"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
+                        ), url: item.socialPlugin?.instagram || "#"
+                      },
+                      {
+                        icon: (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-youtube-icon lucide-youtube"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" /><path d="m10 15 5-3-5-3z" /></svg>
+                        ), url: item.socialPlugin?.youtube || "#"
+                      },
+                      {
+                        icon: (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="black" viewBox="0 0 24 24">
+                            <path d="M21.35 11.1h-9.18v2.83h5.43c-.24 1.38-1.42 4.04-5.43 4.04-3.27 0-5.94-2.71-5.94-6.05s2.67-6.05 5.94-6.05c1.86 0 3.11.8 3.82 1.49l2.6-2.57C17.36 3.43 15.01 2.5 12 2.5 6.95 2.5 2.9 6.53 2.9 11.5S6.95 20.5 12 20.5c6.89 0 9.1-4.82 9.1-7.22 0-.48-.05-.8-.15-1.18z" />
+                          </svg>
+                        ), url: item.socialPlugin?.google || "#"
+                      },
+                      {
+                        icon: (
+                          <Globe />
+                        ), url: item.socialPlugin?.website || "#"
+                      },
                     ],
                   };
                   return (
@@ -679,7 +701,7 @@ const RandomTourPackageSection = () => {
                                   transitionDelay: `${i * 60}ms`
                                 }}
                               >
-                                <img src={s.icon} alt="social" className="w-7 h-7 object-contain" />
+                                {s.icon}
                               </a>
                             ))}
                           </div>
@@ -706,11 +728,33 @@ const RandomTourPackageSection = () => {
                         experience: item.yearsOfExperience ? `${item.yearsOfExperience} years experience` : "",
                         location: item.address ? `${item.address.city}, ${item.address.state}` : "",
                         socials: [
-                          { icon: "/fb.png", url: item.socialPlugin?.facebook || "#" },
-                          { icon: "/insta-Tranparent.webp", url: item.socialPlugin?.instagram || "#" },
-                          { icon: "/youtube.webp", url: item.socialPlugin?.youtube || "#" },
-                          { icon: "/google.png", url: item.socialPlugin?.google || "#" },
-                          { icon: "/website.png", url: item.socialPlugin?.website || "#" }
+                          {
+                            icon: (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-facebook-icon lucide-facebook"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>
+                            ), url: item.socialPlugin?.facebook || "#"
+                          },
+                          {
+                            icon: (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-instagram-icon lucide-instagram"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
+                            ), url: item.socialPlugin?.instagram || "#"
+                          },
+                          {
+                            icon: (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-youtube-icon lucide-youtube"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" /><path d="m10 15 5-3-5-3z" /></svg>
+                            ), url: item.socialPlugin?.youtube || "#"
+                          },
+                          {
+                            icon: (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="black" viewBox="0 0 24 24">
+                                <path d="M21.35 11.1h-9.18v2.83h5.43c-.24 1.38-1.42 4.04-5.43 4.04-3.27 0-5.94-2.71-5.94-6.05s2.67-6.05 5.94-6.05c1.86 0 3.11.8 3.82 1.49l2.6-2.57C17.36 3.43 15.01 2.5 12 2.5 6.95 2.5 2.9 6.53 2.9 11.5S6.95 20.5 12 20.5c6.89 0 9.1-4.82 9.1-7.22 0-.48-.05-.8-.15-1.18z" />
+                              </svg>
+                            ), url: item.socialPlugin?.google || "#"
+                          },
+                          {
+                            icon: (
+                              <Globe />
+                            ), url: item.socialPlugin?.website || "#"
+                          },
                         ],
                       };
                       return (
@@ -767,7 +811,7 @@ const RandomTourPackageSection = () => {
                                         transitionDelay: `${i * 60}ms`
                                       }}
                                     >
-                                      <img src={s.icon} alt="social" className="w-7 h-7" />
+                                      {s.icon}
                                     </a>
                                   ))}
                                 </div>
@@ -801,11 +845,33 @@ const RandomTourPackageSection = () => {
                         experience: item.yearsOfExperience ? `${item.yearsOfExperience} years experience` : "",
                         location: item.address ? `${item.address.city}, ${item.address.state}` : "",
                         socials: [
-                          { icon: "/fb.png", url: item.socialPlugin?.facebook || "#" },
-                          { icon: "/insta-Tranparent.webp", url: item.socialPlugin?.instagram || "#" },
-                          { icon: "/youtube.webp", url: item.socialPlugin?.youtube || "#" },
-                          { icon: "/google.png", url: item.socialPlugin?.google || "#" },
-                          { icon: "/website.png", url: item.socialPlugin?.website || "#" }
+                          {
+                            icon: (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-facebook-icon lucide-facebook"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>
+                            ), url: item.socialPlugin?.facebook || "#"
+                          },
+                          {
+                            icon: (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-instagram-icon lucide-instagram"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
+                            ), url: item.socialPlugin?.instagram || "#"
+                          },
+                          {
+                            icon: (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-youtube-icon lucide-youtube"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" /><path d="m10 15 5-3-5-3z" /></svg>
+                            ), url: item.socialPlugin?.youtube || "#"
+                          },
+                          {
+                            icon: (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="black" viewBox="0 0 24 24">
+                                <path d="M21.35 11.1h-9.18v2.83h5.43c-.24 1.38-1.42 4.04-5.43 4.04-3.27 0-5.94-2.71-5.94-6.05s2.67-6.05 5.94-6.05c1.86 0 3.11.8 3.82 1.49l2.6-2.57C17.36 3.43 15.01 2.5 12 2.5 6.95 2.5 2.9 6.53 2.9 11.5S6.95 20.5 12 20.5c6.89 0 9.1-4.82 9.1-7.22 0-.48-.05-.8-.15-1.18z" />
+                              </svg>
+                            ), url: item.socialPlugin?.google || "#"
+                          },
+                          {
+                            icon: (
+                              <Globe />
+                            ), url: item.socialPlugin?.website || "#"
+                          },
                         ],
                       };
                       return (
@@ -862,7 +928,7 @@ const RandomTourPackageSection = () => {
                                         transitionDelay: `${i * 60}ms`
                                       }}
                                     >
-                                      <img src={s.icon} alt="social" className="w-7 h-7" />
+                                      {s.icon}
                                     </a>
                                   ))}
                                 </div>

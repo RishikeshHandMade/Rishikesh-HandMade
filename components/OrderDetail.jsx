@@ -25,6 +25,7 @@ function formatDateTime(dt) {
 }
 
 const OrderDetail = ({ order }) => {
+
   if (!order) {
     return (
       <div className="text-center text-red-500 mt-10">
@@ -70,12 +71,12 @@ const OrderDetail = ({ order }) => {
       <div className="flex items-start gap-4">
         <div className="flex flex-col items-center">
           {(orderData.product?.image || (orderData.products && orderData.products[0]?.image?.url)) ? (
-  <img
-    src={orderData.product?.image || (orderData.products && orderData.products[0]?.image?.url)}
-    alt="product"
-    className="w-16 h-16 rounded-lg border mb-2"
-  />
-) : null}
+            <img
+              src={orderData.product?.image || (orderData.products && orderData.products[0]?.image?.url)}
+              alt="product"
+              className="w-16 h-16 rounded-lg border mb-2"
+            />
+          ) : null}
           <span className="w-4 h-4 bg-pink-500 rounded-full border-2 border-white mt-1"></span>
         </div>
         <div className="flex-1">
@@ -139,22 +140,20 @@ const OrderDetail = ({ order }) => {
             {(orderData.history || []).map((step, idx) => (
               <li key={idx} className="mb-10 ml-4">
                 <span
-                  className={`absolute -left-6 top-1 flex items-center justify-center w-6 h-6 rounded-full border-2 ${
-                    step.status === "success"
+                  className={`absolute -left-6 top-1 flex items-center justify-center w-6 h-6 rounded-full border-2 ${step.status === "success"
                       ? "bg-green-100 border-green-500"
                       : step.status === "fail"
-                      ? "bg-pink-100 border-pink-500"
-                      : "bg-gray-100 border-gray-400"
-                  }`}
+                        ? "bg-pink-100 border-pink-500"
+                        : "bg-gray-100 border-gray-400"
+                    }`}
                 >
                   <span
-                    className={`w-3 h-3 rounded-full block ${
-                      step.status === "success"
+                    className={`w-3 h-3 rounded-full block ${step.status === "success"
                         ? "bg-green-500"
                         : step.status === "fail"
-                        ? "bg-pink-500"
-                        : "bg-gray-400"
-                    }`}
+                          ? "bg-pink-500"
+                          : "bg-gray-400"
+                      }`}
                   ></span>
                 </span>
                 <div className="font-bold text-[16px] mb-1">{step.label}</div>

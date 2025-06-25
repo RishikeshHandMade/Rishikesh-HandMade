@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import { statesIndia } from "@/lib/IndiaStates";
-
+import Image from "next/image";
 const Profile = () => {
   // Ensure sortedStates is a sorted copy for dropdown
   const sortedStates = [...statesIndia].sort();
@@ -101,9 +101,11 @@ const Profile = () => {
       {/* Header */}
       <div className="flex items-center gap-5 mb-6 border-b pb-6">
         <div className="relative">
-          <img
+          <Image
             src={user.image}
             alt="avatar"
+            width={96}
+            height={96}
             className="w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover"
           />
           {/* <button className="absolute -top-2 -left-2 bg-pink-600 text-white w-8 h-8 rounded-full flex items-center justify-center border-4 border-[#fcf7f1] shadow"><svg xmlns='http://www.w3.org/2000/svg' className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13h3l8-8a2.828 2.828 0 00-4-4l-8 8v3h3z" /></svg></button> */}

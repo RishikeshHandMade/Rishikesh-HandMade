@@ -46,7 +46,9 @@ export async function POST(request) {
                 orderId: razorpayOrder.id,
                 status: "Pending",
                 payment: "online",
-                paymentMethod: "razorpay"
+                paymentMethod: "razorpay",
+                agree: true, // Always set agree true for online orders
+                email: customer?.email // Always set email for online orders
             });
         } catch (dbErr) {
             console.error("Failed to save order in DB:", dbErr);
@@ -149,6 +151,13 @@ export async function PUT(request) {
             order.bank = paymentDetails.bank || null;
             order.cardType = paymentDetails.card?.type || null;
         }
+        // Always set email for online orders (on update)
+        if (formFields && formFields.email) {
+            order.email = formFields.email;
+        } else if (user && user.email) {
+            order.email = user.email;
+        } // else leave as-is if already present
+        order.agree = true; // Always set agree true for online orders (on update)
         await order.save();
         // Return user-facing orderId and payment details
         return NextResponse.json({

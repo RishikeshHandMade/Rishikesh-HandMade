@@ -36,6 +36,7 @@ const AllOrders = () => {
     const [error, setError] = useState(null);
     const [selectedOrder, setSelectedOrder] = useState(null);
     const router = useRouter();
+    console.log(orders)
     useEffect(() => {
         setLoading(true);
         fetch("/api/orders")
