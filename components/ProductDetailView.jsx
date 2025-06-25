@@ -644,7 +644,7 @@ export default function ProductDetailView({ product }) {
             })}
           </div>
           {/* Pincode check UI */}
-          <div className="my-4">
+          <div className="">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-base font-medium flex items-center gap-1">
                 <MapPin size={18} className="inline-block" />
@@ -725,27 +725,27 @@ export default function ProductDetailView({ product }) {
             )}
           </div>
           {/* Tags, etc. */}
-          <div className="mb-4">
-            <div className="text-sm mb-1">
-              <span className="block font-semibold text-lg mb-2">Category:</span>
-              <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto pr-1">
-                {Array.isArray(product.categoryTag?.tags) && product.categoryTag.tags.length > 0 ? (
-                  product.categoryTag.tags.map((tag, index) => (
-                    <span
-                      key={index}
-                      className="bg-gray-200 text-black font-medium px-3 py-1 rounded-full text-sm"
-                    >
-                      {tag}
-                    </span>
-                  ))
-                ) : (
-                  <span className="bg-gray-200 text-black font-medium px-3 py-1 rounded-full text-sm">
-                    {"No Category"}
-                  </span>
-                )}
+          {product.categoryTag && (
+            <div className="mb-4">
+              <div className="text-sm mb-1">
+                <span className="block font-semibold text-lg mb-2">Category:</span>
+                <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto pr-1">
+                  {Array.isArray(product.categoryTag?.tags) && product.categoryTag.tags.length > 0 ? (
+                    product.categoryTag.tags.map((tag, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800"
+                      >
+                        {tag}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-gray-500">No categories</span>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
       {/* RIGHT: Price/Offers/Add to Cart Box */}

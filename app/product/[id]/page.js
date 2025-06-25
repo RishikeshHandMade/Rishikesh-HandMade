@@ -2,8 +2,6 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { SidebarInset } from "@/components/ui/sidebar"
 import ResponsiveFeaturedCarousel from "@/components/ResponsiveFeaturedCarousel"
-// import ProductInfoTabs from "@/components/ProductInfoTabs";
-import RelatedProductsCarousel from "@/components/RelatedProductsCarousel";
 import StickyAddToCartBar from "@/components/StickyAddToCartBar"
 import ProductDetailView from "@/components/ProductDetailView";
 import ProductInfoTabs from "@/components/ProductInfoTabs";
@@ -13,13 +11,16 @@ import { CategoryCarousel } from "@/components/Category/category-card";
 const ProductDetailPage = async ({ params }) => {
     // Get the product slug from the URL and decode it
     let { id } = await params;
-    const decodedSlug = decodeURIComponent(id);
     // console.log(decodedSlug)
-    const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/product/${decodedSlug}`;
-    // console.log('Fetching product with slug:', decodedSlug, 'API URL:', apiUrl);
+    const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/product/${id}`;
     // Fetch the product by its slug using the API route
     const res = await fetch(apiUrl, { cache: 'no-store' });
-    const product = await res.json();
+    let product;
+    try {
+      product = await res.json();
+    } catch {
+      product = {};
+    }
     // console.log('Fetched product:', product);
 
     // If product not found, show not found message
@@ -67,46 +68,47 @@ const ProductDetailPage = async ({ params }) => {
         }
     } catch (error) {
     }
-
-
-
-
     // Render the product details page
     return (
         <SidebarInset>
-            <div className="w-full px-4 py-8 flex flex-col">
-                <div className="space-y-4">
+            <div className="w-full py-8 flex flex-col">
+                <div className="space-y-4 px-4">
                     <ProductDetailView product={product} />
                 </div>
                 <div className="space-y-4">
-                    <ProductVideo productData={product} productId={product._id} />
+                    <ProductVideo product={product} />
                 </div>
                 <div className="space-y-4">
                     <ProductInfoTabs product={product} />
                 </div>
                 {/* <ResponsiveFeaturedCarousel /> */}
                 {frequentlyBoughtTogether && frequentlyBoughtTogether.length > 0 && (
-                    <div className="mt-8 px-4 py-2 bg-[#fafafa]">
-                        <h2 className=" text-2xl md:text-4xl font-semibold px-4">Frequently Bought Together</h2>
+                    <div className="mt-8 px-4 py-10 bg-blue-100">
+                        <h2 className=" text-2xl md:text-3xl font-semibold px-10">Frequently Bought Together</h2>
                         <ResponsiveFeaturedCarousel products={frequentlyBoughtTogether} />
                     </div>
                 )}
                 {/* Category Cards Row */}
-                <CategoryCarousel
-                    categories={
-                        Array.isArray(allCategories)
-                            ? allCategories.flatMap(cat =>
-                                Array.isArray(cat.subMenu)
-                                    ? cat.subMenu.map(sub => ({
-                                        title: sub.title,
-                                        profileImage: sub.profileImage,
-                                        url: `/category/${sub.url}`
-                                    }))
+                {allCategories && allCategories.length > 0 && (
+                    <div className="mt-8 px-4 py-5">
+                        <h2 className=" text-2xl md:text-3xl font-semibold px-10">Categories</h2>
+                        <CategoryCarousel
+                            categories={
+                                Array.isArray(allCategories)
+                                    ? allCategories.flatMap(cat =>
+                                        Array.isArray(cat.subMenu)
+                                            ? cat.subMenu.map(sub => ({
+                                                title: sub.title,
+                                                profileImage: sub.profileImage,
+                                                url: `/category/${sub.url}`
+                                            }))
+                                            : []
+                                    )
                                     : []
-                            )
-                            : []
-                    }
-                />
+                            }
+                        />
+                    </div>
+                )}
                 <StickyAddToCartBar product={product} />
             </div>
         </SidebarInset>

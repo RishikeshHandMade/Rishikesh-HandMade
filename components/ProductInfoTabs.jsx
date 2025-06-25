@@ -398,8 +398,8 @@ export default function ProductInfoTabs({ product }) {
                     <button
                         key={tab.label}
                         className={`w-full sm:w-auto py-2 sm:py-3 px-2 sm:px-4 text-base sm:text-lg font-semibold focus:outline-none transition relative whitespace-nowrap ${activeTab === idx
-                                ? "text-black border-b-2 border-black"
-                                : "text-gray-900"
+                            ? "text-black border-b-2 border-black"
+                            : "text-gray-900"
                             }`}
                         onClick={() => setActiveTab(idx)}
                     >
@@ -407,7 +407,7 @@ export default function ProductInfoTabs({ product }) {
                     </button>
                 ))}
             </div>
-            <div className="py-4 px-6 text-sm text-gray-700 min-h-[64px] w-full md:w-[80%] mx-auto text-start">
+            <div className="py-4 px-6 text-md text-gray-700 min-h-[64px] w-full md:w-[80%] mx-auto text-start">
                 {tabs[activeTab]
                     ? (activeTab < tabs.length - 1
                         ? <div dangerouslySetInnerHTML={{ __html: tabs[activeTab].content }} />

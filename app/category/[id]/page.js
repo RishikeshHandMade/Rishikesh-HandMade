@@ -2,6 +2,7 @@ import { Suspense } from "react"
 
 import CategoryBanner from "@/components/Category/category-banner"
 import PackageCard from "@/components/Category/package-card"
+import CategoryProducts from "@/components/CategoryProducts"
 import { Skeleton } from "@/components/ui/skeleton"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -102,37 +103,13 @@ const CategoryPage = async ({ params }) => {
                     )) : []
                   )}
                 </CarouselContent>
-                {/* <CarouselPrevious /> */}
-                {/* <CarouselNext /> */}
+                <CarouselNext className="!right-2 !top-1/2 !-translate-y-1/2 z-10 " />
+                <CarouselPrevious className="!left-1 !top-1/2 !-translate-y-1/2 z-10" />
               </Carousel>
             </div>
             < div className="h-[1px] bg-gray-300"></div>
             {/* Product Cards Row */}
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 my-4">
-              {visibleProducts.length === 0 ? (
-                <div className="col-span-full text-center py-8">
-                  <h3 className="text-xl font-medium text-gray-600">No products found for this category</h3>
-                  <p className="mt-2 text-gray-500">Please try another category</p>
-                </div>
-              ) : (
-                <Suspense fallback={<PackageCardSkeleton count={3} />}>
-                  {visibleProducts.map((item, index) => (
-                    <PackageCard
-                      key={index}
-                      pkg={{
-                        ...item,
-                        name: item.title,
-                        image: item.gallery?.mainImage.url,
-                        price: (item.quantity && Array.isArray(item.quantity.variants) && item.quantity.variants.length > 0 ? item.quantity.variants[0].price : 0),
-                        originalPrice: item.quantity?.originalPrice,
-                        coupon: item.coupon,
-                      }}
-                    />
-                  ))}
-                </Suspense>
-              )}
-
-            </div>
+            <CategoryProducts visibleProducts={visibleProducts} />
           </div>
         </div>
       </div>

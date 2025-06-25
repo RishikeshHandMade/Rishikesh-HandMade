@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Star, Eye, Globe } from 'lucide-react';
 import {
@@ -97,7 +97,13 @@ const ArtisanList = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [page, setPage] = useState(1);
     const pageSize = 6; // for second row pagination
-    console.log(artisan)
+    const gridRef = useRef(null);
+    useEffect(() => {
+        if (gridRef.current) {
+            gridRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    }, [page]);
+    // console.log(artisan)
 
     // Fetch Artisan (copied from RandomTourPackageSection)
     useEffect(() => {
@@ -130,13 +136,20 @@ const ArtisanList = () => {
     const startIdx = 6 + (page - 1) * pageSize + 1;
     const endIdx = Math.min(6 + page * pageSize, artisan.length);
 
+    if (isLoading) {
+        return (
+            <div className="w-full min-h-screen flex items-center justify-center bg-white">
+                <div className="text-2xl font-bold text-gray-600 animate-pulse">Loading artisans...</div>
+            </div>
+        );
+    }
     return (
-        <div className="w-full min-h-screen bg-white">
+        <div className="w-full min-h-screen bg-white " ref={gridRef}>
             <BannerSection />
             {/* Below banner: left text, right carousel */}
-            <div className="w-full max-w-[1500px] mx-auto">
+            <div className="w-full max-w-[1500px] mx-auto ">
                 {/* Row 1: First 6 artisans */}
-                <div className="flex flex-col md:flex-row w-full">
+                <div className="flex flex-col md:flex-row w-full bg-black">
                     <LeftTextBlock />
                     <div className="flex-1 w-full px-2 flex flex-col overflow-hidden">
                         {isLoading ? (
@@ -212,19 +225,21 @@ const ArtisanList = () => {
                 )}
                 {/* Row 2: Feature Table (full width) */}
                 {artisan.length > 6 && (
-                    <div className="w-full flex flex-row gap-2 bg-gray-200">
+                    <div className="w-full flex flex-row gap-2 md:w-[90%] mx-auto">
                         <div className="left w-[25%] p-2">
                             {/* Left: Heading and description */}
-                            <div className="flex flex-col justify-center">
-                                <h2 className="text-3xl font-bold mb-4">Celebrating the Art of Craftsmanship. Honoring the Hands That Shape Beauty</h2>
-                                <div className="text-lg text-gray-700 text-justify mb-6">
+                            <div className="flex flex-col justify-center px-4">
+                                <h2 className="text-xl font-bold mb-4">Celebrating the Art of Craftsmanship. Honoring the Hands That Shape Beauty</h2>
+                                <div className="text-md text-gray-700 text-justify mb-6">
                                     We are proud to recognize and celebrate your exceptional talent and dedication as a skilled handicraft artisan. Your ability to transform raw materials into beautiful, meaningful works of art speaks to your creativity, precision, and passion for the craft. Each piece you create is a testament to the enduring value of handmade artistry and the cultural richness it preserves. With deep appreciation, we commend you for achieving this milestone and look forward to witnessing your continued journey of artistic excellence.
                                 </div>
-                                <Link href="/contact" className="bg-black text-white py-3 px-6 rounded-lg font-semibold text-lg w-fit mb-6">Join Our Team</Link>
                             </div>
                         </div>
                         <div className="right w-[75%] p-2">
-                            {paginatedArtisans.map((item, idx) => {
+                            {(page === 1
+                                ? artisan.slice(6)
+                                : paginatedArtisans
+                            ).map((item, idx) => {
                                 return (
                                     <div key={item._id || idx} className="relative flex flex-col md:flex-row bg-[#f8f5ef] rounded-2xl my-2 md:items-center gap-6">
                                         {/* Image */}
@@ -236,55 +251,64 @@ const ArtisanList = () => {
                                             />
                                         </div>
                                         {/* Details */}
-                                        <div className="flex-1 flex flex-col gap-2 py-2 justify-center">
-
+                                        <div className="flex-1 flex flex-col gap-2 justify-center">
                                             {/* Name and Specializations */}
-                                            <div className="flex flex-col md:flex-row md:items-center md:gap-4 justify-between">
-                                                <div className="flex flex-col">
-                                                    <div className="flex items-center justify-between gap-20 mb-1 w-full">
-                                                        <div>
-                                                            <h3 className="block text-2xl font-extrabold text-gray-900 m-0 p-0">
-                                                                {`${item.title ? item.title + " " : ""}${item.firstName || ''} ${item.lastName || ''}`.trim() || "Unknown Artisan"}
-                                                            </h3>
-                                                        </div>
-                                                        <div className="flex items-center j gap-1 flex-shrink-0">
-                                                            {(() => {
-                                                                const avgRating = item.promotions && item.promotions.length > 0
-                                                                    ? item.promotions.reduce((sum, p) => sum + (p.rating || 0), 0) / item.promotions.length
+                                            <div className="flex flex-col">
+                                                <div className="flex items-center justify-between gap-4 mb-1 w-full">
+                                                    {/* Name directly here without extra wrapping div */}
+                                                    <h3 className="text-2xl font-extrabold text-gray-900 m-0 p-0">
+                                                        {`${item.title ? item.title + " " : ""}${item.firstName || ''} ${item.lastName || ''}`.trim() || "Unknown Artisan"}
+                                                    </h3>
+                                                    {/* Reviews with stars */}
+                                                    <div className="flex items-center gap-1 flex-shrink-0">
+                                                        {(() => {
+                                                            const avgRating =
+                                                                item.promotions && item.promotions.length > 0
+                                                                    ? item.promotions.reduce((sum, p) => sum + (p.rating || 0), 0) /
+                                                                    item.promotions.length
                                                                     : 0;
-                                                                return [...Array(5)].map((_, i) => (
-                                                                    <Star
-                                                                        key={i}
-                                                                        size={20}
-                                                                        className={i < avgRating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}
-                                                                        fill={i < avgRating ? '#facc15' : 'none'}
-                                                                    />
-                                                                ));
-                                                            })()}
-                                                            <span className="ml-2 text-gray-500 text-sm">
-                                                                {item.promotions?.length || 0} Reviews
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex flex-wrap gap-2 mb-2">
-                                                        {(item.specializations && item.specializations.length > 0 ? item.specializations : ["No Specialization"]).map((spec, i) => (
-                                                            <span key={i} className="bg-[#fff7f0] text-[#ff4f00] font-medium px-2 rounded-full text-sm border border-[#ff4f00]">{spec}</span>
-                                                        ))}
+                                                            return [...Array(5)].map((_, i) => (
+                                                                <Star
+                                                                    key={i}
+                                                                    size={18}
+                                                                    className={i < avgRating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}
+                                                                    fill={i < avgRating ? "#facc15" : "none"}
+                                                                />
+                                                            ));
+                                                        })()}
+                                                        <span className="ml-2 text-gray-500 text-sm">
+                                                            {item.promotions?.length || 0} Reviews
+                                                        </span>
                                                     </div>
                                                 </div>
+                                                {/* Specializations */}
+                                                <div className="flex flex-wrap gap-2">
+                                                    {(item.specializations && item.specializations.length > 0
+                                                        ? item.specializations
+                                                        : ["No Specialization"]
+                                                    ).map((spec, i) => (
+                                                        <span
+                                                            key={i}
+                                                            className="bg-[#fff7f0] text-[#ff4f00] font-medium px-2 rounded-full text-sm border border-[#ff4f00]"
+                                                        >
+                                                            {spec}
+                                                        </span>
+                                                    ))}
+                                                </div>
                                             </div>
-                                            <div className="flex gap-4">
-                                                <div className="font-bold text-md md:text-xl mt-1 flex items-center pr-2">SHG: <span className="font-normal text-md">{item.shgName || 'No SHG Name Avaiable'}</span></div>
-                                                <div className="font-bold text-md md:text-xl mt-1 flex items-center"> Artisan Number: <span className="font-normal text-md">{item.artisanNumber || 'Artisan Number Not Available'}</span></div>
+                                            <div className="flex gap-2">
+                                                <div className="font-bold text-md flex items-center pr-2">SHG Name: <span className="font-normal text-md">{item.shgName || 'No SHG Name Avaiable'}</span></div>
+                                                <div className="font-bold text-md flex items-center"> Artisan No: <span className="font-normal text-md">{item.artisanNumber || 'Artisan Number Not Available'}</span></div>
                                             </div>
-                                            <div className="mt-2 text-lg font-bold text-black">{item.yearsOfExperience || '0'} Years of Experience</div>
-                                            <div className="font-bold text-md md:text-xl h-14 overflow-y-auto">Address: <span className="font-normal text-md">{item.address?.fullAddress || 'No Address'}</span></div>
-                                            <div className="flex gap-4">
-                                                <div className="font-bold text-md md:text-xl">City: <span className="font-normal text-md">{item.address?.city || 'No City'}</span></div>
-                                                <div className="font-bold text-md md:text-xl">State: <span className="font-normal text-md">{item.address?.state || 'No State'}</span></div>
+                                            <div className="text-lg font-bold text-black">{item.yearsOfExperience || '0'} Years of Experience</div>
+                                            <div className="font-bold text-md">
+                                                {(item.artisanStories?.shortDescription?.split(" ").length > 40)
+                                                    ? item.artisanStories.shortDescription.split(" ").slice(0, 40).join(" ") + "..."
+                                                    : item.artisanStories?.shortDescription || "No Story"}
                                             </div>
+
                                             {/* Social icons top right */}
-                                            <div className="flex justify-start gap-2 mb-2">
+                                            <div className="flex justify-start gap-2 my-2">
                                                 {item.socialPlugin?.facebook && (
                                                     <a href={item.socialPlugin.facebook} target="_blank" rel="noopener noreferrer" title="Facebook">
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-facebook-icon lucide-facebook"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>
@@ -348,16 +372,6 @@ const ArtisanList = () => {
                                                 NEXT
                                             </button>
                                         </div>
-                                    </div>
-                                    {/* Cards */}
-                                    <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
-                                        {paginatedArtisans.map((item, idx) => (
-                                            // ...existing card rendering logic...
-                                            <div key={item._id || idx + 1000} className="relative flex flex-col md:flex-row bg-[#f8f5ef] rounded-2xl md:items-center gap-6">
-                                                {/* Image and Details code here (reuse your card layout) */}
-                                                {/* ... */}
-                                            </div>
-                                        ))}
                                     </div>
                                 </div>
                             )}

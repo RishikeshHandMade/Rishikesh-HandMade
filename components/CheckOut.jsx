@@ -159,8 +159,6 @@ const CheckOut = () => {
         currency: "INR",
         receipt: `order_${Date.now()}`,
         agree: true, // Always set agree true for online orders
-        // instructions: formFields.instructions || '',
-        // Add any additional fields as needed
       };
       let orderResponse;
       try {

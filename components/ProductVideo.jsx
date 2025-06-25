@@ -7,31 +7,12 @@ const getYouTubeId = (url) => {
   return match ? match[1] : null;
 };
 
-const ProductVideo = ({ productData, productId }) => {
-  const [videos, setVideos] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchVideos() {
-      setLoading(true);
-      try {
-        const res = await fetch(`/api/productVideo?productId=${productId}`);
-        const data = await res.json();
-        setVideos(data?.video?.videos || []);
-      } catch (err) {
-        setVideos([]);
-      } finally {
-        setLoading(false);
-      }
-    }
-    if (productId) fetchVideos();
-  }, [productId]);
-
-  if (loading) return <div className="py-8 text-center">Loading videos...</div>;
+const ProductVideo = ({ product }) => {
+  const videos = product?.video?.videos || [];
   if (!videos.length) return null;
 
   return (
-    <div className="w-full md:px-10 mx-auto py-10">
+    <div className="w-full md:px-10 mx-auto py-10 bg-blue-100">
       {videos.map((video, idx) => {
         const videoId = getYouTubeId(video.url);
         const isEven = idx % 2 === 1;

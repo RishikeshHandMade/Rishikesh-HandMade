@@ -415,7 +415,7 @@ export default function QuickViewProductCard({ product, onClose }) {
               ))
             ) : (
               <span className="bg-gray-200 text-black font-semibold px-4 py-2 rounded-full text-sm shadow-sm border border-gray-300 whitespace-nowrap">
-                {product.category || "No Category"}
+                {"No Category"}
               </span>
             )}
           </div>
