@@ -17,8 +17,8 @@ import Autoplay from "embla-carousel-autoplay";
 import QuickViewProductCard from "./QuickViewProductCard";
 import { useCart } from "../context/CartContext";
 import { toast } from "react-hot-toast"
-import { Star } from 'lucide-react';
-import ReviewModal from "./ReviewModal";
+
+
 
 function slugify(text) {
   return text
@@ -71,43 +71,8 @@ const RandomTourPackageSection = () => {
   };
 
   // ...existing state
-  const [showReviewModal, setShowReviewModal] = useState(false);
+ 
   const { addToCart, addToWishlist, removeFromWishlist, wishlist } = useCart();
-  const [customReview, setcustomReview] = useState([]);
-  const [isLoadingPromotions, setIsLoadingPromotions] = useState(true);
-  const [isLoadingReviews, setIsLoadingReviews] = useState(true);
-  const [allReviews, setAllReviews] = useState([]);
-  // State and effect for fetching all reviews
-
-  const artisanReviews = [...customReview, ...allReviews];
-
-  // Normalize reviews to a standard format
-  function normalizeReview(review) {
-    // Backend reviews (MongoDB)
-    if (review.thumb || review.description) {
-      return {
-        _id: review._id || Math.random().toString(36).substr(2, 9),
-        rating: review.rating,
-        title: review.title || review.name || 'No Title',
-        shortDescription: review.description || review.shortDescription || '',
-        image: review.thumb?.url || '/placeholder-user.jpg',
-        createdBy: review.name || review.title || 'Anonymous',
-      };
-    }
-    // Static/dummy reviews or other format
-    return {
-      _id: review._id || Math.random().toString(36).substr(2, 9),
-      rating: review.rating,
-      title: review.title || 'No Title',
-      shortDescription: review.shortDescription || '',
-      image: review.image || '/placeholder-user.jpg',
-      createdBy: review.createdBy || review.title || 'Anonymous',
-    };
-  }
-
-  const normalizedReviews = artisanReviews.map(normalizeReview);
-
-
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -128,42 +93,8 @@ const RandomTourPackageSection = () => {
   }, [quickViewProduct]);
 
 
-  // Fetch Promotions
-  const fetchPromotions = async () => {
-    try {
-      const res = await fetch("/api/promotion");
-      const data = await res.json();
 
-      if (data.success && Array.isArray(data.promotions)) {
-        setAllReviews(data.promotions);
-      } else {
-        setAllReviews([]);
-      }
-    } catch (error) {
-      console.error("Error fetching promotions:", error);
-      setAllReviews([]);
-    } finally {
-      setIsLoadingPromotions(false);
-    }
-  };
-  // Fetch Reviews
-  const fetchReviews = async () => {
-    try {
-      const res = await fetch("/api/saveReviews");
-      const data = await res.json();
-
-      if (data.success && Array.isArray(data.reviews)) {
-        setcustomReview(data.reviews);
-      } else {
-        setcustomReview([]);
-      }
-    } catch (error) {
-      console.error("Error fetching reviews:", error);
-      setcustomReview([]);
-    } finally {
-      setIsLoadingReviews(false);
-    }
-  };
+ 
   // Fetch Artisan 
   const fetchArtisan = async () => {
     try {
@@ -208,8 +139,6 @@ const RandomTourPackageSection = () => {
   useEffect(() => {
     fetchArtisan();
     fetchProducts();
-    fetchPromotions();
-    fetchReviews();
   }, []);
 
   if (isLoading) {
@@ -456,144 +385,10 @@ const RandomTourPackageSection = () => {
             <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 p-5" />
           </Carousel>
         </div>
-        {/* Reviews Section */}
-        <div className="w-full mx-auto relative min-h-[600px] flex items-center justify-end relative">
-          {/* Background Image */}
-          <div className="hidden md:flex absolute inset-0 w-full h-full z-0">
-            <img
-              src="/blogs.jpg"
-              alt="Happy client"
-              className="w-full h-full object-cover bg-[#FCEED5]"
-              style={{ objectPosition: 'top' }}
-            />
-          </div>
-
-          {/* Review Card Overlay */}
-          <div className="hidden md:flex absolute right-1 gap-2 top-[30%] z-10 flex flex-col justify-start w-full md:w-1/2 items-end pr-1">
-            <div className="button px-10">
-              <Button className="bg-white text-black hover:bg-black hover:text-white transition-colors duration-300" onClick={() => setShowReviewModal(true)}>Write Reviews</Button>
-            </div>
-            <Carousel className="w-full md:w-[600px]"
-              plugins={[Autoplay({ delay: 4000 })]}>
-
-              <CarouselContent className="w-full">
-                {(normalizedReviews && normalizedReviews.length > 0 ? normalizedReviews : [].map(normalizeReview)).map((review, idx) => (
-                  <CarouselItem
-                    key={review._id}
-                    className="min-w-0 snap-center w-full"
-                  >
-                    <div className="bg-white rounded-3xl px-8 py-5 flex flex-col justify-between h-full min-h-[320px] relative overflow-visible">
-                      {/* Review text */}
-                      <div className="text-md md:text-2xl text-gray-800 font-bold leading-relaxed text-left">
-                        {review.title || 'No review text.'}
-                      </div>
-                      <div className="text-md md:text-md text-gray-800 font-medium leading-relaxed text-left">
-                        {review.shortDescription || 'No review text.'}
-                      </div>
-                      {/* Bottom row: avatar, name, subtitle, nav buttons */}
-
-                      {/* Avatar, Name, Subtitle */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <img
-                            src={review.image?.url || "/placeholder.jpeg"}
-                            alt={review.createdBy || 'Anonymous'}
-                            className="w-14 h-14 rounded-full border-4 border-white shadow object-cover"
-                          />
-                          <div className="ml-4 text-left">
-                            <div className="font-bold text-xl text-black">{review.createdBy || review.title || 'Anonymous'}</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          {review.rating && (
-                            <>
-                              {[...Array(review.rating)].map((_, i) => (
-                                <Star key={i} size={22} className="text-yellow-400 fill-yellow-400" />
-                              ))}
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
-            </Carousel>
-          </div>
-
-          {/* Review Card (Mobile) */}
-          <div className="block md:hidden gap-2 flex flex justify-start w-full md:w-1/2 items-end pr-1">
-
-            <Carousel className="w-full md:w-[600px]"
-              plugins={[Autoplay({ delay: 4000 })]}>
-
-              <CarouselContent className="w-full">
-                {(normalizedReviews && normalizedReviews.length > 0 ? normalizedReviews : [
-                  {
-                    _id: 1,
-                    rating: 3,
-                    title: 'No Review',
-                    subtitle: 'No Subtitle',
-                    shortDescription: "No Review",
-                    image: '/placeholder.jpeg',
-                  },
-                ].map(normalizeReview)).map((review, idx) => (
-                  <CarouselItem
-                    key={review._id}
-                    className="min-w-0 snap-center w-full"
-                  >
-                    <div className="bg-white rounded-3xl px-8 py-5 flex flex-col justify-between h-full md:min-h-[320px] relative overflow-visible">
-                      {/* Review text */}
-
-                      <div className="text-md md:text-2xl text-gray-800 font-bold leading-relaxed mt-4 text-left">
-                        {review.title || 'No review text.'}
-                      </div>
-                      <div className="text-md text-gray-800 font-medium leading-relaxed my-2 text-left">
-                        {review.shortDescription || 'No review text.'}
-                      </div>
-                      {/* Bottom row: avatar, name, subtitle, nav buttons */}
-                      <div className="flex items-center justify-between w-full mt-auto">
-                        {/* Avatar, Name, Subtitle */}
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2">
-                            <img
-                              src={review.image || "/placeholder.jpeg"}
-                              alt={review.createdBy || 'Anonymous'}
-                              className="w-14 h-14 rounded-full border-4 border-white shadow object-cover"
-                            />
-                            <div className="ml-4 text-left">
-                              <div className="font-bold text-xl text-black">{review.createdBy || review.title || 'Anonymous'}</div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            {review.rating && (
-                              <>
-                                {[...Array(review.rating)].map((_, i) => (
-                                  <Star key={i} size={22} className="text-yellow-400 fill-yellow-400" />
-                                ))}
-                              </>
-                            )}
-                          </div>
-                        </div>
-
-                      </div>
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
-            </Carousel>
-            <div className="button">
-              <Button className="absolute top-0 right-0 bg-white text-black hover:bg-black hover:text-white transition-colors duration-300" onClick={() => setShowReviewModal(true)}>Write Reviews</Button>
-            </div>
-          </div>
-        </div>
+       
 
         {/* Artisan Carousel Section */}
-        <div className="w-full bg-blue-100 py-20">
+        <div className="w-full py-10">
           {/* Desktop: Grid/List */}
           <div className="w-full max-w-[90%] mx-auto mb-16">
             <div className="flex flex-col md:flex-row items-start gap-5">
@@ -967,11 +762,6 @@ const RandomTourPackageSection = () => {
           </div>
         )}
 
-        <ReviewModal
-          open={showReviewModal}
-          onClose={() => setShowReviewModal(false)}
-          onSubmit={(data) => { setShowReviewModal(false); toast.success('Review submitted!'); }}
-        />
       </div>
     </section>
   );

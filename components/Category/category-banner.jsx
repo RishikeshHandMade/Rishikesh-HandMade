@@ -21,14 +21,8 @@ const CategoryBanner = ({ title, bannerImage, mainCategory, subCategory }) => {
         </h1>
         <div className="text-sm md:text-xl font-medium mt-1">
           <Link href="/" className="hover:underline px-1">Home</Link>
-          {title && <span className="mx-1">|</span>}
+          {title && <span className="px-1">|</span>}
           {title && <span>{title}</span>}
-          {/* {subCategory && (
-            <>
-              <span className="mx-1">|</span>
-              <span>{subCategory}</span>
-            </>
-          )} */}
         </div>
       </div>
     </div>

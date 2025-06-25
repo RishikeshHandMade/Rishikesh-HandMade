@@ -70,7 +70,7 @@ export default function SendPromoEmailPage({ allUsers = [] }) {
         }
 
         try {
-            const response = await fetch("/api/admin/send-promo-email", {
+            const response = await fetch("/api/admin/send-promo-email/route", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ subject, message, recipients: selectedEmails }),

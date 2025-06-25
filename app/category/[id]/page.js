@@ -70,8 +70,6 @@ const CategoryPage = async ({ params }) => {
   const visibleProducts = products.filter(prod => prod.active !== false);
   // console.log(visibleProducts)
   const categoryInfo = await getCategoryInfo(categoryData);
-  console.log('Category Info:', categoryInfo);
-  console.log('Category Data:', categoryData);
 
   // Fetch category advertisement banner
 
@@ -92,7 +90,6 @@ const CategoryPage = async ({ params }) => {
         title={categoryData.title} 
         bannerImage={categoryInfo.bannerImage} 
         mainCategory={categoryData.mainCategoryTitle || categoryData.title} 
-        subCategory={categoryData.title} 
       />
 
         <div className="flex flex-col md:flex-row gap-6 w-full mt-4">
