@@ -373,18 +373,18 @@ export default function ProductDetailView({ product }) {
           {!hasDiscount && (
             <span className="font-bold text-xl text-black">₹{price}</span>
           )}
+        </div>
           {/* Stock Status */}
           {(() => {
             const inStock = Array.isArray(variants) && variants.some(v => v.qty > 0);
             return (
               <span
-                className={`ml-2 px-2 py-0.5 rounded text-xs font-bold border ${inStock ? 'bg-green-100 text-green-700 border-green-400' : 'bg-red-100 text-red-700 border-red-400'}`}
+                className={`mb-2 px-2 py-0.5 rounded text-xs w-fit font-bold border ${inStock ? 'bg-green-100 text-green-700 border-green-400' : 'bg-red-100 text-red-700 border-red-400'}`}
               >
                 {inStock ? 'IN STOCK' : 'OUT OF STOCK'}
               </span>
             );
           })()}
-        </div>
         <div className="flex flex-col gap-4 mb-6">
           {/* Quantity */}
           <div className="flex items-center gap-2">
