@@ -63,7 +63,7 @@ const Banner = () => {
                         <span >Collect</span>,
                         <span>Checkout</span>
                     </h2>
-                    <p className="font-barlow text-gray-600 mb-5 w-[50%] mx-auto">From everyday essentials to the latest trends, we bring everything to your fingertips. Enjoy easy browsing, secure checkout, and doorstep delivery with exciting deals and free shipping.</p>
+                    <p className="font-barlow text-gray-600 mb-5 w-[50%] mx-auto text-center">From everyday essentials to the latest trends, we bring everything to your fingertips. Enjoy easy browsing, secure checkout, and doorstep delivery with exciting deals and free shipping.</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {promotinalBanner.map((item, idx) => (
                             <div key={idx} className="rounded-2xl flex flex-col h-[300px] md:h-[400px] p-0 overflow-hidden relative group">

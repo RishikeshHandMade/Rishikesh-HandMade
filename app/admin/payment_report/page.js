@@ -18,9 +18,9 @@ const Page = async ({ searchParams }) => {
 
     // Ensure both orders and customOrders are arrays
     const allOrders = [...(orders || []), ...(customOrders || [])];
-
+console.log(allOrders)
     const getStatusBadge = (status) => {
-        switch (status?.toLowerCase()) {
+        switch (status?.toLowerCase()) {    
             case "confirmed":
             case "paid":
             case "completed":
@@ -79,9 +79,9 @@ const Page = async ({ searchParams }) => {
                                                     : "N/A"}
                                             </TableCell>
                                             <TableCell>{order.orderId || "N/A"}</TableCell>
-                                            <TableCell>₹{order.amount ? formatNumeric(order.amount) : "N/A"}</TableCell>
-                                            <TableCell className="uppercase">{order.paymentMethod || "N/A"}</TableCell>
-                                            <TableCell>{order.packageId?.packageName || "N/A"}</TableCell>
+                                            <TableCell>₹{order.cartTotal ? formatNumeric(order.cartTotal) : "N/A"}</TableCell>
+                                            <TableCell className="uppercase">{order.paymentMethod || "COD"}</TableCell>
+                                            <TableCell>{order.product?.title || "N/A"}</TableCell>
                                             <TableCell>+91 {order.phone || order.formData?.phone || "N/A"}</TableCell>
                                             <TableCell>{getStatusBadge(order.status || "Unknown")}</TableCell>
                                         </TableRow>

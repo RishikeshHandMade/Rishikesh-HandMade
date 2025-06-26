@@ -14,12 +14,15 @@ import { CategoryCarousel } from "@/components/Category/category-card";
 const ProductDetailPage = async ({ params }) => {
   // ✅ No await here
   const id = decodeURIComponent(params.id);
-  const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/product/${id}`;
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || '';
+  const apiUrl = `${baseUrl}/api/product/${id}`;
+  console.log("[ProductDetailPage] Fetching product from:", apiUrl);
 
   let product = null;
 
   try {
     const res = await fetch(apiUrl, { cache: "no-store" });
+    // console.log(apiUrl)
 
     if (!res.ok) {
       throw new Error(`Product fetch failed: ${res.status}`);

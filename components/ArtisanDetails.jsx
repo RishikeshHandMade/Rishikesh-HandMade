@@ -125,7 +125,7 @@ const ArtisanDetails = ({ artisan }) => {
       .then(data => setOtherArtisans(data))
       .catch(err => setOtherArtisans([]));
   }, [artisan._id]);
-  console.log(artisan)
+  // console.log(artisan)
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const [showShareBox, setShowShareBox] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -171,6 +171,7 @@ const ArtisanDetails = ({ artisan }) => {
     { _id: 2, title: 'Sample Product 2', image: 'https://via.placeholder.com/120x120?text=Product+2' },
     { _id: 3, title: 'Sample Product 3', image: 'https://via.placeholder.com/120x120?text=Product+3' },
   ];
+  // console.log(products)
 
   const [showExpertModal, setShowExpertModal] = useState(false);
 

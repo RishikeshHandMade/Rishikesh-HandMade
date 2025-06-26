@@ -279,7 +279,7 @@ const CheckOut = () => {
               <td>${item.qty || 1}</td>
               <td>${item.size || '-'}</td>
               <td>${typeof item.weight !== 'undefined' && item.weight !== null ? item.weight + 'g' : '-'}</td>
-<td>${typeof item.shipping !== 'undefined' && item.shipping !== null ? item.shipping + 'g' : '-'}</td>
+<td>${typeof item.finalShipping !== 'undefined' && item.finalShipping !== null ? item.finalShipping + '₹' : '-'}</td>
 <td>₹${typeof item.price !== 'undefined' && item.price !== null ? Number(item.price).toFixed(2) : '-'}</td>
             </tr>
           `).join('') : ''}

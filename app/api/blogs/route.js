@@ -43,38 +43,6 @@ export async function POST(req) {
   }
 }
 
-// PATCH: Update a blog by ID
-// export async function PATCH(req) {
-//   await connectDB();
-//   try {
-//     const { id, ...update } = await req.json();
-//     if (!id) {
-//       return NextResponse.json({ error: 'ID is required.' }, { status: 400 });
-//     }
-//     // Optionally validate update fields if needed
-//     const updatedBlog = await Blog.findByIdAndUpdate(id, update, { new: true });
-//     if (!updatedBlog) throw new Error("Blog not found");
-//     return NextResponse.json(updatedBlog);
-//   } catch (error) {
-//     return NextResponse.json({ error: error.message }, { status: 400 });
-//   }
-// }
-
-// DELETE: Delete a blog by ID
-// export async function DELETE(req) {
-//   await connectDB();
-//   try {
-//     const { id } = await req.json();
-//     if (!id) {
-//       return NextResponse.json({ error: 'ID is required.' }, { status: 400 });
-//     }
-//     const deleted = await Blog.findByIdAndDelete(id);
-//     if (!deleted) throw new Error("Blog not found");
-//     return NextResponse.json({ success: true });
-//   } catch (error) {
-//     return NextResponse.json({ error: error.message }, { status: 400 });
-//   }
-// }
 export async function PATCH(req) {
   try {
     await connectDB();

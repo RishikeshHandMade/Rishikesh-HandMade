@@ -117,6 +117,7 @@ const data = {
       url: "/admin/news",
       icon: Rss,
     },
+    
     // Space (empty item)
     { divider: true },
 
@@ -152,6 +153,11 @@ const data = {
       url: "/admin/manage_reviews",
       icon: Star,
     },
+    {
+      name: "FAQ",
+      url: "/admin/faq",
+      icon: Star,
+    },
     { divider: true },
     {
       name: "Enquiry Order",
@@ -164,6 +170,17 @@ const data = {
       icon: ShoppingCart,
     },
     {
+      name: "COD Order Log",
+      url: "/admin/cod_order_log",
+      icon: ShoppingCart,
+    },
+    {
+      name: "Online Order Log",
+      url: "/admin/online_order_log",
+      icon: ShoppingCart,
+    },
+  
+    {
       name: "Sales Section",
       url: "/admin/sales_section",
       icon: BarChart,
@@ -174,6 +191,18 @@ const data = {
       icon: ClipboardList,
     },
     // Space (empty item)
+    { divider: true },
+    {
+      name: "Stock Management",
+      url: "/admin/stock_management",
+      icon: ClipboardList,
+    },
+    { divider: true },
+    {
+      name: "Manage Reviews Log",
+      url: "/admin/manage_review",
+      icon: MessageCircleMore,
+    },
     { divider: true },
 
     // Fourth group: Blog & pages

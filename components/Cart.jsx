@@ -197,6 +197,19 @@ export default function Cart({ open, onClose, initialTab = "cart" }) {
               </Link>
             </div>
           )}
+
+          {/* Wishlist Footer: Check Wishlist button */}
+          {tab === "wishlist" && (
+            <div className="px-6 pt-2 pb-6 border-t border-neutral-200">
+              <Link href="/wislist" className="block w-full">
+                <button
+                  className="w-full py-2 bg-black text-white rounded-lg font-semibold mt-2 hover:bg-neutral-800 transition"
+                  onClick={onClose}
+                  type="button"
+                >Check Wishlist</button>
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </>,
