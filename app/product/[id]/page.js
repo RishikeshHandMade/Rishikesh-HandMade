@@ -13,14 +13,13 @@ import { CategoryCarousel } from "@/components/Category/category-card";
 
 const ProductDetailPage = async ({ params }) => {
    // Get the product slug from the URL and decode it
-   let { id } = await params;
-   const decodedSlug = decodeURIComponent(id);
-   // console.log(decodedSlug)
-   const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/product/${decodedSlug}`;
+   const { id } = await params;
+   const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/product/${id}`;
    // console.log('Fetching product with slug:', decodedSlug, 'API URL:', apiUrl);
    // Fetch the product by its slug using the API route
    const res = await fetch(apiUrl, { cache: 'no-store' });
    const product = await res.json();
+   console.log(product)
   // ✅ Fallback if product not found
   if (!product || !product._id) {
     return (

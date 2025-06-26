@@ -23,33 +23,34 @@ export async function GET(req, { params }) {
   // console.log(params.id)
   try {
     await connectDB();
-    let { id } = params;
-    try { id = decodeURIComponent(id); } catch (e) { }
-    console.log("Product API called with id:", id);
-    if (!id || id.length !== 24) {
-      console.error("Invalid product id:", id);
-      return new Response(JSON.stringify({ error: 'Invalid product id' }), { status: 400 });
-    }
+    // let { id } = params;
+    // try { id = decodeURIComponent(id); } catch (e) { }
+    // console.log("Product API called with id:", id);
+    // if (!id || id.length !== 24) {
+    //   console.error("Invalid product id:", id);
+    //   return new Response(JSON.stringify({ error: 'Invalid product id' }), { status: 400 });
+    // }
+    const id = await params.id;
 
     // Strictly fetch by MongoDB _id
     let product = await Product.findById(id)
-      .populate({
-        path: 'artisan',
-        populate: { path: 'artisanStories' }
-      })
-      .populate('size')
-      // .populate('color') 
-      .populate('price')
-      .populate('gallery')
-      .populate('video')
-      .populate('description')
-      .populate('info')
-      .populate('categoryTag')
-      .populate('productTagLine')
-      .populate('reviews')
-      .populate('quantity')
-      .populate('coupons')
-      .populate('taxes');
+    .populate('size')
+    // .populate('color') 
+    .populate('price')
+    .populate('gallery')
+    .populate('video')
+    .populate('description')
+    .populate('info')
+    .populate('categoryTag')
+    .populate('productTagLine')
+    .populate('reviews')
+    .populate('quantity')
+    .populate('coupons')
+    .populate('taxes')
+    .populate({
+      path: 'artisan',
+      populate: { path: 'artisanStories' }
+    })
     if (!product || !product.active) {
       return new Response(JSON.stringify({ error: 'Product not found' }), { status: 404 });
     }
