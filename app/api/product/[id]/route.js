@@ -23,7 +23,15 @@ export async function GET(req, { params }) {
   // console.log(params.id)
   try {
     await connectDB();
-    const id = await params.id;
+    let { id } = await params;
+    try {
+      id = decodeURIComponent(id);
+    } catch (e) {}
+      // Validate ObjectId
+      if (!id || id.length !== 24) {
+        return new Response(JSON.stringify({ error: 'Invalid product id' }), { status: 400 });
+      }
+    
     // Strictly fetch by MongoDB _id
     let product = await Product.findById(id)
       .populate({
@@ -121,7 +129,7 @@ export async function DELETE(req, { params }) {
     if (product.productTagLine) {
       await CategoryTag.findByIdAndDelete(product.productTagLine);
     }
-    
+
     // Delete reviews
     if (Array.isArray(product.reviews)) {
       for (const reviewId of product.reviews) {

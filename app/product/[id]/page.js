@@ -12,27 +12,15 @@ import ProductVideo from "@/components/ProductVideo";
 import { CategoryCarousel } from "@/components/Category/category-card";
 
 const ProductDetailPage = async ({ params }) => {
-  // ✅ No await here
-  const id = decodeURIComponent(params.id);
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || '';
-  const apiUrl = `${baseUrl}/api/product/${id}`;
-  console.log("[ProductDetailPage] Fetching product from:", apiUrl);
-
-  let product = null;
-
-  try {
-    const res = await fetch(apiUrl, { cache: "no-store" });
-    // console.log(apiUrl)
-
-    if (!res.ok) {
-      throw new Error(`Product fetch failed: ${res.status}`);
-    }
-
-    product = await res.json();
-  } catch (error) {
-    console.error("Failed to load product:", error.message);
-  }
-
+   // Get the product slug from the URL and decode it
+   let { id } = await params;
+   const decodedSlug = decodeURIComponent(id);
+   // console.log(decodedSlug)
+   const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/product/${decodedSlug}`;
+   // console.log('Fetching product with slug:', decodedSlug, 'API URL:', apiUrl);
+   // Fetch the product by its slug using the API route
+   const res = await fetch(apiUrl, { cache: 'no-store' });
+   const product = await res.json();
   // ✅ Fallback if product not found
   if (!product || !product._id) {
     return (
