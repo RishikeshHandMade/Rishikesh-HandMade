@@ -10,21 +10,29 @@ import CategoryCard from "@/components/Category/category-card";
 import { CategoryCarousel } from "@/components/Category/category-card";
 const ProductDetailPage = async ({ params }) => {
     // Get the product slug from the URL and decode it
-    let { id } = await params;
-    // console.log(decodedSlug)
+    const id = decodeURIComponent(params.id); 
     const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/product/${id}`;
     // Fetch the product by its slug using the API route
-    const res = await fetch(apiUrl, { cache: 'no-store' });
-    let product;
+    let product = null;
+
     try {
-      product = await res.json();
-    } catch {
-      product = {};
+        const res = await fetch(apiUrl, { cache: "no-store" });
+
+        if (!res.ok) {
+            throw new Error(`Product fetch failed: ${res.status}`);
+        }
+
+        product = await res.json();
+    } catch (error) {
+        console.error("Failed to load product:", error.message);
     }
+
+
+
     // console.log('Fetched product:', product);
 
     // If product not found, show not found message
-    if (!res.ok) {
+    if (!product || !product._id) {
         return (
             <div className="container mx-auto px-4 py-12 text-center">
                 <h1 className="text-3xl font-bold mb-4">Product Not Available</h1>
@@ -73,7 +81,7 @@ const ProductDetailPage = async ({ params }) => {
         <SidebarInset>
             <div className="w-full py-8 flex flex-col">
                 <div className="space-y-4 px-4">
-                    <ProductDetailView product={product} />
+                <ProductDetailView key={product._id} product={product} />
                 </div>
                 <div className="space-y-4">
                     <ProductVideo product={product} />

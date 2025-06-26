@@ -71,7 +71,7 @@ const RandomTourPackageSection = () => {
   };
 
   // ...existing state
- 
+
   const { addToCart, addToWishlist, removeFromWishlist, wishlist } = useCart();
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -94,7 +94,7 @@ const RandomTourPackageSection = () => {
 
 
 
- 
+
   // Fetch Artisan 
   const fetchArtisan = async () => {
     try {
@@ -343,12 +343,13 @@ const RandomTourPackageSection = () => {
                       </div>
                       {/* Name and Price Section */}
                       <div className="flex items-center justify-between px-1 pt-4 pb-2 mt-0">
-                        <Link
-                          href={`/product/${item._id}`}
+                        <a
+                          href={`/product/${item?._id}`}
                           className="font-bold hover:underline text-lg md:text-xl text-gray-900 leading-tight max-w-[200px] truncate cursor-pointer"
                         >
                           {item?.title}
-                        </Link>
+                        </a>
+
                         {(() => {
                           const price = item?.quantity?.variants[0].price;
                           const coupon = item.coupon || item.coupons?.coupon;
@@ -385,7 +386,7 @@ const RandomTourPackageSection = () => {
             <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 p-5" />
           </Carousel>
         </div>
-       
+
 
         {/* Artisan Carousel Section */}
         <div className="w-full py-20">
@@ -394,7 +395,7 @@ const RandomTourPackageSection = () => {
             <div className="flex flex-col md:flex-row items-start gap-5">
               {/* Left: Heading and description */}
               <div className="flex-1 flex flex-col justify-center md:pr-8">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-start mb-5 uppercase">Meet Our Artisans</h2>
+                <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-start mb-5 uppercase">Meet Our Artisans</h2>
                 <h2 className="text-xl font-bold mb-2">Celebrating the Art of Craftsmanship. Honoring the Hands That Shape Beauty</h2>
                 <div className="text-md text-gray-700 text-justify mb-6">
                   We are proud to recognize and celebrate your exceptional talent and dedication as a skilled handicraft artisan. Your ability to transform raw materials into beautiful, meaningful works of art speaks to your creativity, precision, and passion for the craft. Each piece you create is a testament to the enduring value of handmade artistry and the cultural richness it preserves. With deep appreciation, we commend you for achieving this milestone and look forward to witnessing your continued journey of artistic excellence.
