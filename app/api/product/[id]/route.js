@@ -23,15 +23,14 @@ export async function GET(req, { params }) {
   // console.log(params.id)
   try {
     await connectDB();
-    let { id } = await params;
-    try {
-      id = decodeURIComponent(id);
-    } catch (e) {}
-      // Validate ObjectId
-      if (!id || id.length !== 24) {
-        return new Response(JSON.stringify({ error: 'Invalid product id' }), { status: 400 });
-      }
-    
+    let { id } = params;
+    try { id = decodeURIComponent(id); } catch (e) { }
+    console.log("Product API called with id:", id);
+    if (!id || id.length !== 24) {
+      console.error("Invalid product id:", id);
+      return new Response(JSON.stringify({ error: 'Invalid product id' }), { status: 400 });
+    }
+
     // Strictly fetch by MongoDB _id
     let product = await Product.findById(id)
       .populate({
