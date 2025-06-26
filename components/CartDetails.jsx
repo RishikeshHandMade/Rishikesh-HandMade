@@ -669,19 +669,15 @@ const CartDetails = () => {
                 </DialogContent>
               </Dialog>
 
-              {/* CGST/SGST */}
-              {cart.map((item, idx) => (
-                <React.Fragment key={idx}>
-                  <div className="flex justify-between items-center text-sm mb-2">
-                    <span className="text-gray-600">CGST ({item.cgst}%)</span>
-                    <span className="text-gray-900 font-medium">₹{((item.price * item.cgst / 100) * item.qty).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm mb-2">
-                    <span className="text-gray-600">SGST ({item.sgst}%)</span>
-                    <span className="text-gray-900 font-medium">₹{((item.price * item.sgst / 100) * item.qty).toFixed(2)}</span>
-                  </div>
-                </React.Fragment>
-              ))}
+              {/* Total CGST/SGST */}
+              <div className="flex justify-between items-center text-sm mb-2">
+                <span className="text-gray-600">Total CGST ({cart[0]?.cgst || 0}%)</span>
+                <span className="text-gray-900 font-medium">₹{cart.reduce((total, item) => total + (item.price * item.cgst / 100 * item.qty), 0).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm mb-2">
+                <span className="text-gray-600">Total SGST ({cart[0]?.sgst || 0}%)</span>
+                <span className="text-gray-900 font-medium">₹{cart.reduce((total, item) => total + (item.price * item.sgst / 100 * item.qty), 0).toFixed(2)}</span>
+              </div>
               <hr className="my-2" />
 
               {/* Final Amount */}
