@@ -6,7 +6,7 @@ export default async function Page({ params }) {
   // console.log(id)
   // Adjust the API endpoint as per your backend route
   const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/createArtisan/${id}`, {
-    // cache: 'no-store' // Uncomment if you want fresh data every time
+    cache: 'no-store' // Uncomment if you want fresh data every time
   });
   if (!res.ok) {
     // You can show a 404 or error message here

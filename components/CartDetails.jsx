@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useCart } from "../context/CartContext";
 import Link from "next/link";
 import toast from "react-hot-toast"
+import {MapPin} from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -12,6 +13,7 @@ import {
   DialogClose,
 } from "./ui/dialog";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 const CartDetails = () => {
   // 2. Get price after discount
   const getAfterDiscount = (item) => {
@@ -27,9 +29,10 @@ const CartDetails = () => {
   const router = useRouter();
 
   // Handler for checkout navigation
+  const { data: session } = useSession();
+
   const handleCheckout = () => {
     if (!termsChecked) return;
-
     // First, ensure we have the latest cart data
     const currentCart = Array.isArray(rawCart) ? rawCart : [];
 
@@ -53,16 +56,17 @@ const CartDetails = () => {
         return sum + (discount * item.qty);
       }, 0),
       shipping: FinalShipping || 0,
-      pincode: pincodeInput || null,
-      // city: cityInput || null,
-      state: stateInput || null,
-      district: districtInput || null,
+      pincode: pincodeResult?.pincode || null,
+      city: pincodeResult?.city || null,
+      state: pincodeResult?.state || null,
+      district: pincodeResult?.district || null,
       taxTotal: currentCart.reduce((sum, item) => {
         const price = getAfterDiscount(item);
         const tax = ((item.cgst || 0) + (item.sgst || 0)) / 100 * price * item.qty;
         return sum + tax;
       }, 0),
       finalShipping: FinalShipping || 0,
+      email: session?.user?.email || null,
       promo: appliedPromoDetails
         ? {
           code: appliedPromoDetails.couponCode,
@@ -115,7 +119,17 @@ const CartDetails = () => {
   const [shippingTierLabel, setShippingTierLabel] = useState("");
   const [shippingPerUnit, setShippingPerUnit] = useState(null);
   const [statesList, setStatesList] = useState([]);
- 
+
+  // Restore delivery location from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('deliveryLocation');
+    if (saved) {
+      const loc = JSON.parse(saved);
+      setPincodeInput(loc.pincode);
+      setPincodeResult(loc);
+    }
+  }, []);
+
   useEffect(() => {
     const fetchShippingCharge = async () => {
       if (totalWeight === 0) {
@@ -387,8 +401,8 @@ const CartDetails = () => {
                       ₹{getAfterDiscount(item)}
                     </td>
                     <td className="border p-2 text-center">{item.weight ?? 0}g</td>
-                    <td className="border p-2 text-center">{item.cgst ?? 0}</td>
-                    <td className="border p-2 text-center">{item.sgst ?? 0}</td>
+                    <td className="border p-2 text-center">₹{(item.price * item.cgst / 100).toFixed(2)}</td>
+                    <td className="border p-2 text-center">₹{(item.price * item.sgst / 100).toFixed(2)}</td>
                     <td className="border p-2 text-center">
                       <div className="flex items-center justify-center gap-2">
                         <button
@@ -524,159 +538,88 @@ const CartDetails = () => {
                 </span>
               </div>
               {/* Pincode check UI */}
-              <div className="flex flex-col gap-1 mt-2 mb-2">
-                <div className="flex gap-2 items-center">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-600">
-                      Check if we deliver to your area:
-                    </span>
+              <div className="">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-base font-medium flex items-center gap-1">
+                    <MapPin size={18} className="inline-block" />
+                    Delivery Options
+                  </span>
+                </div>
+                {!pincodeResult ? (
+                  <div className="border rounded px-4 py-3 flex items-center gap-2 bg-white max-w-xs">
+                    <input
+                      type="text"
+                      className="flex-1 bg-transparent outline-none text-gray-700"
+                      placeholder="Enter pincode"
+                      value={pincodeInput}
+                      onChange={e => setPincodeInput(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
+                      maxLength={6}
+                    />
                     <button
-                      className="text-blue-600 hover:text-blue-800 text-sm font-medium underline focus:outline-none"
-                      onClick={() => setIsPincodeModalOpen(true)}
+                      className="text-blue-900 font-semibold ml-2"
+                      disabled={loadingShipping || pincodeInput.length !== 6}
+                      onClick={async () => {
+                        setPincodeError('');
+                        setLoadingShipping(true);
+                        setPincodeResult(null);
+                        try {
+                          const res = await fetch('/api/zipcode/checkZip', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ pincode: pincodeInput }),
+                          });
+                          const data = await res.json();
+                          if (data.success) {
+                            setPincodeResult(data);
+                            setPincodeError("");
+                            // Persist delivery location to localStorage
+                            localStorage.setItem('deliveryLocation', JSON.stringify({
+                              pincode: data.pincode,
+                              city: data.city,
+                              state: data.state,
+                              district: data.district
+                            }));
+                            setIsPincodeModalOpen(false);
+                            setIsPincodeConfirmModalOpen(true);
+                          } else {
+                            setPincodeError(data.message || 'Delivery not available');
+                          }
+                        } catch {
+                          setPincodeError('Server error. Please try again.');
+                        } finally {
+                          setLoadingShipping(false);
+                        }
+                      }}
                     >
-                      {pincodeResult ? `${pincode} ✓` : "Check Pincode"}
+                      {loadingShipping ? 'Checking...' : 'Check'}
                     </button>
                   </div>
-                </div>
+                ) : (
+                  <div className="border rounded px-4 py-3 bg-white w-fit">
+                    <div className="flex items-center gap-2 mb-2">
+                      <MapPin size={18} className="inline-block" />
+                      <span className="font-semibold">Delivery options for {pincodeResult.pincode}</span>
+                      <button
+                        className="ml-auto px-2 py-1 border rounded border-black text-sm"
+                        onClick={() => {
+                          setPincodeInput('');
+                          setPincodeResult(null);
+                        }}
+                      >
+                        Change
+                      </button>
+                    </div>
+                    <div className="mb-1 text-sm">
+                      Shipping to: <span className="font-semibold">{pincodeResult.city || pincodeResult.district}, {pincodeResult.state}, India</span>
+                    </div>
+                  </div>
+                )}
                 {pincodeError && (
                   <div className="text-red-600 text-xs mt-1">
                     {pincodeError}
                   </div>
                 )}
               </div>
-              <Dialog
-                open={isPincodeModalOpen}
-                onOpenChange={setIsPincodeModalOpen}
-              >
-                <DialogContent className="bg-white rounded-lg max-w-md">
-                  <DialogHeader>
-                    <DialogTitle className="text-center text-xl font-bold">
-                      We'll instantly let you know if delivery is available,
-                      along with estimated delivery time.
-                    </DialogTitle>
-                  </DialogHeader>
-
-                  <div className="mt-4 space-y-4">
-                    {/* Dynamic State Dropdown from API */}
-                    <div className="w-full">
-                      <label className="sr-only">Enter your State</label>
-                      <select
-                        className="w-full py-3 px-4 rounded-md bg-green-100 border-0 focus:ring-2 focus:ring-green-400"
-                        value={stateInput}
-                        onChange={e => {
-                          setStateInput(e.target.value);
-                          setDistrictInput(""); // reset district when state changes
-                        }}
-                      >
-                        <option value="">Select State</option>
-                        {statesList.map((s) => (
-                          <option key={s.state} value={s.state}>{s.state}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Dynamic District Dropdown from API */}
-                    <div className="w-full">
-                      <select
-                        className="w-full py-3 px-4 rounded-md bg-yellow-100 border-0 focus:ring-2 focus:ring-yellow-400"
-                        value={districtInput}
-                        onChange={e => setDistrictInput(e.target.value)}
-                        disabled={!stateInput}
-                      >
-                        <option value="">Select Distt.</option>
-                        {(() => {
-                          const stateObj = statesList.find(s => s.state === stateInput);
-                          if (!stateObj) {
-                            return (
-                              <option disabled value="">State not found in database</option>
-                            );
-                          }
-                          if (!Array.isArray(stateObj.districts) || stateObj.districts.length === 0) {
-                            return (
-                              <option disabled value="">No districts found for this state</option>
-                            );
-                          }
-                          return stateObj.districts.map(d => (
-                            <option key={d.district} value={d.district}>{d.district}</option>
-                          ));
-                        })()}
-                      </select>
-                    </div>
-
-                    <div className="w-full">
-                      <input
-                        type="text"
-                        placeholder="Type PIN Code"
-                        className="w-full py-3 px-4 rounded-md bg-blue-100 border-0 focus:ring-2 focus:ring-blue-400"
-                        value={pincodeInput}
-                        onChange={(e) => setPincodeInput(e.target.value)}
-                        maxLength={6}
-                      />
-                    </div>
-
-                    <button
-                      className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-md transition-colors"
-                      onClick={async (e) => {
-                        e.preventDefault();
-                        setPincodeError("");
-                        setPincodeResult(null);
-                        setLoadingShipping(true);
-                        // Defensive check before API request
-                        if (!stateInput || !districtInput || !pincodeInput || pincodeInput.trim().length !== 6) {
-                          setPincodeError("Please select state, district, and enter a valid 6-digit pincode.");
-                          setLoadingShipping(false);
-                          return;
-                        }
-                        try {
-                          const res = await fetch('/api/zipcode/checkZip', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                              state: stateInput,
-                              district: districtInput,
-                              pincode: pincodeInput
-                            })
-                          });
-                          // console.log('Shipping API status:', res.status);
-                          const data = await res.json();
-                          // console.log('Shipping API response:', data);
-                          if (data.success) {
-                            setPincodeResult({
-                              state: data.state,
-                              district: data.district,
-                              pincode: data.pincode
-                            });
-                            setIsPincodeModalOpen(false);
-                            setIsPincodeConfirmModalOpen(true);
-                          } else {
-                            setPincodeError(data.message || 'Delivery not available');
-                          }
-                        } catch (err) {
-                          setPincodeError('Server error. Please try again.');
-                        } finally {
-                          setLoadingShipping(false);
-                        }
-                      }}
-                      disabled={!pincodeInput || pincodeInput.length !== 6 || !stateInput || !districtInput || loadingShipping}
-                    >
-                      {loadingShipping ? 'Checking...' : 'SEARCH'}
-                    </button>
-                    {/* {pincodeResult && (
-                      <div className="text-green-700 text-xs mt-1">
-                        Delivery available!<br/>
-                        <span>State: <b>{pincodeResult.state}</b></span><br/>
-                        <span>District: <b>{pincodeResult.district}</b></span><br/>
-                        <span>Pincode: <b>{pincodeResult.pincode}</b></span>
-                      </div>
-                    )} */}
-                    {pincodeError && (
-                      <div className="text-red-600 text-xs mt-1">
-                        {pincodeError}
-                      </div>
-                    )}
-                  </div>
-                </DialogContent>
-              </Dialog>
 
               {/* PIN Code Confirmation Modal */}
               <Dialog
@@ -702,17 +645,17 @@ const CartDetails = () => {
                     <div className="grid grid-cols-3 gap-4">
                       <div className="text-right font-semibold">State</div>
                       <div className="col-span-2 border-b border-gray-300">
-                        {stateInput}
+                        {pincodeResult?.state}
                       </div>
 
                       <div className="text-right font-semibold">Distt.</div>
                       <div className="col-span-2 border-b border-gray-300">
-                        {districtInput}
+                        {pincodeResult?.district}
                       </div>
 
                       <div className="text-right font-semibold">PIN Code</div>
                       <div className="col-span-2 border-b border-gray-300">
-                        {pincodeInput}
+                        {pincodeResult?.pincode}
                       </div>
                     </div>
 
@@ -726,27 +669,19 @@ const CartDetails = () => {
                 </DialogContent>
               </Dialog>
 
-              {/* <div className="text-xs text-red-600 mb-2 text-right">Search Available Pin Code For Confirm Shipment.</div> */}
-
               {/* CGST/SGST */}
-              <div className="flex justify-between items-center mt-1">
-                <span className="font-semibold">Total CGST %</span>
-                <span className="font-semibold">
-                  {cart.reduce(
-                    (sum, item) => sum + (Number(item.cgst) || 0),
-                    0
-                  )}
-                </span>
-              </div>
-              <div className="flex justify-between items-center mt-1 mb-1">
-                <span className="font-semibold">Total SGST %</span>
-                <span className="font-semibold">
-                  {cart.reduce(
-                    (sum, item) => sum + (Number(item.sgst) || 0),
-                    0
-                  )}
-                </span>
-              </div>
+              {cart.map((item, idx) => (
+                <React.Fragment key={idx}>
+                  <div className="flex justify-between items-center text-sm mb-2">
+                    <span className="text-gray-600">CGST ({item.cgst}%)</span>
+                    <span className="text-gray-900 font-medium">₹{((item.price * item.cgst / 100) * item.qty).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm mb-2">
+                    <span className="text-gray-600">SGST ({item.sgst}%)</span>
+                    <span className="text-gray-900 font-medium">₹{((item.price * item.sgst / 100) * item.qty).toFixed(2)}</span>
+                  </div>
+                </React.Fragment>
+              ))}
               <hr className="my-2" />
 
               {/* Final Amount */}

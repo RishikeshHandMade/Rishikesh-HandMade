@@ -12,7 +12,7 @@ const ProductDetailPage = async ({ params }) => {
     // Get the product slug from the URL and decode it
     let { id } = await params;
     // console.log(decodedSlug)
-    const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/product/${id}`;
+    const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/product/${id}`;
     // Fetch the product by its slug using the API route
     const res = await fetch(apiUrl, { cache: 'no-store' });
     let product;

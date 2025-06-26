@@ -725,6 +725,10 @@ const CheckOut = () => {
     if (!session) {
       router.replace(`/sign-in?callbackUrl=${encodeURIComponent(pathname)}`);
     }
+    // Set email from session when component mounts
+    if (session?.user?.email) {
+      setEmail(session.user.email);
+    }
   }, [session, status, router, pathname, mounted]);
 
   if (!mounted || isLoadingOrUnauth) {
@@ -827,8 +831,28 @@ const CheckOut = () => {
         throw new Error(data.message || 'Failed to create order');
       }
 
-      // Clear cart after successful order
+      // Clear cart in localStorage and state
+      localStorage.removeItem('cart');
       setCart([]);
+
+      // Update product quantities in backend
+      try {
+        const updateQuantitiesResponse = await fetch('/api/products/updateQuantities', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items: cart.map(item => ({
+              id: item._id || item.id,
+              quantity: item.qty
+            }))
+          })
+        });
+        if (!updateQuantitiesResponse.ok) {
+          console.error('Failed to update product quantities');
+        }
+      } catch (error) {
+        console.error('Error updating product quantities:', error);
+      }
 
       // Redirect to order confirmation page
       setShowConfirmationModal(true);
@@ -1142,7 +1166,10 @@ const CheckOut = () => {
           <p className="text-lg font-bold">Dear Customer,To proceed with your order and ensure smooth delivery, we kindly request you to provide the following basic information:</p>
         </div>
 
-        <form className="space-y-6" onSubmit={handlePlaceOrder}>
+           <form className="space-y-6" onSubmit={(e) => {
+             e.preventDefault();
+             handlePlaceOrder(e);
+           }}>
           <div>
             <h3 className="text-md font-semibold mb-4">Basic Profile</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -1171,12 +1198,13 @@ const CheckOut = () => {
               <div>
                 <label className="block text-sm mb-1 text-gray-600">Email</label>
                 <input
-                  className="w-full py-2 px-3 bg-gray-100 rounded-md border-0"
+                  className="w-full py-2 px-3 bg-gray-100 rounded-md border-0 cursor-not-allowed"
                   type="email"
                   placeholder="example@gmail.com"
                   required
-                  value={email}
+                  value={checkoutData?.email || email}
                   onChange={e => setEmail(e.target.value)}
+                  disabled
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -1315,16 +1343,6 @@ const CheckOut = () => {
           <div className="text-center text-gray-700 text-sm">
             This helps us serve you better and keep you updated on your order status.
           </div>
-
-          {/* <button
-            className="w-full py-3 bg-black text-white rounded-md font-semibold text-sm"
-            type="submit"
-            disabled={!agree || loading}
-          >
-            {loading ? "Processing..." : "Looks Good? Keep Going!"}
-          </button>
-
-          {error && <div className="text-red-600 text-sm mt-2">{error}</div>} */}
         </form>
 
         <div className="flex items-center gap-2 mt-4">
@@ -1553,6 +1571,37 @@ const CheckOut = () => {
           <label htmlFor="terms" className="text-xs text-gray-600">
             I have read and agree to the website terms and conditions
           </label>
+        </div>
+        <div className="mt-4 mb-4">
+          {/* <pre className="bg-gray-100 p-4 rounded overflow-auto">
+            {JSON.stringify({
+              firstName,
+              lastName,
+              email,
+              phone,
+              altPhone,
+              street,
+              city,
+              district,
+              state,
+              pincode,
+              payment,
+              checkoutData: {
+                cart: checkoutData?.cart?.map(item => ({
+                  id: item.id,
+                  name: item.name,
+                  price: item.price,
+                  qty: item.qty,
+                  cgst: item.cgst,
+                  sgst: item.sgst
+                })) || [],
+                subTotal: checkoutData?.subTotal,
+                totalTax: checkoutData?.totalTax,
+                cartTotal: checkoutData?.cartTotal,
+                shippingCost: checkoutData?.shippingCost
+              }
+            }, null, 2)}
+          </pre> */}
         </div>
         <button
           className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded font-semibold text-sm transition-colors"

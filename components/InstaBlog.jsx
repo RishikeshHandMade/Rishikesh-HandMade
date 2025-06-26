@@ -480,10 +480,10 @@ const InstaBlog = () => {
                                 </CarouselItem>
                             ))}
                         </CarouselContent>
-                     <div className="flex items-center gap-3">
-                                   <CarouselPrevious className="absolute top-[85%] left-[65%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
-                                   <CarouselNext className="absolute top-[85%] left-[80%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
-                                 </div>
+                        <div className="flex items-center gap-3">
+                            <CarouselPrevious className="absolute top-[85%] left-[65%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
+                            <CarouselNext className="absolute top-[85%] left-[80%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
+                        </div>
                     </Carousel>
                 </div>
 

@@ -33,28 +33,40 @@ export async function POST(req) {
 
     // ✅ Update quantity of each product
     const products = body.products || body.items || [];
-    for (const item of body.products || body.items || []) {
-      const productId = item.productId || item._id || item.id;
-      const variantId = item.variantId || item.variant?._id; // Pass variant ID in frontend
-      const qtyOrdered = item.qty || item.quantity || 1;
+    for (const item of products) {
+      const productId = item.productId;
+      const variantId = item.variantId; // This should be passed in the frontend
+      const qtyOrdered = item.quantity || 1;
     
-      if (!productId || !variantId || !qtyOrdered) continue;
+      if (!productId || !variantId || !qtyOrdered) {
+        console.error('Invalid product data:', { productId, variantId, qtyOrdered });
+        continue;
+      }
     
-      // Step 1: Load the product
-      const product = await Product.findById(productId);
-      if (!product) continue;
+      try {
+        // Step 1: Load the product
+        const product = await Product.findById(productId);
+        if (!product) {
+          console.error('Product not found:', productId);
+          continue;
+        }
     
-      // Step 2: Find the variant
-      const variantIndex = product.variants.findIndex(
-        (v) => v._id.toString() === variantId.toString()
-      );
-      if (variantIndex === -1) continue;
+        // Step 2: Find the variant
+        const variant = product.variants.find(v => v._id.toString() === variantId);
+        if (!variant) {
+          console.error('Variant not found:', variantId, 'in product:', productId);
+          continue;
+        }
     
-      // Step 3: Reduce the quantity
-      product.variants[variantIndex].qty -= qtyOrdered;
-    
-      // Step 4: Save the product
-      await product.save();
+        // Step 3: Reduce the quantity
+        variant.qty = variant.qty - qtyOrdered;
+        
+        // Step 4: Save the product
+        await product.save();
+        console.log('Successfully updated quantity for product:', productId, 'variant:', variantId);
+      } catch (error) {
+        console.error('Error updating quantity for product:', productId, 'variant:', variantId, error);
+      }
     }
 
     return NextResponse.json({ orderId: order._id, success: true }, { status: 200 });

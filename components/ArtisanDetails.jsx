@@ -125,7 +125,7 @@ const ArtisanDetails = ({ artisan }) => {
       .then(data => setOtherArtisans(data))
       .catch(err => setOtherArtisans([]));
   }, [artisan._id]);
-  // console.log(artisan)
+  console.log(artisan)
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const [showShareBox, setShowShareBox] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -675,9 +675,9 @@ const ArtisanDetails = ({ artisan }) => {
                       </div>
                       {/* Name and Price Section */}
                       <div className="flex flex-col items-start justify-between px-1 pt-4 pb-2 mt-0">
-                        <Link
+                      <Link
                           href={`/product/${item._id}`}
-                          className="font-bold hover:underline text-md md:text-xl text-gray-900 leading-tight truncate cursor-pointer"
+                          className="font-bold hover:underline text-lg md:text-xl text-gray-900 leading-tight max-w-[200px] truncate cursor-pointer"
                         >
                           {item?.title}
                         </Link>

@@ -133,28 +133,4 @@ const CategoryPage = async ({ params }) => {
 
 }
 
-const PackageCardSkeleton = ({ count = 3 }) => {
-  return (
-    <>
-      {Array(count)
-        .fill(0)
-        .map((_, index) => (
-          <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden">
-            <Skeleton className="h-48 w-full" />
-            <div className="p-5">
-              <Skeleton className="h-6 w-3/4 mb-2" />
-              <Skeleton className="h-4 w-full mb-1" />
-              <Skeleton className="h-4 w-full mb-1" />
-              <Skeleton className="h-4 w-2/3 mb-4" />
-              <div className="flex justify-between items-center">
-                <Skeleton className="h-6 w-1/3" />
-                <Skeleton className="h-10 w-1/3 rounded-full" />
-              </div>
-            </div>
-          </div>
-        ))}
-    </>
-  )
-}
-
 export default CategoryPage

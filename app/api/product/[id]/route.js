@@ -20,9 +20,10 @@ import ProductTagLine from '@/models/ProductTagLine';
 
 import { deleteFileFromCloudinary } from '@/utils/cloudinary';
 export async function GET(req, { params }) {
+  // console.log(params.id)
   try {
     await connectDB();
-    let { id } = await params;
+    const id = await params.id;
     // Strictly fetch by MongoDB _id
     let product = await Product.findById(id)
       .populate({
