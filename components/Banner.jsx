@@ -57,7 +57,7 @@ const Banner = () => {
         <div className="bg-[#fcf7f1] w-full overflow-hidden max-w-screen overflow-x-hidden">
             {/* Promotional Banner Section */}
             {promotinalBanner.length > 0 && (
-                <div className="w-full py-10 bg-blue-100">
+                <div className="w-full py-20 bg-blue-100">
                     <h2 className="text-2xl md:text-4xl font-bold text-center mb-5 uppercase">
                         <span className="italic">Click</span>,
                         <span >Collect</span>,
@@ -99,7 +99,7 @@ const Banner = () => {
 
             {/* Featured Offer For You Section */}
             {featuredOffer.length > 0 && (
-                <div className="w-full my-8 px-10">
+                <div className="w-full my-20 px-10">
                     <h2 className="text-2xl md:text-3xl font-bold text-center mb-5 uppercase">Featured Offer For You</h2>
                     <Carousel className="w-full">
                         <CarouselContent>

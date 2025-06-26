@@ -675,7 +675,7 @@ const ArtisanDetails = ({ artisan }) => {
                       </div>
                       {/* Name and Price Section */}
                       <div className="flex flex-col items-start justify-between px-1 pt-4 pb-2 mt-0">
-                      <Link
+                        <Link
                           href={`/product/${item._id}`}
                           className="font-bold hover:underline text-lg md:text-xl text-gray-900 leading-tight max-w-[200px] truncate cursor-pointer"
                         >
@@ -718,7 +718,7 @@ const ArtisanDetails = ({ artisan }) => {
       )}
       {/* Blogs Section */}
       {Array.isArray(artisan.artisanBlogs) && artisan.artisanBlogs.length > 0 && (
-        <div className="w-full px-20 py-10 mb-5 bg-blue-100">
+        <div className="w-full px-20 py-10 mb-5">
           <h3 className="text-3xl font-bold mb-4 text-gray-800">
             <span className='border-t-4 border-black'>
               Blogs
@@ -825,133 +825,6 @@ const ArtisanDetails = ({ artisan }) => {
                 {row.length === 1 && <div className="hidden md:block w-1/2"></div>}
               </div>
             ))}
-          </div>
-        </div>
-      )}
-      {/* Reviews Section */}
-      {Array.isArray(artisan.promotions) && artisan.promotions.length > 0 && (
-        <div className="w-full mx-auto relative min-h-[600px] flex items-center justify-end">
-          {/* Background Image */}
-          <div className="hidden md:flex absolute inset-0 w-full h-full z-0">
-            <img
-              src="/blogs.jpg"
-              alt="Happy client"
-              className="w-full h-full object-cover bg-[#FCEED5]"
-              style={{ objectPosition: 'top' }}
-            />
-          </div>
-
-          {/* Review Card Overlay */}
-          <div className="hidden md:flex absolute right-1 top-[40%] z-10 flex flex-col justify-start w-full md:w-1/2 items-end pr-1">
-            <Carousel className="w-full md:w-[600px]"
-              plugins={[Autoplay({ delay: 4000 })]}>
-
-              <CarouselContent className="w-full">
-                {artisan.promotions.map((review) => (
-                  <CarouselItem
-                    key={review._id}
-                    className="min-w-0 snap-center w-full"
-                  >
-                    <div className="bg-white rounded-3xl px-8 py-5 flex flex-col justify-between h-full min-h-[320px] relative overflow-visible">
-                      {/* Review text */}
-                      <div className="text-md md:text-2xl text-gray-800 font-bold leading-relaxed my-4 flex-wrap text-left">
-                        {review.title || 'No review text.'}
-                      </div>
-
-                      <div className="absolute right-4 top-4 flex items-center gap-1">
-                        {review.rating && (
-                          <>
-                            {[...Array(review.rating)].map((_, i) => (
-                              <Star key={i} size={22} className="text-yellow-400 fill-yellow-400" />
-                            ))}
-                          </>
-                        )}
-                      </div>
-
-                      <div className="text-md md:text-md text-gray-800 font-medium leading-relaxed mb-2 text-left">
-                        {review.shortDescription || 'No review text.'}
-                      </div>
-
-                      {/* Bottom row: avatar, name, subtitle */}
-                      <div className="flex items-center justify-between w-full mt-auto">
-                        <div className="flex items-center">
-                          <img
-                            src={review.image?.url || "/placeholder-user.jpg"}
-                            alt={review.createdBy || 'Anonymous'}
-                            className="w-14 h-14 rounded-full border-4 border-white shadow object-cover"
-                          />
-                          <div className="ml-4 text-left">
-                            <div className="font-bold text-xl text-black">{review.createdBy || review.title || 'Anonymous'}</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <div className="flex items-center gap-3">
-                <CarouselPrevious className="absolute top-[85%] left-[65%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
-                <CarouselNext className="absolute top-[85%] left-[80%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
-              </div>
-            </Carousel>
-          </div>
-          {/* Review Card Overlay */}
-          <div className="md:hidden flex flex-col justify-start w-full mb-10 items-start pr-1">
-            <h3 className="text-2xl font-bold mb-4 text-gray-800">
-              <span className='border-t-4 border-black '>
-                Review Section
-              </span></h3>
-            <Carousel className="w-full md:w-[600px]"
-              plugins={[Autoplay({ delay: 4000 })]}>
-
-              <CarouselContent className="w-full">
-                {artisan.promotions.map((review) => (
-                  <CarouselItem
-                    key={review._id}
-                    className="min-w-0 snap-center w-full"
-                  >
-                    <div className="bg-white rounded-3xl px-8 py-5 flex flex-col justify-between h-full min-h-[320px] relative overflow-visible">
-                      {/* Review text */}
-                      <div className="text-md md:text-2xl text-gray-800 font-bold leading-relaxed mb-2 text-left">
-                        {review.title || 'No review text.'}
-                      </div>
-
-                      <div className="absolute right-4 top-4 flex items-center gap-1">
-                        {review.rating && (
-                          <>
-                            {[...Array(review.rating)].map((_, i) => (
-                              <Star key={i} size={22} className="text-yellow-400 fill-yellow-400" />
-                            ))}
-                          </>
-                        )}
-                      </div>
-
-                      <div className="text-md md:text-md text-gray-800 font-medium leading-relaxed mb-2 text-left">
-                        {review.shortDescription || 'No review text.'}
-                      </div>
-
-                      {/* Bottom row: avatar, name, subtitle */}
-                      <div className="flex items-center justify-between w-full mt-auto">
-                        <div className="flex items-center">
-                          <img
-                            src={review.image?.url || "/placeholder-user.jpg"}
-                            alt={review.createdBy || 'Anonymous'}
-                            className="w-14 h-14 rounded-full border-4 border-white shadow object-cover"
-                          />
-                          <div className="ml-4 text-left">
-                            <div className="font-bold text-xl text-black">{review.createdBy || review.title || 'Anonymous'}</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <div className="flex items-center gap-3">
-                <CarouselPrevious className="absolute top-[85%] left-[65%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
-                <CarouselNext className="absolute top-[85%] left-[80%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
-              </div>
-            </Carousel>
           </div>
         </div>
       )}
@@ -1083,7 +956,7 @@ const ArtisanDetails = ({ artisan }) => {
                             className={`
                               bg-white rounded-full w-12 h-12 flex items-center justify-center shadow hover:bg-gray-100 transition
                               transform translate-y-5 group-hover/arrow:translate-y-0
-                            `}
+                              `}
                             style={{
                               transitionProperty: 'transform, opacity, background-color, box-shadow',
                               transitionDuration: '0.6s',
@@ -1314,7 +1187,132 @@ const ArtisanDetails = ({ artisan }) => {
           </div>
         )}
       </div>
+      {/* Reviews Section */}
+      {Array.isArray(artisan.promotions) && artisan.promotions.length > 0 && (
+        <div className="w-full mx-auto relative min-h-[600px] flex items-center justify-end">
+          {/* Background Image */}
+          <div className="hidden md:flex absolute inset-0 w-full h-full z-0">
+            <img
+              src="/blogs.jpg"
+              alt="Happy client"
+              className="w-full h-full object-cover bg-[#FCEED5]"
+              style={{ objectPosition: 'top' }}
+            />
+          </div>
 
+          {/* Review Card Overlay */}
+          <div className="hidden md:flex absolute right-1 top-[40%] z-10 flex flex-col justify-start w-full md:w-1/2 items-end pr-1">
+            <Carousel className="w-full md:w-[600px]"
+              plugins={[Autoplay({ delay: 4000 })]}>
+
+              <CarouselContent className="w-full">
+                {artisan.promotions.map((review) => (
+                  <CarouselItem
+                    key={review._id}
+                    className="min-w-0 snap-center w-full"
+                  >
+                    <div className="bg-white rounded-3xl px-8 py-5 flex flex-col justify-between h-full min-h-[320px] relative overflow-visible">
+                      {/* Review text */}
+                      <div className="text-md md:text-2xl text-gray-800 font-bold leading-relaxed my-4 flex-wrap text-left">
+                        {review.title || 'No review text.'}
+                      </div>
+                      <div className="text-md md:text-md text-gray-800 font-medium leading-relaxed mb-2 text-left">
+                        {review.shortDescription || 'No review text.'}
+                      </div>
+
+                      {/* Bottom row: avatar, name, subtitle */}
+                      <div className="flex items-center justify-between w-full mt-auto">
+                        <div className="flex items-center">
+                          <img
+                            src={review.image?.url || "/placeholder-user.jpg"}
+                            alt={review.createdBy || 'Anonymous'}
+                            className="w-14 h-14 rounded-full border-4 border-white shadow object-cover"
+                          />
+                          <div className="ml-4 text-left flex flex-col items-center gap-2">
+                            <div className="font-bold text-xl text-black">{review.createdBy || review.title || 'Anonymous'}</div>
+
+                            <div className="flex items-center gap-1">
+                              {review.rating && (
+                                <>
+                                  {[...Array(review.rating)].map((_, i) => (
+                                    <Star key={i} size={15} className="text-yellow-400 fill-yellow-400" />
+                                  ))}
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <div className="flex items-center gap-3">
+                <CarouselPrevious className="absolute top-[85%] left-[65%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
+                <CarouselNext className="absolute top-[85%] left-[80%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
+              </div>
+            </Carousel>
+          </div>
+          {/* Review Card Overlay */}
+          <div className="md:hidden flex flex-col justify-start w-full mb-10 items-start pr-1">
+            <h3 className="text-2xl font-bold mb-4 text-gray-800">
+              <span className='border-t-4 border-black '>
+                Review Section
+              </span></h3>
+            <Carousel className="w-full md:w-[600px]"
+              plugins={[Autoplay({ delay: 4000 })]}>
+
+              <CarouselContent className="w-full">
+                {artisan.promotions.map((review) => (
+                  <CarouselItem
+                    key={review._id}
+                    className="min-w-0 snap-center w-full"
+                  >
+                    <div className="bg-white rounded-3xl px-8 py-5 flex flex-col justify-between h-full min-h-[320px] relative overflow-visible">
+                      {/* Review text */}
+                      <div className="text-md md:text-2xl text-gray-800 font-bold leading-relaxed mb-2 text-left">
+                        {review.title || 'No review text.'}
+                      </div>
+
+                      <div className="absolute right-4 top-4 flex items-center gap-1">
+                        {review.rating && (
+                          <>
+                            {[...Array(review.rating)].map((_, i) => (
+                              <Star key={i} size={22} className="text-yellow-400 fill-yellow-400" />
+                            ))}
+                          </>
+                        )}
+                      </div>
+
+                      <div className="text-md md:text-md text-gray-800 font-medium leading-relaxed mb-2 text-left">
+                        {review.shortDescription || 'No review text.'}
+                      </div>
+
+                      {/* Bottom row: avatar, name, subtitle */}
+                      <div className="flex items-center justify-between w-full mt-auto">
+                        <div className="flex items-center">
+                          <img
+                            src={review.image?.url || "/placeholder-user.jpg"}
+                            alt={review.createdBy || 'Anonymous'}
+                            className="w-14 h-14 rounded-full border-4 border-white shadow object-cover"
+                          />
+                          <div className="ml-4 text-left">
+                            <div className="font-bold text-xl text-black">{review.createdBy || review.title || 'Anonymous'}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <div className="flex items-center gap-3">
+                <CarouselPrevious className="absolute top-[85%] left-[65%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
+                <CarouselNext className="absolute top-[85%] left-[80%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
+              </div>
+            </Carousel>
+          </div>
+        </div>
+      )}
       {/* Quick View Modal */}
       {quickViewProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setQuickViewProduct(null)}>

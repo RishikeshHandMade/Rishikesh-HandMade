@@ -388,7 +388,7 @@ const RandomTourPackageSection = () => {
        
 
         {/* Artisan Carousel Section */}
-        <div className="w-full py-10">
+        <div className="w-full py-20">
           {/* Desktop: Grid/List */}
           <div className="w-full max-w-[90%] mx-auto mb-16">
             <div className="flex flex-col md:flex-row items-start gap-5">
