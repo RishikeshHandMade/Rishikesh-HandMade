@@ -15,7 +15,7 @@ import ProductCoupons from '@/models/ProductCoupons';
 import Quantity from '@/models/Quantity';
 import Color from '@/models/Color';
 import ProductTagLine from '@/models/ProductTagLine';
-
+import ArtisanStory from '@/models/ArtisanStory';
 // import Tax from '@/models/ProductTax';
 
 import { deleteFileFromCloudinary } from '@/utils/cloudinary';

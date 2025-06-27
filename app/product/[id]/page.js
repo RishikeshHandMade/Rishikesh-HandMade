@@ -26,7 +26,7 @@ import ProductCoupons from '@/models/ProductCoupons';
 import Quantity from '@/models/Quantity';
 import Color from '@/models/Color';
 import ProductTagLine from '@/models/ProductTagLine';
-
+import ArtisanStory from '@/models/ArtisanStory';
 const ProductDetailPage = async ({ params }) => {
     await connectDB();
   
