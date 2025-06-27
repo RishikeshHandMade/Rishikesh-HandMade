@@ -20,57 +20,54 @@ import ProductTagLine from '@/models/ProductTagLine';
 
 import { deleteFileFromCloudinary } from '@/utils/cloudinary';
 export async function GET(req, { params }) {
+  // console.log(params.id)
   try {
     await connectDB();
+    // let { id } = params;
+    // try { id = decodeURIComponent(id); } catch (e) { }
+    // console.log("Product API called with id:", id);
+    // if (!id || id.length !== 24) {
+    //   console.error("Invalid product id:", id);
+    //   return new Response(JSON.stringify({ error: 'Invalid product id' }), { status: 400 });
+    // }
+    const id = decodeURIComponent(params.id);
 
-    const id = decodeURIComponent(params.id); // ✅ Correct usage
-
-    // ✅ Validate ObjectId
-    if (!id || id.length !== 24) {
-      return new Response(JSON.stringify({ error: "Invalid product id" }), { status: 400 });
-    }
-
+    // Strictly fetch by MongoDB _id
     let product = await Product.findById(id)
-      .populate("size")
-      // .populate("color")
-      .populate("price")
-      .populate("gallery")
-      .populate("video")
-      .populate("description")
-      .populate("info")
-      .populate("categoryTag")
-      .populate("productTagLine")
-      .populate("reviews")
-      .populate("quantity")
-      .populate("coupons")
-      .populate("taxes")
-      .populate({
-        path: "artisan",
-        populate: { path: "artisanStories" },
-      })
-      .lean(); // ✅ Converts Mongoose doc to plain object
-
+    .populate('size')
+    // .populate('color') 
+    .populate('price')
+    .populate('gallery')
+    .populate('video')
+    .populate('description')
+    .populate('info')
+    .populate('categoryTag')
+    .populate('productTagLine')
+    .populate('reviews')
+    .populate('quantity')
+    .populate('coupons')
+    .populate('taxes')
+    .populate({
+      path: 'artisan',
+      populate: { path: 'artisanStories' }
+    })
     if (!product || !product.active) {
-      return new Response(JSON.stringify({ error: "Product not found" }), { status: 404 });
+      return new Response(JSON.stringify({ error: 'Product not found' }), { status: 404 });
     }
-
-    // ✅ If taxes is not populated (edge case)
-    if (product.taxes && typeof product.taxes === "string") {
-      const TaxModel = (await import("@/models/ProductTax")).default;
-      const taxDoc = await TaxModel.findById(product.taxes).lean();
+    // If taxes is still an ID, force populate
+    if (product.taxes && typeof product.taxes === 'object' && product.taxes._id) {
+      // Already populated
+    } else if (product.taxes) {
+      const TaxModel = (await import('@/models/ProductTax')).default;
+      const taxDoc = await TaxModel.findById(product.taxes);
+      product = product.toObject();
       product.taxes = taxDoc;
     }
-
-    // ✅ Convert to pure JSON object
-    const safeProduct = JSON.parse(JSON.stringify(product));
-
-    return new Response(JSON.stringify(safeProduct), { status: 200 });
+    return new Response(JSON.stringify(product), { status: 200 });
   } catch (error) {
-    console.error("API /api/product/[id] error:", error.message);
     return new Response(JSON.stringify({ error: error.message }), { status: 500 });
   }
 }
-
 
 export async function DELETE(req, { params }) {
   try {

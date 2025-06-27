@@ -12,7 +12,20 @@ import ProductDetailView from "@/components/ProductDetailView";
 import ProductVideo from "@/components/ProductVideo";
 import ProductInfoTabs from "@/components/ProductInfoTabs";
 import StickyAddToCartBar from "@/components/StickyAddToCartBar";
-
+import Artisan from '@/models/Artisan';
+import Price from '@/models/Price';
+import Gallery from '@/models/Gallery';
+import Video from '@/models/Video';
+import Description from '@/models/Description';
+import Info from '@/models/Info';
+import Size from '@/models/Size';
+import CategoryTag from '@/models/CategoryTag';
+import ProductReview from '@/models/ProductReview';
+import ProductTax from '@/models/ProductTax';
+import ProductCoupons from '@/models/ProductCoupons';
+import Quantity from '@/models/Quantity';
+import Color from '@/models/Color';
+import ProductTagLine from '@/models/ProductTagLine';
 
 const ProductDetailPage = async ({ params }) => {
     await connectDB();
