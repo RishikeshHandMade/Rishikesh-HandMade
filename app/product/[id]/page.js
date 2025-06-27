@@ -1,37 +1,39 @@
 // 👇 Add this at the top to force server-side rendering
 export const dynamic = "force-dynamic";
 
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { SidebarInset } from "@/components/ui/sidebar";
 import ResponsiveFeaturedCarousel from "@/components/ResponsiveFeaturedCarousel";
-import StickyAddToCartBar from "@/components/StickyAddToCartBar";
-import ProductDetailView from "@/components/ProductDetailView";
-import ProductInfoTabs from "@/components/ProductInfoTabs";
-import ProductVideo from "@/components/ProductVideo";
+
 import { CategoryCarousel } from "@/components/Category/category-card";
+import connectDB from "@/lib/connectDB";
+import Product from "@/models/Product";
+
+import ProductDetailView from "@/components/ProductDetailView";
+import ProductVideo from "@/components/ProductVideo";
+import ProductInfoTabs from "@/components/ProductInfoTabs";
+import StickyAddToCartBar from "@/components/StickyAddToCartBar";
+
 
 const ProductDetailPage = async ({ params }) => {
-   // Get the product slug from the URL and decode it
-   const { id } = await params;
-   const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/product/${id}`;
-   // console.log('Fetching product with slug:', decodedSlug, 'API URL:', apiUrl);
-   // Fetch the product by its slug using the API route
-   const res = await fetch(apiUrl, { cache: 'no-store' });
-   const product = await res.json();
-   console.log(product)
-  // ✅ Fallback if product not found
-  if (!product || !product._id) {
-    return (
-      <div className="container mx-auto px-4 py-12 text-center">
-        <h1 className="text-3xl font-bold mb-4">Product Not Available</h1>
-        <p className="mb-8">This product is either not found or has been disabled by the admin.</p>
-        <Button asChild className="bg-blue-600 hover:bg-blue-700">
-          <Link href="/">Back to Home</Link>
-        </Button>
-      </div>
-    );
-  }
+    await connectDB();
+  
+    const id = decodeURIComponent(params.id);
+    const rawProduct = await Product.findById(id)
+    .populate('size price gallery video description info categoryTag productTagLine reviews quantity coupons taxes')
+    .populate({ path: 'artisan', populate: { path: 'artisanStories' } })
+    .lean();
+  
+  // ✅ Convert to plain JSON
+  const product = JSON.parse(JSON.stringify(rawProduct));
+  
+    if (!product || !product.active) {
+      return (
+        <div className="text-center py-10">
+          <h1 className="text-2xl font-bold mb-2">Product Not Available</h1>
+          <p>This product may be disabled or removed by admin.</p>
+        </div>
+      );
+    }
 
   // ✅ Frequently Bought Together
   let frequentlyBoughtTogether = [];
