@@ -1,323 +1,294 @@
 "use client";
-import React from "react";
 
-const beige = "#f8f6f1";
-const border = "1px solid #222";
-const grey = "#333";
-const orange = "#ff9800";
-const tagList = [
-  "General",
-  "Returns",
-  "Gift",
-  "Refunds",
-  "Payments",
-  "Shipping",
-];
-const actionOptions = ["Active", "Inactive", "Edit"];
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '../ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import toast from "react-hot-toast";
 
-function DropdownIcon() {
+import { PencilIcon, Trash2Icon } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+
+const FAQ = () => {
+  const [groupedFaqs, setGroupedFaqs] = useState({});
+  const categories = ["General", "Returns", "Gift", "Refunds", "Payments", "Shipping"];
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [faqToDelete, setFaqToDelete] = useState(null);
+  const [formData, setFormData] = useState({
+    question: "", 
+    answer: "",
+    category: "General",
+  });
+  // console.log(groupedFaqs)
+
+  useEffect(() => {
+    const fetchFaqs = async () => {
+      try {
+        const response = await fetch("/api/faqs");
+        const data = await response.json();
+        if (data && typeof data === "object" && !Array.isArray(data)) {
+          setGroupedFaqs(data);
+        } else {
+          // fallback, shouldn't happen
+          const emptyGrouped = {};
+          categories.forEach(cat => { emptyGrouped[cat] = [] });
+          setGroupedFaqs(emptyGrouped);
+        }
+      } catch (error) {
+        toast.error("Failed to fetch FAQs");
+      }
+    };
+    fetchFaqs();
+  }, []);
+
+  const handleInputChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const method = faqToDelete ? "PATCH" : "POST";
+      // Compose payload with coupon details
+      const payload = {
+        ...formData,
+        id: faqToDelete,
+      };
+      const response = await fetch("/api/faqs", {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(`FAQ ${faqToDelete ? "updated" : "added"} successfully`);
+        setFaqToDelete(null);
+
+        // Refresh faqs list
+        const updatedFaqs = await fetch("/api/faqs").then((res) => res.json());
+        setGroupedFaqs(updatedFaqs);
+
+        // Reset form
+        setFormData({
+          question: "",
+          answer: "",
+          category: "General",
+        });
+
+      } else {
+        toast.error(data.error);
+      }
+    } catch (error) {
+      toast.error("Something went wrong");
+    }
+  };
+
+
+  const handleDelete = async (idOrCategory) => {
+    try {
+      let response;
+      if (categories.includes(idOrCategory)) {
+        // Delete all in category
+        response = await fetch(`/api/faqs?category=${encodeURIComponent(idOrCategory)}`, {
+          method: "DELETE",
+        });
+      } else {
+        // Delete single FAQ
+        response = await fetch("/api/faqs", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: idOrCategory }),
+        });
+      }
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success("FAQ deleted successfully");
+
+        // No need to filter locally, just refetch grouped data
+
+        // Update grouped faqs
+        const updated = await fetch("/api/faqs").then((res) => res.json());
+        setGroupedFaqs(updated);
+      } else {
+        toast.error(data.error);
+      }
+    } catch (error) {
+      toast.error("Something went wrong");
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (faqToDelete) {
+      await handleDelete(faqToDelete);
+      setFaqToDelete(null);
+      setShowDeleteModal(false);
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setFaqToDelete(null);
+  };
   return (
-    <svg width="16" height="16" fill="none" stroke="#fff" strokeWidth="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
-  );
-}
-
-const FAQAdmin = () => {
-  return (
-    <div className="faq-root">
-      {/* Header section */}
-      <div className="faq-header-row">
+    <div className="max-w-5xl mx-auto py-10 w-full">
+      <h2 className="text-2xl font-bold mb-6">{faqToDelete ? "Edit FAQ" : "Add New FAQ"}</h2>
+      <form onSubmit={handleSubmit} className="bg-white shadow-lg rounded-lg p-6 space-y-4">
         <div>
-          <div className="faq-title">FAQ PAGE ADMIN</div>
-          <div className="faq-subtitle">Experience. Engage. Explore. Event by Event.</div>
-        </div>
-        <div className="faq-taglist-col">
-          <div className="faq-tags">
-            {tagList.map((tag) => (
-              <div key={tag} className="faq-tag">{tag}</div>
-            ))}
-          </div>
-          <div className="faq-tag-dropdown">
-            <select>
-              <option>Tag Title</option>
-              {tagList.map((tag) => (
-                <option key={tag}>{tag}</option>
+        <div>
+          <Label>Category</Label>
+          <Select
+            value={formData.category || 'General'}
+            onValueChange={val => setFormData(prev => ({ ...prev, category: val }))}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select category" />
+            </SelectTrigger>
+            <SelectContent>
+              {["General", "Returns", "Gift", "Refunds", "Payments", "Shipping"].map(cat => (
+                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
               ))}
-            </select>
-            <span className="dropdown-icon"><DropdownIcon /></span>
+            </SelectContent>
+          </Select>
+        </div>
+          <Label>Question</Label>
+          <Input name="question" placeholder="Enter question" value={formData.question || ''} onChange={handleInputChange} />
+        </div>
+        <div className="flex-1">
+          <Label>Answer</Label>
+          <Input name="answer" placeholder="Enter answer" value={formData.answer || ''} onChange={handleInputChange} />
+        </div>
+        <div className="flex gap-3">
+          <Button type="submit" className="bg-blue-600 hover:bg-blue-500">
+            {faqToDelete ? "Update FAQ" : "Add FAQ"}
+          </Button>
+          {faqToDelete && (
+            <Button
+              type="button"
+              variant="outline"
+              className="bg-gray-300 hover:bg-gray-200 text-black"
+              onClick={() => {
+                setFaqToDelete(null);
+                setFormData({
+                  question: "",
+                  answer: "",
+                  category: "General",
+                });
+              }}
+            >
+              Cancel Edit
+            </Button>
+          )}
+        </div>
+      </form>
+
+      <h2 className="text-2xl font-bold mt-10 mb-4">Existing FAQ</h2>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Category</TableHead>
+            <TableHead>View</TableHead>
+            <TableHead>Delete</TableHead>
+            
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {categories.map((cat) => (
+            <TableRow key={cat}>
+              <TableCell>{cat}</TableCell>
+              <TableCell>
+                <Button onClick={() => { setSelectedCategory(cat); setModalOpen(true); }}>
+                  View
+                </Button>
+              </TableCell>
+              <TableCell>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => {
+                    setFaqToDelete(cat); // store category name
+                    setShowDeleteModal(true);
+                  }}
+                >
+                  <Trash2Icon className="h-4 w-4" />
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+
+      {/* Modal for showing Q&A of selected category */}
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{selectedCategory} FAQs</DialogTitle>
+          </DialogHeader>
+          <div className="max-h-96 overflow-y-auto">
+            {(groupedFaqs[selectedCategory] && groupedFaqs[selectedCategory].length > 0) ? (
+              groupedFaqs[selectedCategory].map(faq => (
+                <div key={faq._id} className="mb-4 p-2 border-b">
+                  <div className="font-semibold text-lg">Q: {faq.question}</div>
+                  <div className="text-gray-700 mb-2 text-lg max-h-14 overflow-y-auto">A: {faq.answer}</div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setFormData({
+                          question: faq.question,
+                          answer: faq.answer,
+                          category: faq.category,
+                        });
+                        setFaqToDelete(faq._id); // for edit, reuse state
+                        setModalOpen(false);
+                      }}
+                    >
+                      <PencilIcon className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => {
+                        setFaqToDelete(faq._id);
+                        setShowDeleteModal(true);
+                        setModalOpen(false);
+                      }}
+                    >
+                      <Trash2Icon className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div>No FAQs in this category.</div>
+            )}
           </div>
-        </div>
-      </div>
-
-      {/* Input fields */}
-      <div className="faq-inputs-row">
-        <input
-          className="faq-input faq-question"
-          placeholder="Type Input"
-          style={{ background: "#e5e5e5" }}
-        />
-        <input
-          className="faq-input faq-answer"
-          placeholder="Type Input"
-          style={{ background: orange, color: "#fff", fontWeight: 600 }}
-        />
-      </div>
-
-      {/* Add More button */}
-      <button className="faq-add-btn">Add More</button>
-
-      {/* Output Log Section */}
-      <div className="faq-output-section">
-        <div className="faq-output-title">Output Log</div>
-        <div className="faq-table-wrap">
-          <table className="faq-table">
-            <thead>
-              <tr>
-                <th>Question</th>
-                <th>Answer</th>
-                <th>Action</th>
-                <th>Delete</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[...Array(5)].map((_, i) => (
-                <tr key={i}>
-                  <td></td>
-                  <td></td>
-                  <td>
-                    <div className="faq-action-dropdown">
-                      <select>
-                        {actionOptions.map((opt) => (
-                          <option key={opt}>{opt}</option>
-                        ))}
-                      </select>
-                      <span className="dropdown-icon"><DropdownIcon /></span>
-                    </div>
-                  </td>
-                  <td>
-                    <button className="faq-delete-btn">Delete</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <style jsx>{`
-        .faq-root {
-          background: ${beige};
-          min-height: 100vh;
-          padding: 32px 16px 32px 16px;
-          font-family: 'Inter', Arial, sans-serif;
-        }
-        .faq-header-row {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          flex-wrap: wrap;
-          gap: 32px;
-          margin-bottom: 32px;
-        }
-        .faq-title {
-          font-size: 2.2rem;
-          font-weight: bold;
-          font-style: italic;
-          color: #222;
-          margin-bottom: 8px;
-          letter-spacing: 0.08em;
-        }
-        .faq-subtitle {
-          font-size: 1.1rem;
-          color: #555;
-          font-weight: 500;
-          margin-bottom: 2px;
-        }
-        .faq-taglist-col {
-          display: flex;
-          flex-direction: column;
-          align-items: flex-end;
-          gap: 18px;
-          min-width: 160px;
-        }
-        .faq-tags {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-        .faq-tag {
-          background: #fff;
-          color: #222;
-          border-radius: 8px;
-          border: ${border};
-          padding: 7px 20px;
-          font-weight: 500;
-          font-size: 1rem;
-          text-align: right;
-        }
-        .faq-tag-dropdown {
-          position: relative;
-          background: #222;
-          border-radius: 8px;
-          border: ${border};
-          min-width: 120px;
-          height: 40px;
-          display: flex;
-          align-items: center;
-        }
-        .faq-tag-dropdown select {
-          border: none;
-          outline: none;
-          font-size: 1rem;
-          background: transparent;
-          color: #fff;
-          font-weight: 600;
-          flex: 1;
-          appearance: none;
-          padding: 0 32px 0 14px;
-        }
-        .dropdown-icon {
-          position: absolute;
-          right: 14px;
-          pointer-events: none;
-        }
-        .faq-inputs-row {
-          display: flex;
-          gap: 20px;
-          margin-bottom: 26px;
-          max-width: 680px;
-        }
-        .faq-input {
-          border: none;
-          outline: none;
-          border-radius: 8px;
-          padding: 14px 18px;
-          font-size: 1.1rem;
-          width: 100%;
-          font-weight: 500;
-        }
-        .faq-question {
-          flex: 1.2;
-        }
-        .faq-answer {
-          flex: 1;
-        }
-        .faq-add-btn {
-          margin: 0 0 36px 0;
-          background: #111;
-          color: #fff;
-          border: none;
-          border-radius: 10px;
-          font-size: 1.2rem;
-          font-weight: bold;
-          padding: 18px 0;
-          width: 100%;
-          max-width: 680px;
-          cursor: pointer;
-          letter-spacing: 0.04em;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-        }
-        .faq-output-section {
-          margin-top: 18px;
-          max-width: 980px;
-        }
-        .faq-output-title {
-          font-size: 1.25rem;
-          font-weight: 700;
-          color: #222;
-          margin-bottom: 12px;
-          letter-spacing: 0.04em;
-        }
-        .faq-table-wrap {
-          background: #222;
-          border-radius: 12px;
-          padding: 0 0 4px 0;
-        }
-        .faq-table {
-          width: 100%;
-          border-collapse: separate;
-          border-spacing: 0;
-        }
-        .faq-table th, .faq-table td {
-          border: 1.5px solid #444;
-          padding: 14px 12px;
-          text-align: left;
-          background: ${grey};
-          color: #fff;
-          font-size: 1.08rem;
-        }
-        .faq-table th {
-          font-weight: 700;
-          background: #444;
-          color: #fff;
-        }
-        .faq-action-dropdown {
-          position: relative;
-          background: #444;
-          border-radius: 8px;
-          border: 1px solid #fff;
-          height: 38px;
-          min-width: 110px;
-          display: flex;
-          align-items: center;
-        }
-        .faq-action-dropdown select {
-          border: none;
-          outline: none;
-          font-size: 1rem;
-          background: transparent;
-          color: #fff;
-          font-weight: 600;
-          flex: 1;
-          appearance: none;
-          padding: 0 32px 0 14px;
-        }
-        .faq-delete-btn {
-          background: #e57373;
-          color: #fff;
-          border: none;
-          border-radius: 8px;
-          font-size: 1rem;
-          font-weight: 600;
-          padding: 8px 18px;
-          cursor: pointer;
-          transition: filter 0.14s;
-        }
-        .faq-delete-btn:hover {
-          filter: brightness(0.93);
-        }
-        @media (max-width: 900px) {
-          .faq-header-row {
-            flex-direction: column;
-            align-items: stretch;
-            gap: 18px;
-          }
-          .faq-taglist-col {
-            align-items: flex-start;
-          }
-          .faq-inputs-row {
-            flex-direction: column;
-            max-width: 100%;
-          }
-          .faq-add-btn, .faq-output-section {
-            max-width: 100%;
-          }
-        }
-        @media (max-width: 600px) {
-          .faq-title {
-            font-size: 1.1rem;
-          }
-          .faq-table th, .faq-table td {
-            font-size: 0.92rem;
-            padding: 8px 6px;
-          }
-          .faq-input {
-            font-size: 0.98rem;
-            padding: 10px 10px;
-          }
-        }
-      `}</style>
+          <DialogFooter>
+            <Button onClick={() => setModalOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete FAQ</DialogTitle>
+          </DialogHeader>
+          <p>Are you sure you want to delete this FAQ?</p>
+          <DialogFooter>
+            <Button variant="secondary" onClick={cancelDelete}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
 
-export default FAQAdmin;
+export default FAQ

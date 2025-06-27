@@ -76,6 +76,7 @@ const Footer = () => {
                             {page.title}
                         </Link>
                     ))}
+                    <Link href={'/faq'} className="block text-black font-barlow ">FAQ</Link>
                 </div>
 
                 <div className="flex flex-col gap-1">
@@ -97,7 +98,7 @@ const Footer = () => {
                 </div>
             </div>
             {/* Accordance Section */}
-            <div className="w-full flex justify-center my-2">
+            <div className="w-full flex justify-center my-4">
                 <div className="w-[85%]">
                     <Accordion type="single" collapsible className="bg-[#fff] rounded-md  mb-8">
                         <AccordionItem value="item-1">
