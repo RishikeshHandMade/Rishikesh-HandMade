@@ -268,10 +268,10 @@ export default function AdminChat() {
                                 <HelpCircle className="mr-2 h-4 w-4" />
                                 User Queries
                             </TabsTrigger>
-                            {/* <TabsTrigger value="enquiry" className="flex-1 flex items-center py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white" onClick={() => { setType("enquiry"), setShowChat(false) }}>
+                            <TabsTrigger value="order-queries" className="flex-1 flex items-center py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white" onClick={() => { setType("order-queries"), setShowChat(false) }}>
                                 <HelpCircle className="mr-2 h-4 w-4" />
-                                Enquiry Chats
-                            </TabsTrigger> */}
+                                Order Queries
+                            </TabsTrigger>
                         </TabsList>
                     </div>
 

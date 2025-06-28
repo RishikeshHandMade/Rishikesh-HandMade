@@ -27,6 +27,8 @@ export default function Chat({
     userId,
     isAdmin = false,
     recipientName = "RishikeshHandMade",
+    showBackButton = false,
+    onBack,
 }) {
 
     const { data: session } = useSession()

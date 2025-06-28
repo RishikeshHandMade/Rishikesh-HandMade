@@ -29,7 +29,7 @@ function formatDate(dateStr) {
  * @param {Object} props
  * @param {function} props.onViewOrder - Called with order object when 'View' is clicked. Optional.
  */
-const AllOrders = ({ onViewOrder }) => {
+const AllOrders = ({ onViewOrder, onChatOrder, onBack }) => {
     const [orders, setOrders] = useState([]);
     const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(true);
@@ -98,7 +98,7 @@ const AllOrders = ({ onViewOrder }) => {
                                         <td className="py-3 px-2 text-sm">
                                             <button
                                                 className="text-blue-600 hover:underline"
-                                                onClick={() => onViewOrder ? onViewOrder(order) : null}
+                                                onClick={() => onChatOrder ? onChatOrder(order, onBack) : null}
                                             >
                                                 Chat
                                             </button>
