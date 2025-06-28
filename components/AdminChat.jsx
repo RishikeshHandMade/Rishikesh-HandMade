@@ -36,71 +36,71 @@ export default function AdminChat() {
         booking: 0,
         enquiry: 0
     });
-    console.log(chats,orderThreads)
+    console.log(chats, orderThreads)
 
 
     const fetchChats = async () => {
-    setIsLoading(true)
-    try {
-        const res = await fetch(`/api/getAllChats?type=${type}`)
-        const data = await res.json()
-        let enhancedChats = [];
+        setIsLoading(true)
+        try {
+            const res = await fetch(`/api/getAllChats?type=${type}`)
+            const data = await res.json()
+            let enhancedChats = [];
 
-        if (type === 'chatbot') {
-            // Normalize Chat model data
-            enhancedChats = data.chats.map(chat => ({
-                ...chat,
-                userName: chat?.userId?.name || "Unknown User",
-                lastMessage: chat?.messages?.length
-                    ? chat.messages[chat.messages.length - 1]?.text
-                    : "No messages yet",
-                lastMessageTime: chat?.messages?.length
-                    ? chat.messages[chat.messages.length - 1]?.createdAt
-                    : chat.createdAt,
-                unreadCountAdmin: chat?.unreadCountAdmin || 0,
-                unreadCountUser: chat?.unreadCountUser || 0,
-                status: chat.status || 'pending',
-                type: 'chatbot',
+            if (type === 'chatbot') {
+                // Normalize Chat model data
+                enhancedChats = data.chats.map(chat => ({
+                    ...chat,
+                    userName: chat?.userId?.name || "Unknown User",
+                    lastMessage: chat?.messages?.length
+                        ? chat.messages[chat.messages.length - 1]?.text
+                        : "No messages yet",
+                    lastMessageTime: chat?.messages?.length
+                        ? chat.messages[chat.messages.length - 1]?.createdAt
+                        : chat.createdAt,
+                    unreadCountAdmin: chat?.unreadCountAdmin || 0,
+                    unreadCountUser: chat?.unreadCountUser || 0,
+                    status: chat.status || 'pending',
+                    type: 'chatbot',
+                }));
+            } else if (type === 'order-queries') {
+                // Normalize OrderChat model data
+                enhancedChats = data.chats.map(chat => ({
+                    ...chat,
+                    userName: chat?.userId?.name || "Unknown User",
+                    lastMessage: chat?.lastMessage || "No messages yet",
+                    lastMessageTime: chat?.lastMessageTime || chat.createdAt,
+                    unreadCountAdmin: chat?.unreadCountAdmin || 0,
+                    unreadCountUser: chat?.unreadCountUser || 0,
+                    status: chat.status || 'pending',
+                    type: 'order-queries',
+                }));
+            } else {
+                // fallback for future types
+                enhancedChats = data.chats.map(chat => ({
+                    ...chat,
+                    userName: chat?.userId?.name || "Unknown User",
+                    lastMessage: chat?.lastMessage || "No messages yet",
+                    lastMessageTime: chat?.lastMessageTime || chat.createdAt,
+                    unreadCountAdmin: chat?.unreadCountAdmin || 0,
+                    unreadCountUser: chat?.unreadCountUser || 0,
+                    status: chat.status || 'pending',
+                    type: type,
+                }));
+            }
+
+            setChats(enhancedChats);
+
+            // Calculate unread counts for all types
+            setUnreadCounts(prev => ({
+                ...prev,
+                [type]: enhancedChats.reduce((sum, chat) => sum + (chat.unreadCountAdmin || 0), 0)
             }));
-        } else if (type === 'order-queries') {
-            // Normalize OrderChat model data
-            enhancedChats = data.chats.map(chat => ({
-                ...chat,
-                userName: chat?.userId?.name || "Unknown User",
-                lastMessage: chat?.lastMessage || "No messages yet",
-                lastMessageTime: chat?.lastMessageTime || chat.createdAt,
-                unreadCountAdmin: chat?.unreadCountAdmin || 0,
-                unreadCountUser: chat?.unreadCountUser || 0,
-                status: chat.status || 'pending',
-                type: 'order-queries',
-            }));
-        } else {
-            // fallback for future types
-            enhancedChats = data.chats.map(chat => ({
-                ...chat,
-                userName: chat?.userId?.name || "Unknown User",
-                lastMessage: chat?.lastMessage || "No messages yet",
-                lastMessageTime: chat?.lastMessageTime || chat.createdAt,
-                unreadCountAdmin: chat?.unreadCountAdmin || 0,
-                unreadCountUser: chat?.unreadCountUser || 0,
-                status: chat.status || 'pending',
-                type: type,
-            }));
+        } catch (error) {
+            console.error("Error fetching chats:", error)
+        } finally {
+            setIsLoading(false)
         }
-
-        setChats(enhancedChats);
-
-        // Calculate unread counts for all types
-        setUnreadCounts(prev => ({
-            ...prev,
-            [type]: enhancedChats.reduce((sum, chat) => sum + (chat.unreadCountAdmin || 0), 0)
-        }));
-    } catch (error) {
-        console.error("Error fetching chats:", error)
-    } finally {
-        setIsLoading(false)
     }
-}
 
 
     useEffect(() => {
@@ -346,26 +346,18 @@ export default function AdminChat() {
                             </DropdownMenu>
                         )}
                         <div className="flex-1 overflow-y-auto p-4">
-                            {messagesLoading ? (
-                                <div>Loading messages...</div>
-                            ) : (
-                                <ul className="space-y-2">
-                                    {messages.map((msg, idx) => (
-                                        <li key={idx} className="p-2 rounded bg-gray-100">
-                                            <div className="text-xs text-gray-500">{msg.sender || "User"} {msg.createdAt && new Date(msg.createdAt).toLocaleString()}</div>
-                                            <div>{msg.text}</div>
-                                            {/* Render images if present */}
-                                            {msg.images && msg.images.length > 0 && (
-                                                <div className="flex space-x-2 mt-2">
-                                                    {msg.images.map((img, i) => (
-                                                        <img key={i} src={img} alt="attachment" className="w-16 h-16 object-cover rounded" />
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
+                            <div className="flex-1 overflow-hidden p-4">
+                                {selectedChat && (
+                                    <Chat
+                                        type={type}
+                                        userId={selectedChat.userId?._id || selectedChat.userId}
+                                        isAdmin={true}
+                                        recipientName={selectedChat.userName}
+                                        packageId={selectedChat.packageId}
+                                        bookingId={selectedChat.bookingId}
+                                    />
+                                )}
+                            </div>
                         </div>
                     </>
                 ) : (
@@ -393,11 +385,11 @@ function ChatList({ chats, setShowChat, showChat, selectedChat, setSelectedChat,
         <div className="space-y-1 p-2">
             {chats.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).map((chat) => (
                 <Card
-                    key={chat.bookingId}
+                    key={chat._id}
                     onClick={() => { setSelectedChat(chat); setShowChat(true) }}
                     className={cn(
                         `flex items-center p-3 border-2 cursor-pointer hover:bg-blue-100 transition-colors`,
-                        selectedChat?.bookingId === chat.bookingId ? "border-blue-600" : "border-transparent"
+                        selectedChat?._id === chat._id ? "border-blue-600" : "border-transparent"
                     )}
                 >
                     <div className="relative mr-3">

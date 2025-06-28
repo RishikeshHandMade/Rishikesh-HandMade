@@ -29,6 +29,7 @@ export default function Chat({
     recipientName = "RishikeshHandMade",
     showBackButton = false,
     onBack,
+    type = "chatbot",
 }) {
 
     const { data: session } = useSession()
@@ -72,10 +73,10 @@ export default function Chat({
 
     // And update your useEffect to call it when type is "booking"
     useEffect(() => {
-    if (!userId) {
-        console.error("Chat component: userId is undefined! This will cause message fetch errors.");
-        return;
-    }
+        if (!userId) {
+            console.error("Chat component: userId is undefined! This will cause message fetch errors.");
+            return;
+        }
         // Only merge chatbot_history once per session
         let mergedBotHistory = false;
         const botHistory = localStorage.getItem("chatbot_history");
@@ -98,7 +99,7 @@ export default function Chat({
             return prev;
         });
         const interval = setInterval(fetchMessages, 3000);
-        return () => {clearInterval(interval);  setAdminName(null); }
+        return () => { clearInterval(interval); setAdminName(null); }
     }, [fetchMessages]);
 
     const fileInputRef = useRef();
@@ -141,7 +142,7 @@ export default function Chat({
         const adminNameToSet = isAdmin ? (session.user.name || session.user.email) : null;
 
         const newMessage = {
-            sender: userId,
+            sender: isAdmin ? "admin" : userId,
             ...(isAdmin && {
                 adminName: adminNameToSet
             }),
@@ -150,6 +151,7 @@ export default function Chat({
             status: "sent",
             createdAt: new Date().toISOString(),
             images: attachments,
+            type: type || "chatbot",
         };
 
         // Optimistically update UI
@@ -290,35 +292,74 @@ export default function Chat({
 
                 {Array.isArray(messages) &&
                     messages.map((msg, index) => {
-                        const isCurrentUser = msg.sender === userId
-                        const showAvatar = index === 0 || messages[index - 1]?.sender !== msg.sender
-                        // Use a stable unique key for each message
-                        const msgKey = msg._id || (msg.createdAt + '-' + index);
+                        // Determine if this message is sent by the "current" user (user or admin)
+                        let isRight = false;
+                        let bubbleColor = "bg-blue-600 text-primary-foreground rounded-tr-none"; // default: right
+                        if (isAdmin) {
+                            // Admin panel: admin messages right, user left
+                            if (msg.adminName || msg.sender === "admin") {
+                                isRight = true;
+                                bubbleColor = "bg-blue-600 text-primary-foreground rounded-tr-none";
+                            } else {
+                                isRight = false;
+                                bubbleColor = "bg-muted text-gray-900 rounded-tl-none";
+                            }
+                        } else {
+                            // User panel: user messages right, admin/bot left
+                            if (msg.sender === userId) {
+                                isRight = true;
+                                bubbleColor = "bg-blue-600 text-primary-foreground rounded-tr-none";
+                            } else if (msg.from === "Bot") {
+                                isRight = false;
+                                bubbleColor = "bg-yellow-100 text-yellow-900 rounded-tl-none";
+                            } else {
+                                isRight = false;
+                                bubbleColor = "bg-muted text-gray-900 rounded-tl-none";
+                            }
+                        }
+                        if (!isAdmin) {
+                            if (msg.sender === userId) {
+                                isRight = true;
+                                bubbleColor = "bg-blue-600 text-primary-foreground rounded-tr-none";
+                            } else if (msg.sender === "admin" || msg.adminName) {
+                                isRight = false;
+                                bubbleColor = "bg-muted text-gray-900 rounded-tl-none";
+                            } else if (msg.sender === "bot" || msg.from === "Bot") {
+                                isRight = false;
+                                bubbleColor = "bg-yellow-100 text-yellow-900 rounded-tl-none";
+                            } else {
+                                // Fallback: treat messages with missing sender as left-aligned (admin/bot)
+                                isRight = false;
+                                bubbleColor = "bg-muted text-gray-900 rounded-tl-none";
+                            }
+                        }
+                        const showAvatar = index === 0 || messages[index - 1]?.sender !== msg.sender;
+
                         return (
                             <div
-                                key={msgKey}
-                                className={cn("flex items-end gap-2", isCurrentUser ? "justify-end" : "justify-start")}
+                                key={msg._id || (msg.createdAt + '-' + index)}
+                                className={cn("flex items-end gap-2", isRight ? "justify-end" : "justify-start")}
                             >
-                                {!isCurrentUser && showAvatar && (
+                                {!isRight && showAvatar && (
                                     <Avatar className="h-8 w-8">
                                         <AvatarImage src={`${pathname === '/admin/chat' ? '/user.png' : '/apple-touch-icon.png'}`} alt={recipientName} />
                                         <AvatarFallback>{getInitials(recipientName)}</AvatarFallback>
                                     </Avatar>
                                 )}
 
-                                {!isCurrentUser && !showAvatar && <div className="w-8" />}
+                                {!isRight && !showAvatar && <div className="w-8" />}
 
                                 <div
                                     className={cn(
                                         "max-w-[75%] px-4 py-2 rounded-2xl",
-                                        isCurrentUser ? "bg-blue-600 text-primary-foreground rounded-tr-none" : "bg-muted rounded-tl-none",
+                                        bubbleColor,
                                     )}
                                 >
                                     {/* Display Sent Images */}
-                                    {msg.images?.length > 0 && (
+                                    {msg.image?.length > 0 && (
                                         <div className="mb-2 grid grid-cols-2 gap-2">
-                                            {msg.images.map((img) => (
-                                                <div key={img.key || img.url} className="relative w-20 md:w-32 h-20 md:h-32">
+                                            {msg.image.map((img) => (
+                                                <div key={img.key} className="relative w-20 md:w-32 h-20 md:h-32">
                                                     <Image onClick={() => setZoomImage(img.url)} src={img.url} alt="Sent Image" fill className="cursor-pointer rounded-lg object-cover" />
                                                 </div>
                                             ))}
@@ -327,25 +368,24 @@ export default function Chat({
                                     {/* Display Text Message */}
                                     {msg.text && <p className="break-words">{msg.text}</p>}
 
-
-                                    <div className={cn("flex text-xs mt-1 gap-1", isCurrentUser ? "justify-end" : "justify-start")}>
-                                        <span className={isCurrentUser ? "text-primary-foreground/70" : "text-muted-foreground"}>
+                                    <div className={cn("flex text-xs mt-1 gap-1", isRight ? "justify-end" : "justify-start")}>
+                                        <span className={isRight ? "text-primary-foreground/70" : "text-muted-foreground"}>
                                             {formatTime(msg.createdAt)}
                                         </span>
-                                        {isCurrentUser && getStatusIcon(msg.status)}
+                                        {isRight && getStatusIcon(msg.status)}
                                     </div>
                                 </div>
 
-                                {isCurrentUser && showAvatar && (
+                                {isRight && showAvatar && (
                                     <Avatar className="h-8 w-8">
                                         <AvatarImage src={`${pathname === '/admin/chat' ? '/apple-touch-icon.png' : '/user.png'}`} alt="You" />
                                         <AvatarFallback>{getInitials("You")}</AvatarFallback>
                                     </Avatar>
                                 )}
 
-                                {isCurrentUser && !showAvatar && <div className="w-8" />}
+                                {isRight && !showAvatar && <div className="w-8" />}
                             </div>
-                        )
+                        );
                     })}
 
                 <div ref={messagesEndRef} />

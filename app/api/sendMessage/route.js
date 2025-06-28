@@ -8,8 +8,13 @@ export async function POST(req, res) {
         const body = await req.json();
         const { sender, adminName, text, userId, images } = body;
 
+        // Determine if message is sent by admin
+        let senderValue = sender;
+        if (adminName) {
+            senderValue = 'admin';
+        }
         const newMessage = {
-            sender,
+            sender: senderValue,
             text,
             ...(adminName && { adminName }),
             status: "sent",
@@ -17,10 +22,18 @@ export async function POST(req, res) {
             images: images || [],
         };
 
+
         // Find chat by userId only (e-commerce user-admin chat)
         let chat = await Chat.findOne({ userId });
 
         if (!chat) {
+            // Ensure sender is set for admin/bot/system messages
+            if (!newMessage.sender && newMessage.adminName) {
+                newMessage.sender = 'admin';
+            }
+            if (!newMessage.sender && newMessage.from === 'Bot') {
+                newMessage.sender = 'bot';
+            }
             chat = new Chat({
                 userId,
                 type: "chatbot",
@@ -40,9 +53,9 @@ export async function POST(req, res) {
 
             chat.updatedAt = new Date();
         }
-
+        // console.log(chat)
         await chat.save();
-
+        // console.log("chat saved",chat)
         return NextResponse.json({
             success: true,
             message: "Message sent successfully",
