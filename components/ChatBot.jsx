@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useRef,useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Send, MessageCircle, X } from "lucide-react";
 
@@ -40,9 +40,7 @@ const productQnA = [
 export default function ChatBot() {
   const { data: session, status } = useSession();
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    { from: "bot", text: "..." }
-  ]);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [step, setStep] = useState(0); // 0: greet, 1: small talk, 2: contact, 3: product, 4: menu, 5: qna
   const [contact, setContact] = useState({ name: "", phone: "", email: "" });
@@ -64,22 +62,37 @@ export default function ChatBot() {
   }, [messages, open]);
 
   useEffect(() => {
+    if (!open) return;
     const timer = setTimeout(() => {
       setMessages([
-        { from: "bot", text: "Hi there! 👋 Welcome to Rishikesh Handmade! I’m AI Support Intelligence from our online store – your virtual assistant here to help you with anything you need." }
+        {
+          from: "bot",
+          text: `Hi there! 👋 Welcome to Rishikesh Handmade!\n\nI’m AI Support Intelligence from our online store – your virtual assistant here to help you with anything you need.\n\nHow can I assist you today?`
+        }
       ]);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
+    }, 1000); // Delay in milliseconds
 
-  // Handlers for each step
+    return () => clearTimeout(timer);
+  }, [open]);
+
+
+
   const handleSmallTalk = (e) => {
     e.preventDefault();
     if (!input.trim()) return;
-    setMessages(msgs => [...msgs, { from: "user", text: input }, { from: "bot", text: "Nice to meet you!" }]);
+
+    setMessages(msgs => [
+      ...msgs,
+      { from: "user", text: input },
+      {
+        from: "bot",
+        text: `May I know your name and contact number?\n\n📧 Your Email Address:\n📞 Your Phone Number (optional):`
+      }
+    ]);
     setInput("");
     setStep(2);
   };
+
 
   const handleContact = (e) => {
     e.preventDefault();
@@ -87,16 +100,36 @@ export default function ChatBot() {
       setError("Please enter your name and email.");
       return;
     }
+
     setMessages(msgs => [
       ...msgs,
-      { from: "user", text: `Name: ${contact.name}\nEmail: ${contact.email}${contact.phone ? `\nPhone: ${contact.phone}` : ""}` },
-      { from: "bot", text: "Thank you! To help you better, could you please share the product name or product code/SKU you’re referring to?\n📝 Example: 'Nike Air Max 270' or 'SKU: NKM270-BLK'" }
+      {
+        from: "user",
+        text: `Name: ${contact.name}\nEmail: ${contact.email}${contact.phone ? `\nPhone: ${contact.phone}` : ""}`
+      },
+      {
+        from: "bot",
+        text: `Thank you! 😊\n\nHow can I help you today?\n\nPlease choose one of the options below 👇`
+      }
     ]);
-    setInput("");
+    setContact({ name: "", phone: "", email: "" });
     setError("");
     setStep(3);
   };
+  const handleQnAOption = (qna) => {
+    setMessages((msgs) => [...msgs, { from: "user", text: qna.q }]);
 
+    if (qna.q === "🛍 Product Information") {
+      setMessages((msgs) => [
+        ...msgs,
+        { from: "bot", text: "Sure! Please share the product name or code (SKU)." }
+      ]);
+      setStep("product-info"); // Set special step for product input
+    } else {
+      setMessages((msgs) => [...msgs, { from: "bot", text: qna.a }]);
+      setStep(4); // Go to main menu (or stay on 3 if you prefer)
+    }
+  };
   const handleProduct = async (e) => {
     e.preventDefault();
     if (!product.trim()) {
@@ -111,7 +144,9 @@ export default function ChatBot() {
         setMessages(msgs => [
           ...msgs,
           { from: "user", text: product },
-          { from: "bot", text: `Product: ${data.product.name}\nPrice: ₹${data.product.price}\nDescription: ${data.product.description}` }
+          { from: "bot", text: `Product: ${data.product.name}\nPrice: ₹${data.product.price}\nDescription: ${data.product.description}` },
+          { from: "bot", text: `Would you like to know more?\n\nPlease choose from the options below:\n\n1. 🛍 Product Information\n2. 🚚 Shipping & Delivery\n3. 💳 Payment & Checkout\n4. 🔁 Returns & Refunds\n5. 📦 Order Status\n6. 🧑‍💬 Talk to Support` }
+
         ]);
       } else {
         setMessages(msgs => [
@@ -144,8 +179,35 @@ export default function ChatBot() {
 
   const handleBubbleClick = () => {
     setOpen(true);
-    setTimeout(scrollToBottom, 200);
+
+    // Show typing first
+    setMessages([{ from: "bot", text: "..." }]);
+
+    // Then show welcome message after 1 second
+    setTimeout(() => {
+      setMessages([
+        {
+          from: "bot",
+          text: `Hi there! 👋 Welcome to Rishikesh Handmade!\n\nI’m AI Support Intelligence from our online store – your virtual assistant here to help you with anything you need.\n\nHow can I assist you today?`
+        }
+      ]);
+    }, 1000);
   };
+  const handleResetChat = () => {
+    setMessages([
+      {
+        from: "bot",
+        text: "Hi there! 👋 Welcome to Rishikesh Handmade!\n\nI’m AI Support Intelligence from our online store – your virtual assistant here to help you with anything you need.\n\nHow can I assist you today?",
+      },
+    ]);
+    setStep(0);
+    setInput("");
+    setContact({ name: "", phone: "", email: "" });
+    setProduct("");
+    setError("");
+  };
+
+
 
   const handleMainMenu = (qna) => {
     setMessages((msgs) => [
@@ -155,15 +217,22 @@ export default function ChatBot() {
     ]);
   };
 
-  const handleAskMore = () => {
-    setCustomSent(false);
+  const handleChatWithAdmin = async () => {
+    localStorage.setItem("chat_with_admin", "true");
+    localStorage.setItem("chatbot_history", JSON.stringify(messages));
+    // Persist bot history to backend
+    if (session?.user?.id && messages.length > 0) {
+      await fetch('/api/mergeBotHistory', {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: session.user.id, botMessages: messages }),
+      });
+    }
     if (!isLoggedIn(session)) {
       setLoginPrompt(true);
       return;
     }
-    setShowCustomInput(true);
-    setLoginPrompt(false);
-    setTimeout(scrollToBottom, 200);
+    window.location.href = "/dashboard?section=chat";
   };
 
   const handleInputSend = async (e) => {
@@ -215,7 +284,7 @@ export default function ChatBot() {
       )}
       {/* Chat window */}
       {open && (
-        <div className="fixed bottom-2 right-[4%] z-50 w-80 h-[30rem] max-w-[95vw] bg-white rounded-xl shadow-2xl flex flex-col border border-gray-200 animate-fadeIn">
+        <div className="fixed bottom-2 right-[4%] z-50 w-[330px] h-[30rem] max-w-[95vw] bg-white rounded-xl shadow-2xl flex flex-col border border-gray-200 animate-fadeIn">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-blue-600 rounded-t-xl">
             <span className="text-white font-semibold">Chat with us</span>
@@ -226,18 +295,18 @@ export default function ChatBot() {
             {messages.map((msg, idx) => (
               <div
                 key={idx}
-                className={`flex ${msg.from === "user" ? "justify-start" : "justify-end"}`}
+                className={`flex ${msg.from === "bot" ? "justify-start" : "justify-end"}`}
               >
                 <div
-                  className={`px-4 py-2 rounded-2xl text-sm shadow-sm max-w-[80%] whitespace-pre-wrap "
-                  ${msg.from === "user"
-                      ? "bg-white text-gray-900 border border-gray-200"
-                      : "bg-blue-600 text-white border border-blue-600"}
-                  `}
+                  className={`px-4 py-2 rounded-2xl text-sm shadow-sm max-w-[80%] whitespace-pre-wrap ${msg.from === "bot"
+                    ? "bg-white text-gray-900 border border-gray-200"
+                    : "bg-blue-600 text-white border border-blue-600"
+                    }`}
                 >
                   {msg.text}
                 </div>
               </div>
+
             ))}
             {loading && (
               <div className="flex justify-end">
@@ -305,7 +374,22 @@ export default function ChatBot() {
             )}
             {/* Step 3: Product info */}
             {step === 3 && (
-              <form onSubmit={handleProduct} className="flex gap-2">
+              <>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {productQnA.map((qna) => (
+                    <button
+                      key={qna.q}
+                      className="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-full text-xs font-medium transition"
+                      onClick={() => handleQnAOption(qna)}
+                    >
+                      {qna.q}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+            {step === "product-info" && (
+              <form onSubmit={handleProduct} className="flex gap-2 mt-1">
                 <input
                   type="text"
                   className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-blue-500 bg-gray-50"
@@ -322,9 +406,10 @@ export default function ChatBot() {
                 >
                   <Send className="w-5 h-5" />
                 </button>
-                {error && <div className="text-red-500 text-xs">{error}</div>}
               </form>
             )}
+
+
             {/* Step 4: Main menu */}
             {step === 4 && (
               <>
@@ -340,6 +425,7 @@ export default function ChatBot() {
                     </button>
                   ))}
                 </div>
+
                 <button
                   className="w-full mt-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition"
                   onClick={() => setStep(0)}
@@ -347,8 +433,24 @@ export default function ChatBot() {
                 >
                   New Question
                 </button>
+                <button
+                  className="w-full mt-2 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold transition"
+                  onClick={handleChatWithAdmin}
+                >
+                  🧑‍💬 Chat with Admin
+                </button>
+
+
+                {/* 🔁 Reset Chat Button */}
+                <button
+                  className="w-full mt-2 text-sm text-red-600 hover:underline"
+                  onClick={handleResetChat}
+                >
+                  🔄 Reset Chat
+                </button>
               </>
             )}
+
             {loginPrompt && (
               <div className="flex flex-col items-center gap-2">
                 <span className="text-sm text-gray-700 mb-2">Please log in or sign up to ask a custom question.</span>
@@ -378,7 +480,7 @@ export default function ChatBot() {
               </form>
             )}
           </div>
-          </div>
+        </div>
       )}
     </>
   );

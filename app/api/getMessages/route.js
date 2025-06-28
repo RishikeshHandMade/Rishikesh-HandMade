@@ -8,27 +8,21 @@ export async function GET(req) {
 
         // Extract query parameters from the request URL
         const { searchParams } = new URL(req.url);
-        const type = searchParams.get("type");
-        const bookingId = searchParams.get("bookingId");
-
-        // Validate required query parameters
-        if (!type || !bookingId) {
+        const userId = searchParams.get("userId");
+        if (!userId) {
             return NextResponse.json(
-                { error: "Missing type or bookingId query parameters" },
+                { error: "Missing userId query parameter" },
                 { status: 400 }
             );
         }
-
-        // Find the chat in the database
-        const chat = await Chat.findOne({ type, bookingId }).populate("userId");
-        
+        // Find the chat in the database by userId
+        const chat = await Chat.findOne({ userId }).populate("userId");
         if (!chat) {
             return NextResponse.json(
                 { error: "Chat not found" },
                 { status: 404 }
             );
         }
-
         // Return the chat messages
         return NextResponse.json({ messages: chat.messages }, { status: 200 });
     } catch (error) {

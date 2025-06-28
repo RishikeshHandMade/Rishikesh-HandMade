@@ -26,6 +26,9 @@ export async function GET(req) {
       .sort({ updatedAt: -1 })
       .lean();
 
+    // Filter out chats missing userId or userId._id
+    const filteredChats = chats.filter(chat => chat.userId && chat.userId._id);
+
     // Helper function to fetch enquiry details
     const getEnquiryDetails = async (chat) => {
       const enquiry = await Enquiry.findOne({

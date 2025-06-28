@@ -28,6 +28,7 @@ export default function AdminChat() {
     const [isLoading, setIsLoading] = useState(false)
     const [userQueries, setUserQueries] = useState([]);
     const [uqLoading, setUqLoading] = useState(false);
+    console.log(selectedChat)
 
     const [unreadCounts, setUnreadCounts] = useState({
         bookings: 0,
@@ -247,6 +248,7 @@ export default function AdminChat() {
             toast.error("Network error while updating status.");
         }
     };
+    { console.log("Rendering <Chat /> with userId:", selectedChat?.userId?._id, selectedChat) }
 
     return (
         <div className="flex flex-col lg:flex-row h-screen bg-transparent">
@@ -266,10 +268,10 @@ export default function AdminChat() {
                                 <HelpCircle className="mr-2 h-4 w-4" />
                                 User Queries
                             </TabsTrigger>
-                            <TabsTrigger value="enquiry" className="flex-1 flex items-center py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white" onClick={() => { setType("enquiry"), setShowChat(false) }}>
+                            {/* <TabsTrigger value="enquiry" className="flex-1 flex items-center py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white" onClick={() => { setType("enquiry"), setShowChat(false) }}>
                                 <HelpCircle className="mr-2 h-4 w-4" />
                                 Enquiry Chats
-                            </TabsTrigger>
+                            </TabsTrigger> */}
                         </TabsList>
                     </div>
 
@@ -315,39 +317,39 @@ export default function AdminChat() {
                         </Button>
                     </div>
                     <TabsContent value="user-queries" className="flex-1 overflow-y-auto">
-  <div className="p-4">
-    <h2 className="text-lg font-bold mb-4">User Queries</h2>
-    {uqLoading ? (
-      <div>Loading...</div>
-    ) : userQueries.length === 0 ? (
-      <div>No user queries yet.</div>
-    ) : (
-      <ul className="space-y-4">
-        {userQueries.map(q => (
-          <li
-            key={q._id}
-            className={`p-4 border rounded bg-gray-50 cursor-pointer ${selectedChat && selectedChat._id === q._id ? "border-blue-500 bg-blue-50" : ""}`}
-            onClick={() => {
-              setSelectedChat(q);
-              setShowChat(true);
-            }}
-          >
-            <div>
-              <span className="font-semibold">{q.userName || q.userEmail}</span>
-              <span className="text-xs text-gray-500 ml-2">{new Date(q.createdAt).toLocaleString()}</span>
-            </div>
-            <div className="mt-1">{q.question}</div>
-            {q.answer && (
-              <div className="mt-2 text-green-700">
-                <strong>Admin Reply:</strong> {q.answer}
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
-    )}
-  </div>
-</TabsContent>
+                        <div className="p-4">
+                            <h2 className="text-lg font-bold mb-4">User Queries</h2>
+                            {uqLoading ? (
+                                <div>Loading...</div>
+                            ) : userQueries.length === 0 ? (
+                                <div>No user queries yet.</div>
+                            ) : (
+                                <ul className="space-y-4">
+                                    {userQueries.map(q => (
+                                        <li
+                                            key={q._id}
+                                            className={`p-4 border rounded bg-gray-50 cursor-pointer ${selectedChat && selectedChat._id === q._id ? "border-blue-500 bg-blue-50" : ""}`}
+                                            onClick={() => {
+                                                setSelectedChat(q);
+                                                setShowChat(true);
+                                            }}
+                                        >
+                                            <div>
+                                                <span className="font-semibold">{q.userName || q.userEmail}</span>
+                                                <span className="text-xs text-gray-500 ml-2">{new Date(q.createdAt).toLocaleString()}</span>
+                                            </div>
+                                            <div className="mt-1">{q.question}</div>
+                                            {q.answer && (
+                                                <div className="mt-2 text-green-700">
+                                                    <strong>Admin Reply:</strong> {q.answer}
+                                                </div>
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
+                    </TabsContent>
                     <TabsContent value="enquiry" className="flex-1 overflow-y-auto m-0 p-0">
                         <ChatList
                             chats={filteredChats}
@@ -368,7 +370,14 @@ export default function AdminChat() {
             <div className="flex-1 flex flex-col w-full h-full">
                 {showChat ? (
                     <>
-                        {type === "user-queries" && selectedChat && (
+                        {type === "user-queries" && selectedChat && selectedChat.userId ? (
+                            <Chat
+                                userId={selectedChat.userId}
+                                isAdmin={true}
+                                recipientName={selectedChat.userName || selectedChat.userEmail}
+                            />
+                        ) : type === "user-queries" && selectedChat ? (
+                            // Fallback to static Q/A panel if userId is missing
                             <div className="w-full max-w-xl mx-auto bg-white rounded shadow p-6 my-4 border">
                                 <div className="mb-2">
                                     <span className="font-semibold">{selectedChat.userName || selectedChat.userEmail}</span>
@@ -385,43 +394,13 @@ export default function AdminChat() {
                                     <div className="italic text-gray-400">No reply yet.</div>
                                 )}
                             </div>
+                        ) :(
+                            <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                                <MessageSquare className="h-16 w-16 mb-4 text-muted-foreground/50" />
+                                <h2 className="text-xl font-medium mb-2">No chat selected</h2>
+                                <p>Select a conversation from the sidebar to start messaging</p>
+                            </div>
                         )}
-                        {type === "enquiry" && (
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild className="w-fit !m-4">
-                                    <Button variant="outline" className={`!p-6 ${selectedChat.status === "pending" && "border-yellow-400 bg-yellow-100 hover:bg-yellow-600"} ${selectedChat.status === "resolved" && "border-green-400 bg-green-100 hover:bg-green-600"} border-2 hover:text-white flex items-center gap-2`}>
-                                        <span className="capitalize">{selectedChat.status}</span>
-                                        <ChevronDown className="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent className='border-2 border-blue-600'>
-                                    {["pending", "resolved"].map((option) => (
-                                        <DropdownMenuItem
-                                            key={option}
-                                            onClick={() => handleStatusChange(option)}
-                                            className="capitalize focus:hover:bg-blue-100 cursor-pointer hover:bg-blue-100"
-                                        >
-                                            {option}
-                                            {selectedChat.status === option && (
-                                                <Check className="h-4 w-4 ml-2" />
-                                            )}
-                                        </DropdownMenuItem>
-                                    ))}
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        )}
-
-                        <div className="flex-1 overflow-hidden p-4">
-                            <Chat
-                                type={type}
-                                userid={selectedChat.userId._id}
-                                userId="admin"
-                                packageId={selectedChat.packageId}
-                                bookingId={selectedChat.bookingId}
-                                isAdmin={true}
-                                recipientName={selectedChat.userName}
-                            />
-                        </div>
                     </>
                 ) : (
                     <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
@@ -444,15 +423,17 @@ function ChatList({ chats, setShowChat, showChat, selectedChat, setSelectedChat,
             </div>
         )
     }
+    // Only show chats with valid userId and userId._id
+    const filteredChats = chats.filter(chat => chat.userId && chat.userId._id);
     return (
         <div className="space-y-1 p-2">
-            {chats.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).map((chat) => (
+            {filteredChats.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).map((chat) => (
                 <Card
-                    key={chat.bookingId}
+                    key={chat.userId._id}
                     onClick={() => { setSelectedChat(chat); setShowChat(true) }}
                     className={cn(
                         `flex items-center p-3 border-2 cursor-pointer hover:bg-blue-100 transition-colors`,
-                        selectedChat?.bookingId === chat.bookingId ? "border-blue-600" : "border-transparent"
+                        selectedChat?.userId?._id === chat.userId._id ? "border-blue-600" : "border-transparent"
                     )}
                 >
                     <div className="relative mr-3">

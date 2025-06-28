@@ -2,17 +2,15 @@ import mongoose from "mongoose";
 
 const messageSchema = new mongoose.Schema({
   sender: String,
-  adminName: String, 
+  adminName: String,
   text: String,
   status: String,
   createdAt: Date,
-  image: [{ url: { type: String }, key: { type: String } }],
+  images: [{ url: { type: String }, key: { type: String } }], // updated field
 });
 
 const chatSchema = new mongoose.Schema({
-  type: { type: String, required: true },
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  bookingId: { type: String, required: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, unique: true },
   messages: [messageSchema],
   unreadCountUser: { type: Number, default: 0 }, // Count for user
   unreadCountAdmin: { type: Number, default: 0 }, // Count for admin

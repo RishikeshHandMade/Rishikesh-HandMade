@@ -10,10 +10,12 @@ import OrderDetail from "./OrderDetail";
 import AllOrders from "./AllOrders";
 import Address from "./Address";
 import ReturnRequest from "./ReturnRequest";
+import Chat from "./Chat";
 
 const sections = [
   { key: "orders", label: "Orders" },
   { key: "return", label: "Return request" },
+  { key: "chatbot", label: "Chat Bot" },
 ];
 const settings = [
   { key: "profile", label: "Profile" },
@@ -21,8 +23,15 @@ const settings = [
 ];
 
 function SectionContent({ section, orderId, onViewOrder, onBackHome, showOrderDetail, selectedOrder }) {
+   const { data: session } = useSession()
   if (section === "profile") return <Profile />;
-  if (section === "orders" && showOrderDetail && selectedOrder) return <OrderDetail order={selectedOrder} />;
+  if (section === "orders" && selectedOrder) return <OrderDetail order={selectedOrder} />;
+  if (section === "chatbot") {
+    // Pass userId from session to Chat
+    const userId = session?.user?.id || session?.user?._id;
+    // console.log("Rendering Chat with userId:", userId);
+    return <Chat userId={userId} />;
+  }
   if (section === "orders") return <AllOrders onViewOrder={onViewOrder} />;
   if (section === "address") return <Address />;
   if (section === "return") return <ReturnRequest />;
@@ -66,9 +75,11 @@ const Dashboard = () => {
     setActiveSection(sectionFromUrl);
   }, [sectionFromUrl]);
 
-  const handleViewOrder = () => {
+  const handleViewOrder = (order) => {
+    setSelectedOrder(order);
     setShowOrderDetail(false);
-    router.push("/dashboard?section=orders"); // ✅ this is correct
+    setActiveSection("orders");
+    router.push("/dashboard?section=orders");
   };
   
   

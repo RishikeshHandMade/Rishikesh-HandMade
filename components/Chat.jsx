@@ -20,75 +20,42 @@ import {
 } from "@/components/ui/dialog"
 import { useSession } from "next-auth/react"
 
+import PropTypes from "prop-types";
+
 export default function Chat({
     className,
-    type,
-    userid,
     userId,
-    bookingId,
-    packageId,
     isAdmin = false,
     recipientName = "RishikeshHandMade",
 }) {
+
     const { data: session } = useSession()
     const [messages, setMessages] = useState([])
     const [message, setMessage] = useState("")
-    const [darkMode, setDarkMode] = useState(false)
-    const [showForm, setShowForm] = useState(false)
+    const [attachments, setAttachments] = useState([])
     const [zoomImage, setZoomImage] = useState(null)
-    const [bookingDetails, setBookingDetails] = useState(null);
-    const [isUploading, setIsUploading] = useState(false);
-    const [attachments, setAttachments] = useState([]);
-    const [enquiryDetails, setEnquiryDetails] = useState(null)
     const messagesEndRef = useRef(null)
     const chatContainerRef = useRef(null)
     const pathname = usePathname()
-
     const [adminName, setAdminName] = useState(null);
 
-    useEffect(() => {
-        const markAsRead = async () => {
-            try {
-                await fetch('/api/chat/mark-as-read', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        type,
-                        bookingId,
-                        userId: isAdmin ? userid : userId,
-                        isAdmin
-                    })
-                });
-            } catch (error) {
-                console.error("Failed to mark as read:", error);
-            }
-        };
-
-        markAsRead();
-
-        // Also mark as read when new messages arrive
-        if (messages.length > 0) {
-            markAsRead();
-        }
-    }, [type, bookingId, messages.length, isAdmin, userid, userId]);
+    // Optionally, add logic to mark messages as read for admin/user if needed for e-commerce chat
 
 
     const fetchMessages = useCallback(async () => {
         try {
-            const res = await fetch(`/api/getMessages?type=${type}&bookingId=${bookingId}`)
+            // Fetch messages for user-admin/product chat
+            const res = await fetch(`/api/getMessages?userId=${userId}`)
             const data = await res.json()
 
             if (data.messages && Array.isArray(data.messages)) {
                 setMessages((prev) => (JSON.stringify(prev) !== JSON.stringify(data.messages) ? data.messages : prev))
-
                 setAdminName(null);
-
                 // Find the most recent admin message
                 const adminMsg = [...data.messages].reverse().find(msg => msg.adminName);
                 if (adminMsg?.adminName) {
                     setAdminName(adminMsg.adminName);
                 }
-
             } else {
                 setMessages([])
                 setAdminName(null); // Reset when no messages
@@ -97,36 +64,37 @@ export default function Chat({
             console.error("Error fetching messages:", error)
             setAdminName(null); // Reset on error
         }
-    }, [type, bookingId])
+    }, [userId])
 
-    const fetchEnquiryDetails = async () => {
-        try {
-            const res = await fetch(`/api/getEnquiryById/${userId === 'admin' ? userid : userId}`)
-            const data = await res.json()
-            setEnquiryDetails(data.filter((enquiry) => enquiry.id === bookingId)[0])
-        } catch (error) {
-            console.error("Error fetching enquiry details:", error)
-        }
-    }
-
-    const fetchBookingDetails = async () => {
-        try {
-            const res = await fetch(`/api/getBookingById/${bookingId}`);
-            const data = await res.json();
-            setBookingDetails(data.order);
-        } catch (error) {
-            console.error("Error fetching booking details:", error);
-        }
-    };
+    // Removed enquiry and booking details logic for e-commerce chat
 
     // And update your useEffect to call it when type is "booking"
     useEffect(() => {
-        fetchMessages();
-        if (type === "enquiry") {
-            fetchEnquiryDetails();
-        } else if (type === "booking") {
-            fetchBookingDetails();
+    if (!userId) {
+        console.error("Chat component: userId is undefined! This will cause message fetch errors.");
+        return;
+    }
+        // Only merge chatbot_history once per session
+        let mergedBotHistory = false;
+        const botHistory = localStorage.getItem("chatbot_history");
+        let parsedBotHistory = [];
+        if (botHistory) {
+            parsedBotHistory = JSON.parse(botHistory).map(msg => ({
+                ...msg,
+                from: msg.from === "bot" ? "Bot" : "You"
+            }));
         }
+        fetchMessages();
+        setMessages(prev => {
+            const hasBotHistory = prev.some(msg => msg.from === "Bot");
+            if (!hasBotHistory && parsedBotHistory.length > 0 && !mergedBotHistory) {
+                mergedBotHistory = true;
+                // Clear chatbot_history so it doesn't keep merging
+                localStorage.removeItem("chatbot_history");
+                return [...parsedBotHistory, ...prev];
+            }
+            return prev;
+        });
         const interval = setInterval(fetchMessages, 3000);
         return () => {clearInterval(interval);  setAdminName(null); }
     }, [fetchMessages]);
@@ -176,8 +144,6 @@ export default function Chat({
                 adminName: adminNameToSet
             }),
             text: message,
-            type,
-            bookingId,
             userId: userId,
             status: "sent",
             createdAt: new Date().toISOString(),
@@ -200,6 +166,8 @@ export default function Chat({
             });
 
             if (res.ok) {
+                // Immediately fetch messages after successful send to sync UI
+                await fetchMessages();
                 const data = await res.json();
 
                 // Update message status to delivered
@@ -285,113 +253,10 @@ export default function Chat({
         return new Intl.NumberFormat('en-IN').format(num);
     };
 
-    const HelicopterDetailsSection = ({ heliFormData }) => (
-        <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Helicopter Booking Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <p className="text-sm text-gray-500">Number of Adults</p>
-                    <p className="font-medium">{heliFormData.numAdults || "0"}</p>
-                </div>
-                <div>
-                    <p className="text-sm text-gray-500">Number of Children</p>
-                    <p className="font-medium">{heliFormData.numChildren || "0"}</p>
-                </div>
-                <div>
-                    <p className="text-sm text-gray-500">Number of Infants</p>
-                    <p className="font-medium">{heliFormData.numInfants || "0"}</p>
-                </div>
-                <div>
-                    <p className="text-sm text-gray-500">Pickup Location</p>
-                    <p className="font-medium">{heliFormData.pickupLocation || "Not provided"}</p>
-                </div>
-                <div>
-                    <p className="text-sm text-gray-500">Dropoff Location</p>
-                    <p className="font-medium">{heliFormData.dropoffLocation || "Not provided"}</p>
-                </div>
-            </div>
-
-            {heliFormData.medicalRequirements && (
-                <div className="mt-4">
-                    <p className="text-sm text-gray-500">Medical Requirements</p>
-                    <p className="font-medium">{heliFormData.medicalRequirements}</p>
-                </div>
-            )}
-
-            {heliFormData.specialRequirements && (
-                <div className="mt-4">
-                    <p className="text-sm text-gray-500">Special Requirements</p>
-                    <p className="font-medium">{heliFormData.specialRequirements}</p>
-                </div>
-            )}
-
-            <PassengerList
-                title="Adult Passengers"
-                passengers={heliFormData.adults}
-            />
-            <PassengerList
-                title="Child Passengers"
-                passengers={heliFormData.children}
-            />
-            <PassengerList
-                title="Infant Passengers"
-                passengers={heliFormData.infants}
-            />
-        </div>
-    );
-
-    const PassengerList = ({ title, passengers = [] }) => (
-        passengers.length > 0 && (
-            <div className="mt-6">
-                <h4 className="font-semibold mb-2">{title}</h4>
-                <div className="space-y-4">
-                    {passengers.map((passenger, index) => (
-                        <PassengerCard key={index} passenger={passenger} />
-                    ))}
-                </div>
-            </div>
-        )
-    );
-
-    const PassengerCard = ({ passenger }) => (
-        <div className="border p-4 rounded-lg">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <p className="text-sm text-gray-500">Full Name</p>
-                    <p className="font-medium">{passenger.fullName}</p>
-                </div>
-                <div>
-                    <p className="text-sm text-gray-500">Age</p>
-                    <p className="font-medium">{passenger.age}</p>
-                </div>
-                <div>
-                    <p className="text-sm text-gray-500">Weight (kg)</p>
-                    <p className="font-medium">{passenger.weight}</p>
-                </div>
-            </div>
-            {passenger.idProof?.url && (
-                <div className="mt-3">
-                    <p className="text-sm text-gray-500">ID Proof</p>
-                    <div className="relative w-32 h-20 mt-1">
-                        <Image
-                            src={passenger.idProof.url}
-                            alt="ID Proof"
-                            fill
-                            className="object-cover rounded-md cursor-pointer"
-                            onClick={() => setZoomImage(passenger.idProof.url)}
-                        />
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-
     return (
         <Card
             className={cn(
-                "flex flex-col md:h-[75vh] font-barlow w-full max-w-6xl md:my-0 border-2 border-blue-600 shadow-lg",
-                darkMode ? "dark bg-gray-900 text-white" : "bg-white",
-                className,
+                "flex flex-col md:h-[75vh] bg-[#fcf7f1] font-barlow w-full max-w-6xl md:my-0 border-2 border-blue-600 shadow-lg"
             )}
         >
             <CardHeader className="lg:flex-row p-4 border-b flex justify-between items-center lg:items-start">
@@ -410,25 +275,7 @@ export default function Chat({
                     </div>
                 </div>
                 <div className="flex flex-col items-end space-x-2">
-                    {type === "booking" && (
-                        <div className="flex flex-col items-end">
-                            <p>Booking ID: <span className="font-semibold">{bookingId}</span></p>
-                            <button type="button" onClick={() => setShowForm(true)} className="underline ">Click here to view Enquiry Form</button>
-                        </div>
-                    )}
-                    {type === "enquiry" && (
-                        <div className="flex flex-col items-end">
-                            <p>Enquiry ID: <span className="font-semibold">{bookingId}</span></p>
-                            <button type="button" onClick={() => setShowForm(true)} className="underline ">Click here to view Enquiry Form</button>
-                        </div>
-                    )}
-                    {
-                        isAdmin && (
-                            <div className="flex items-center space-x-2">
-                                <p className="text-sm text-muted-foreground">View Package: <Link target="_blank" href={`/package/${packageId}`} className="underline text-blue-600">Click here to view</Link></p>
-                            </div>
-                        )
-                    }
+                    {/* Legacy booking/enquiry/package UI removed. Only recipient/admin info shown. */}
                 </div>
             </CardHeader>
 
@@ -443,10 +290,11 @@ export default function Chat({
                     messages.map((msg, index) => {
                         const isCurrentUser = msg.sender === userId
                         const showAvatar = index === 0 || messages[index - 1]?.sender !== msg.sender
-
+                        // Use a stable unique key for each message
+                        const msgKey = msg._id || (msg.createdAt + '-' + index);
                         return (
                             <div
-                                key={msg.createdAt}
+                                key={msgKey}
                                 className={cn("flex items-end gap-2", isCurrentUser ? "justify-end" : "justify-start")}
                             >
                                 {!isCurrentUser && showAvatar && (
@@ -465,10 +313,10 @@ export default function Chat({
                                     )}
                                 >
                                     {/* Display Sent Images */}
-                                    {msg.image?.length > 0 && (
+                                    {msg.images?.length > 0 && (
                                         <div className="mb-2 grid grid-cols-2 gap-2">
-                                            {msg.image.map((img) => (
-                                                <div key={img.key} className="relative w-20 md:w-32 h-20 md:h-32">
+                                            {msg.images.map((img) => (
+                                                <div key={img.key || img.url} className="relative w-20 md:w-32 h-20 md:h-32">
                                                     <Image onClick={() => setZoomImage(img.url)} src={img.url} alt="Sent Image" fill className="cursor-pointer rounded-lg object-cover" />
                                                 </div>
                                             ))}
@@ -588,257 +436,13 @@ export default function Chat({
                     </div>
                 </div>
             )}
-            {showForm && enquiryDetails && (
-                <Dialog open={showForm} onOpenChange={setShowForm}>
-                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto font-barlow">
-                        <DialogHeader>
-                            <DialogTitle>Enquiry Details</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-6 p-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-4">
-                                    <h3 className="text-lg font-semibold">Personal Information</h3>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Full Name</p>
-                                        <p className="font-medium">{enquiryDetails.name || "Not provided"}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Email</p>
-                                        <p className="font-medium">{enquiryDetails.email || "Not provided"}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Phone Number</p>
-                                        <p className="font-medium">{enquiryDetails.phone || "Not provided"}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Number of Adults</p>
-                                        <p className="font-medium">{enquiryDetails.adults || "1"}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Number of Children</p>
-                                        <p className="font-medium">{enquiryDetails.children || "0"}</p>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <h3 className="text-lg font-semibold">Address Information</h3>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Address</p>
-                                        <p className="font-medium">{enquiryDetails.address || "Not provided"}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Apartment/Suite</p>
-                                        <p className="font-medium">{enquiryDetails.aptName || "Not provided"}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">City</p>
-                                        <p className="font-medium">{enquiryDetails.city || "Not provided"}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">State</p>
-                                        <p className="font-medium">{enquiryDetails.state || "Not provided"}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Pincode</p>
-                                        <p className="font-medium">{enquiryDetails.pincode || "Not provided"}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-semibold">Travel Details</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <p className="text-sm text-gray-500">Travel Date</p>
-                                        <p className="font-medium">{formatDate(enquiryDetails.travelDate)}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Pickup Location</p>
-                                        <p className="font-medium">{enquiryDetails.pickupLocation || "Not provided"}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {enquiryDetails.extraInfo && (
-                                <div className="space-y-4">
-                                    <h3 className="text-lg font-semibold">Additional Information</h3>
-                                    <p className="font-medium">{enquiryDetails.extraInfo}</p>
-                                </div>
-                            )}
-                        </div>
-                    </DialogContent>
-                </Dialog>
-            )}
-            {showForm && bookingDetails && (
-                <Dialog open={showForm} onOpenChange={setShowForm} className="!z-20">
-                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto font-barlow">
-                        <DialogHeader>
-                            <DialogTitle>Booking Details</DialogTitle>
-                            <DialogDescription>
-                                {bookingDetails.customOrder ? "Custom Package" : "Standard Package"}
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-6 p-4">
-                            {/* Personal Information */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-4">
-                                    <h3 className="text-lg font-semibold">Personal Information</h3>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Full Name</p>
-                                        <p className="font-medium">
-                                            {bookingDetails.name || bookingDetails.formData?.name || "Not provided"}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Email</p>
-                                        <p className="font-medium">
-                                            {bookingDetails.email || bookingDetails.formData?.email || "Not provided"}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Phone Number</p>
-                                        <p className="font-medium">
-                                            {bookingDetails.phone || bookingDetails.formData?.phone || "Not provided"}
-                                        </p>
-                                    </div>
-                                    {!bookingDetails.customOrder && (
-                                        <div>
-                                            <p className="text-sm text-gray-500">Total Persons</p>
-                                            <p className="font-medium">{bookingDetails.totalPerson || "1"}</p>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Address Information */}
-                                <div className="space-y-4">
-                                    <h3 className="text-lg font-semibold">Address Information</h3>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Address</p>
-                                        <p className="font-medium">
-                                            {bookingDetails.address || bookingDetails.formData?.address || "Not provided"}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Additional Address Info</p>
-                                        <p className="font-medium">
-                                            {bookingDetails.extraAddressInfo || bookingDetails.formData?.extraAddressInfo || "Not provided"}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">City</p>
-                                        <p className="font-medium">
-                                            {bookingDetails.city || bookingDetails.formData?.city || "Not provided"}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">State</p>
-                                        <p className="font-medium">
-                                            {bookingDetails.state || bookingDetails.formData?.state || "Not provided"}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Pincode</p>
-                                        <p className="font-medium">
-                                            {bookingDetails.pincode || bookingDetails.formData?.pincode || "Not provided"}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Travel Details */}
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-semibold">Travel Details</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <p className="text-sm text-gray-500">Travel Date</p>
-                                        <p className="font-medium">
-                                            {formatDate(bookingDetails.travelDate || bookingDetails.bookingDetails?.travelDate)}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Departure Location</p>
-                                        <p className="font-medium">
-                                            {bookingDetails.departureLocation || bookingDetails.bookingDetails?.departureLocation || "Not provided"}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Payment Status</p>
-                                        <p className="font-medium capitalize">
-                                            {bookingDetails.status?.toLowerCase() || "pending"}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Payment Method</p>
-                                        <p className="font-medium">
-                                            {bookingDetails.paymentMethod || "Not specified"}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Total Amount</p>
-                                        <p className="font-medium">
-                                            ₹{formatNumber(bookingDetails.totalAmount) || "0"}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Advance Amount</p>
-                                        <p className="font-medium">
-                                            ₹{formatNumber(bookingDetails.amount) || "0"}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Special Instructions */}
-                            {(bookingDetails.instructions || bookingDetails.formData?.instructions) && (
-                                <div className="space-y-4">
-                                    <h3 className="text-lg font-semibold">Special Instructions</h3>
-                                    <p className="font-medium">
-                                        {bookingDetails.instructions || bookingDetails.formData?.instructions}
-                                    </p>
-                                </div>
-                            )}
-
-                            {/* Custom Package Details (for CustomOrder) */}
-                            {bookingDetails.customPackageForm && (
-                                <div className="space-y-4">
-                                    <h3 className="text-lg font-semibold">Custom Package Details</h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                            <p className="text-sm text-gray-500">Package Plan</p>
-                                            <p className="font-medium">{bookingDetails.customPackageForm.packagePlan || "Not specified"}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm text-gray-500">Meal Plan</p>
-                                            <p className="font-medium">{bookingDetails.customPackageForm.mealPlan || "Not specified"}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm text-gray-500">Number of Adults</p>
-                                            <p className="font-medium">{bookingDetails.customPackageForm.numAdults || "0"}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm text-gray-500">Number of Children</p>
-                                            <p className="font-medium">{bookingDetails.customPackageForm.numChildren || "0"}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm text-gray-500">Number of Mattress</p>
-                                            <p className="font-medium">{bookingDetails.customPackageForm.numMattress || "0"}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm text-gray-500">Vehicle Type</p>
-                                            <p className="font-medium">{bookingDetails.customPackageForm.vehicleType || "Not specified"}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Helicopter Booking Details */}
-                            {bookingDetails.heliFormData && (
-                                <HelicopterDetailsSection heliFormData={bookingDetails.heliFormData} />
-                            )}
-                        </div>
-                    </DialogContent>
-                </Dialog>
-            )}
         </Card>
     )
 }
+
+Chat.propTypes = {
+    userId: PropTypes.string.isRequired,
+    isAdmin: PropTypes.bool,
+    recipientName: PropTypes.string,
+    className: PropTypes.string,
+};

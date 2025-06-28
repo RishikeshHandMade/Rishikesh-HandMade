@@ -6,23 +6,22 @@ export async function POST(req, res) {
     try {
         await connectDB();
         const body = await req.json();
-        const { sender, adminName, text, type, bookingId, userId, images } = body;
+        const { sender, adminName, text, userId, images } = body;
 
         const newMessage = {
             sender,
             text,
-            ...(sender === 'admin' && { adminName }),
+            ...(adminName && { adminName }),
             status: "sent",
             createdAt: new Date(),
-            image: images || [],
+            images: images || [],
         };
 
-        let chat = await Chat.findOne({ type, bookingId });
+        // Find chat by userId only (e-commerce user-admin chat)
+        let chat = await Chat.findOne({ userId });
 
         if (!chat) {
             chat = new Chat({
-                type,
-                bookingId,
                 userId,
                 messages: [newMessage],
                 unreadCountAdmin: sender !== 'admin' ? 1 : 0,
