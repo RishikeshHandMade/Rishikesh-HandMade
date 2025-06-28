@@ -101,13 +101,9 @@ function OrderChat({ userId, orderId, userName, onBack }) {
     useEffect(() => {
         if (!userId || !orderId) return;
         const fetchMessages = async () => {
-            try {
-                const res = await fetch(`/api/getMessages?userId=${userId}&orderId=${orderId}`);
-                const data = await res.json();
-                setMessages(Array.isArray(data.messages) ? data.messages : []);
-            } catch (err) {
-                setMessages([]);
-            }
+            const res = await fetch(`/api/getOrderChat?userId=${userId}&orderId=${orderId}`);
+            const data = await res.json();
+            setMessages(Array.isArray(data.messages) ? data.messages : []);
         };
         fetchMessages();
         const interval = setInterval(fetchMessages, 3000);
@@ -142,14 +138,15 @@ function OrderChat({ userId, orderId, userName, onBack }) {
             }
         }
         try {
-            const res = await fetch('/api/sendMessage', {
+            const res = await fetch('/api/sendOrderMessage', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     userId,
                     orderId,
-                    message,
-                    attachments: attachmentUrls,
+                    text: message,
+                    images: attachmentUrls,
+                    sender: 'user', // or 'admin' if admin is sending
                 }),
             });
             if (res.ok) {
@@ -162,6 +159,7 @@ function OrderChat({ userId, orderId, userName, onBack }) {
         } catch (err) { }
     };
 
+
     const handleKeyDown = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -169,7 +167,7 @@ function OrderChat({ userId, orderId, userName, onBack }) {
         }
     };
     
-
+ 
 
     return (
         <Card className="flex flex-col h-[500px]">

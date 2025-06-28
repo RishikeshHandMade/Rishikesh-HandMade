@@ -232,7 +232,7 @@ export default function ChatBot() {
       setLoginPrompt(true);
       return;
     }
-    window.location.href = "/dashboard?section=chat";
+    window.location.href = "/dashboard?section=chatbot";
   };
 
   const handleInputSend = async (e) => {

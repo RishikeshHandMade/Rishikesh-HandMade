@@ -11,6 +11,8 @@ const messageSchema = new mongoose.Schema({
 
 const chatSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, unique: true },
+  type: { type: String, default: "chatbot" }, // Add type field for chat type
+
   messages: [messageSchema],
   unreadCountUser: { type: Number, default: 0 }, // Count for user
   unreadCountAdmin: { type: Number, default: 0 }, // Count for admin

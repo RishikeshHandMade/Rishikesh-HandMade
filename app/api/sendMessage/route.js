@@ -23,6 +23,7 @@ export async function POST(req, res) {
         if (!chat) {
             chat = new Chat({
                 userId,
+                type: "chatbot",
                 messages: [newMessage],
                 unreadCountAdmin: sender !== 'admin' ? 1 : 0,
                 unreadCountUser: sender === 'admin' ? 1 : 0

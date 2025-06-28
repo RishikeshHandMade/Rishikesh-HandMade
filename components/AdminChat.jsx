@@ -26,118 +26,139 @@ export default function AdminChat() {
     const [type, setType] = useState("booking")
     const [searchQuery, setSearchQuery] = useState("")
     const [isLoading, setIsLoading] = useState(false)
-    const [userQueries, setUserQueries] = useState([]);
-    const [uqLoading, setUqLoading] = useState(false);
-    console.log(selectedChat)
-
+    const [activeOrderChat, setActiveOrderChat] = useState(null);
+    const [messages, setMessages] = useState([])
+    const [messagesLoading, setMessagesLoading] = useState(false)
+    const [orderThreads, setOrderThreads] = useState([])
     const [unreadCounts, setUnreadCounts] = useState({
-        bookings: 0,
-        enquiries: 0,
-    })
+        chatbot: 0,
+        "order-queries": 0,
+        booking: 0,
+        enquiry: 0
+    });
+    console.log(chats,orderThreads)
+
 
     const fetchChats = async () => {
-        setIsLoading(true)
-        try {
-            const res = await fetch(`/api/getAllChats?type=${type}`)
-            const data = await res.json()
+    setIsLoading(true)
+    try {
+        const res = await fetch(`/api/getAllChats?type=${type}`)
+        const data = await res.json()
+        let enhancedChats = [];
 
-            const enhancedChats = data.chats.map((chat) => {
-                return {
-                    ...chat,
-                    userName: chat?.userId?.name || "Unknown User",
-                    lastMessage: chat?.messages?.length
-                        ? chat.messages[chat.messages.length - 1]?.text
-                        : "No messages yet",
-                    lastMessageTime: chat?.messages?.length
-                        ? chat.messages[chat.messages.length - 1]?.createdAt
-                        : new Date().toISOString(),
-                    unreadCountAdmin: chat?.unreadCountAdmin || 0,
-                    unreadCountUser: chat?.unreadCountUser || 0,
-                    status: chat.status || 'pending', // Always use the status field
-
-                }
-            });
-
-            setChats(enhancedChats)
-
-            // Update the unread counts for the tabs
-            const bookingUnread = enhancedChats
-                .filter(chat => chat.type === 'booking')
-                .reduce((sum, chat) => sum + chat.unreadCountAdmin, 0);
-
-            const enquiryUnread = enhancedChats
-                .filter(chat => chat.type === 'enquiry')
-                .reduce((sum, chat) => sum + chat.unreadCountAdmin, 0);
-
-            setUnreadCounts({
-                bookings: bookingUnread,
-                enquiries: enquiryUnread
-            });
-        } catch (error) {
-            console.error("Error fetching chats:", error)
-        } finally {
-            setIsLoading(false)
+        if (type === 'chatbot') {
+            // Normalize Chat model data
+            enhancedChats = data.chats.map(chat => ({
+                ...chat,
+                userName: chat?.userId?.name || "Unknown User",
+                lastMessage: chat?.messages?.length
+                    ? chat.messages[chat.messages.length - 1]?.text
+                    : "No messages yet",
+                lastMessageTime: chat?.messages?.length
+                    ? chat.messages[chat.messages.length - 1]?.createdAt
+                    : chat.createdAt,
+                unreadCountAdmin: chat?.unreadCountAdmin || 0,
+                unreadCountUser: chat?.unreadCountUser || 0,
+                status: chat.status || 'pending',
+                type: 'chatbot',
+            }));
+        } else if (type === 'order-queries') {
+            // Normalize OrderChat model data
+            enhancedChats = data.chats.map(chat => ({
+                ...chat,
+                userName: chat?.userId?.name || "Unknown User",
+                lastMessage: chat?.lastMessage || "No messages yet",
+                lastMessageTime: chat?.lastMessageTime || chat.createdAt,
+                unreadCountAdmin: chat?.unreadCountAdmin || 0,
+                unreadCountUser: chat?.unreadCountUser || 0,
+                status: chat.status || 'pending',
+                type: 'order-queries',
+            }));
+        } else {
+            // fallback for future types
+            enhancedChats = data.chats.map(chat => ({
+                ...chat,
+                userName: chat?.userId?.name || "Unknown User",
+                lastMessage: chat?.lastMessage || "No messages yet",
+                lastMessageTime: chat?.lastMessageTime || chat.createdAt,
+                unreadCountAdmin: chat?.unreadCountAdmin || 0,
+                unreadCountUser: chat?.unreadCountUser || 0,
+                status: chat.status || 'pending',
+                type: type,
+            }));
         }
+
+        setChats(enhancedChats);
+
+        // Calculate unread counts for all types
+        setUnreadCounts(prev => ({
+            ...prev,
+            [type]: enhancedChats.reduce((sum, chat) => sum + (chat.unreadCountAdmin || 0), 0)
+        }));
+    } catch (error) {
+        console.error("Error fetching chats:", error)
+    } finally {
+        setIsLoading(false)
     }
+}
+
 
     useEffect(() => {
+        // Only mark as read for chatbot messages
         const markAsRead = async () => {
-            if (selectedChat) {
+            if (type === 'chatbot' && selectedChat && selectedChat.userId && selectedChat.userId._id) {
                 try {
                     await fetch('/api/chat/mark-as-read', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            type: type,
-                            bookingId: selectedChat.bookingId,
+                            type: 'chatbot',
                             userId: selectedChat.userId._id,
                             isAdmin: true
                         })
                     });
-
-                    // Update local state
-                    setChats(prevChats =>
-                        prevChats.map(chat =>
-                            chat.bookingId === selectedChat.bookingId
-                                ? { ...chat, unreadCountAdmin: 0 }
-                                : chat
-                        )
-                    );
-
-                    // Update the unread counts for the tabs
-                    setUnreadCounts(prev => ({
-                        bookings: type === 'booking' ? prev.bookings - selectedChat.unreadCountAdmin : prev.bookings,
-                        enquiries: type === 'enquiry' ? prev.enquiries - selectedChat.unreadCountAdmin : prev.enquiries
-                    }));
+                    // Optionally update local state for unread count if needed
                 } catch (error) {
                     console.error("Failed to mark as read:", error);
                 }
             }
         };
-
         markAsRead();
     }, [selectedChat, type]);
+
     useEffect(() => {
-        if (type === "user-queries") {
-            setUqLoading(true);
-            fetch("/api/chat/user-query")
-                .then(res => res.json())
-                .then(data => setUserQueries(data.queries || []))
-                .finally(() => setUqLoading(false));
-        }
+        fetchChats();
+        const interval = setInterval(fetchChats, 10000);
+        return () => clearInterval(interval);
     }, [type]);
+
+    // Fetch messages for selected chat (user or order)
     useEffect(() => {
-        fetchChats()
-        // Set up polling for new messages
-        const interval = setInterval(fetchChats, 10000)
-        return () => clearInterval(interval)
-    }, [type])
+        setMessages([]);
+        setMessagesLoading(true);
+
+        // Order Chat (order-queries)
+        if (type === "order-queries" && activeOrderChat) {
+            fetch(`/api/getOrderChat?userId=${activeOrderChat.userId}&orderId=${activeOrderChat.orderId}`)
+                .then(res => res.json())
+                .then(data => setMessages(data.messages || []))
+                .finally(() => setMessagesLoading(false));
+        }
+        // Chatbot Chat
+        else if (type === "chatbot" && selectedChat && selectedChat.userId && selectedChat.userId._id) {
+            fetch(`/api/getMessages?userId=${selectedChat.userId._id}`)
+                .then(res => res.json())
+                .then(data => setMessages(data.messages || []))
+                .finally(() => setMessagesLoading(false));
+        } else {
+            setMessagesLoading(false);
+        }
+    }, [type, activeOrderChat, selectedChat]);
 
     const filteredChats = chats.filter(
         (chat) =>
-            (chat.bookingId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                chat.userName.toLowerCase().includes(searchQuery.toLowerCase())) &&
-            (statusFilter === "all" || chat.status === statusFilter)
+            (chat.userName.toLowerCase().includes(searchQuery.toLowerCase())) &&
+            (true)
     );
 
     const getStatusColor = (status) => {
@@ -176,80 +197,6 @@ export default function AdminChat() {
             .toUpperCase()
     }
 
-    const handleStatusChange = async (newStatus) => {
-        if (!selectedChat) return;
-
-        try {
-            let endpoint;
-            let method = "PUT";
-            let body;
-
-            if (type === "booking") {
-                endpoint = `/api/getBookingById/${selectedChat.bookingId}`;
-                body = JSON.stringify({ status: newStatus.toLowerCase() });
-            } else if (type === "enquiry") {
-                endpoint = `/api/getEnquiryById/${selectedChat.bookingId}`;
-                body = JSON.stringify({ status: newStatus.toLowerCase() });
-            } else if (type === "user-queries") {
-                // User Queries PATCH endpoint
-                endpoint = `/api/chat/user-query`;
-                method = "PATCH";
-                body = JSON.stringify({ id: selectedChat._id, status: newStatus.toLowerCase() });
-            }
-
-            const res = await fetch(endpoint, {
-                method,
-                headers: { "Content-Type": "application/json" },
-                body,
-            });
-
-            if (res.ok) {
-                if (type === "user-queries") {
-                    // Update userQueries state
-                    setUserQueries(prev =>
-                        prev.map(q =>
-                            q._id === selectedChat._id
-                                ? { ...q, status: newStatus.toLowerCase() }
-                                : q
-                        )
-                    );
-                    setSelectedChat(prev =>
-                        prev ? { ...prev, status: newStatus.toLowerCase() } : prev
-                    );
-                } else {
-                    // CORRECT STATE UPDATE - Only update the specific chat
-                    setChats(prevChats =>
-                        prevChats.map(chat =>
-                            chat._id === selectedChat._id // Match by _id for exact reference
-                                ? {
-                                    ...chat,
-                                    status: newStatus.toLowerCase(),
-                                    chatStatus: newStatus.toLowerCase()
-                                }
-                                : chat
-                        )
-                    );
-
-                    // Update the selectedChat reference
-                    setSelectedChat(prev => ({
-                        ...prev,
-                        status: newStatus.toLowerCase(),
-                        chatStatus: newStatus.toLowerCase()
-                    }));
-                }
-
-                toast.success("Status updated successfully!");
-            } else {
-                const errorData = await res.json();
-                toast.error(errorData.message || "Failed to update status.");
-            }
-        } catch (error) {
-            console.error("Update error:", error);
-            toast.error("Network error while updating status.");
-        }
-    };
-    { console.log("Rendering <Chat /> with userId:", selectedChat?.userId?._id, selectedChat) }
-
     return (
         <div className="flex flex-col lg:flex-row h-screen bg-transparent">
             {/* Sidebar */}
@@ -264,13 +211,13 @@ export default function AdminChat() {
                 <Tabs defaultValue="booking" className="flex-1 flex flex-col overflow-hidden">
                     <div className="px-4 pt-4">
                         <TabsList className="w-full p-2">
-                            <TabsTrigger value="user-queries" className="flex-1 flex items-center py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white" onClick={() => { setType("user-queries"), setShowChat(false) }}>
-                                <HelpCircle className="mr-2 h-4 w-4" />
-                                User Queries
+                            <TabsTrigger value="chatbot" className="flex-1 flex items-center py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white" onClick={() => { setType("chatbot"), setShowChat(false) }}>
+                                <Calendar className="mr-2 h-4 w-4" />
+                                Chat Bot Chats
                             </TabsTrigger>
                             <TabsTrigger value="order-queries" className="flex-1 flex items-center py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white" onClick={() => { setType("order-queries"), setShowChat(false) }}>
                                 <HelpCircle className="mr-2 h-4 w-4" />
-                                Order Queries
+                                Order Enquiry
                             </TabsTrigger>
                         </TabsList>
                     </div>
@@ -316,41 +263,8 @@ export default function AdminChat() {
                             <span className="sr-only">Refresh</span>
                         </Button>
                     </div>
-                    <TabsContent value="user-queries" className="flex-1 overflow-y-auto">
-                        <div className="p-4">
-                            <h2 className="text-lg font-bold mb-4">User Queries</h2>
-                            {uqLoading ? (
-                                <div>Loading...</div>
-                            ) : userQueries.length === 0 ? (
-                                <div>No user queries yet.</div>
-                            ) : (
-                                <ul className="space-y-4">
-                                    {userQueries.map(q => (
-                                        <li
-                                            key={q._id}
-                                            className={`p-4 border rounded bg-gray-50 cursor-pointer ${selectedChat && selectedChat._id === q._id ? "border-blue-500 bg-blue-50" : ""}`}
-                                            onClick={() => {
-                                                setSelectedChat(q);
-                                                setShowChat(true);
-                                            }}
-                                        >
-                                            <div>
-                                                <span className="font-semibold">{q.userName || q.userEmail}</span>
-                                                <span className="text-xs text-gray-500 ml-2">{new Date(q.createdAt).toLocaleString()}</span>
-                                            </div>
-                                            <div className="mt-1">{q.question}</div>
-                                            {q.answer && (
-                                                <div className="mt-2 text-green-700">
-                                                    <strong>Admin Reply:</strong> {q.answer}
-                                                </div>
-                                            )}
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                        </div>
-                    </TabsContent>
-                    <TabsContent value="enquiry" className="flex-1 overflow-y-auto m-0 p-0">
+
+                    <TabsContent value="chatbot" className="flex-1 overflow-y-auto m-0 p-0">
                         <ChatList
                             chats={filteredChats}
                             selectedChat={selectedChat}
@@ -363,6 +277,18 @@ export default function AdminChat() {
                         />
                     </TabsContent>
 
+                    <TabsContent value="order-queries" className="flex-1 overflow-y-auto m-0 p-0">
+                        <ChatList
+                            chats={filteredChats}
+                            selectedChat={selectedChat}
+                            setShowChat={setShowChat}
+                            showChat={showChat}
+                            setSelectedChat={setSelectedChat}
+                            getStatusColor={getStatusColor}
+                            formatTime={formatTime}
+                            getInitials={getInitials}
+                        />
+                    </TabsContent>
                 </Tabs>
             </div>
 
@@ -370,37 +296,77 @@ export default function AdminChat() {
             <div className="flex-1 flex flex-col w-full h-full">
                 {showChat ? (
                     <>
-                        {type === "user-queries" && selectedChat && selectedChat.userId ? (
-                            <Chat
-                                userId={selectedChat.userId}
-                                isAdmin={true}
-                                recipientName={selectedChat.userName || selectedChat.userEmail}
-                            />
-                        ) : type === "user-queries" && selectedChat ? (
-                            // Fallback to static Q/A panel if userId is missing
-                            <div className="w-full max-w-xl mx-auto bg-white rounded shadow p-6 my-4 border">
-                                <div className="mb-2">
-                                    <span className="font-semibold">{selectedChat.userName || selectedChat.userEmail}</span>
-                                    <span className="text-xs text-gray-500 ml-2">{selectedChat.createdAt ? new Date(selectedChat.createdAt).toLocaleString() : ""}</span>
-                                </div>
-                                <div className="mb-4">
-                                    <span className="block text-gray-800">{selectedChat.question}</span>
-                                </div>
-                                {selectedChat.answer ? (
-                                    <div className="bg-green-50 border-l-4 border-green-400 p-4 rounded">
-                                        <strong>Admin Reply:</strong> {selectedChat.answer}
-                                    </div>
-                                ) : (
-                                    <div className="italic text-gray-400">No reply yet.</div>
-                                )}
-                            </div>
-                        ) :(
-                            <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                                <MessageSquare className="h-16 w-16 mb-4 text-muted-foreground/50" />
-                                <h2 className="text-xl font-medium mb-2">No chat selected</h2>
-                                <p>Select a conversation from the sidebar to start messaging</p>
-                            </div>
+                        {type === "chatbot" && (
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild className="w-fit !m-4">
+                                    <Button variant="outline" className={`!p-6 ${selectedChat.status === "pending" && "border-yellow-400 bg-yellow-100 hover:bg-yellow-600"} ${selectedChat.status === "resolved" && "border-green-400 bg-green-100 hover:bg-green-600"} border-2 hover:text-white flex items-center gap-2`}>
+                                        <span className="capitalize">{selectedChat.status}</span>
+                                        <ChevronDown className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className='border-2 border-blue-600'>
+                                    {["pending", "resolved"].map((option) => (
+                                        <DropdownMenuItem
+                                            key={option}
+                                            onClick={() => handleStatusChange(option)}
+                                            className="capitalize focus:hover:bg-blue-100 cursor-pointer hover:bg-blue-100"
+                                        >
+                                            {option}
+                                            {selectedChat.status === option && (
+                                                <Check className="h-4 w-4 ml-2" />
+                                            )}
+                                        </DropdownMenuItem>
+                                    ))}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         )}
+
+                        {type === "order-queries" && (
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild className="w-fit !m-4">
+                                    <Button variant="outline" className={`!p-6 ${selectedChat.status === "pending" && "border-yellow-400 bg-yellow-100 hover:bg-yellow-600"} ${selectedChat.status === "resolved" && "border-green-400 bg-green-100 hover:bg-green-600"} border-2 hover:text-white flex items-center gap-2`}>
+                                        <span className="capitalize">{selectedChat.status}</span>
+                                        <ChevronDown className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className='border-2 border-blue-600'>
+                                    {["pending", "resolved"].map((option) => (
+                                        <DropdownMenuItem
+                                            key={option}
+                                            onClick={() => handleStatusChange(option)}
+                                            className="capitalize focus:hover:bg-blue-100 cursor-pointer hover:bg-blue-100"
+                                        >
+                                            {option}
+                                            {selectedChat.status === option && (
+                                                <Check className="h-4 w-4 ml-2" />
+                                            )}
+                                        </DropdownMenuItem>
+                                    ))}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        )}
+                        <div className="flex-1 overflow-y-auto p-4">
+                            {messagesLoading ? (
+                                <div>Loading messages...</div>
+                            ) : (
+                                <ul className="space-y-2">
+                                    {messages.map((msg, idx) => (
+                                        <li key={idx} className="p-2 rounded bg-gray-100">
+                                            <div className="text-xs text-gray-500">{msg.sender || "User"} {msg.createdAt && new Date(msg.createdAt).toLocaleString()}</div>
+                                            <div>{msg.text}</div>
+                                            {/* Render images if present */}
+                                            {msg.images && msg.images.length > 0 && (
+                                                <div className="flex space-x-2 mt-2">
+                                                    {msg.images.map((img, i) => (
+                                                        <img key={i} src={img} alt="attachment" className="w-16 h-16 object-cover rounded" />
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
                     </>
                 ) : (
                     <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
@@ -423,17 +389,15 @@ function ChatList({ chats, setShowChat, showChat, selectedChat, setSelectedChat,
             </div>
         )
     }
-    // Only show chats with valid userId and userId._id
-    const filteredChats = chats.filter(chat => chat.userId && chat.userId._id);
     return (
         <div className="space-y-1 p-2">
-            {filteredChats.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).map((chat) => (
+            {chats.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).map((chat) => (
                 <Card
-                    key={chat.userId._id}
+                    key={chat.bookingId}
                     onClick={() => { setSelectedChat(chat); setShowChat(true) }}
                     className={cn(
                         `flex items-center p-3 border-2 cursor-pointer hover:bg-blue-100 transition-colors`,
-                        selectedChat?.userId?._id === chat.userId._id ? "border-blue-600" : "border-transparent"
+                        selectedChat?.bookingId === chat.bookingId ? "border-blue-600" : "border-transparent"
                     )}
                 >
                     <div className="relative mr-3">
