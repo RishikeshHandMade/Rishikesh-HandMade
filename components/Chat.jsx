@@ -372,8 +372,8 @@ export default function Chat({
                                     )}
                                 >
                                     {/* Display Sent Images */}
-                                    {msg.images?.length > 0 && (
-                                        <div className="mb-2 grid grid-cols-2 gap-2">
+                                    {Array.isArray(msg.images) && msg.images.length > 0 && (
+                                         <div className="flex gap-2 mb-1 flex-wrap">
                                             {msg.images.map((img) => (
                                                 <div key={img.key} className="relative w-20 md:w-32 h-20 md:h-32">
                                                     <Image onClick={() => setZoomImage(img.url)} src={img.url} alt="Sent Image" fill className="cursor-pointer rounded-lg object-cover" />

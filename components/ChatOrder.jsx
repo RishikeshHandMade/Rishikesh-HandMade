@@ -117,12 +117,23 @@ function OrderChat({ userId, orderId, userName, onBack }) {
         const file = event.target.files[0];
         if (!file) return;
         setAttachmentUploading(true);
-        // You may need to implement your file upload logic here and get a URL
-        // For now, just simulate upload
-        setTimeout(() => {
-            setAttachments(prev => [...prev, { key: Date.now(), url: URL.createObjectURL(file), file, isUploading: false }]);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            const res = await fetch('/api/cloudinary', {
+                method: 'POST',
+                body: formData
+            });
+            if (!res.ok) throw new Error('Image upload failed');
+            const result = await res.json();
+            setAttachments(prev => [...prev, { url: result.url, key: result.key }]);
+            if (typeof toast !== 'undefined') toast.success('Attachment uploaded successfully');
+        } catch (err) {
+            if (typeof toast !== 'undefined') toast.error('Attachment upload failed');
+        } finally {
             setAttachmentUploading(false);
-        }, 1000);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
     };
 
     const removeAttachment = (key) => {
@@ -131,19 +142,23 @@ function OrderChat({ userId, orderId, userName, onBack }) {
 
     const sendMessage = async () => {
         if (!message.trim() && attachments.length === 0) return;
-        let attachmentUrls = [];
-        for (let fileObj of attachments) {
-            if (fileObj.url) {
-                attachmentUrls.push(fileObj.url);
-            }
-        }
-        // Determine sender based on session
-        let sender = 'user';
-        if (session?.user?.isAdmin) {
-            sender = 'admin';
-        } else if (session?.user?._id === userId || session?.user?.id === userId) {
-            sender = 'user';
-        }
+
+        const adminNameToSet = session?.user?.isAdmin ? (session.user.name || session.user.email) : null;
+        const isAdmin = !!session?.user?.isAdmin;
+        const newMessage = {
+            sender: isAdmin ? "admin" : userId,
+            ...(isAdmin && { adminName: adminNameToSet }),
+            text: message,
+            userId: userId,
+            status: "sent",
+            createdAt: new Date().toISOString(),
+            images: attachments, // send the full attachments array
+            type: "order-chat",
+        };
+
+        // Optimistically update UI
+        setMessages((prev) => [...prev, newMessage]);
+
         try {
             const res = await fetch('/api/sendOrderMessage', {
                 method: 'POST',
@@ -152,8 +167,9 @@ function OrderChat({ userId, orderId, userName, onBack }) {
                     userId,
                     orderId,
                     text: message,
-                    images: attachmentUrls,
-                    sender,
+                    images: attachments, // send full attachments array
+                    sender: isAdmin ? "admin" : userId,
+                    ...(isAdmin && { adminName: adminNameToSet }),
                 }),
             });
             if (res.ok) {
@@ -161,10 +177,15 @@ function OrderChat({ userId, orderId, userName, onBack }) {
                 setAttachments([]);
                 const data = await res.json();
                 if (data.messages) setMessages(data.messages);
+            } else {
+                // Rollback optimistic update if needed
+                setMessages((prev) => prev.slice(0, -1));
             }
-        } catch (err) { }
+        } catch (err) {
+            // Rollback optimistic update if needed
+            setMessages((prev) => prev.slice(0, -1));
+        }
     };
-
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -219,20 +240,26 @@ function OrderChat({ userId, orderId, userName, onBack }) {
                                             {session?.user?.isAdmin ? 'U' : 'A'}
                                         </div>
                                     )}
-                                    <div className={`max-w-xs p-3 rounded-lg shadow text-sm ${bubbleColor}`} style={{ wordBreak: 'break-word' }}>
+                                    <div className={`max-w-xs p-2 rounded-lg shadow text-sm ${bubbleColor}`} style={{ wordBreak: 'break-word' }}>
                                         {/* Display images/attachments */}
                                         {Array.isArray(msg.images) && msg.images.length > 0 && (
                                             <div className="flex gap-2 mb-1 flex-wrap">
-                                                {msg.images.map((img, i) => (
-                                                    <img
-                                                        key={img.key || img.url || i}
-                                                        src={img.url || img}
-                                                        alt="attachment"
-                                                        className="w-16 h-16 object-cover rounded cursor-pointer"
-                                                        onClick={() => setZoomImage(img.url || img)}
-                                                        style={{ cursor: 'pointer' }}
-                                                    />
-                                                ))}
+                                                {msg.images.map((img, i) => {
+                                                    // Defensive: fallback to placeholder if url is missing/invalid
+                                                    const url = (img && typeof img === 'object' && img.url) ? img.url : '/placeholder.jpeg';
+                                                    return (
+                                                        <div key={img.key || url || i} className="relative w-24 h-24">
+                                                            <Image
+                                                                src={url}
+                                                                alt="attachment"
+                                                                fill
+                                                                className="object-cover rounded cursor-pointer"
+                                                                onClick={() => setZoomImage(url)}
+                                                                style={{ cursor: 'pointer' }}
+                                                            />
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
                                         )}
                                         {/* Display text */}
@@ -265,46 +292,77 @@ function OrderChat({ userId, orderId, userName, onBack }) {
                     )}
                 </div>
             </CardContent>
-            <CardFooter className="gap-2">
-                <input
-                    type="file"
-                    accept="image/*"
-                    ref={fileInputRef}
-                    style={{ display: 'none' }}
-                    onChange={handleAttachmentUpload}
+            <CardFooter className="gap-2 flex-col items-start">
+    {/* Attachments preview with loading state */}
+    {attachments.length > 0 && (
+      <div className="flex space-x-2 overflow-x-auto mb-2">
+        {attachments.map((file) => (
+          <div key={file.key} className="relative w-24 h-24">
+            {file.isUploading ? (
+              <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-md">
+                <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+              </div>
+            ) : (
+              <>
+                <Image
+                  src={file.url}
+                  alt="Preview"
+                  fill
+                  className="rounded-md w-full h-full object-cover"
                 />
-                <Button
-                    className="bg-blue-600 hover:bg-blue-700"
-                    size="icon"
-                    aria-label="Attach file"
-                    onClick={handleUpload}
-                    disabled={attachmentUploading}
+                <button
+                  onClick={() => removeAttachment(file.key)}
+                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs"
                 >
-                    {attachmentUploading ? (
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : (
-                        <Paperclip className="h-5 w-5" />
-                    )}
-                </Button>
-                <Input
-                    value={message}
-                    onKeyDown={handleKeyDown}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Type a message..."
-                    disabled={attachmentUploading}
-                />
-                <Button
-                    onClick={sendMessage}
-                    className="bg-blue-600 hover:bg-blue-700"
-                    disabled={(!message.trim() && attachments.length === 0) || attachmentUploading}
-                >
-                    {attachmentUploading ? (
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : (
-                        <Send className="h-5 w-5" />
-                    )}
-                </Button>
-            </CardFooter>
+                  <X className="h-4 w-4" />
+                </button>
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+    )}
+    <div className="flex w-full gap-2">
+      <input
+        type="file"
+        accept="image/*"
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        onChange={handleAttachmentUpload}
+      />
+      <Button
+        className="bg-blue-600 hover:bg-blue-700"
+        size="icon"
+        aria-label="Attach file"
+        onClick={handleUpload}
+        disabled={attachmentUploading}
+      >
+        {attachmentUploading ? (
+          <Loader2 className="h-5 w-5 animate-spin" />
+        ) : (
+          <Paperclip className="h-5 w-5" />
+        )}
+      </Button>
+      <Input
+        value={message}
+        onKeyDown={handleKeyDown}
+        onChange={(e) => setMessage(e.target.value)}
+        placeholder="Type a message..."
+        disabled={attachmentUploading}
+      />
+      <Button
+        onClick={sendMessage}
+        className="bg-blue-600 hover:bg-blue-700"
+        disabled={(!message.trim() && attachments.length === 0) || attachmentUploading}
+      >
+        {attachmentUploading ? (
+          <Loader2 className="h-5 w-5 animate-spin" />
+        ) : (
+          <Send className="h-5 w-5" />
+        )}
+      </Button>
+    </div>
+</CardFooter>
         </Card>
     );
 }

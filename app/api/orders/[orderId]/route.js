@@ -3,7 +3,7 @@ import connectDB from '../../../../lib/connectDB';
 
 export async function GET(req, { params }) {
   await connectDB();
-  const { orderId } = params;
+  const { orderId } =await params;
   const order = await Order.findById(orderId);
   if (!order) {
     return new Response(JSON.stringify({ error: "Order not found" }), { status: 404, headers: { 'Content-Type': 'application/json' } });
@@ -15,7 +15,7 @@ export async function GET(req, { params }) {
 export async function PUT(req, { params }) {
   await connectDB();
   try {
-    const { orderId } = params;
+    const { orderId } =await params;
     const update = await req.json();
     const order = await Order.findByIdAndUpdate(orderId, update, { new: true });
     if (!order) {
