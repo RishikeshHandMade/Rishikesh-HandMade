@@ -135,7 +135,7 @@ export default function Chat({
     const handleInputChange = (e) => {
         setMessage(e.target.value)
     }
-
+    console.log("Sending message", { text: message, attachments });
     const sendMessage = async () => {
         if (!message.trim() && attachments.length === 0) return;
 
@@ -150,7 +150,7 @@ export default function Chat({
             userId: userId,
             status: "sent",
             createdAt: new Date().toISOString(),
-            images: attachments,
+            images: attachments, // always use latest attachments
             type: type || "chatbot",
         };
 
@@ -160,48 +160,64 @@ export default function Chat({
             setAdminName(adminNameToSet);
         }
         setMessage("");
-        setAttachments([]);
 
+        let res;
         try {
-            const res = await fetch(`/api/sendMessage`, {
+            // Always send the latest attachments as images
+            res = await fetch("/api/sendMessage", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(newMessage),
+                body: JSON.stringify({
+                    sender: isAdmin ? "admin" : userId,
+                    ...(isAdmin && { adminName: adminNameToSet }),
+                    text: message,
+                    userId: userId,
+                    images: attachments, // <--- always current attachments
+                    type: type || "chatbot",
+                }),
             });
-
-            if (res.ok) {
-                // Immediately fetch messages after successful send to sync UI
-                await fetchMessages();
-                const data = await res.json();
-
-                // Update message status to delivered
-                setTimeout(() => {
-                    setMessages((prev) =>
-                        prev.map((msg) =>
-                            msg.createdAt === newMessage.createdAt ?
-                                { ...msg, status: "delivered" } : msg
-                        ),
-                    );
-
-                    // Simulate read status after a delay if it's the recipient
-                    setTimeout(() => {
-                        setMessages((prev) =>
-                            prev.map((msg) =>
-                                msg.createdAt === newMessage.createdAt ?
-                                    { ...msg, status: "read" } : msg
-                            ),
-                        );
-                    }, 2000);
-                }, 1000);
-
-                // Optionally update local unread count if needed
-                // You might want to refresh the chat data here
-            }
+            // Only clear attachments after sending
+            setAttachments([]);
         } catch (error) {
             console.error("Error sending message:", error);
             // Rollback optimistic update if needed
             setMessages((prev) => prev.filter(msg => msg.createdAt !== newMessage.createdAt));
         }
+
+        if (res && res.ok) {
+            // Immediately fetch messages after successful send to sync UI
+            await fetchMessages();
+            const data = await res.json();
+
+            // Update message status to delivered
+            setTimeout(() => {
+                setMessages((prev) =>
+                    prev.map((msg) =>
+                        msg.createdAt === newMessage.createdAt ?
+                            { ...msg, status: "delivered" } : msg
+                    ),
+                );
+
+                // Simulate read status after a delay if it's the recipient
+                setTimeout(() => {
+                    setMessages((prev) =>
+                        prev.map((msg) =>
+                            msg.createdAt === newMessage.createdAt ?
+                                { ...msg, status: "read" } : msg
+                        ),
+                    );
+                }, 2000);
+            }, 1000);
+
+            // Optionally update local unread count if needed
+            // You might want to refresh the chat data here
+        }
+        
+        // } catch (error) {
+        //     console.error("Error sending message:", error);
+        //     // Rollback optimistic update if needed
+        //     setMessages((prev) => prev.filter(msg => msg.createdAt !== newMessage.createdAt));
+        // }
     };
 
     const handleKeyDown = (e) => {
@@ -356,9 +372,9 @@ export default function Chat({
                                     )}
                                 >
                                     {/* Display Sent Images */}
-                                    {msg.image?.length > 0 && (
+                                    {msg.images?.length > 0 && (
                                         <div className="mb-2 grid grid-cols-2 gap-2">
-                                            {msg.image.map((img) => (
+                                            {msg.images.map((img) => (
                                                 <div key={img.key} className="relative w-20 md:w-32 h-20 md:h-32">
                                                     <Image onClick={() => setZoomImage(img.url)} src={img.url} alt="Sent Image" fill className="cursor-pointer rounded-lg object-cover" />
                                                 </div>

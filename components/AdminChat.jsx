@@ -17,6 +17,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import toast from "react-hot-toast"
+import ChatOrder from "./ChatOrder"
 
 export default function AdminChat() {
     const [statusFilter, setStatusFilter] = useState("all"); // 'all', 'pending', 'resolved'
@@ -348,14 +349,21 @@ export default function AdminChat() {
                         <div className="flex-1 overflow-y-auto p-4">
                             <div className="flex-1 overflow-hidden p-4">
                                 {selectedChat && (
-                                    <Chat
-                                        type={type}
-                                        userId={selectedChat.userId?._id || selectedChat.userId}
-                                        isAdmin={true}
-                                        recipientName={selectedChat.userName}
-                                        packageId={selectedChat.packageId}
-                                        bookingId={selectedChat.bookingId}
-                                    />
+                                    type === "order-queries" ? (
+                                        <ChatOrder
+                                            order={selectedChat}
+                                            onBack={() => setShowChat(false)}
+                                        />
+                                    ) : (
+                                        <Chat
+                                            type={type}
+                                            userId={selectedChat.userId?._id || selectedChat.userId}
+                                            isAdmin={true}
+                                            recipientName={selectedChat.userName}
+                                            packageId={selectedChat.packageId}
+                                            bookingId={selectedChat.bookingId}
+                                        />
+                                    )
                                 )}
                             </div>
                         </div>

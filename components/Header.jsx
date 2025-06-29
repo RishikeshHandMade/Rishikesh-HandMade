@@ -270,7 +270,7 @@ const Header = () => {
                     <p className="px-4 pb-2 text-sm text-gray-700">{session.user.email}</p>
                     <div className="h-px bg-gray-200" />
                     <Link
-                      href="/dashboard"
+                      href="/dashboard?section=orders"
                       className="flex items-center rounded-lg w-full text-left px-4 py-2 hover:bg-blue-100"
                       onClick={() => setIsProfileOpen(false)}
                     >

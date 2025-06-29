@@ -34,26 +34,26 @@ const ChatOrder = ({ order, onBack, onViewOrder }) => {
             <div className="p-4 border-b bg-gray-50 flex items-center gap-4 justify-between">
                 <div className="flex items-center justify-between gap-4 w-full">
                     <div>
-                    {onBack && (
-                        <button
-                        onClick={onBack}
-                        className="px-4 py-1 bg-gray-200 hover:bg-gray-300 rounded text-md font-medium"
-                        >
-                            ← Back
-                        </button>
-                    )}
+                        {onBack && (
+                            <button
+                                onClick={onBack}
+                                className="px-4 py-1 bg-gray-200 hover:bg-gray-300 rounded text-md font-medium"
+                            >
+                                ← Back
+                            </button>
+                        )}
                     </div>
                     <div>
-                    <span className="font-bold text-blue-700">Order ID:</span>
-                    <span className="font-mono text-base">{orderId}</span>
-                    {onViewOrder && (
-                        <button
-                        onClick={() => onViewOrder(order)}
-                        className="ml-4 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm font-medium"
-                        >
-                            View Order
-                        </button>
-                    )}
+                        <span className="font-bold text-blue-700">Order ID:</span>
+                        <span className="font-mono text-base">{orderId}</span>
+                        {onViewOrder && (
+                            <button
+                                onClick={() => onViewOrder(order)}
+                                className="ml-4 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm font-medium"
+                            >
+                                View Order
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -87,6 +87,7 @@ function formatTime(dateString) {
 }
 
 function OrderChat({ userId, orderId, userName, onBack }) {
+    const { data: session } = useSession()
     const messagesEndRef = useRef(null);
 
     const [messages, setMessages] = useState([]);
@@ -131,11 +132,17 @@ function OrderChat({ userId, orderId, userName, onBack }) {
     const sendMessage = async () => {
         if (!message.trim() && attachments.length === 0) return;
         let attachmentUrls = [];
-        // Simulate uploading files and getting URLs
         for (let fileObj of attachments) {
             if (fileObj.url) {
-                attachmentUrls.push(fileObj.url); // Replace with actual upload logic
+                attachmentUrls.push(fileObj.url);
             }
+        }
+        // Determine sender based on session
+        let sender = 'user';
+        if (session?.user?.isAdmin) {
+            sender = 'admin';
+        } else if (session?.user?._id === userId || session?.user?.id === userId) {
+            sender = 'user';
         }
         try {
             const res = await fetch('/api/sendOrderMessage', {
@@ -146,13 +153,12 @@ function OrderChat({ userId, orderId, userName, onBack }) {
                     orderId,
                     text: message,
                     images: attachmentUrls,
-                    sender: 'user', // or 'admin' if admin is sending
+                    sender,
                 }),
             });
             if (res.ok) {
                 setMessage("");
                 setAttachments([]);
-                // Refetch messages after sending
                 const data = await res.json();
                 if (data.messages) setMessages(data.messages);
             }
@@ -166,8 +172,8 @@ function OrderChat({ userId, orderId, userName, onBack }) {
             sendMessage();
         }
     };
-    
- 
+
+
 
     return (
         <Card className="flex flex-col h-[500px]">
@@ -177,23 +183,73 @@ function OrderChat({ userId, orderId, userName, onBack }) {
                         {messages.length === 0 && (
                             <div className="text-gray-500 text-center py-4">No messages yet for this order.</div>
                         )}
-                        {messages.map((msg, idx) => (
-                            <div key={msg._id || idx} className={`flex ${msg.from === 'admin' ? 'justify-end' : 'justify-start'}`} >
-                                <div className={`max-w-xs p-3 rounded-lg shadow text-sm ${msg.from === 'admin' ? 'bg-blue-100 text-right' : 'bg-gray-100 text-left'}`} >
-                                    <div>{msg.text}</div>
-                                    {msg.attachments && msg.attachments.length > 0 && (
-                                        <div className="flex gap-2 mt-1">
-                                            {msg.attachments.map((url, i) => (
-                                                <img key={i} src={url} alt="attachment" className="w-16 h-16 object-cover rounded" onClick={() => setZoomImage(url)} style={{ cursor: 'pointer' }} />
-                                            ))}
+                        {console.log(messages)}
+                        {messages.map((msg, idx) => {
+                            // Determine alignment based on sender and current viewer (admin/user)
+                            const sender = msg.from || msg.sender;
+                            let isRight = false;
+                            let bubbleColor = "bg-gray-100 text-left";
+                            if (session?.user?.isAdmin) {
+                                // Admin viewing: admin messages right, user messages left
+                                if (sender === 'admin' || sender === 'Admin' || msg.adminName) {
+                                    isRight = true;
+                                    bubbleColor = "bg-blue-100 text-right";
+                                } else {
+                                    isRight = false;
+                                    bubbleColor = "bg-gray-100 text-left";
+                                }
+                            } else {
+                                // User viewing: user messages right, admin messages left
+                                if (sender === userId || sender === 'user' || sender === msg.userId) {
+                                    isRight = true;
+                                    bubbleColor = "bg-gray-100 text-right";
+                                } else if (sender === 'admin' || sender === 'Admin' || msg.adminName) {
+                                    isRight = false;
+                                    bubbleColor = "bg-blue-100 text-left";
+                                } else {
+                                    isRight = false;
+                                    bubbleColor = "bg-gray-100 text-left";
+                                }
+                            }
+                            return (
+                                <div key={msg._id || idx} className={`flex ${isRight ? 'justify-end' : 'justify-start'} items-end gap-2`}>
+                                    {/* Avatar */}
+                                    {!isRight && (
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${session?.user?.isAdmin ? 'bg-gray-300 text-black' : 'bg-blue-400 text-white'}`}>
+                                            {session?.user?.isAdmin ? 'U' : 'A'}
                                         </div>
                                     )}
-                                    <div className="text-[11px] text-gray-400 mt-1">{formatTime(msg.createdAt)}</div>
+                                    <div className={`max-w-xs p-3 rounded-lg shadow text-sm ${bubbleColor}`} style={{ wordBreak: 'break-word' }}>
+                                        {/* Display images/attachments */}
+                                        {Array.isArray(msg.images) && msg.images.length > 0 && (
+                                            <div className="flex gap-2 mb-1 flex-wrap">
+                                                {msg.images.map((img, i) => (
+                                                    <img
+                                                        key={img.key || img.url || i}
+                                                        src={img.url || img}
+                                                        alt="attachment"
+                                                        className="w-16 h-16 object-cover rounded cursor-pointer"
+                                                        onClick={() => setZoomImage(img.url || img)}
+                                                        style={{ cursor: 'pointer' }}
+                                                    />
+                                                ))}
+                                            </div>
+                                        )}
+                                        {/* Display text */}
+                                        {msg.text && <div>{msg.text}</div>}
+                                        <div className="text-[11px] text-gray-400 mt-1">{formatTime(msg.createdAt)}</div>
+                                    </div>
+                                    {/* Avatar */}
+                                    {isRight && (
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${session?.user?.isAdmin ? 'bg-blue-400 text-white' : 'bg-gray-300 text-black'}`}>
+                                            {session?.user?.isAdmin ? 'A' : 'U'}
+                                        </div>
+                                    )}
                                 </div>
-                            </div>
-                        ))}
-                        <div ref={messagesEndRef} />
+                            );
+                        })}
                     </div>
+                    <div ref={messagesEndRef} />
                     {zoomImage && (
                         <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-[99999]">
                             <div className="relative w-4/5 h-4/5">
