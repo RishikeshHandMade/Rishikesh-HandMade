@@ -63,6 +63,7 @@ const ChatOrder = ({ order, onBack, onViewOrder }) => {
                     userId={userId}
                     orderId={orderId}
                     userName={userName}
+                    userImage={order.userImage}
                     onBack={onBack}
                 />
             </div>
@@ -86,7 +87,7 @@ function formatTime(dateString) {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-function OrderChat({ userId, orderId, userName, onBack }) {
+function OrderChat({ userId, orderId, userName, userImage, onBack }) {
     const { data: session } = useSession()
     const messagesEndRef = useRef(null);
 
@@ -236,9 +237,10 @@ function OrderChat({ userId, orderId, userName, onBack }) {
                                 <div key={msg._id || idx} className={`flex ${isRight ? 'justify-end' : 'justify-start'} items-end gap-2`}>
                                     {/* Avatar */}
                                     {!isRight && (
-                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${session?.user?.isAdmin ? 'bg-gray-300 text-black' : 'bg-blue-400 text-white'}`}>
-                                            {session?.user?.isAdmin ? 'U' : 'A'}
-                                        </div>
+                                        <Avatar className="h-8 w-8">
+                                            <AvatarImage src={userImage || '/user.png'} alt="User" />
+                                            <AvatarFallback>U</AvatarFallback>
+                                        </Avatar>
                                     )}
                                     <div className={`max-w-xs p-2 rounded-lg shadow text-sm ${bubbleColor}`} style={{ wordBreak: 'break-word' }}>
                                         {/* Display images/attachments */}
@@ -268,9 +270,10 @@ function OrderChat({ userId, orderId, userName, onBack }) {
                                     </div>
                                     {/* Avatar */}
                                     {isRight && (
-                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${session?.user?.isAdmin ? 'bg-blue-400 text-white' : 'bg-gray-300 text-black'}`}>
-                                            {session?.user?.isAdmin ? 'A' : 'U'}
-                                        </div>
+                                        <Avatar className="h-8 w-8">
+                                            <AvatarImage src={session?.user?.image || '/admin.png'} alt="Admin" />
+                                            <AvatarFallback>A</AvatarFallback>
+                                        </Avatar>
                                     )}
                                 </div>
                             );
@@ -293,76 +296,76 @@ function OrderChat({ userId, orderId, userName, onBack }) {
                 </div>
             </CardContent>
             <CardFooter className="gap-2 flex-col items-start">
-    {/* Attachments preview with loading state */}
-    {attachments.length > 0 && (
-      <div className="flex space-x-2 overflow-x-auto mb-2">
-        {attachments.map((file) => (
-          <div key={file.key} className="relative w-24 h-24">
-            {file.isUploading ? (
-              <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-md">
-                <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
-              </div>
-            ) : (
-              <>
-                <Image
-                  src={file.url}
-                  alt="Preview"
-                  fill
-                  className="rounded-md w-full h-full object-cover"
-                />
-                <button
-                  onClick={() => removeAttachment(file.key)}
-                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </>
-            )}
-          </div>
-        ))}
-      </div>
-    )}
-    <div className="flex w-full gap-2">
-      <input
-        type="file"
-        accept="image/*"
-        ref={fileInputRef}
-        style={{ display: 'none' }}
-        onChange={handleAttachmentUpload}
-      />
-      <Button
-        className="bg-blue-600 hover:bg-blue-700"
-        size="icon"
-        aria-label="Attach file"
-        onClick={handleUpload}
-        disabled={attachmentUploading}
-      >
-        {attachmentUploading ? (
-          <Loader2 className="h-5 w-5 animate-spin" />
-        ) : (
-          <Paperclip className="h-5 w-5" />
-        )}
-      </Button>
-      <Input
-        value={message}
-        onKeyDown={handleKeyDown}
-        onChange={(e) => setMessage(e.target.value)}
-        placeholder="Type a message..."
-        disabled={attachmentUploading}
-      />
-      <Button
-        onClick={sendMessage}
-        className="bg-blue-600 hover:bg-blue-700"
-        disabled={(!message.trim() && attachments.length === 0) || attachmentUploading}
-      >
-        {attachmentUploading ? (
-          <Loader2 className="h-5 w-5 animate-spin" />
-        ) : (
-          <Send className="h-5 w-5" />
-        )}
-      </Button>
-    </div>
-</CardFooter>
+                {/* Attachments preview with loading state */}
+                {attachments.length > 0 && (
+                    <div className="flex space-x-2 overflow-x-auto mb-2">
+                        {attachments.map((file) => (
+                            <div key={file.key} className="relative w-24 h-24">
+                                {file.isUploading ? (
+                                    <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-md">
+                                        <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+                                    </div>
+                                ) : (
+                                    <>
+                                        <Image
+                                            src={file.url}
+                                            alt="Preview"
+                                            fill
+                                            className="rounded-md w-full h-full object-cover"
+                                        />
+                                        <button
+                                            onClick={() => removeAttachment(file.key)}
+                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs"
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </button>
+                                    </>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
+                <div className="flex w-full gap-2">
+                    <input
+                        type="file"
+                        accept="image/*"
+                        ref={fileInputRef}
+                        style={{ display: 'none' }}
+                        onChange={handleAttachmentUpload}
+                    />
+                    <Button
+                        className="bg-blue-600 hover:bg-blue-700"
+                        size="icon"
+                        aria-label="Attach file"
+                        onClick={handleUpload}
+                        disabled={attachmentUploading}
+                    >
+                        {attachmentUploading ? (
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : (
+                            <Paperclip className="h-5 w-5" />
+                        )}
+                    </Button>
+                    <Input
+                        value={message}
+                        onKeyDown={handleKeyDown}
+                        onChange={(e) => setMessage(e.target.value)}
+                        placeholder="Type a message..."
+                        disabled={attachmentUploading}
+                    />
+                    <Button
+                        onClick={sendMessage}
+                        className="bg-blue-600 hover:bg-blue-700"
+                        disabled={(!message.trim() && attachments.length === 0) || attachmentUploading}
+                    >
+                        {attachmentUploading ? (
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : (
+                            <Send className="h-5 w-5" />
+                        )}
+                    </Button>
+                </div>
+            </CardFooter>
         </Card>
     );
 }

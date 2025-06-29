@@ -66,8 +66,10 @@ export default function ChatBot() {
     const timer = setTimeout(() => {
       setMessages([
         {
-          from: "bot",
-          text: `Hi there! 👋 Welcome to Rishikesh Handmade!\n\nI’m AI Support Intelligence from our online store – your virtual assistant here to help you with anything you need.\n\nHow can I assist you today?`
+          from: "Bot",
+          sender: "bot",
+          text: `Hi there! 👋 Welcome to Rishikesh Handmade!\n\nI’m AI Support Intelligence from our online store – your virtual assistant here to help you with anything you need.\n\nHow can I assist you today?`,
+          createdAt: new Date().toISOString()
         }
       ]);
     }, 1000); // Delay in milliseconds
@@ -83,10 +85,12 @@ export default function ChatBot() {
 
     setMessages(msgs => [
       ...msgs,
-      { from: "user", text: input },
+      { from: "You", sender: session?.user?.id || "user", text: input, createdAt: new Date().toISOString() },
       {
-        from: "bot",
-        text: `May I know your name and contact number?\n\n📧 Your Email Address:\n📞 Your Phone Number (optional):`
+        from: "Bot",
+        sender: "bot",
+        text: `May I know your name and contact number?\n\n📧 Your Email Address:\n📞 Your Phone Number (optional):`,
+        createdAt: new Date().toISOString()
       }
     ]);
     setInput("");
@@ -104,12 +108,16 @@ export default function ChatBot() {
     setMessages(msgs => [
       ...msgs,
       {
-        from: "user",
-        text: `Name: ${contact.name}\nEmail: ${contact.email}${contact.phone ? `\nPhone: ${contact.phone}` : ""}`
+        from: "You",
+        sender: session?.user?.id || "user",
+        text: `Name: ${contact.name}\nEmail: ${contact.email}${contact.phone ? `\nPhone: ${contact.phone}` : ""}`,
+        createdAt: new Date().toISOString()
       },
       {
-        from: "bot",
-        text: `Thank you! 😊\n\nHow can I help you today?\n\nPlease choose one of the options below 👇`
+        from: "Bot",
+        sender: "bot",
+        text: `Thank you! 😊\n\nHow can I help you today?\n\nPlease choose one of the options below 👇`,
+        createdAt: new Date().toISOString()
       }
     ]);
     setContact({ name: "", phone: "", email: "" });
@@ -117,16 +125,16 @@ export default function ChatBot() {
     setStep(3);
   };
   const handleQnAOption = (qna) => {
-    setMessages((msgs) => [...msgs, { from: "user", text: qna.q }]);
+    setMessages((msgs) => [...msgs, { from: "You", sender: session?.user?.id || "user", text: qna.q, createdAt: new Date().toISOString() }]);
 
     if (qna.q === "🛍 Product Information") {
       setMessages((msgs) => [
         ...msgs,
-        { from: "bot", text: "Sure! Please share the product name or code (SKU)." }
+        { from: "Bot", sender: "bot", text: "Sure! Please share the product name or code (SKU).", createdAt: new Date().toISOString() }
       ]);
       setStep("product-info"); // Set special step for product input
     } else {
-      setMessages((msgs) => [...msgs, { from: "bot", text: qna.a }]);
+      setMessages((msgs) => [...msgs, { from: "Bot", sender: "bot", text: qna.a, createdAt: new Date().toISOString() }]);
       setStep(4); // Go to main menu (or stay on 3 if you prefer)
     }
   };
@@ -143,20 +151,19 @@ export default function ChatBot() {
       if (data.product) {
         setMessages(msgs => [
           ...msgs,
-          { from: "user", text: product },
-          { from: "bot", text: `Product: ${data.product.name}\nPrice: ₹${data.product.price}\nDescription: ${data.product.description}` },
-          { from: "bot", text: `Would you like to know more?\n\nPlease choose from the options below:\n\n1. 🛍 Product Information\n2. 🚚 Shipping & Delivery\n3. 💳 Payment & Checkout\n4. 🔁 Returns & Refunds\n5. 📦 Order Status\n6. 🧑‍💬 Talk to Support` }
-
+          { from: "You", sender: session?.user?.id || "user", text: product, createdAt: new Date().toISOString() },
+          { from: "Bot", sender: "bot", text: `Product: ${data.product.name}\nPrice: ₹${data.product.price}\nDescription: ${data.product.description}`, createdAt: new Date().toISOString() },
+          { from: "Bot", sender: "bot", text: `Would you like to know more?\n\nPlease choose from the options below:\n\n1. 🛍 Product Information\n2. 🚚 Shipping & Delivery\n3. 💳 Payment & Checkout\n4. 🔁 Returns & Refunds\n5. 📦 Order Status\n6. 🧑‍💬 Talk to Support`, createdAt: new Date().toISOString() }
         ]);
       } else {
         setMessages(msgs => [
           ...msgs,
-          { from: "user", text: product },
-          { from: "bot", text: "Sorry, product not found." }
+          { from: "You", sender: session?.user?.id || "user", text: product, createdAt: new Date().toISOString() },
+          { from: "Bot", sender: "bot", text: "Sorry, product not found.", createdAt: new Date().toISOString() }
         ]);
       }
     } catch (e) {
-      setMessages(msgs => [...msgs, { from: "bot", text: "Sorry, something went wrong." }]);
+      setMessages(msgs => [...msgs, { from: "Bot", sender: "bot", text: "Sorry, something went wrong.", createdAt: new Date().toISOString() }]);
     }
     setLoading(false);
     setProduct("");
@@ -169,7 +176,7 @@ export default function ChatBot() {
     setOpen(false);
     setStep(0);
     setMessages([
-      { from: "bot", text: "..." }
+      { from: "Bot", sender: "bot", text: "...", createdAt: new Date().toISOString() }
     ]);
     setInput("");
     setContact({ name: "", phone: "", email: "" });
@@ -181,14 +188,16 @@ export default function ChatBot() {
     setOpen(true);
 
     // Show typing first
-    setMessages([{ from: "bot", text: "..." }]);
+    setMessages([{ from: "Bot", sender: "bot", text: "...", createdAt: new Date().toISOString() }]);
 
     // Then show welcome message after 1 second
     setTimeout(() => {
       setMessages([
         {
-          from: "bot",
-          text: `Hi there! 👋 Welcome to Rishikesh Handmade!\n\nI’m AI Support Intelligence from our online store – your virtual assistant here to help you with anything you need.\n\nHow can I assist you today?`
+          from: "Bot",
+          sender: "bot",
+          text: `Hi there! 👋 Welcome to Rishikesh Handmade!\n\nI’m AI Support Intelligence from our online store – your virtual assistant here to help you with anything you need.\n\nHow can I assist you today?`,
+          createdAt: new Date().toISOString()
         }
       ]);
     }, 1000);
@@ -196,8 +205,10 @@ export default function ChatBot() {
   const handleResetChat = () => {
     setMessages([
       {
-        from: "bot",
+        from: "Bot",
+        sender: "bot",
         text: "Hi there! 👋 Welcome to Rishikesh Handmade!\n\nI’m AI Support Intelligence from our online store – your virtual assistant here to help you with anything you need.\n\nHow can I assist you today?",
+        createdAt: new Date().toISOString()
       },
     ]);
     setStep(0);
@@ -212,8 +223,8 @@ export default function ChatBot() {
   const handleMainMenu = (qna) => {
     setMessages((msgs) => [
       ...msgs,
-      { from: "user", text: qna.q },
-      { from: "bot", text: qna.a + "\n\nFor more help, contact us at support@rishikeshhandmade.com or call +91 7351009107, 9411571947." },
+      { from: "You", sender: session?.user?.id || "user", text: qna.q, createdAt: new Date().toISOString() },
+      { from: "Bot", sender: "bot", text: qna.a + "\n\nFor more help, contact us at support@rishikeshhandmade.com or call +91 7351009107, 9411571947.", createdAt: new Date().toISOString() },
     ]);
   };
 
@@ -242,7 +253,7 @@ export default function ChatBot() {
       setLoginPrompt(true);
       return;
     }
-    setMessages((msgs) => [...msgs, { from: "user", text: input }]);
+    setMessages((msgs) => [...msgs, { from: "You", sender: session?.user?.id || "user", text: input, createdAt: new Date().toISOString() }]);
     setLoading(true);
     setInput("");
     try {
@@ -261,10 +272,10 @@ export default function ChatBot() {
       setShowCustomInput(false);
       setMessages((msgs) => [
         ...msgs,
-        { from: "bot", text: "Your question has been sent to our team. We'll get back to you soon!" },
+        { from: "Bot", sender: "bot", text: "Your question has been sent to our team. We'll get back to you soon!", createdAt: new Date().toISOString() },
       ]);
     } catch (e) {
-      setMessages((msgs) => [...msgs, { from: "bot", text: "Sorry, something went wrong." }]);
+      setMessages((msgs) => [...msgs, { from: "Bot", sender: "bot", text: "Sorry, something went wrong.", createdAt: new Date().toISOString() }]);
     }
     setLoading(false);
     setTimeout(scrollToBottom, 200);
@@ -295,15 +306,20 @@ export default function ChatBot() {
             {messages.map((msg, idx) => (
               <div
                 key={idx}
-                className={`flex ${msg.from === "bot" ? "justify-start" : "justify-end"}`}
+                className={`flex ${msg.sender === "bot" ? "justify-start" : "justify-end"}`}
               >
                 <div
-                  className={`px-4 py-2 rounded-2xl text-sm shadow-sm max-w-[80%] whitespace-pre-wrap ${msg.from === "bot"
+                  className={`px-4 py-2 rounded-2xl text-sm shadow-sm max-w-[80%] whitespace-pre-wrap ${msg.sender === "bot"
                     ? "bg-white text-gray-900 border border-gray-200"
                     : "bg-blue-600 text-white border border-blue-600"
                     }`}
                 >
                   {msg.text}
+                  <div className="flex text-xs mt-1 gap-1 justify-end">
+                    <span className={msg.sender === "bot" ? "text-gray-400" : "text-white/70"}>
+                      {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                    </span>
+                  </div>
                 </div>
               </div>
 

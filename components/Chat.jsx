@@ -312,10 +312,12 @@ export default function Chat({
                         let isRight = false;
                         let bubbleColor = "bg-blue-600 text-primary-foreground rounded-tr-none"; // default: right
                         if (isAdmin) {
-                            // Admin panel: admin messages right, user left
-                            if (msg.adminName || msg.sender === "admin") {
+                            // Admin panel: admin and bot messages right, user left
+                            if (msg.adminName || msg.sender === "admin" || msg.sender === "bot" || msg.from === "Bot") {
                                 isRight = true;
-                                bubbleColor = "bg-blue-600 text-primary-foreground rounded-tr-none";
+                                bubbleColor = msg.sender === "bot" || msg.from === "Bot"
+                                    ? "bg-yellow-100 text-yellow-900 rounded-tr-none"
+                                    : "bg-blue-600 text-primary-foreground rounded-tr-none";
                             } else {
                                 isRight = false;
                                 bubbleColor = "bg-muted text-gray-900 rounded-tl-none";
