@@ -64,7 +64,7 @@ export default function Chat({
                 setAdminName(null); // Reset when no messages
             }
         } catch (error) {
-            console.error("Error fetching messages:", error)
+            // console.error("Error fetching messages:", error)
             setAdminName(null); // Reset on error
         }
     }, [userId])
@@ -73,10 +73,7 @@ export default function Chat({
 
     // And update your useEffect to call it when type is "booking"
     useEffect(() => {
-        if (!userId) {
-            console.error("Chat component: userId is undefined! This will cause message fetch errors.");
-            return;
-        }
+        
         // Only merge chatbot_history once per session
         let mergedBotHistory = false;
         const botHistory = localStorage.getItem("chatbot_history");
@@ -135,7 +132,7 @@ export default function Chat({
     const handleInputChange = (e) => {
         setMessage(e.target.value)
     }
-    console.log("Sending message", { text: message, attachments });
+    // console.log("Sending message", { text: message, attachments });
     const sendMessage = async () => {
         if (!message.trim() && attachments.length === 0) return;
 
@@ -179,7 +176,7 @@ export default function Chat({
             // Only clear attachments after sending
             setAttachments([]);
         } catch (error) {
-            console.error("Error sending message:", error);
+            // console.error("Error sending message:", error);
             // Rollback optimistic update if needed
             setMessages((prev) => prev.filter(msg => msg.createdAt !== newMessage.createdAt));
         }

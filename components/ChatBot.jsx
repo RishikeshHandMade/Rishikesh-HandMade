@@ -6,6 +6,7 @@ import { Send, MessageCircle, X } from "lucide-react";
 import Link from "next/link";
 
 // Helper: checks if the user is logged in
+
 function isLoggedIn(session) {
   return !!session?.user;
 }
@@ -48,8 +49,112 @@ export default function ChatBot() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [loginPrompt, setLoginPrompt] = useState(false);
+
+  // FAQ/product state
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [faqClicked, setFaqClicked] = useState(null);
+
+  const PRODUCT_FAQS = [
+    {
+      q: "Is this product available in stock?",
+      a: (prod) => prod?.inStock ? `Yes, the product is currently available. (${prod.inStock} in stock)` : "Sorry, this product is currently out of stock.",
+      key: "stock"
+    },
+    {
+      q: "What sizes/colors are available?",
+      a: (prod) => {
+        let sizes = prod?.sizes?.length ? prod.sizes.join(", ") : "Not specified";
+        let colors = prod?.colors?.length ? prod.colors.join(", ") : "Not specified";
+        return `Sizes: ${sizes}\nColors: ${colors}`;
+      },
+      key: "sizecolor"
+    },
+    {
+      q: "Is this product genuine/original?",
+      a: () => "Yes, we only sell 100% genuine and authentic products.",
+      key: "genuine"
+    },
+    {
+      q: "Can I see more pictures of the product?",
+      a: (prod) => prod?.gallery?.allImages?.length ? "Sure! You can find multiple images in the product gallery below." : "Sorry, no additional images are available.",
+      key: "images"
+    },
+    {
+      q: "Does this product have a warranty?",
+      a: (prod) => prod?.warranty ? `Yes, it comes with a ${prod.warranty} warranty provided by the manufacturer.` : "No warranty information available.",
+      key: "warranty"
+    },
+  ];
+
+  const handleFaqClick = (faq) => {
+    if (!selectedProduct) return;
+    setFaqClicked(faq.key);
+    setMessages(msgs => [
+      ...msgs,
+      { from: "You", sender: session?.user?.id || "user", text: faq.q, createdAt: new Date().toISOString() },
+      { from: "Bot", sender: "bot", text: typeof faq.a === 'function' ? faq.a(selectedProduct) : faq.a, createdAt: new Date().toISOString() }
+    ]);
+  };
+
   const [showCustomInput, setShowCustomInput] = useState(false);
   const chatWindowRef = useRef(null);
+
+  // Load chat history from DB (or localStorage fallback)
+  useEffect(() => {
+    async function loadHistory() {
+      if (session?.user?.id) {
+        try {
+          const res = await fetch(`/api/getMessages?userId=${session.user.id}`);
+          const data = await res.json();
+
+          if (data.messages && Array.isArray(data.messages)) {
+            setMessages((prev) => (JSON.stringify(prev) !== JSON.stringify(data.messages) ? data.messages : prev));
+            return;
+          } else {
+            setMessages([]);
+          }
+        } catch (error) {
+          setMessages([]);
+        }
+      }
+      // fallback to localStorage
+      const localHistory = localStorage.getItem("chatbot_history");
+      if (localHistory) {
+        try {
+          const parsed = JSON.parse(localHistory);
+          if (Array.isArray(parsed)) setMessages(parsed);
+        } catch {}
+      } else {
+        setMessages([
+          {
+            from: "Bot",
+            sender: "bot",
+            text: "Hi there! 👋 Welcome to Rishikesh Handmade!\n\nI’m AI Support Intelligence from our online store – your virtual assistant here to help you with anything you need.\n\nHow can I assist you today?",
+            createdAt: new Date().toISOString(),
+          },
+        ]);
+      }
+    }
+    loadHistory();
+  }, [session?.user?.id]);
+
+
+  const handleResetChat = () => {
+    setMessages([
+      {
+        from: "Bot",
+        sender: "bot",
+        text: "Hi there! 👋 Welcome to Rishikesh Handmade!\n\nI’m AI Support Intelligence from our online store – your virtual assistant here to help you with anything you need.\n\nHow can I assist you today?",
+        createdAt: new Date().toISOString(),
+      },
+    ]);
+    setStep(0);
+    setInput("");
+    setContact({ name: "", phone: "", email: "" });
+    setProduct("");
+    setError("");
+    localStorage.removeItem("chatbot_history");
+  };
 
   // Scroll to bottom when messages change
   const scrollToBottom = () => {
@@ -76,8 +181,6 @@ export default function ChatBot() {
 
     return () => clearTimeout(timer);
   }, [open]);
-
-
 
   const handleSmallTalk = (e) => {
     e.preventDefault();
@@ -141,19 +244,53 @@ export default function ChatBot() {
   const handleProduct = async (e) => {
     e.preventDefault();
     if (!product.trim()) {
-      setError("Please enter a product name or code.");
+      setError("Please enter a product name.");
       return;
     }
     setLoading(true);
     try {
       const response = await fetch(`/api/product/search?q=${product}`);
       const data = await response.json();
-      if (data.product) {
+      let foundProduct = null;
+      if (Array.isArray(data.products) && data.products.length > 0) {
+        foundProduct = data.products[0];
+      } else if (data.product) {
+        foundProduct = data.product;
+      }
+      setFaqClicked(null);
+      setSelectedProduct(null);
+      if (foundProduct) {
+        // Compose bot message with product details
+        let imageUrl = foundProduct.gallery && foundProduct.gallery.mainImage ? foundProduct.gallery.mainImage : '/placeholder.png';
+        let price = foundProduct.price ? `₹${foundProduct.price}` : 'Price not available';
         setMessages(msgs => [
           ...msgs,
           { from: "You", sender: session?.user?.id || "user", text: product, createdAt: new Date().toISOString() },
-          { from: "Bot", sender: "bot", text: `Product: ${data.product.name}\nPrice: ₹${data.product.price}\nDescription: ${data.product.description}`, createdAt: new Date().toISOString() },
-          { from: "Bot", sender: "bot", text: `Would you like to know more?\n\nPlease choose from the options below:\n\n1. 🛍 Product Information\n2. 🚚 Shipping & Delivery\n3. 💳 Payment & Checkout\n4. 🔁 Returns & Refunds\n5. 📦 Order Status\n6. 🧑‍💬 Talk to Support`, createdAt: new Date().toISOString() }
+          {
+            from: "Bot",
+            sender: "bot",
+            text: `Product: ${foundProduct.title}\n${price}`,
+            image: imageUrl,
+            createdAt: new Date().toISOString()
+          },
+        ]);
+        setSelectedProduct(foundProduct);
+        setMessages(msgs => [
+          ...msgs,
+          {
+            from: "Bot",
+            sender: "bot",
+            text: "Frequently Asked Questions:",
+            createdAt: new Date().toISOString()
+          },
+          ...PRODUCT_FAQS.map((faq) => ({
+            from: "Bot",
+            sender: "bot",
+            text: faq.q,
+            createdAt: new Date().toISOString(),
+            isFaq: true,
+            faqKey: faq.key,
+          })),
         ]);
       } else {
         setMessages(msgs => [
@@ -202,23 +339,6 @@ export default function ChatBot() {
       ]);
     }, 1000);
   };
-  const handleResetChat = () => {
-    setMessages([
-      {
-        from: "Bot",
-        sender: "bot",
-        text: "Hi there! 👋 Welcome to Rishikesh Handmade!\n\nI’m AI Support Intelligence from our online store – your virtual assistant here to help you with anything you need.\n\nHow can I assist you today?",
-        createdAt: new Date().toISOString()
-      },
-    ]);
-    setStep(0);
-    setInput("");
-    setContact({ name: "", phone: "", email: "" });
-    setProduct("");
-    setError("");
-  };
-
-
 
   const handleMainMenu = (qna) => {
     setMessages((msgs) => [
@@ -295,7 +415,7 @@ export default function ChatBot() {
       )}
       {/* Chat window */}
       {open && (
-        <div className="fixed bottom-2 right-[4%] z-50 w-[330px] h-[30rem] max-w-[95vw] bg-white rounded-xl shadow-2xl flex flex-col border border-gray-200 animate-fadeIn">
+        <div className={`fixed bottom-2 right-[4%] z-50 w-[330px] ${(step >= 3) ? 'h-screen' : 'h-[30rem]'} max-w-[95vw] bg-white rounded-xl shadow-2xl flex flex-col border border-gray-200 animate-fadeIn`}>
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-blue-600 rounded-t-xl">
             <span className="text-white font-semibold">Chat with us</span>
@@ -322,8 +442,34 @@ export default function ChatBot() {
                   </div>
                 </div>
               </div>
-
             ))}
+
+            {/* Render product FAQ options if a product is selected */}
+            {/* Show productQnA menu only after user contact is submitted (step >= 3) and before product is found */}
+            {/* No bottom/floating duplicate menu - all QnA/FAQ is only in main chat window above */}
+
+            {/* When a product is found, only show clickable product FAQs */}
+            {selectedProduct && (
+              <div className="mt-4">
+                <div className="font-semibold mb-1 text-gray-700">Frequently Asked Questions:</div>
+                <div className="flex flex-col gap-2">
+                  {PRODUCT_FAQS.map((faq) => (
+                    <button
+                      key={faq.key}
+                      onClick={() => handleFaqClick(faq)}
+                      className={`text-left px-4 py-2 rounded-lg border transition-colors duration-150 ${faqClicked === faq.key ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-blue-700 border-blue-300 hover:bg-blue-50'}`}
+                      style={{ outline: 'none' }}
+                      disabled={faqClicked === faq.key}
+                    >
+                      {faq.q}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+
+
             {loading && (
               <div className="flex justify-end">
                 <div className="px-4 py-2 rounded-2xl text-sm bg-blue-100 text-blue-600 animate-pulse">...

@@ -37,7 +37,7 @@ export default function AdminChat() {
         booking: 0,
         enquiry: 0
     });
-    console.log(chats, orderThreads)
+    // console.log(chats, orderThreads)
 
 
     const fetchChats = async () => {
@@ -97,7 +97,7 @@ export default function AdminChat() {
                 [type]: enhancedChats.reduce((sum, chat) => sum + (chat.unreadCountAdmin || 0), 0)
             }));
         } catch (error) {
-            console.error("Error fetching chats:", error)
+            // console.error("Error fetching chats:", error)
         } finally {
             setIsLoading(false)
         }
@@ -120,7 +120,7 @@ export default function AdminChat() {
                     });
                     // Optionally update local state for unread count if needed
                 } catch (error) {
-                    console.error("Failed to mark as read:", error);
+                    // console.error("Failed to mark as read:", error);
                 }
             }
         };
@@ -197,6 +197,53 @@ export default function AdminChat() {
             .join("")
             .toUpperCase()
     }
+    const handleStatusChange = async (newStatus) => {
+    if (!selectedChat) return;
+    try {
+        let endpoint = '';
+        if (type === "chatbot") {
+            endpoint = `/api/chat/${selectedChat._id}`;
+        } else if (type === "order-queries") {
+            endpoint = `/api/orders/${selectedChat.orderId || selectedChat._id}`;
+        } 
+        else {
+            toast.error("Unknown chat type for status update.");
+            return;
+        }
+        const res = await fetch(endpoint, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                status: newStatus.toLowerCase(),
+            }),
+        });
+        if (res.ok) {
+            setChats(prevChats =>
+                prevChats.map(chat =>
+                    chat._id === selectedChat._id
+                        ? {
+                            ...chat,
+                            status: newStatus.toLowerCase(),
+                            chatStatus: newStatus.toLowerCase()
+                        }
+                        : chat
+                )
+            );
+            setSelectedChat(prev => ({
+                ...prev,
+                status: newStatus.toLowerCase(),
+                chatStatus: newStatus.toLowerCase()
+            }));
+            toast.success("Status updated successfully!");
+        } else {
+            const errorData = await res.json();
+            toast.error(errorData.message || "Failed to update status.");
+        }
+    } catch (error) {
+        console.error("Update error:", error);
+        toast.error("Network error while updating status.");
+    }
+};
 
     return (
         <div className="flex flex-col lg:flex-row h-screen bg-transparent">
