@@ -31,13 +31,15 @@ export default function AdminChat() {
     const [messages, setMessages] = useState([])
     const [messagesLoading, setMessagesLoading] = useState(false)
     const [orderThreads, setOrderThreads] = useState([])
+    const [orderModalOpen, setOrderModalOpen] = useState(false);
+    const [selectedOrder, setSelectedOrder] = useState(null);
     const [unreadCounts, setUnreadCounts] = useState({
         chatbot: 0,
         "order-queries": 0,
         booking: 0,
         enquiry: 0
     });
-    // console.log(chats, orderThreads)
+    // console.log(selectedOrder)
 
 
     const fetchChats = async () => {
@@ -198,52 +200,52 @@ export default function AdminChat() {
             .toUpperCase()
     }
     const handleStatusChange = async (newStatus) => {
-    if (!selectedChat) return;
-    try {
-        let endpoint = '';
-        if (type === "chatbot") {
-            endpoint = `/api/chat/${selectedChat._id}`;
-        } else if (type === "order-queries") {
-            endpoint = `/api/orders/${selectedChat.orderId || selectedChat._id}`;
-        } 
-        else {
-            toast.error("Unknown chat type for status update.");
-            return;
+        if (!selectedChat) return;
+        try {
+            let endpoint = '';
+            if (type === "chatbot") {
+                endpoint = `/api/chat/${selectedChat._id}`;
+            } else if (type === "order-queries") {
+                endpoint = `/api/orders/${selectedChat.orderId || selectedChat._id}`;
+            }
+            else {
+                toast.error("Unknown chat type for status update.");
+                return;
+            }
+            const res = await fetch(endpoint, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    status: newStatus.toLowerCase(),
+                }),
+            });
+            if (res.ok) {
+                setChats(prevChats =>
+                    prevChats.map(chat =>
+                        chat._id === selectedChat._id
+                            ? {
+                                ...chat,
+                                status: newStatus.toLowerCase(),
+                                chatStatus: newStatus.toLowerCase()
+                            }
+                            : chat
+                    )
+                );
+                setSelectedChat(prev => ({
+                    ...prev,
+                    status: newStatus.toLowerCase(),
+                    chatStatus: newStatus.toLowerCase()
+                }));
+                toast.success("Status updated successfully!");
+            } else {
+                const errorData = await res.json();
+                toast.error(errorData.message || "Failed to update status.");
+            }
+        } catch (error) {
+            console.error("Update error:", error);
+            toast.error("Network error while updating status.");
         }
-        const res = await fetch(endpoint, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                status: newStatus.toLowerCase(),
-            }),
-        });
-        if (res.ok) {
-            setChats(prevChats =>
-                prevChats.map(chat =>
-                    chat._id === selectedChat._id
-                        ? {
-                            ...chat,
-                            status: newStatus.toLowerCase(),
-                            chatStatus: newStatus.toLowerCase()
-                        }
-                        : chat
-                )
-            );
-            setSelectedChat(prev => ({
-                ...prev,
-                status: newStatus.toLowerCase(),
-                chatStatus: newStatus.toLowerCase()
-            }));
-            toast.success("Status updated successfully!");
-        } else {
-            const errorData = await res.json();
-            toast.error(errorData.message || "Failed to update status.");
-        }
-    } catch (error) {
-        console.error("Update error:", error);
-        toast.error("Network error while updating status.");
-    }
-};
+    };
 
     return (
         <div className="flex flex-col lg:flex-row h-screen bg-transparent">
@@ -344,7 +346,7 @@ export default function AdminChat() {
             <div className="flex-1 flex flex-col w-full h-full">
                 {showChat ? (
                     <>
-                        {type === "chatbot" && (
+                        {/* {type === "chatbot" && (
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild className="w-fit !m-4">
                                     <Button variant="outline" className={`!p-6 ${selectedChat.status === "pending" && "border-yellow-400 bg-yellow-100 hover:bg-yellow-600"} ${selectedChat.status === "resolved" && "border-green-400 bg-green-100 hover:bg-green-600"} border-2 hover:text-white flex items-center gap-2`}>
@@ -392,7 +394,7 @@ export default function AdminChat() {
                                     ))}
                                 </DropdownMenuContent>
                             </DropdownMenu>
-                        )}
+                        )} */}
                         <div className="flex-1 overflow-y-auto p-4">
                             <div className="flex-1 overflow-hidden p-4">
                                 {selectedChat && (
@@ -400,6 +402,23 @@ export default function AdminChat() {
                                         <ChatOrder
                                             order={selectedChat}
                                             onBack={() => setShowChat(false)}
+                                            onViewOrder={async (order) => {
+                                                // Only fetch if full details are missing
+                                                if (!order.items || !order.summary) {
+                                                    try {
+                                                        const res = await fetch(`/api/orders/${order.orderId || order._id}`);
+                                                        if (!res.ok) throw new Error('Failed to fetch order details');
+                                                        const fullOrder = await res.json();
+                                                        setSelectedOrder(fullOrder);
+                                                    } catch (err) {
+                                                        alert('Failed to fetch order details');
+                                                        return;
+                                                    }
+                                                } else {
+                                                    setSelectedOrder(order);
+                                                }
+                                                setOrderModalOpen(true);
+                                            }}
                                         />
                                     ) : (
                                         <Chat
@@ -407,8 +426,6 @@ export default function AdminChat() {
                                             userId={selectedChat.userId?._id || selectedChat.userId}
                                             isAdmin={true}
                                             recipientName={selectedChat.userName}
-                                            packageId={selectedChat.packageId}
-                                            bookingId={selectedChat.bookingId}
                                         />
                                     )
                                 )}
@@ -423,9 +440,99 @@ export default function AdminChat() {
                     </div>
                 )}
             </div>
+            {
+                orderModalOpen && selectedOrder && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                        <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full p-6 relative">
+                            {/* Close Button */}
+                            <button
+                                className="absolute top-4 right-4 text-2xl text-gray-400 hover:text-gray-800"
+                                onClick={() => setOrderModalOpen(false)}
+                            >
+                                ×
+                            </button>
+                            {/* Header */}
+                            <div className="mb-4">
+                                <div className="text-lg font-bold">Order ID: {selectedOrder.orderId}</div>
+                                <div className="text-sm">Date: {new Date(selectedOrder.createdAt).toLocaleString()}</div>
+                                <div className="text-sm">
+                                    Status: <span className="font-semibold text-red-500">{selectedOrder.status}</span>
+                                </div>
+                            </div>
+                            {/* Product Table */}
+                            <div className="overflow-x-auto mb-4">
+  <table className="w-full text-sm border border-gray-200 rounded-md overflow-hidden">
+    <thead className="bg-gray-100 text-gray-700 font-semibold">
+      <tr>
+        <th className="py-3 px-2 text-center">Image</th>
+        <th className="py-3 px-4 text-left">Product</th>
+        <th className="py-3 px-3 text-center">Qty</th>
+        <th className="py-3 px-3 text-center">Size</th>
+        <th className="py-3 px-3 text-right">Price</th>
+        <th className="py-3 px-3 text-right">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {selectedOrder.products?.map((item, idx) => (
+        <tr
+          key={idx}
+          className="border-t border-gray-200 hover:bg-gray-50 text-gray-800"
+        >
+          <td className="py-3 px-2 text-center">
+            {item.image?.url && (
+              <img
+                src={item.image.url}
+                alt={item.name}
+                className="w-14 h-14 object-cover rounded shadow mx-auto"
+              />
+            )}
+          </td>
+          <td className="py-3 px-4 align-middle font-medium min-w-[180px]">
+            {item.name}
+          </td>
+          <td className="py-3 px-3 text-center align-middle">{item.qty}</td>
+          <td className="py-3 px-3 text-center align-middle">{item.size}</td>
+          <td className="py-3 px-3 text-right align-middle">₹{item.price}</td>
+          <td className="py-3 px-3 text-right align-middle font-bold text-gray-900">
+            ₹{item.qty * item.price}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
+                            {/* Billing & Shipping Info + Summary */}
+                            <div className="flex flex-wrap gap-6">
+                                {/* Billing & Shipping */}
+                                <div className="flex-1 min-w-[250px]">
+                                    <div className="mb-2 font-semibold">Customer Information</div>
+                                    <div>Name: {selectedOrder.firstName} {selectedOrder.lastName}</div>
+                                    <div>Email: {selectedOrder.email}</div>
+                                    <div>Phone: {selectedOrder.phone}</div>
+                                    <div>Alt. Phone: {selectedOrder.altPhone}</div>
+                                    <div className="mt-2 font-semibold">Shipping Address</div>
+                                    <div>{selectedOrder.address}</div>
+                                    <div>City: {selectedOrder.city}</div>
+                                    <div>State: {selectedOrder.state}</div>
+                                    <div>Pin Code: {selectedOrder.pincode}</div>
+                                </div>
+                                {/* Summary Card */}
+                                <div className="flex-1 min-w-[220px] bg-gray-50 rounded-lg p-4 shadow-inner">
+                                    <div>Subtotal (INR): <span className="float-right">{selectedOrder.subTotal}</span></div>
+                                    <div>Discount Amount: <span className="float-right">{selectedOrder.totalDiscount}</span></div>
+                                    <div>Cart Total: <span className="float-right">{selectedOrder.cartTotal}</span></div>
+                                    <div className="font-bold mt-2">Status: <span className="float-right">{selectedOrder.status}</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
         </div>
     )
 }
+
 
 function ChatList({ chats, setShowChat, showChat, selectedChat, setSelectedChat, getStatusColor, formatTime, getInitials }) {
     if (chats.length === 0) {

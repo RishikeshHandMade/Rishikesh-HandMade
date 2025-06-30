@@ -205,7 +205,6 @@ function OrderChat({ userId, orderId, userName, userImage, onBack }) {
                         {messages.length === 0 && (
                             <div className="text-gray-500 text-center py-4">No messages yet for this order.</div>
                         )}
-                        {console.log(messages)}
                         {messages.map((msg, idx) => {
                             // Determine alignment based on sender and current viewer (admin/user)
                             const sender = msg.from || msg.sender;
