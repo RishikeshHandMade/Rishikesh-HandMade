@@ -75,14 +75,21 @@ export default function ChatBot() {
       key: "genuine"
     },
     {
-      q: "Can I see more pictures of the product?",
-      a: (prod) => prod?.gallery?.allImages?.length ? "Sure! You can find multiple images in the product gallery below." : "Sorry, no additional images are available.",
-      key: "images"
-    },
-    {
       q: "Does this product have a warranty?",
       a: (prod) => prod?.warranty ? `Yes, it comes with a ${prod.warranty} warranty provided by the manufacturer.` : "No warranty information available.",
       key: "warranty"
+    },
+    {
+      q: "Where can I find more information about this product?",
+      a: (prod) => prod?._id ?
+        `You can find more information about this product at <a href="/product/${prod._id}" target="_blank" rel="noopener noreferrer" class="underline hover:text-blue-600">${prod.title}</a>`
+        : "No additional information available.",
+      key: "url"
+    },
+    {
+      q: "Back to Chat",
+      a: () => "Please choose one of the options below 👇",
+      key: "back"
     },
   ];
 
@@ -92,11 +99,12 @@ export default function ChatBot() {
     setMessages(msgs => [
       ...msgs,
       { from: "You", sender: session?.user?.id || "user", text: faq.q, createdAt: new Date().toISOString() },
-      { from: "Bot", sender: "bot", text: typeof faq.a === 'function' ? faq.a(selectedProduct) : faq.a, createdAt: new Date().toISOString() }
+      { from: "Bot", sender: "bot", text: typeof faq.a === 'function' ? faq.a(selectedProduct) : faq.a, faqKey: faq.key, createdAt: new Date().toISOString() }
     ]);
   };
 
   const [showCustomInput, setShowCustomInput] = useState(false);
+  const [showSupportOptions, setShowSupportOptions] = useState(false);
   const chatWindowRef = useRef(null);
 
   // Load chat history from DB (or localStorage fallback)
@@ -123,7 +131,7 @@ export default function ChatBot() {
         try {
           const parsed = JSON.parse(localHistory);
           if (Array.isArray(parsed)) setMessages(parsed);
-        } catch {}
+        } catch { }
       } else {
         setMessages([
           {
@@ -168,19 +176,23 @@ export default function ChatBot() {
 
   useEffect(() => {
     if (!open) return;
-    const timer = setTimeout(() => {
-      setMessages([
-        {
-          from: "Bot",
-          sender: "bot",
-          text: `Hi there! 👋 Welcome to Rishikesh Handmade!\n\nI’m AI Support Intelligence from our online store – your virtual assistant here to help you with anything you need.\n\nHow can I assist you today?`,
-          createdAt: new Date().toISOString()
-        }
-      ]);
-    }, 1000); // Delay in milliseconds
 
-    return () => clearTimeout(timer);
+    if (messages.length === 0) {
+      const timer = setTimeout(() => {
+        setMessages([
+          {
+            from: "Bot",
+            sender: "bot",
+            text: `Hi there! 👋 Welcome to Rishikesh Handmade!\n\nI’m AI Support Intelligence from our online store – your virtual assistant here to help you with anything you need.\n\nHow can I assist you today?`,
+            createdAt: new Date().toISOString()
+          }
+        ]);
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
   }, [open]);
+
 
   const handleSmallTalk = (e) => {
     e.preventDefault();
@@ -261,8 +273,9 @@ export default function ChatBot() {
       setSelectedProduct(null);
       if (foundProduct) {
         // Compose bot message with product details
-        let imageUrl = foundProduct.gallery && foundProduct.gallery.mainImage ? foundProduct.gallery.mainImage : '/placeholder.png';
+        let imageUrl = foundProduct || '/placeholder.jpeg';
         let price = foundProduct.price ? `₹${foundProduct.price}` : 'Price not available';
+
         setMessages(msgs => [
           ...msgs,
           { from: "You", sender: session?.user?.id || "user", text: product, createdAt: new Date().toISOString() },
@@ -275,23 +288,7 @@ export default function ChatBot() {
           },
         ]);
         setSelectedProduct(foundProduct);
-        setMessages(msgs => [
-          ...msgs,
-          {
-            from: "Bot",
-            sender: "bot",
-            text: "Frequently Asked Questions:",
-            createdAt: new Date().toISOString()
-          },
-          ...PRODUCT_FAQS.map((faq) => ({
-            from: "Bot",
-            sender: "bot",
-            text: faq.q,
-            createdAt: new Date().toISOString(),
-            isFaq: true,
-            faqKey: faq.key,
-          })),
-        ]);
+        setStep("faq");
       } else {
         setMessages(msgs => [
           ...msgs,
@@ -305,7 +302,7 @@ export default function ChatBot() {
     setLoading(false);
     setProduct("");
     setError("");
-    setStep(4);
+    setStep("faq");
   };
 
   // Reset chat on close
@@ -341,6 +338,16 @@ export default function ChatBot() {
   };
 
   const handleMainMenu = (qna) => {
+    if (qna.q === "🧑‍💬 Talk to Support") {
+      setShowSupportOptions(true);
+      setStep(3);
+      setMessages(msgs => [
+        ...msgs,
+        { from: "You", sender: session?.user?.id || "user", text: qna.q, createdAt: new Date().toISOString() },
+        { from: "Bot", sender: "bot", text: qna.a, createdAt: new Date().toISOString() }
+      ]);
+      return;
+    }
     setMessages((msgs) => [
       ...msgs,
       { from: "You", sender: session?.user?.id || "user", text: qna.q, createdAt: new Date().toISOString() },
@@ -400,6 +407,12 @@ export default function ChatBot() {
     setLoading(false);
     setTimeout(scrollToBottom, 200);
   };
+  const handleBackToChat = () => {
+    setSelectedProduct(null);
+    setFaqClicked(null);
+    setStep(3); // This should be the step that shows your main quick-topic buttons
+  };
+  const isProductNotFound = step === "faq" && messages[messages.length - 1]?.text === "Sorry, product not found."
 
   return (
     <>
@@ -415,7 +428,14 @@ export default function ChatBot() {
       )}
       {/* Chat window */}
       {open && (
-        <div className={`fixed bottom-2 right-[4%] z-50 w-[330px] ${(step >= 3) ? 'h-screen' : 'h-[30rem]'} max-w-[95vw] bg-white rounded-xl shadow-2xl flex flex-col border border-gray-200 animate-fadeIn`}>
+        <div
+          className={`fixed bottom-2 right-[4%] z-50 w-[330px] max-w-[95vw] bg-white rounded-xl shadow-2xl flex flex-col border border-gray-200 animate-fadeIn
+  ${((step === "faq" && selectedProduct && !isProductNotFound) || step === 3)
+              ? 'h-screen'
+              : 'max-h-[30rem]'}
+`}
+        >
+
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-blue-600 rounded-t-xl">
             <span className="text-white font-semibold">Chat with us</span>
@@ -434,7 +454,11 @@ export default function ChatBot() {
                     : "bg-blue-600 text-white border border-blue-600"
                     }`}
                 >
-                  {msg.text}
+                  {msg.faqKey === 'url' ? (
+                    <span dangerouslySetInnerHTML={{ __html: msg.text }} />
+                  ) : (
+                    msg.text
+                  )}
                   <div className="flex text-xs mt-1 gap-1 justify-end">
                     <span className={msg.sender === "bot" ? "text-gray-400" : "text-white/70"}>
                       {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
@@ -449,7 +473,7 @@ export default function ChatBot() {
             {/* No bottom/floating duplicate menu - all QnA/FAQ is only in main chat window above */}
 
             {/* When a product is found, only show clickable product FAQs */}
-            {selectedProduct && (
+            {/* {selectedProduct && (
               <div className="mt-4">
                 <div className="font-semibold mb-1 text-gray-700">Frequently Asked Questions:</div>
                 <div className="flex flex-col gap-2">
@@ -466,7 +490,7 @@ export default function ChatBot() {
                   ))}
                 </div>
               </div>
-            )}
+            )} */}
 
 
 
@@ -537,43 +561,82 @@ export default function ChatBot() {
             {/* Step 3: Product info */}
             {step === 3 && (
               <>
-                <div className="flex flex-wrap gap-2 mb-2">
+                {step === 3 && showSupportOptions ? (
+                  <div className="flex flex-col gap-2 mt-2">
+                    <button
+                      className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold transition"
+                      onClick={handleChatWithAdmin}
+                    >
+                      🧑‍💬 Chat with Admin
+                    </button>
+                    <button
+                      className="w-full text-left px-4 py-2 rounded-lg border transition-colors duration-150 font-medium shadow-sm text-xs transition whitespace-nowrap"
+                      onClick={() => setShowSupportOptions(false)}
+                    >
+                      👈 Back to Chat
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2 mb-1">
                   {productQnA.map((qna) => (
                     <button
                       key={qna.q}
-                      className="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-full text-xs font-medium transition"
+                      className="flex-1 text-left px-4 py-2 rounded-lg border transition-colors duration-150 font-medium transition"
                       onClick={() => handleQnAOption(qna)}
                     >
                       {qna.q}
                     </button>
                   ))}
                 </div>
+                )}
               </>
             )}
             {step === "product-info" && (
-              <form onSubmit={handleProduct} className="flex gap-2 mt-1">
-                <input
-                  type="text"
-                  className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-blue-500 bg-gray-50"
-                  placeholder="Product Name or Code (required)"
-                  value={product}
-                  onChange={e => setProduct(e.target.value)}
-                  autoFocus
-                />
-                <button
-                  type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-3 py-2 flex items-center justify-center disabled:opacity-60"
-                  disabled={!product.trim()}
-                  aria-label="Send"
-                >
-                  <Send className="w-5 h-5" />
-                </button>
-              </form>
+              <>
+
+                <form onSubmit={handleProduct} className="flex gap-2 mt-1">
+                  <input
+                    type="text"
+                    className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-blue-500 bg-gray-50"
+                    placeholder="Product Name or Code (required)"
+                    value={product}
+                    onChange={e => setProduct(e.target.value)}
+                    autoFocus
+                  />
+                  <button
+                    type="submit"
+                    className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-3 py-2 flex items-center justify-center disabled:opacity-60"
+                    disabled={!product.trim()}
+                    aria-label="Send"
+                  >
+                    <Send className="w-5 h-5" />
+                  </button>
+                </form>
+                {step === "faq" && selectedProduct && (
+                  <>
+                    <div className="font-semibold text-gray-700 mb-2">Frequently Asked Questions:</div>
+                    <div className="flex flex-col gap-2">
+                      {PRODUCT_FAQS.map((faq) => (
+                        <button
+                          key={faq.key}
+                          onClick={() => handleFaqClick(faq)}
+                          className={`text-left px-4 py-2 rounded-lg border transition-colors duration-150 ${faqClicked === faq.key
+                            ? 'bg-blue-600 text-white border-blue-600'
+                            : 'bg-white text-blue-700 border-blue-300 hover:bg-blue-50'
+                            }`}
+                          disabled={faqClicked === faq.key}
+                        >
+                          {faq.q}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+              </>
             )}
-
-
             {/* Step 4: Main menu */}
-            {step === 4 && (
+            {step === 4 && !selectedProduct && (
               <>
                 <div className="flex flex-wrap gap-2 mb-2">
                   {productQnA.map((qna) => (
@@ -588,31 +651,33 @@ export default function ChatBot() {
                   ))}
                 </div>
 
-                <button
-                  className="w-full mt-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition"
-                  onClick={() => setStep(0)}
-                  disabled={loading}
-                >
-                  New Question
-                </button>
-                <button
-                  className="w-full mt-2 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold transition"
-                  onClick={handleChatWithAdmin}
-                >
-                  🧑‍💬 Chat with Admin
-                </button>
+                {!(step === "faq" && selectedProduct) && (
+                  <>
+                    <button
+                      className="w-full mt-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition"
+                      onClick={() => setStep(0)}
+                      disabled={loading}
+                    >
+                      New Question
+                    </button>
 
+                    <button
+                      className="w-full mt-2 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold transition"
+                      onClick={handleChatWithAdmin}
+                    >
+                      🧑‍💬 Chat with Admin
+                    </button>
 
-                {/* 🔁 Reset Chat Button */}
-                <button
-                  className="w-full mt-2 text-sm text-red-600 hover:underline"
-                  onClick={handleResetChat}
-                >
-                  🔄 Reset Chat
-                </button>
+                    <button
+                      className="w-full mt-2 text-sm text-red-600 hover:underline"
+                      onClick={handleResetChat}
+                    >
+                      🔄 Reset Chat
+                    </button>
+                  </>
+                )}
               </>
             )}
-
             {loginPrompt && (
               <div className="flex flex-col items-center gap-2">
                 <span className="text-sm text-gray-700 mb-2">Please log in or sign up to ask a custom question.</span>
@@ -640,6 +705,66 @@ export default function ChatBot() {
                   <Send className="w-5 h-5" />
                 </button>
               </form>
+            )}
+            {step === "faq" && selectedProduct && (
+              <>
+                <div className="font-semibold text-gray-700 mb-2">Frequently Asked Questions:</div>
+                <div className="flex flex-wrap gap-2 mb-1">
+                  {PRODUCT_FAQS.map((faq) => (
+                    <button
+                      key={faq.key}
+                      onClick={() => handleFaqClick(faq)}
+                      className={`px-4 py-2 rounded-full font-medium shadow-sm text-xs transition whitespace-nowrap
+            ${faqClicked === faq.key
+                          ? 'bg-blue-600 text-white border border-blue-600'
+                          : 'bg-blue-100 text-blue-700 border border-blue-300 hover:bg-blue-200'
+                        }`}
+                      disabled={faqClicked === faq.key}
+                    >
+                      {faq.q}
+                    </button>
+                  ))}
+                  {/* Add Back to Chat button at the end */}
+                  <button
+                    onClick={handleBackToChat}
+                    className="w-full px-4 py-2 rounded-lg border transition-colors duration-150 font-medium shadow-sm text-xs transition whitespace-nowrap "
+                  >
+                    👈 Back to Main Menu
+                  </button>
+                </div>
+              </>
+            )}
+            {step === "faq" && messages[messages.length - 1]?.text === "Sorry, product not found." && (
+              <div className="p-2 bg-white">
+                <form onSubmit={handleProduct} className="flex gap-2">
+                  <input
+                    type="text"
+                    className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-blue-500 bg-gray-50"
+                    placeholder="Product Name (required)"
+                    value={product}
+                    onChange={e => setProduct(e.target.value)}
+                    autoFocus
+                  />
+                  <button
+                    type="submit"
+                    className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-3 py-2 flex items-center justify-center disabled:opacity-60"
+                    disabled={!product.trim()}
+                    aria-label="Send"
+                  >
+                    <Send className="w-5 h-5" />
+                  </button>
+                </form>
+                <div className="flex justify-end mt-2">
+                  <button
+                    type="button"
+                    onClick={handleBackToChat}
+                    className="w-full text-left px-4 py-2 rounded-lg font-medium shadow-sm text-xs transition whitespace-nowrap bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200"
+                    style={{ minWidth: 0 }}
+                  >
+                    👈 Back to Main Menu
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         </div>

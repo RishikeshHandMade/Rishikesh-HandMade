@@ -35,16 +35,30 @@ export async function GET(request) {
       .select('title gallery quantity price')
       .populate({ path: 'gallery', select: 'mainImage' })
       .populate({ path: 'quantity', select: 'variants' })
+      
       .limit(20);
 
-    const mapped = products.map(prod => ({
-      _id: prod._id,
-      title: prod.title,
-      image: prod.gallery?.mainImage || null,
-      price: Array.isArray(prod.quantity?.variants) && prod.quantity.variants.length > 0
-        ? prod.quantity.variants[0].price
-        : null,
-    }));
+    const mapped = products.map(prod => {
+  // Get all variants
+  const variants = Array.isArray(prod.quantity?.variants) ? prod.quantity.variants : [];
+  // Calculate inStock (sum of all variant qty)
+  const inStock = variants.reduce((sum, v) => sum + (v.qty || 0), 0);
+  // Get image URL (handle nested structure and fallback)
+  let imageUrl = prod.gallery?.mainImage?.url || prod.gallery?.mainImage?.url || "/placeholder.jpeg";
+  const colors = [...new Set(variants.map(v => v.color).filter(Boolean))];
+  const sizes = [...new Set(variants.map(v => v.size).filter(Boolean))];
+
+  return {
+    _id: prod._id,
+    title: prod.title,
+    image: imageUrl,
+    price: variants.length > 0 ? variants[0].price : null,
+    inStock,
+    variants,
+    colors,
+    sizes,
+  };
+});
 
     return Response.json({ products: mapped });
   } catch (error) {
