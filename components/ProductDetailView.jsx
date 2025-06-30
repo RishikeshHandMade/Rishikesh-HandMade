@@ -799,23 +799,22 @@ export default function ProductDetailView({ product }) {
                 }
 
                 addToCart({
-                  id: product._id,
-                  name: product.title,
-                  image: product.gallery?.mainImage?.url || '/placeholder.png',
+                  id: item._id,
+                  name: item.title,
+                  image: item?.gallery?.mainImage || "/placeholder.jpeg",
                   price: Math.round(discountedPrice),
-                  size: selectedSize,
-                  weight: selectedWeight,
-                  color: selectedColor,
+                  size: item?.quantity?.variants[0].size,
+                  weight: item?.quantity?.variants[0].weight,
                   originalPrice: price,
-                  qty: quantity,
+                  qty: 1,
                   couponApplied,
                   couponCode: couponApplied ? couponCode : undefined,
-                  productCode: product.code || product.productCode || '',
-                  discountPercent: couponObj && typeof couponObj.percent === 'number' ? couponObj.percent : undefined,
-                  discountAmount: couponObj && typeof couponObj.amount === 'number' ? couponObj.amount : undefined,
-                  cgst: Number((product.taxes && product.taxes.cgst) || product.cgst || (product.tax && product.tax.cgst) || 0),
-                  sgst: Number((product.taxes && product.taxes.sgst) || product.sgst || (product.tax && product.tax.sgst) || 0),
-                  quantity: product.quantity || {},
+                  productCode: item.code || item.productCode || '',
+                  discountPercent: coupon && typeof coupon.percent === 'number' ? coupon.percent : undefined,
+                  discountAmount: coupon && typeof coupon.amount === 'number' ? coupon.amount : undefined,
+                  cgst: (item.taxes && item.taxes.cgst) || item.cgst || (item.tax && item.tax.cgst) || 0,
+                  sgst: (item.taxes && item.taxes.sgst) || item.sgst || (item.tax && item.tax.sgst) || 0,
+                  totalQuantity: item?.quantity?.variants[0]?.qty || 0,
                 });
                 toast.success("Added to cart!");
               }}
@@ -841,6 +840,14 @@ export default function ProductDetailView({ product }) {
                     size: selectedSize,
                     weight: selectedWeight,
                     color: selectedColor,
+                    qty: 1,
+                    productCode: item.code || item.productCode || '',
+                    discountPercent: coupon && typeof coupon.percent === 'number' ? coupon.percent : undefined,
+                    discountAmount: coupon && typeof coupon.amount === 'number' ? coupon.amount : undefined,
+                    cgst: (item.taxes && item.taxes.cgst) || item.cgst || (item.tax && item.tax.cgst) || 0,
+                    sgst: (item.taxes && item.taxes.sgst) || item.sgst || (item.tax && item.tax.sgst) || 0,
+                    totalQuantity: item?.quantity?.variants[0]?.qty || 0,
+                    
                   });
                   toast.success("Added to wishlist!");
                 }

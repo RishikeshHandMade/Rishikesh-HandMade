@@ -191,7 +191,7 @@ const InstaBlog = () => {
                         {/* Blogs Section */}
 
                         {!isBlogsLoading && blogs && blogs.length > 0 && (
-                            <div className="flex-1 bg-[#fcf7f1] rounded-lg flex flex-col justify-between min-h-[350px] px-5 md:px-10">
+                            <div className="flex-1 bg-[#fcf7f1] rounded-lg flex flex-col justify-between min-h-[350px] px-5 py-5 md:px-10">
                                 <div className="font-bold text-3xl mb-4 p-2">
                                     <span className='border-b-2 border-black'>
                                         <span className='italic'>Blog</span> and Events

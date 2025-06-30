@@ -1,5 +1,6 @@
 "use client";
 import React, { createContext, useContext, useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 const CartContext = createContext();
 
@@ -11,6 +12,11 @@ function getInitial(key, fallback) {
   } catch {
     return fallback;
   }
+}
+
+function getAvailableQty(item) {
+  if (item?.totalQuantity !== undefined) return item.totalQuantity;
+  return 1; // fallback if nothing present
 }
 
 export function CartProvider({ children }) {
@@ -29,21 +35,38 @@ export function CartProvider({ children }) {
   const addToCart = (item, qty = 1) => {
     setCart(prev => {
       const idx = prev.findIndex(i => i.id === item.id);
+      const maxQty = getAvailableQty(item);
       if (idx > -1) {
-        // Already in cart, update qty and all fields
         const updated = [...prev];
+        const newQty = Math.min(updated[idx].qty + qty, maxQty);
+        if (updated[idx].qty + qty > maxQty) {
+          toast.error(`Only ${maxQty} left in stock!`);
+        }
         updated[idx] = {
           ...updated[idx],
           ...item,
-          qty: updated[idx].qty + qty,
+          qty: newQty,
         };
         return updated;
       }
-      return [...prev, { ...item, qty }];
+      if (qty > maxQty) {
+        toast.error(`Only ${maxQty} left in stock!`);
+      }
+      return [...prev, { ...item, qty: Math.min(qty, maxQty) }];
     });
   };
   const removeFromCart = id => setCart(prev => prev.filter(i => i.id !== id));
-  const updateCartQty = (id, qty) => setCart(prev => prev.map(i => i.id === id ? { ...i, qty } : i));
+  const updateCartQty = (id, qty) => setCart(prev => prev.map(i => {
+    if (i.id === id) {
+      const maxQty = getAvailableQty(i);
+      if (qty > maxQty) {
+        toast.error(`Only ${maxQty} left in stock!`);
+        return { ...i, qty: maxQty };
+      }
+      return { ...i, qty: Math.max(1, qty) };
+    }
+    return i;
+  }));
   const clearCart = () => setCart([]);
 
   // Wishlist functions

@@ -461,46 +461,46 @@ export default function AdminChat() {
                             </div>
                             {/* Product Table */}
                             <div className="overflow-x-auto mb-4">
-  <table className="w-full text-sm border border-gray-200 rounded-md overflow-hidden">
-    <thead className="bg-gray-100 text-gray-700 font-semibold">
-      <tr>
-        <th className="py-3 px-2 text-center">Image</th>
-        <th className="py-3 px-4 text-left">Product</th>
-        <th className="py-3 px-3 text-center">Qty</th>
-        <th className="py-3 px-3 text-center">Size</th>
-        <th className="py-3 px-3 text-right">Price</th>
-        <th className="py-3 px-3 text-right">Total</th>
-      </tr>
-    </thead>
-    <tbody>
-      {selectedOrder.products?.map((item, idx) => (
-        <tr
-          key={idx}
-          className="border-t border-gray-200 hover:bg-gray-50 text-gray-800"
-        >
-          <td className="py-3 px-2 text-center">
-            {item.image?.url && (
-              <img
-                src={item.image.url}
-                alt={item.name}
-                className="w-14 h-14 object-cover rounded shadow mx-auto"
-              />
-            )}
-          </td>
-          <td className="py-3 px-4 align-middle font-medium min-w-[180px]">
-            {item.name}
-          </td>
-          <td className="py-3 px-3 text-center align-middle">{item.qty}</td>
-          <td className="py-3 px-3 text-center align-middle">{item.size}</td>
-          <td className="py-3 px-3 text-right align-middle">₹{item.price}</td>
-          <td className="py-3 px-3 text-right align-middle font-bold text-gray-900">
-            ₹{item.qty * item.price}
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
-</div>
+                                <table className="w-full text-sm border border-gray-200 rounded-md overflow-hidden">
+                                    <thead className="bg-gray-100 text-gray-700 font-semibold">
+                                        <tr>
+                                            <th className="py-3 px-2 text-center">Image</th>
+                                            <th className="py-3 px-4 text-left">Product</th>
+                                            <th className="py-3 px-3 text-center">Qty</th>
+                                            <th className="py-3 px-3 text-center">Size</th>
+                                            <th className="py-3 px-3 text-right">Price</th>
+                                            <th className="py-3 px-3 text-right">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {selectedOrder.products?.map((item, idx) => (
+                                            <tr
+                                                key={idx}
+                                                className="border-t border-gray-200 hover:bg-gray-50 text-gray-800"
+                                            >
+                                                <td className="py-3 px-2 text-center">
+                                                    {item.image?.url && (
+                                                        <img
+                                                            src={item.image.url}
+                                                            alt={item.name}
+                                                            className="w-14 h-14 object-cover rounded shadow mx-auto"
+                                                        />
+                                                    )}
+                                                </td>
+                                                <td className="py-3 px-4 align-middle font-medium min-w-[180px]">
+                                                    {item.name}
+                                                </td>
+                                                <td className="py-3 px-3 text-center align-middle">{item.qty}</td>
+                                                <td className="py-3 px-3 text-center align-middle">{item.size}</td>
+                                                <td className="py-3 px-3 text-right align-middle">₹{item.price}</td>
+                                                <td className="py-3 px-3 text-right align-middle font-bold text-gray-900">
+                                                    ₹{item.qty * item.price}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
 
                             {/* Billing & Shipping Info + Summary */}
                             <div className="flex flex-wrap gap-6">

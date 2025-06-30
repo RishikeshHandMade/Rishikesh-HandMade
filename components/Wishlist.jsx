@@ -1,284 +1,126 @@
 "use client";
 import React from "react";
+import { useCart } from "../context/CartContext";
+import toast from "react-hot-toast";
 
-const wishlistData = [
-  {
-    img: "/img1.jpg",
-    name: "Sophisticated Swagger Suit",
-    oldPrice: "$45.00",
-    price: "$28.00",
-    stock: "In Stock",
-  },
-  {
-    img: "/img2.jpg",
-    name: "Cozy Knit Cardigan Sweater",
-    oldPrice: "$95.00",
-    price: "$56.00",
-    stock: "In Stock",
-  },
-  {
-    img: "/img3.jpg",
-    name: "Athletic Mesh Sports Leggings",
-    oldPrice: "$56.00",
-    price: "$20.00",
-    stock: "In Stock",
-  },
-];
 
 function RemoveIcon() {
   return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="11" fill="#fff"/><line x1="9" y1="9" x2="15" y2="15" /><line x1="15" y1="9" x2="9" y2="15" /></svg>
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="11" fill="#fff" /><line x1="9" y1="9" x2="15" y2="15" /><line x1="15" y1="9" x2="9" y2="15" /></svg>
   );
 }
 
 const Wishlist = () => {
+  const { wishlist, removeFromWishlist, addToCart } = useCart();
+  // console.log(addToCart)
+  const loading = false; // context is always available
+
   return (
-    <div className="wishlist-root">
+    <div className="bg-[#fcf7f1]">
       {/* Banner */}
-      <div className="wishlist-banner">
-        <div className="wishlist-banner-content">
-          <div className="wishlist-title">Wishlist</div>
-          <div className="wishlist-breadcrumb">
+      <div className="w-full h-60 bg-gradient-to-r from-[#9e7a5b] to-[#fff0] relative flex items-stretch justify-start">
+        <div className="z-10 flex flex-col justify-center items-center w-full min-w-[320px]">
+          <div className="text-black font-bold text-5xl mt-10 mb-2 tracking-wide">Wishlist</div>
+          <div className="flex items-center gap-2 text-black text-base">
             <span>Home</span>
-            <span className="wishlist-breadcrumb-sep">›</span>
-            <span className="wishlist-breadcrumb-active">Wishlist</span>
+            <span className="text-lg">›</span>
+            <span className="font-semibold">Wishlist</span>
           </div>
         </div>
-        <img
+        {/* <img
           src="/wishlist-banner.jpg"
-          className="wishlist-banner-img"
+          className="absolute right-0 top-0 h-full object-cover w-[340px] z-0"
           alt="Wishlist Banner"
-        />
+        /> */}
       </div>
 
-      {/* Wishlist Table/List */}
-      <div className="wishlist-table-wrap">
-        <table className="wishlist-table">
-          <thead>
-            <tr>
-              <th>Product</th>
-              <th></th>
-              <th>Price</th>
-              <th>Stock</th>
-              <th></th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {wishlistData.map((item, i) => (
-              <tr key={i}>
-                {/* Product Image */}
-                <td>
-                  <div className="wishlist-img-cell">
-                    <img src={item.img} alt={item.name} />
-                  </div>
-                </td>
-                {/* Product Name */}
-                <td>
-                  <div className="wishlist-product-name">{item.name}</div>
-                </td>
-                {/* Price */}
-                <td>
-                  <span className="wishlist-old-price">{item.oldPrice}</span>
-                  <span className="wishlist-price">{item.price}</span>
-                </td>
-                {/* Stock */}
-                <td>
-                  <span className="wishlist-stock">{item.stock}</span>
-                </td>
-                {/* Add To Cart */}
-                <td>
-                  <button className="wishlist-add-btn">Add To Cart</button>
-                </td>
-                {/* Remove */}
-                <td>
-                  <button className="wishlist-remove-btn" aria-label="Remove">
-                    <RemoveIcon />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {/* Wishlist List (Card style) */}
+      <div className="max-w-[1100px] min-h-[600px] mx-auto p-8 md:p-8">
+        {loading ? (
+          <div className="text-center py-8">Loading...</div>
+        ) : wishlist.length === 0 ? (
+          <div className="text-center py-8">No items in wishlist.</div>
+        ) : (
+          <>
+            {/* Header Row */}
+            <div className="overflow-x-auto rounded-lg border border-[#f5e6d9] shadow-sm">
+              <table className="min-w-full divide-y divide-gray-200 text-sm text-gray-700">
+                <thead className="bg-gray-50 font-semibold text-left">
+                  <tr>
+                    <th className="px-6 py-3 w-1/3">Product</th>
+                    <th className="px-4 py-3 w-1/5 text-right">Price</th>
+                    <th className="px-4 py-3 w-1/6 text-center">Stock</th>
+                    <th className="px-4 py-3 text-center">Action</th>
+                    <th className="px-4 py-3"></th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-100">
+                  {wishlist.map((item, i) => (
+                    <tr key={i} className="hover:bg-gray-50">
+                      {/* Product (Image + Name) */}
+                      <td className="px-6 py-4 flex items-center gap-4">
+                        <div className="w-16 h-16 rounded-xl bg-[#f5e6d9] overflow-hidden flex items-center justify-center">
+                          <img
+                            src={item.image?.url || "/placeholder.png"}
+                            alt={item.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <span className="font-semibold text-gray-900">{item.name}</span>
+                      </td>
 
-      <style jsx>{`
-        .wishlist-root {
-          background: #faf7f2;
-          min-height: 100vh;
-          font-family: 'Inter', Arial, sans-serif;
-        }
-        .wishlist-banner {
-          width: 100%;
-          height: 240px;
-          background: linear-gradient(90deg, #9e7a5b 60%, #fff0 100%);
-          position: relative;
-          display: flex;
-          align-items: stretch;
-          justify-content: flex-start;
-        }
-        .wishlist-banner-content {
-          z-index: 2;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          padding-left: 8vw;
-          min-width: 320px;
-        }
-        .wishlist-title {
-          font-size: 2.2rem;
-          font-weight: 700;
-          color: #fff;
-          margin-top: 38px;
-          margin-bottom: 8px;
-          letter-spacing: 0.03em;
-        }
-        .wishlist-breadcrumb {
-          color: #fff;
-          font-size: 1.05rem;
-          display: flex;
-          align-items: center;
-          gap: 7px;
-        }
-        .wishlist-breadcrumb-sep {
-          font-size: 1.25em;
-        }
-        .wishlist-breadcrumb-active {
-          font-weight: 600;
-        }
-        .wishlist-banner-img {
-          position: absolute;
-          right: 0;
-          top: 0;
-          height: 100%;
-          object-fit: cover;
-          width: 340px;
-          z-index: 1;
-        }
-        .wishlist-table-wrap {
-          max-width: 1100px;
-          margin: -70px auto 0 auto;
-          background: #fff;
-          border-radius: 16px;
-          box-shadow: 0 2px 16px rgba(0,0,0,0.07);
-          padding: 32px 0 32px 0;
-        }
-        .wishlist-table {
-          width: 100%;
-          border-collapse: separate;
-          border-spacing: 0;
-        }
-        .wishlist-table th, .wishlist-table td {
-          border-bottom: 1.5px solid #f0e7db;
-          text-align: left;
-        }
-        .wishlist-table th {
-          color: #888;
-          font-size: 1.05rem;
-          font-weight: 600;
-          background: #fff;
-          padding: 0 0 18px 0;
-          border: none;
-        }
-        .wishlist-table td {
-          padding: 18px 0;
-          vertical-align: middle;
-          background: #fff;
-        }
-        .wishlist-img-cell {
-          width: 56px;
-          height: 56px;
-          border-radius: 14px;
-          overflow: hidden;
-          background: #f5e6d9;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .wishlist-img-cell img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-        .wishlist-product-name {
-          font-size: 1.05rem;
-          font-weight: 500;
-          color: #222;
-        }
-        .wishlist-old-price {
-          color: #aaa;
-          text-decoration: line-through;
-          margin-right: 9px;
-          font-size: 0.98rem;
-        }
-        .wishlist-price {
-          color: #222;
-          font-weight: 600;
-          font-size: 1.08rem;
-        }
-        .wishlist-stock {
-          color: #1a9b40;
-          font-weight: 600;
-          font-size: 1.02rem;
-        }
-        .wishlist-add-btn {
-          background: #000;
-          color: #fff;
-          border: none;
-          border-radius: 8px;
-          font-size: 1rem;
-          font-weight: 600;
-          padding: 10px 24px;
-          cursor: pointer;
-          transition: background 0.13s;
-        }
-        .wishlist-add-btn:hover {
-          background: #333;
-        }
-        .wishlist-remove-btn {
-          background: none;
-          border: none;
-          padding: 0;
-          margin-left: 10px;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-        }
-        @media (max-width: 900px) {
-          .wishlist-banner-img {
-            width: 200px;
-          }
-          .wishlist-banner-content {
-            padding-left: 4vw;
-            min-width: 180px;
-          }
-          .wishlist-table-wrap {
-            max-width: 98vw;
-            padding: 18px 0;
-          }
-        }
-        @media (max-width: 600px) {
-          .wishlist-banner {
-            height: 120px;
-          }
-          .wishlist-banner-img {
-            width: 90px;
-          }
-          .wishlist-title {
-            font-size: 1.1rem;
-            margin-top: 18px;
-          }
-          .wishlist-table th, .wishlist-table td {
-            font-size: 0.98rem;
-            padding: 9px 0;
-          }
-          .wishlist-img-cell {
-            width: 36px;
-            height: 36px;
-            border-radius: 7px;
-          }
-        }
-      `}</style>
+                      {/* Price */}
+                      <td className="px-4 py-4 text-right">
+                        {item.oldPrice && (
+                          <span className="text-gray-400 line-through mr-2 text-sm">
+                            ₹{item.oldPrice}
+                          </span>
+                        )}
+                        <span className="text-gray-900 font-semibold text-base">
+                          ₹{item.price}
+                        </span>
+                      </td>
+
+                      {/* Stock */}
+                      <td className="px-4 py-4 text-center">
+                        <span className="text-[#1a9b40] font-semibold">In Stock</span>
+                      </td>
+
+                      {/* Add to Cart Button */}
+                      <td className="px-4 py-4 text-center">
+                        <button
+                          className="bg-black text-white rounded-lg text-sm font-semibold px-4 py-2 hover:bg-gray-800 transition"
+                          onClick={() => {
+                            addToCart(item);
+                            toast.success("Added to cart!");
+                          }}
+                        >
+                          Add To Cart
+                        </button>
+                      </td>
+
+                      {/* Remove Button */}
+                      <td className="px-4 py-4 text-center">
+                        <button
+                          className="ml-2"
+                          aria-label="Remove"
+                          onClick={() => {
+                            removeFromWishlist(item.id);
+                            toast.success("Removed from wishlist!");
+                          } }
+                        >
+                          <RemoveIcon />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+          </>
+        )}
+      </div>
     </div>
   );
 };

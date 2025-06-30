@@ -30,7 +30,7 @@ import ArtisanStory from '@/models/ArtisanStory';
 const ProductDetailPage = async ({ params }) => {
     await connectDB();
   
-    const id = decodeURIComponent(params.id);
+    const id =await decodeURIComponent(params.id);
     const rawProduct = await Product.findById(id)
     .populate('size price gallery video description info categoryTag productTagLine reviews quantity coupons taxes')
     .populate({ path: 'artisan', populate: { path: 'artisanStories' } })

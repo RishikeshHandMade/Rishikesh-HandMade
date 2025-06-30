@@ -56,6 +56,7 @@ const RandomTourPackageSection = () => {
       price: Math.round(discountedPrice),
       size: item?.quantity?.variants[0].size,
       weight: item?.quantity?.variants[0].weight,
+      color:item?.quantity?.variants[0].color,
       originalPrice: price,
       qty: 1,
       couponApplied,
@@ -65,7 +66,7 @@ const RandomTourPackageSection = () => {
       discountAmount: coupon && typeof coupon.amount === 'number' ? coupon.amount : undefined,
       cgst: (item.taxes && item.taxes.cgst) || item.cgst || (item.tax && item.tax.cgst) || 0,
       sgst: (item.taxes && item.taxes.sgst) || item.sgst || (item.tax && item.tax.sgst) || 0,
-      quantity: item.quantity || {},
+      totalQuantity: item?.quantity?.variants[0]?.qty || 0,
     });
     toast.success("Added to cart!");
   };
@@ -286,10 +287,17 @@ const RandomTourPackageSection = () => {
                                   price: Math.round(discountedPrice),
                                   size: item?.quantity?.variants[0].size,
                                   weight: item?.quantity?.variants[0].weight,
+                                  color:item?.quantity?.variants[0].color,
                                   originalPrice: price,
                                   qty: 1,
                                   couponApplied,
-                                  couponCode: couponApplied ? couponCode : undefined
+                                  couponCode: couponApplied ? couponCode : undefined,
+                                  productCode: item.code || item.productCode || '',
+                                  discountPercent: coupon && typeof coupon.percent === 'number' ? coupon.percent : undefined,
+                                  discountAmount: coupon && typeof coupon.amount === 'number' ? coupon.amount : undefined,
+                                  cgst: (item.taxes && item.taxes.cgst) || item.cgst || (item.tax && item.tax.cgst) || 0,
+                                  sgst: (item.taxes && item.taxes.sgst) || item.sgst || (item.tax && item.tax.sgst) || 0,
+                                  totalQuantity: item?.quantity?.variants[0]?.qty || 0,
                                 });
                                 toast.success("Added to wishlist!");
                               }
