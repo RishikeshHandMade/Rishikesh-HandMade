@@ -329,7 +329,7 @@ export default function Chat({
                                 bubbleColor = "bg-yellow-100 text-yellow-900 rounded-tl-none";
                             } else {
                                 isRight = false;
-                                bubbleColor = "bg-muted text-gray-900 rounded-tl-none";
+                                bubbleColor = "bg-yellow-100 text-gray-900 rounded-tl-none";
                             }
                         }
                         if (!isAdmin) {

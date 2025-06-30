@@ -86,11 +86,6 @@ export default function ChatBot() {
         : "No additional information available.",
       key: "url"
     },
-    {
-      q: "Back to Chat",
-      a: () => "Please choose one of the options below 👇",
-      key: "back"
-    },
   ];
 
   const handleFaqClick = (faq) => {
@@ -243,14 +238,23 @@ export default function ChatBot() {
     setMessages((msgs) => [...msgs, { from: "You", sender: session?.user?.id || "user", text: qna.q, createdAt: new Date().toISOString() }]);
 
     if (qna.q === "🛍 Product Information") {
+      setShowSupportOptions(false); // Always reset support mode when going to product info
       setMessages((msgs) => [
         ...msgs,
-        { from: "Bot", sender: "bot", text: "Sure! Please share the product name or code (SKU).", createdAt: new Date().toISOString() }
+        { from: "Bot", sender: "bot", text: "Sure! Please share the product name.", createdAt: new Date().toISOString() }
       ]);
-      setStep("product-info"); // Set special step for product input
+      setStep("product-info");
+    } else if (qna.q === "🧑‍💬 Talk to Support") {
+      setShowSupportOptions(true); // Show only support options
+      setStep(3); // Stay on main menu step
+      setMessages((msgs) => [
+        ...msgs,
+        { from: "Bot", sender: "bot", text: qna.a, createdAt: new Date().toISOString() }
+      ]);
     } else {
+      setShowSupportOptions(false); // Hide support options for all other QnA
       setMessages((msgs) => [...msgs, { from: "Bot", sender: "bot", text: qna.a, createdAt: new Date().toISOString() }]);
-      setStep(4); // Go to main menu (or stay on 3 if you prefer)
+      setStep(4); // Or setStep(3) if you want to stay on main menu
     }
   };
   const handleProduct = async (e) => {
@@ -320,12 +324,8 @@ export default function ChatBot() {
 
   const handleBubbleClick = () => {
     setOpen(true);
-
-    // Show typing first
-    setMessages([{ from: "Bot", sender: "bot", text: "...", createdAt: new Date().toISOString() }]);
-
-    // Then show welcome message after 1 second
-    setTimeout(() => {
+    // Only show greeting if there is no chat history
+    if (!messages || messages.length === 0) {
       setMessages([
         {
           from: "Bot",
@@ -334,7 +334,7 @@ export default function ChatBot() {
           createdAt: new Date().toISOString()
         }
       ]);
-    }, 1000);
+    }
   };
 
   const handleMainMenu = (qna) => {
@@ -430,10 +430,13 @@ export default function ChatBot() {
       {open && (
         <div
           className={`fixed bottom-2 right-[4%] z-50 w-[330px] max-w-[95vw] bg-white rounded-xl shadow-2xl flex flex-col border border-gray-200 animate-fadeIn
-  ${((step === "faq" && selectedProduct && !isProductNotFound) || step === 3)
-              ? 'h-screen'
-              : 'max-h-[30rem]'}
-`}
+          ${
+            // Shrink to content only for support mode or product not found
+            showSupportOptions || isProductNotFound || step === 0 || step === 1 || step === 2 || step === "product-info"
+              ? 'max-h-[30rem]'
+              : 'h-screen'
+            }
+        `}
         >
 
           {/* Header */}
@@ -467,33 +470,6 @@ export default function ChatBot() {
                 </div>
               </div>
             ))}
-
-            {/* Render product FAQ options if a product is selected */}
-            {/* Show productQnA menu only after user contact is submitted (step >= 3) and before product is found */}
-            {/* No bottom/floating duplicate menu - all QnA/FAQ is only in main chat window above */}
-
-            {/* When a product is found, only show clickable product FAQs */}
-            {/* {selectedProduct && (
-              <div className="mt-4">
-                <div className="font-semibold mb-1 text-gray-700">Frequently Asked Questions:</div>
-                <div className="flex flex-col gap-2">
-                  {PRODUCT_FAQS.map((faq) => (
-                    <button
-                      key={faq.key}
-                      onClick={() => handleFaqClick(faq)}
-                      className={`text-left px-4 py-2 rounded-lg border transition-colors duration-150 ${faqClicked === faq.key ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-blue-700 border-blue-300 hover:bg-blue-50'}`}
-                      style={{ outline: 'none' }}
-                      disabled={faqClicked === faq.key}
-                    >
-                      {faq.q}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )} */}
-
-
-
             {loading && (
               <div className="flex justify-end">
                 <div className="px-4 py-2 rounded-2xl text-sm bg-blue-100 text-blue-600 animate-pulse">...
@@ -560,36 +536,51 @@ export default function ChatBot() {
             )}
             {/* Step 3: Product info */}
             {step === 3 && (
-              <>
-                {step === 3 && showSupportOptions ? (
-                  <div className="flex flex-col gap-2 mt-2">
+              showSupportOptions ? (
+                <div className="flex flex-col gap-2 mt-2">
+                  {!session?.user?.id ? (
+                    <>
+                      <button
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition"
+                        onClick={() => window.location.href = "/sign-in"}
+                      >
+                        🔐 Login
+                      </button>
+                      <button
+                        className="w-full bg-gray-100 hover:bg-gray-200 text-blue-700 py-2 rounded-lg font-semibold border transition"
+                        onClick={() => window.location.href = "/sign-up"}
+                      >
+                        📝 Signup
+                      </button>
+                    </>
+                  ) : (
                     <button
                       className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold transition"
                       onClick={handleChatWithAdmin}
                     >
                       🧑‍💬 Chat with Admin
                     </button>
-                    <button
-                      className="w-full text-left px-4 py-2 rounded-lg border transition-colors duration-150 font-medium shadow-sm text-xs transition whitespace-nowrap"
-                      onClick={() => setShowSupportOptions(false)}
-                    >
-                      👈 Back to Chat
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-2 mb-1">
+                  )}
+                  <button
+                    className="w-full text-center px-4 py-2 rounded-lg border transition-colors duration-150 font-medium shadow-sm text-sm transition whitespace-nowrap"
+                    onClick={() => setShowSupportOptions(false)}
+                  >
+                    👈 Back to Chat
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2 mb-1">
                   {productQnA.map((qna) => (
                     <button
                       key={qna.q}
-                      className="flex-1 text-left px-4 py-2 rounded-lg border transition-colors duration-150 font-medium transition"
+                      className="flex-1 text-left px-4 py-1 rounded-lg border transition-colors duration-150 font-medium transition"
                       onClick={() => handleQnAOption(qna)}
                     >
                       {qna.q}
                     </button>
                   ))}
                 </div>
-                )}
-              </>
+              )
             )}
             {step === "product-info" && (
               <>
@@ -620,8 +611,8 @@ export default function ChatBot() {
                         <button
                           key={faq.key}
                           onClick={() => handleFaqClick(faq)}
-                          className={`text-left px-4 py-2 rounded-lg border transition-colors duration-150 ${faqClicked === faq.key
-                            ? 'bg-blue-600 text-white border-blue-600'
+                          className={`w-full text-left px-4 py-2 rounded-lg font-medium shadow-sm text-xs transition whitespace-nowrap bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200 ${faqClicked === faq.key
+                            ? 'bg-blue-600 text-black border-blue-600'
                             : 'bg-white text-blue-700 border-blue-300 hover:bg-blue-50'
                             }`}
                           disabled={faqClicked === faq.key}
@@ -638,11 +629,11 @@ export default function ChatBot() {
             {/* Step 4: Main menu */}
             {step === 4 && !selectedProduct && (
               <>
-                <div className="flex flex-wrap gap-2 mb-2">
+                <div className="grid grid-cols-2 gap-2 mb-2">
                   {productQnA.map((qna) => (
                     <button
                       key={qna.q}
-                      className="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-full text-xs font-medium transition"
+                      className="flex-1 text-left px-4 py-1 rounded-lg border transition-colors duration-150 font-medium transition"
                       onClick={() => handleMainMenu(qna)}
                       disabled={loading}
                     >
@@ -650,6 +641,7 @@ export default function ChatBot() {
                     </button>
                   ))}
                 </div>
+
 
                 {!(step === "faq" && selectedProduct) && (
                   <>
@@ -660,14 +652,6 @@ export default function ChatBot() {
                     >
                       New Question
                     </button>
-
-                    <button
-                      className="w-full mt-2 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold transition"
-                      onClick={handleChatWithAdmin}
-                    >
-                      🧑‍💬 Chat with Admin
-                    </button>
-
                     <button
                       className="w-full mt-2 text-sm text-red-600 hover:underline"
                       onClick={handleResetChat}
@@ -714,10 +698,10 @@ export default function ChatBot() {
                     <button
                       key={faq.key}
                       onClick={() => handleFaqClick(faq)}
-                      className={`px-4 py-2 rounded-full font-medium shadow-sm text-xs transition whitespace-nowrap
+                      className={`w-full text-left px-2 py-2 rounded-lg font-medium shadow-sm text-xs transition whitespace-nowrap bg-white text-gray-700 border border-gray-300 hover:bg-gray-200
             ${faqClicked === faq.key
-                          ? 'bg-blue-600 text-white border border-blue-600'
-                          : 'bg-blue-100 text-blue-700 border border-blue-300 hover:bg-blue-200'
+                          ? 'text-black border border-blue-600'
+                          : 'border'
                         }`}
                       disabled={faqClicked === faq.key}
                     >
@@ -758,7 +742,7 @@ export default function ChatBot() {
                   <button
                     type="button"
                     onClick={handleBackToChat}
-                    className="w-full text-left px-4 py-2 rounded-lg font-medium shadow-sm text-xs transition whitespace-nowrap bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200"
+                    className="w-full text-left px-2 py-2 rounded-lg font-medium shadow-sm text-xs transition whitespace-nowrap bg-white text-gray-700 border border-gray-300 hover:bg-gray-200"
                     style={{ minWidth: 0 }}
                   >
                     👈 Back to Main Menu
