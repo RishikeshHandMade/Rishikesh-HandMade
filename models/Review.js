@@ -2,7 +2,7 @@ import { Schema, models, model } from "mongoose";
 
 const ReviewSchema = new Schema({
   name: { type: String, required: true },
-  email: { type: String, required: true },
+  date: { type: Number, required: true },
   thumb: {
     url: { type: String },
     key: { type: String }
@@ -11,6 +11,12 @@ const ReviewSchema = new Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
   approved: { type: Boolean, default: false },
+
+  // NEW FIELDS:
+  type: { type: String, enum: ["product", "artisan"], required: true },
+  product: { type: Schema.Types.ObjectId, ref: "Product" }, // for product reviews
+  artisan: { type: Schema.Types.ObjectId, ref: "Artisan" }, // for artisan reviews
+
   createdAt: { type: Date, default: Date.now }
 }, { timestamps: true });
 

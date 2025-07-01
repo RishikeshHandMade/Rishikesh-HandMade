@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { X } from "lucide-react";
 
-export default function ReviewModal({ open, onClose, onSubmit }) {
+export default function ReviewModal({ open, onClose, onSubmit, artisan }) {
+  console.log(artisan)
   const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState({
     name: "",
-    email: "",
+    date: "",
     thumb: null,
     rating: 0,
     title: "",
@@ -57,18 +58,28 @@ export default function ReviewModal({ open, onClose, onSubmit }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Validate required fields
+    if (!form.name || !form.date || !form.rating || !form.title || !form.description || !artisan?._id) {
+      if (window.toast) window.toast.error('Please fill all required fields');
+      return;
+    }
+    // Convert date string to timestamp (number)
+    const dateValue = form.date ? new Date(form.date).getTime() : undefined;
     try {
+      const payload = {
+        name: form.name,
+        date: dateValue,
+        thumb: form.thumb || null, // send {url, key} if uploaded
+        rating: form.rating,
+        title: form.title,
+        description: form.description,
+        type: "artisan",
+        artisan: artisan._id,
+      };
       const res = await fetch('/api/saveReviews', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: form.name,
-          email: form.email,
-          thumb: form.thumb || null, // send {url, key} if uploaded
-          rating: form.rating,
-          title: form.title,
-          description: form.description
-        })
+        body: JSON.stringify(payload)
       });
       if (res.ok) {
         onSubmit?.(form);
@@ -139,16 +150,14 @@ export default function ReviewModal({ open, onClose, onSubmit }) {
               </div>
             )}
           </div>
-          <div>
-            <label className="block mb-1">Email</label>
+          <div className="flex flex-col flex-1">
+            <label className="font-semibold mb-1">Date</label>
             <input
-              name="email"
-              type="email"
-              className="w-full border border-gray-300 rounded px-3 py-2 outline-none focus:border-black"
-              placeholder="john.smith@example.com"
-              value={form.email}
+              name="date"
+              type="date"
+              value={form.date}
               onChange={handleChange}
-              required
+              className="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#00b67a]"
             />
           </div>
           <div>
@@ -191,7 +200,7 @@ export default function ReviewModal({ open, onClose, onSubmit }) {
               required
             />
           </div>
-          <div className="flex w-full justify-between items-center mt-2">       
+          <div className="flex w-full justify-between items-center mt-2">
             <button
               type="submit"
               className="bg-black text-white font-bold px-8 py-2 rounded hover:bg-gray-800 transition-colors"

@@ -32,8 +32,11 @@ export default function ProductInfoTabs({ product }) {
     // Add Review Button and Form State
     const [showReviewForm, setShowReviewForm] = useState(false);
     const [localReviews, setLocalReviews] = useState(reviews);
-    const [createdBy, setCreatedBy] = useState("");
+    const [name, setName] = useState("");
+    // const [rating, setRating] = useState(5);
     const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
+    const [review, setReview] = useState("");
 
     // Fetch reviews from API
     const fetchReviews = async () => {
@@ -44,7 +47,7 @@ export default function ProductInfoTabs({ product }) {
                 setLocalReviews(data.reviews || []);
             }
         } catch (error) {
-            console.error('Error fetching reviews:', error);
+            // console.error('Error fetching reviews:', error);
             toast.error('Failed to fetch reviews');
         }
     };
@@ -55,8 +58,8 @@ export default function ProductInfoTabs({ product }) {
             fetchReviews();
         }
     }, [product._id]);
+
     const [rating, setRating] = useState(0);
-    const [review, setReview] = useState("");
     const [date, setDate] = useState("");
     const [formError, setFormError] = useState('');
 
@@ -65,12 +68,13 @@ export default function ProductInfoTabs({ product }) {
         if (name === 'rating') {
             setRating(Number(value));
         } else {
-            if (name === 'createdBy') {
-                setCreatedBy(value);
+            if (name === 'name') {
+                setName(value);
             } else if (name === 'title') {
                 setTitle(value);
-            } else if (name === 'review') {
-                setReview(value);
+            } else if (name === 'description') {
+                setDescription(value);
+
             } else if (name === 'date') {
                 setDate(value);
             }
@@ -81,41 +85,55 @@ export default function ProductInfoTabs({ product }) {
     };
     const handleSubmitReview = async (e) => {
         e.preventDefault();
-        if (!product._id || !rating || !title || !createdBy || !review) {
+        if (!rating || !title || !name || !date || !description) {
             setFormError('Please fill all required fields and rating.');
             return;
         }
+        // Validate date is a valid date string
+        if (isNaN(new Date(date).getTime())) {
+            setFormError('Please enter a valid date.');
+            return;
+        }
         try {
-            const response = await fetch('/api/productReviews', {
+            // Validate and log payload before sending
+            const dateValue = date ? new Date(date).getTime() : undefined;
+            const payload = {
+                name,
+                date: dateValue,
+                thumb: imageObj.url ? {
+                    url: imageObj.url,
+                    key: imageObj.key
+                } : null,
+                rating,
+                title,
+                description, // must be non-empty string
+                type: "product",
+                product: product._id,
+            };
+            // console.log('Submitting review:', payload);
+            if (!name || !date || !title || !description || !rating) {
+                toast.error('All fields are required.');
+                return;
+            }
+            const response = await fetch('/api/saveReviews', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    productId: product._id,
-                    rating,
-                    title,
-                    review,
-                    createdBy,
-                    date: date || new Date().toISOString(),
-                    image: imageObj.url ? {
-                        url: imageObj.url,
-                        key: imageObj.key
-                    } : null
-                })
+                body: JSON.stringify(payload)
             });
             const data = await response.json();
             if (!response.ok) {
                 toast.error(data.error || 'Failed to submit review');
-                console.error('API Response:', data);
+                // console.error('API Response:', data);
                 return;
             }
 
             toast.success('Review submitted successfully!');
             setShowReviewForm(false);
             // Clear form state
-            setCreatedBy("");
+            setName("");
             setTitle("");
             setRating(0);
-            setReview("");
+            setDescription("");
             setDate("");
             // Clear image state
             setImageFile(null);
@@ -127,7 +145,7 @@ export default function ProductInfoTabs({ product }) {
             // Refresh reviews
             await fetchReviews();
         } catch (error) {
-            console.error('Error:', error);
+            // console.error('Error:', error);
             toast.error('Error submitting review');
         } finally {
             setFormError('');
@@ -208,8 +226,8 @@ export default function ProductInfoTabs({ product }) {
                             <div className="flex flex-col flex-1">
                                 <label className="font-semibold mb-1">Your Name *</label>
                                 <input
-                                    name="createdBy"
-                                    value={createdBy}
+                                    name="name"
+                                    value={name}
                                     onChange={handleFormChange}
                                     className="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#00b67a]"
                                     required
@@ -255,8 +273,8 @@ export default function ProductInfoTabs({ product }) {
                         <div className="flex flex-col">
                             <label className="font-semibold mb-1">Your Review *</label>
                             <textarea
-                                name="review"
-                                value={review}
+                                name="description"
+                                value={description}
                                 onChange={handleFormChange}
                                 rows={4}
                                 className="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#00b67a]"

@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic"
 
 const page = async () => {
     const reviews = await getReviews();
-    console.log(reviews)
+    // console.log(reviews)
 
     return (
         <SidebarInset>

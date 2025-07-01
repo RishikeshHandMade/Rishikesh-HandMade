@@ -26,6 +26,7 @@ const InstaBlog = () => {
     const [isFbLoading, setIsFbLoading] = useState(true);
     const [news, setNews] = useState([])
     const [quickViewNews, setQuickViewNews] = useState(null); // For news modal
+    const [selectedArtisan, setSelectedArtisan] = useState(null); // For news modal
     const [customReview, setcustomReview] = useState([]);
     const [allReviews, setAllReviews] = useState([]);
 
@@ -47,7 +48,7 @@ const InstaBlog = () => {
                 rating: review.rating,
                 title: review.title || review.name || 'No Title',
                 shortDescription: review.description || review.shortDescription || '',
-                image: review.thumb?.url || '/placeholder-user.jpg',
+                image: review.thumb?.url || '/placeholder.jpeg',
                 createdBy: review.name || review.title || 'Anonymous',
             };
         }
@@ -57,7 +58,7 @@ const InstaBlog = () => {
             rating: review.rating,
             title: review.title || 'No Title',
             shortDescription: review.shortDescription || '',
-            image: review.image || '/placeholder-user.jpg',
+            image: review.image || '/placeholder.jpeg',
             createdBy: review.createdBy || review.title || 'Anonymous',
         };
     }
@@ -142,6 +143,7 @@ const InstaBlog = () => {
             setIsLoadingPromotions(false);
         }
     };
+    // console.log(allReviews)
     // Fetch Reviews
     const fetchReviews = async () => {
         try {
@@ -549,10 +551,17 @@ const InstaBlog = () => {
                         </CarouselContent>
                         <CarouselPrevious />
                         <CarouselNext />
+                        <div className="button">
+                            <Button className="absolute top-0 right-0 bg-white text-black hover:bg-black hover:text-white transition-colors duration-300" onClick={() => {
+                                if (allReviews.length > 0) {
+                                    setSelectedArtisan(allReviews[0].artisan); // Send artisan from first promotion
+                                    setShowReviewModal(true);
+                                } else {
+                                    toast.error('No promotion artisan found');
+                                }
+                            }}>Write Reviews</Button>
+                        </div>
                     </Carousel>
-                    <div className="button">
-                        <Button className="absolute top-0 right-0 bg-white text-black hover:bg-black hover:text-white transition-colors duration-300" onClick={() => setShowReviewModal(true)}>Write Reviews</Button>
-                    </div>
                 </div>
             </div>
             {/* News Quick View Modal */}
@@ -562,6 +571,7 @@ const InstaBlog = () => {
 
             <ReviewModal
                 open={showReviewModal}
+                artisan={selectedArtisan}
                 onClose={() => setShowReviewModal(false)}
                 onSubmit={(data) => { setShowReviewModal(false); toast.success('Review submitted!'); }}
             />

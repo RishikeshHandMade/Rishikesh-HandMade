@@ -198,12 +198,6 @@ const data = {
       icon: ClipboardList,
     },
     { divider: true },
-    {
-      name: "Manage Reviews Log",
-      url: "/admin/manage_review",
-      icon: MessageCircleMore,
-    },
-    { divider: true },
 
     // Fourth group: Blog & pages
     {

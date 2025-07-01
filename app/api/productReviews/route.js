@@ -125,7 +125,8 @@ export async function GET(req) {
     if (!productId) {
       return NextResponse.json({ error: 'Missing productId' }, { status: 400 });
     }
-    const reviews = await ProductReview.find({ product: productId }).sort({ createdAt: -1 });
+    // Only fetch approved reviews
+    const reviews = await ProductReview.find({ product: productId, approved: true }).sort({ createdAt: -1 });
     return NextResponse.json({ reviews });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });

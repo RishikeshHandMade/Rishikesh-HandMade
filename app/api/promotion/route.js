@@ -15,18 +15,16 @@ try {
 export async function GET(req) {
   try {
     await connectDB();
-    const url = req?.url ? new URL(req.url, "http://localhost") : null; // base for relative URLs
+    const url = req?.url ? new URL(req.url, "http://localhost") : null;
     const artisanId = url?.searchParams?.get('artisanId');
-    let promotions;
+    let filter = {};
     if (artisanId) {
-      promotions = await Promotion.find({ artisan: artisanId })
-        .populate('artisan', 'firstName lastName title artisanNumber')
-        .sort({ date: -1 });
-    } else {
-      promotions = await Promotion.find()
-        .populate('artisan', 'firstName lastName title artisanNumber')
-        .sort({ date: -1 });
+      filter.artisan = artisanId;
     }
+    const promotions = await Promotion.find(filter)
+      .populate('artisan', 'firstName lastName title artisanNumber')
+      .sort({ date: -1 });
+
     return new Response(JSON.stringify({ success: true, promotions }), { status: 200 });
   } catch (err) {
     return new Response(JSON.stringify({ success: false, error: err.message }), { status: 500 });
