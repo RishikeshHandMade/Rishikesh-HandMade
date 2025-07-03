@@ -105,70 +105,87 @@ const ManageReviews = () => {
         setStatusFilter(e.target.value);
     };
 
-    useEffect(() => {
-        fetchReviews();
-    }, [statusFilter]);
-
     const handleAction = async (id, action) => {
-        let method = "PUT";
-        let body = { _id: id };
-        if (action === "active") {
-            body.active = true;
-            body.deleted = false;
-        }
-        if (action === "inactive") {
-            body.active = false;
-            body.deleted = false;
-        }
-        if (action === "delete") {
-            method = "DELETE";
-            body = { _id: id };
-        }
         try {
-            const res = await fetch(`/api/saveReviews`, {
-                method,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body),
+            let updates = { _id: id };
+            
+            // Determine the updates based on the action
+            switch (action) {
+                case 'active':
+                    updates.active = true;
+                    updates.deleted = false;
+                    break;
+                case 'inactive':
+                    updates.active = false;
+                    updates.deleted = false;
+                    break;
+                case 'delete':
+                    updates.deleted = true;
+                    updates.active = false;
+                    break;
+                default:
+                    throw new Error('Invalid action');
+            }
+            
+            // Send the update
+            const res = await fetch('/api/saveReviews', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updates)
             });
+            
             const data = await res.json();
+            
             if (res.ok) {
-                toast.success(data.message);
+                toast.success(data.message || 'Action completed successfully');
                 fetchReviews();
             } else {
-                toast.error(data.message);
+                throw new Error(data.message || 'Failed to perform action');
             }
-        } catch {
-            toast.error("Action failed!");
+        } catch (error) {
+            console.error('Error performing action:', error);
+            toast.error(error.message || 'An error occurred');
         }
     };
 
-    // Toggle handlers for Switches
     const handleToggleApproved = async (review) => {
         try {
             const isApproving = !review.approved;
+            const updates = { 
+                _id: review._id, 
+                approved: isApproving,
+                // If approving, ensure the review is also active and not deleted
+                ...(isApproving && { 
+                    active: true,
+                    deleted: false 
+                })
+            };
+            
+            // Only create promotion when approving an artisan review
+            if (isApproving && review.type === 'artisan' && review.artisan?._id) {
+                updates.createPromotion = true;
+            }
+            
             const res = await fetch(`/api/saveReviews`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 
-                    _id: review._id, 
-                    approved: isApproving,
-                    // Only create promotion when approving an artisan review
-                    createPromotion: isApproving && review.type === 'artisan' && review.artisan?._id
-                }),
+                body: JSON.stringify(updates)
             });
+            
             const data = await res.json();
+            
             if (res.ok) {
-                toast.success(data.message);
+                toast.success(data.message || `Review ${isApproving ? 'approved' : 'disapproved'} successfully`);
                 if (isApproving && review.type === 'artisan') {
                     toast.success('Promotion created for this review');
                 }
                 fetchReviews();
             } else {
-                toast.error(data.message);
+                throw new Error(data.message || `Failed to ${isApproving ? 'approve' : 'disapprove'} review`);
             }
         } catch (error) {
             console.error('Approval error:', error);
-            toast.error("Action failed!");
+            toast.error(error.message || "Failed to update review status");
         }
     };
     // Pagination logic
@@ -176,7 +193,7 @@ const ManageReviews = () => {
     const indexOfFirst = indexOfLast - reviewsPerPage;
     const currentReviews = filteredReviews.slice(indexOfFirst, indexOfLast);
     const totalPages = Math.ceil(filteredReviews.length / reviewsPerPage);
-    // console.log(currentReviews)
+    console.log(currentReviews)
     return (
         <div className="w-full max-w-[1100px] mx-auto rounded-[14px] shadow-md px-4 py-6 md:py-8">
             {/* Filter Row */}

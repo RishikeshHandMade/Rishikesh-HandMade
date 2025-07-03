@@ -134,7 +134,7 @@ const ArtisanDetails = ({ artisan }) => {
   const shareBoxRef = useRef(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [isLoadingReviews, setIsLoadingReviews] = useState(true);
-   const [artisanReviews, setArtisanReviews] = useState([]);
+  const [artisanReviews, setArtisanReviews] = useState([]);
   // Handle closing share box on outside click or Escape
   useEffect(() => {
     if (!showShareBox) return;
@@ -222,33 +222,59 @@ const ArtisanDetails = ({ artisan }) => {
   };
 
 
-  // Fetch artisan reviews
+  // Fetch artisan reviews and custom reviews
   const fetchArtisanReviews = async () => {
+    if (!artisan?._id) return;
+    
     try {
       setIsLoadingReviews(true);
-      const response = await fetch('/api/saveReviews?type=artisan&status=active');
-      const data = await response.json();
-      console.log(data)
-      if (response.ok) {
-        // Filter to only show approved and active reviews
-        const approvedReviews = data.reviews.filter(review =>
-          review.approved !== false &&
+      
+      // Fetch both artisan reviews and custom reviews for this artisan
+      const [reviewsResponse] = await Promise.all([
+        fetch(`/api/saveReviews?artisanId=${artisan._id}&type=artisan`),
+      ]);
+      
+      const [reviewsData] = await Promise.all([
+        reviewsResponse.json(),
+      ]);
+      
+      if (reviewsResponse.ok) {
+        // Combine and filter reviews
+        const allReviews = [
+          ...(reviewsData.reviews || []),
+        ];
+        
+        // Filter to only show approved, active, and non-deleted reviews
+        const approvedReviews = allReviews.filter(review => 
+          review.approved === true &&
           review.deleted !== true &&
-          (review.active !== false && review.active !== undefined)
+          review.active === true &&
+          (review.artisan === artisan._id || review.artisan?._id === artisan._id)
         );
-        setArtisanReviews(approvedReviews || []);
+        
+        // Sort by date, newest first
+        const sortedReviews = approvedReviews.sort((a, b) => 
+          new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date)
+        );
+        
+        setArtisanReviews(sortedReviews);
       }
     } catch (error) {
-      console.error('Error fetching artisan reviews:', error);
+      console.error('Error fetching reviews:', error);
       toast.error('Failed to load reviews');
+      setArtisanReviews([]); // Ensure we don't show stale data
     } finally {
       setIsLoadingReviews(false);
     }
   };
 
   useEffect(() => {
-    fetchArtisanReviews();
-  }, []);
+    if (artisan?._id) {
+      fetchArtisanReviews();
+    }
+  }, [artisan?._id]);
+  const allArtisanReviews = [...artisanReviews, ...artisan.promotions];
+  // console.log(artisanReviews)
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-amber-50 to-white flex flex-col items-center px-2 md:px-0">
@@ -1320,17 +1346,6 @@ const ArtisanDetails = ({ artisan }) => {
                       <div className="text-md md:text-2xl text-gray-800 font-bold leading-relaxed mb-2 text-left">
                         {review.title || 'No review text.'}
                       </div>
-
-                      <div className="absolute right-4 top-4 flex items-center gap-1">
-                        {review.rating && (
-                          <>
-                            {[...Array(review.rating)].map((_, i) => (
-                              <Star key={i} size={22} className="text-yellow-400 fill-yellow-400" />
-                            ))}
-                          </>
-                        )}
-                      </div>
-
                       <div className="text-md md:text-md text-gray-800 font-medium leading-relaxed mb-2 text-left">
                         {review.shortDescription || 'No review text.'}
                       </div>
@@ -1343,8 +1358,18 @@ const ArtisanDetails = ({ artisan }) => {
                             alt={review.createdBy || 'Anonymous'}
                             className="w-14 h-14 rounded-full border-4 border-white shadow object-cover"
                           />
-                          <div className="ml-4 text-left">
+                          <div className="ml-2 text-left flex flex-col items-center gap-2">
                             <div className="font-bold text-xl text-black">{review.createdBy || review.title || 'Anonymous'}</div>
+
+                            <div className="flex items-center gap-1">
+                              {review.rating && (
+                                <>
+                                  {[...Array(review.rating)].map((_, i) => (
+                                    <Star key={i} size={15} className="text-yellow-400 fill-yellow-400" />
+                                  ))}
+                                </>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1397,8 +1422,8 @@ const ArtisanDetails = ({ artisan }) => {
         artisan={artisan}
         type="artisan"
         onClose={() => setShowReviewModal(false)}
-        onSubmit={(data) => { 
-          setShowReviewModal(false); 
+        onSubmit={(data) => {
+          setShowReviewModal(false);
           fetchArtisanReviews(); // Refresh reviews after submission
           toast.success('Thank you for your review! It will be visible after approval.');
         }}

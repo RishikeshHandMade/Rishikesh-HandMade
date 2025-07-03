@@ -6,15 +6,17 @@ import { Star, Upload, Trash2 } from 'lucide-react';
 // import { Input } from '../ui/input';
 // import { Textarea } from '../ui/textarea';
 // import { Label } from '../ui/label';
-import Image from 'next/image';
-import toast from 'react-hot-toast';
+// import { useState, useRef, useEffect } from 'react';
+// import { Button } from "@/components/ui/button"
+// import { Star, Upload, Trash2 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 export default function ProductInfoTabs({ product }) {
     // console.log(product)
     // Example: dynamic tab data from API/product object
     let tabs = [];
     // Collect reviews from product.reviews (array of objects)
-    const reviews = Array.isArray(product?.reviews) ? product.reviews : [];
+    // const reviews = Array.isArray(product?.reviews) ? product.reviews : [];
 
     // Static Reviews Tab with dynamic data
     // State for expanded reviews (array of booleans)
@@ -31,40 +33,14 @@ export default function ProductInfoTabs({ product }) {
 
     // Add Review Button and Form State
     const [showReviewForm, setShowReviewForm] = useState(false);
-    const [localReviews, setLocalReviews] = useState(reviews);
+    // const [localReviews, setLocalReviews] = useState(reviews);
     const [name, setName] = useState("");
-    console.log(localReviews)
+    // console.log(localReviews)
     // const [rating, setRating] = useState(5);
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [review, setReview] = useState("");
 
-    // Fetch reviews for this product
-    const fetchReviews = async () => {
-        try {
-            const response = await fetch(`/api/saveReviews?productId=${product._id}&type=product`);
-            const data = await response.json();
-            if (response.ok) {
-                // Filter to only show approved and active reviews
-                const approvedReviews = data.reviews.filter(review => 
-                    review.approved !== false && 
-                    review.deleted !== true && 
-                    (review.active !== false && review.active !== undefined)
-                );
-                setLocalReviews(approvedReviews || []);
-            }
-        } catch (error) {
-            console.error('Error fetching reviews:', error);
-            toast.error('Failed to fetch reviews');
-        }
-    };
-
-    // Initial fetch of reviews
-    useEffect(() => {
-        if (product._id) {
-            fetchReviews();
-        }
-    }, [product._id]);
 
     const [rating, setRating] = useState(0);
     const [date, setDate] = useState("");
@@ -167,6 +143,11 @@ export default function ProductInfoTabs({ product }) {
     const [imagePreview, setImagePreview] = useState(null);
     const [imageObj, setImageObj] = useState({ url: '', key: '' });
     const [uploading, setUploading] = useState(false);
+    // const [productReviews, setProductReviews] = useState(false)
+    const [isLoadingReviews, setIsLoadingReviews] = useState(false);
+    const [productReviews, setProductReviews] = useState([]);
+    const [customReviews, setCustomReviews] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
     const fileInputRef = useRef(null);
 
     const handleImageChange = async (e) => {
@@ -221,7 +202,59 @@ export default function ProductInfoTabs({ product }) {
             fileInputRef.current.value = '';
         }
     };
+    const fetchCustomReviews = async () => {
+        if (!product?._id) return;
 
+        try {
+            setIsLoading(true);
+            const response = await fetch(`/api/saveReviews?productId=${product._id}&type=product&approved=true&active=true`);
+            const data = await response.json();
+
+            if (response.ok) {
+                setCustomReviews(data.reviews || []);
+            }
+        } catch (error) {
+            // console.error('Error fetching custom reviews:', error);
+            toast.error('Failed to load custom reviews');
+            setCustomReviews([]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Call this when component mounts or product changes
+    useEffect(() => {
+        fetchCustomReviews();
+    }, [product?._id]);
+
+    // Get direct product reviews
+    const directReviews = Array.isArray(product?.reviews) ? product.reviews : [];
+
+    // Combine with custom reviews
+    const allProductReviews = [...directReviews, ...customReviews];
+    // console.log(allProductReviews)
+
+    // Normalize the reviews (similar to InstaBlog)
+    const normalizeReview = (review) => {
+        return {
+            _id: review._id?.toString(),
+            rating: review.rating || 0,
+            title: review.title || 'No Title',
+            description: review.review || review.description || '',
+            name: review.name || review.createdBy || 'Anonymous',
+            date: review.date || review.createdAt,
+            image: review.image?.url || review.thumb?.url || '/placeholder.jpeg',
+            source: review.source || 'product' // 'direct' for product.reviews, 'custom' for API
+        };
+    };
+
+    // Get normalized and sorted reviews
+    const normalizedReviews = allProductReviews
+        .map(normalizeReview)
+        .sort((a, b) => {
+            if (a.date && b.date) return new Date(b.date) - new Date(a.date);
+            return (b._id || '').localeCompare(a._id || '');
+        });
     const reviewsTab = {
         label: "Reviews",
         content: (
@@ -357,16 +390,16 @@ export default function ProductInfoTabs({ product }) {
                         </button>
                     </form>
                 )}
-                {localReviews.length === 0 ? (
-                    <div className="text-gray-500">No reviews yet.</div>
+                {/* {normalizedReviews.length === 0 ? (
+                    <div className="text-gray-500">No Reviews yet.</div>
                 ) : (
                     <div className="space-y-6">
-                        {localReviews.map((review, idx) => {
+                        {normalizedReviews.map((review, idx) => {
                             const isExpanded = expandedReviews[idx];
                             return (
                                 <div key={idx} className="bg-[#fafbfc] border border-[#e6e7e9] rounded-xl px-6 py-6 shadow-sm flex flex-col gap-2">
                                     <div className="flex items-center gap-2 mb-2">
-                                        {/* Trustpilot/Star icons */}
+                                    
                                         <div className="flex items-center gap-1">
                                             {[...Array(5)].map((_, i) => (
                                                 <span key={i} className={i < (review.rating || 0) ? 'text-[#00b67a] text-xl' : 'text-gray-300 text-xl'}>★</span>
@@ -392,7 +425,73 @@ export default function ProductInfoTabs({ product }) {
                                             )}
                                         </div>
 
-                                        <span className="font-bold text-base">{review.createdBy || review.name|| 'Anonymous'}</span>
+                                        <span className="font-bold text-base">{review.createdBy || review.name || 'Anonymous'}</span>
+                                        <div className="flex items-center gap-2 text-gray-700 text-sm">
+
+                                            <span className="text-xs">{review.createdAt ? `${Math.round((Date.now() - new Date(review.createdAt)) / (1000 * 60 * 60 * 24))} days ago` : ''}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="relative">
+                                        <span className="font-bold text-base">{review.title || 'Anonymous'}</span>
+                                        <div
+                                            className={`text-gray-900 transition-all duration-300 mb-2 ${isExpanded ? '' : 'max-h-[65px] overflow-hidden'}`}
+                                            style={!isExpanded ? { WebkitMaskImage: 'linear-gradient(180deg, #000 65%, transparent 100%)' } : {}}
+                                        >
+                                            {review.review}
+                                        </div>
+                                        {!isExpanded && review.review && review.review.length > 150 && (
+                                            <div className="absolute bottom-0 left-0 w-full flex justify-center bg-gradient-to-t from-[#fafbfc] to-transparent pt-6">
+                                                <button
+                                                    className="text-[#00b67a] font-semibold text-base px-2 py-1 focus:outline-none hover:underline"
+                                                    onClick={() => handleReadMore(idx)}
+                                                >
+                                                    Read more
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )} */}
+                {normalizedReviews.length === 0 ? (
+                    <div className="text-gray-500">No reviews yet.</div>
+                ) : (
+                    <div className="space-y-6">
+                        {normalizedReviews.map((review, idx) => {
+                            const isExpanded = expandedReviews[idx];
+                            return (
+                                <div key={idx} className="bg-[#fafbfc] border border-[#e6e7e9] rounded-xl px-6 py-6 shadow-sm flex flex-col gap-2">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        {/* Trustpilot/Star icons */}
+                                        <div className="flex items-center gap-1">
+                                            {[...Array(5)].map((_, i) => (
+                                                <span key={i} className={i < (review.rating || 0) ? 'text-[#00b67a] text-xl' : 'text-gray-300 text-xl'}>★</span>
+                                            ))}
+                                        </div>
+                                        <span className="ml-1 text-[#00b67a] font-bold text-xs flex items-center gap-1">
+                                            <svg className="inline-block" width="16" height="16" viewBox="0 0 24 24" fill="#00b67a"><circle cx="12" cy="12" r="12" /><path fill="#fff" d="M10.5 16.5l-4-4 1.41-1.41L10.5 13.67l5.59-5.59L17.5 9.5z" /></svg>
+                                            Verified
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
+                                            {review?.image ? (
+                                                <img
+                                                    src={review.image}
+                                                    alt="Reviewer"
+                                                    className="h-full w-full rounded-full object-cover"
+                                                />
+                                            ) : (
+                                                <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                </svg>
+                                            )}
+                                        </div>
+
+                                        <span className="font-bold text-base">{review.name || 'Anonymous'}</span>
                                         <div className="flex items-center gap-2 text-gray-700 text-sm">
 
                                             <span className="text-xs">{review.createdAt ? `${Math.round((Date.now() - new Date(review.createdAt)) / (1000 * 60 * 60 * 24))} days ago` : ''}</span>
@@ -405,9 +504,9 @@ export default function ProductInfoTabs({ product }) {
                                             className={`text-gray-900 transition-all duration-300 mb-2 ${isExpanded ? '' : 'max-h-[65px] overflow-hidden'}`}
                                             style={!isExpanded ? { WebkitMaskImage: 'linear-gradient(180deg, #000 65%, transparent 100%)' } : {}}
                                         >
-                                            {review.review}
+                                            {review.description}
                                         </div>
-                                        {!isExpanded && review.review && review.review.length > 150 && (
+                                        {!isExpanded && review.description && review.description.length > 150 && (
                                             <div className="absolute bottom-0 left-0 w-full flex justify-center bg-gradient-to-t from-[#fafbfc] to-transparent pt-6">
                                                 <button
                                                     className="text-[#00b67a] font-semibold text-base px-2 py-1 focus:outline-none hover:underline"
