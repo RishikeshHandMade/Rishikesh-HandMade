@@ -33,21 +33,28 @@ export default function ProductInfoTabs({ product }) {
     const [showReviewForm, setShowReviewForm] = useState(false);
     const [localReviews, setLocalReviews] = useState(reviews);
     const [name, setName] = useState("");
+    console.log(localReviews)
     // const [rating, setRating] = useState(5);
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [review, setReview] = useState("");
 
-    // Fetch reviews from API
+    // Fetch reviews for this product
     const fetchReviews = async () => {
         try {
-            const response = await fetch(`/api/productReviews?productId=${product._id}`);
+            const response = await fetch(`/api/saveReviews?productId=${product._id}&type=product`);
             const data = await response.json();
             if (response.ok) {
-                setLocalReviews(data.reviews || []);
+                // Filter to only show approved and active reviews
+                const approvedReviews = data.reviews.filter(review => 
+                    review.approved !== false && 
+                    review.deleted !== true && 
+                    (review.active !== false && review.active !== undefined)
+                );
+                setLocalReviews(approvedReviews || []);
             }
         } catch (error) {
-            // console.error('Error fetching reviews:', error);
+            console.error('Error fetching reviews:', error);
             toast.error('Failed to fetch reviews');
         }
     };
@@ -106,9 +113,12 @@ export default function ProductInfoTabs({ product }) {
                 } : null,
                 rating,
                 title,
-                description, // must be non-empty string
+                description,
                 type: "product",
                 product: product._id,
+                approved: false, // Explicitly set to false by default
+                active: true,    // Set active to true for new reviews
+                deleted: false   // Explicitly set to false for new reviews
             };
             // console.log('Submitting review:', payload);
             if (!name || !date || !title || !description || !rating) {
@@ -160,6 +170,8 @@ export default function ProductInfoTabs({ product }) {
     const fileInputRef = useRef(null);
 
     const handleImageChange = async (e) => {
+        // Do NOT clear formError here; preserve any validation errors
+
         const file = e.target.files[0];
         setImageFile(file);
         if (file) {
@@ -200,6 +212,8 @@ export default function ProductInfoTabs({ product }) {
     };
 
     const handleRemoveImage = () => {
+        // Do NOT clear formError here; preserve any validation errors
+
         setImageFile(null);
         setImagePreview(null);
         setImageObj({ url: '', key: '' });
@@ -229,6 +243,9 @@ export default function ProductInfoTabs({ product }) {
                                     name="name"
                                     value={name}
                                     onChange={handleFormChange}
+                                    onBlur={() => {
+                                        if (!name) setFormError('Please fill all required fields and rating.');
+                                    }}
                                     className="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#00b67a]"
                                     required
                                 />
@@ -239,6 +256,9 @@ export default function ProductInfoTabs({ product }) {
                                     name="title"
                                     value={title}
                                     onChange={handleFormChange}
+                                    onBlur={() => {
+                                        if (!title) setFormError('Please fill all required fields and rating.');
+                                    }}
                                     className="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#00b67a]"
                                     required
                                 />
@@ -276,6 +296,9 @@ export default function ProductInfoTabs({ product }) {
                                 name="description"
                                 value={description}
                                 onChange={handleFormChange}
+                                onBlur={() => {
+                                    if (!description) setFormError('Please fill all required fields and rating.');
+                                }}
                                 rows={4}
                                 className="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#00b67a]"
                                 required
@@ -285,9 +308,13 @@ export default function ProductInfoTabs({ product }) {
                             <label className="font-semibold mb-1">Thumb Image</label>
                             <div className="flex items-center gap-4">
                                 <Button
+                                    type="button"
                                     variant="outline"
                                     className="flex items-center gap-2"
-                                    onClick={() => fileInputRef.current?.click()}
+                                    onClick={e => {
+                                        e.preventDefault();
+                                        fileInputRef.current?.click();
+                                    }}
                                 >
                                     <Upload className="h-4 w-4" />
                                     Upload Image
@@ -308,7 +335,11 @@ export default function ProductInfoTabs({ product }) {
                                             className="object-cover rounded-lg"
                                         />
                                         <button
-                                            onClick={handleRemoveImage}
+                                            type="button"
+                                            onClick={e => {
+                                                e.preventDefault();
+                                                handleRemoveImage();
+                                            }}
                                             className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
                                         >
                                             <Trash2 className="h-4 w-4" />
@@ -348,9 +379,9 @@ export default function ProductInfoTabs({ product }) {
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
-                                            {review?.image?.url ? (
+                                            {review?.image?.url || review?.thumb?.url ? (
                                                 <img
-                                                    src={review.image.url}
+                                                    src={review.image?.url || review.thumb?.url}
                                                     alt="Reviewer"
                                                     className="h-full w-full rounded-full object-cover"
                                                 />
@@ -361,7 +392,7 @@ export default function ProductInfoTabs({ product }) {
                                             )}
                                         </div>
 
-                                        <span className="font-bold text-base">{review.createdBy || 'Anonymous'}</span>
+                                        <span className="font-bold text-base">{review.createdBy || review.name|| 'Anonymous'}</span>
                                         <div className="flex items-center gap-2 text-gray-700 text-sm">
 
                                             <span className="text-xs">{review.createdAt ? `${Math.round((Date.now() - new Date(review.createdAt)) / (1000 * 60 * 60 * 24))} days ago` : ''}</span>

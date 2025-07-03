@@ -1,18 +1,48 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import toast from "react-hot-toast";
 
-export default function ReviewModal({ open, onClose, onSubmit, artisan }) {
-  console.log(artisan)
+export default function ReviewModal({ open, onClose, onSubmit, artisan, type = 'artisan' }) {
   const [uploading, setUploading] = useState(false);
-  const [form, setForm] = useState({
+  // Initial form state
+  const initialFormState = {
     name: "",
     date: "",
     thumb: null,
     rating: 0,
     title: "",
     description: ""
-  });
+  };
+
+  const [form, setForm] = useState(initialFormState);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [thumbPreview, setThumbPreview] = useState(null);
+  
+  // Reset form to initial state
+  const resetForm = () => {
+    setForm(initialFormState);
+    setThumbPreview(null);
+  };
+  
+  // Handle modal close
+  const handleClose = () => {
+    if (!isSubmitting) {
+      resetForm();
+      onClose();
+    }
+  };
+  
+  // Clean up object URLs to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (thumbPreview) {
+        URL.revokeObjectURL(thumbPreview);
+      }
+    };
+  }, [thumbPreview]);
+
+  // Use a key to force remount when modal is reopened
+  const modalKey = open ? 'review-modal-open' : 'review-modal-closed';
 
   if (!open) return null;
 
@@ -58,48 +88,106 @@ export default function ReviewModal({ open, onClose, onSubmit, artisan }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Validate required fields
-    if (!form.name || !form.date || !form.rating || !form.title || !form.description || !artisan?._id) {
-      if (window.toast) window.toast.error('Please fill all required fields');
+    
+    if (isSubmitting) return; // Prevent double submission
+    
+    // Ensure we have all form values with proper trimming
+    const formValues = {
+      name: String(form.name || '').trim(),
+      title: String(form.title || '').trim(),
+      description: String(form.description || '').trim(),
+      rating: Number(form.rating || 0),
+      thumb: form.thumb || null,
+      type: type || 'all' // Default to 'all' if type is not specified
+    };
+    
+    // Client-side validation
+    const requiredFields = ['name', 'title', 'description', 'rating'];
+    const missingFields = requiredFields.filter(field => {
+      const value = formValues[field];
+      return value === undefined || value === null || value === '' || (field === 'rating' && (isNaN(value) || value < 1 || value > 5));
+    });
+    
+    if (missingFields.length > 0) {
+      toast.error(`Please fill all required fields: ${missingFields.join(', ')}`);
       return;
     }
-    // Convert date string to timestamp (number)
-    const dateValue = form.date ? new Date(form.date).getTime() : undefined;
+
+    // Prepare the payload with all required fields
+    const payload = {
+      name: formValues.name,
+      title: formValues.title,
+      description: formValues.description,
+      rating: formValues.rating,
+      date: Date.now(),
+      thumb: formValues.thumb,
+      type: formValues.type,
+      approved: false,
+      active: true,
+      deleted: false
+    };
+
+    // Add artisan reference if this is an artisan review
+    if (formValues.type === 'artisan' && artisan?._id) {
+      payload.artisan = String(artisan._id);
+    }
+
+    const toastId = toast.loading('Submitting your review...');
+    setIsSubmitting(true);
+
     try {
-      const payload = {
-        name: form.name,
-        date: dateValue,
-        thumb: form.thumb || null, // send {url, key} if uploaded
-        rating: form.rating,
-        title: form.title,
-        description: form.description,
-        type: "artisan",
-        artisan: artisan._id,
-      };
-      const res = await fetch('/api/saveReviews', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+      console.log('Submitting review with payload:', payload);
+      const response = await fetch("/api/saveReviews", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify(payload),
       });
-      if (res.ok) {
-        onSubmit?.(form);
-        if (typeof window !== 'undefined' && window.toast) window.toast.success('Review submitted!');
-      } else {
-        const err = await res.json();
-        if (typeof window !== 'undefined' && window.toast) window.toast.error(err.message || 'Failed to submit review');
+
+      const responseData = await response.json().catch(() => ({}));
+      
+      if (!response.ok) {
+        console.error('Server validation error:', responseData);
+        throw new Error(responseData.message || "Failed to submit review. Please try again.");
       }
+
+      // Show success message
+      toast.success("Thank you for your review! It is pending admin approval and will be visible once approved.", {
+        id: toastId,
+        duration: 5000
+      });
+      
+      // Reset form and close modal
+      resetForm();
+      onClose();
+      
+      // Notify parent component if needed
+      if (onSubmit && responseData._id) {
+        onSubmit({
+          _id: responseData._id,
+          type: payload.type
+        });
+      }
+      
     } catch (error) {
-      if (typeof window !== 'undefined' && window.toast) window.toast.error(error.message);
+      console.error("Error submitting review:", error);
+      toast.error(`Failed to submit review: ${error.message}`, {
+        id: toastId
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-[99999] bg-black/40 flex items-center justify-center p-0 overflow-y-auto">
+    <div key={modalKey} className="fixed inset-0 z-[99999] bg-black/40 flex items-center justify-center p-0 overflow-y-auto">
       <div className="relative bg-white rounded-lg shadow-xl w-full max-w-lg md:h-screen h-[90vh] p-6 md:p-4 flex flex-col overflow-y-auto scrollbar-none" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <style>{`.scrollbar-none::-webkit-scrollbar { display: none; }`}</style>
         {/* Close X top right */}
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute top-4 right-4 text-gray-500 hover:text-black text-2xl"
           aria-label="Close"
         >

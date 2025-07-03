@@ -12,7 +12,7 @@ import QuickViewProductCard from "./QuickViewProductCard";
 import Autoplay from "embla-carousel-autoplay";
 import BlogQuickViewModal from "./BlogQuickViewModal";
 import { Star } from 'lucide-react';
-
+import ReviewModal from "./ReviewModal";
 const CertificateSectionCarousel = ({ certificates, onImageClick }) => {
   if (!certificates || certificates.length === 0) return <div className="text-gray-500 text-center">No certificates available.</div>;
 
@@ -94,7 +94,7 @@ const ArtisanDetails = ({ artisan }) => {
       price: Math.round(discountedPrice),
       size: item?.quantity?.variants[0].size,
       weight: item?.quantity?.variants[0].weight,
-      color:item?.quantity?.variants[0].color,
+      color: item?.quantity?.variants[0].color,
       originalPrice: price,
       qty: 1,
       couponApplied,
@@ -132,7 +132,9 @@ const ArtisanDetails = ({ artisan }) => {
   const [showShareBox, setShowShareBox] = useState(false);
   const [copied, setCopied] = useState(false);
   const shareBoxRef = useRef(null);
-  const plugin = useRef(Autoplay({ delay: 5000, stopOnInteraction: false }));
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [isLoadingReviews, setIsLoadingReviews] = useState(true);
+   const [artisanReviews, setArtisanReviews] = useState([]);
   // Handle closing share box on outside click or Escape
   useEffect(() => {
     if (!showShareBox) return;
@@ -218,6 +220,35 @@ const ArtisanDetails = ({ artisan }) => {
     if (words.length <= wordLimit) return text;
     return words.slice(0, wordLimit).join(" ") + "...";
   };
+
+
+  // Fetch artisan reviews
+  const fetchArtisanReviews = async () => {
+    try {
+      setIsLoadingReviews(true);
+      const response = await fetch('/api/saveReviews?type=artisan&status=active');
+      const data = await response.json();
+      console.log(data)
+      if (response.ok) {
+        // Filter to only show approved and active reviews
+        const approvedReviews = data.reviews.filter(review =>
+          review.approved !== false &&
+          review.deleted !== true &&
+          (review.active !== false && review.active !== undefined)
+        );
+        setArtisanReviews(approvedReviews || []);
+      }
+    } catch (error) {
+      console.error('Error fetching artisan reviews:', error);
+      toast.error('Failed to load reviews');
+    } finally {
+      setIsLoadingReviews(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchArtisanReviews();
+  }, []);
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-amber-50 to-white flex flex-col items-center px-2 md:px-0">
@@ -625,7 +656,7 @@ const ArtisanDetails = ({ artisan }) => {
                                   price: Math.round(discountedPrice),
                                   size: item?.quantity?.variants[0].size,
                                   weight: item?.quantity?.variants[0].weight,
-                                  color:item?.quantity?.variants[0].color,
+                                  color: item?.quantity?.variants[0].color,
                                   originalPrice: price,
                                   qty: 1,
                                   couponApplied,
@@ -1213,7 +1244,10 @@ const ArtisanDetails = ({ artisan }) => {
           </div>
 
           {/* Review Card Overlay */}
-          <div className="hidden md:flex absolute right-1 top-[40%] z-10 flex flex-col justify-start w-full md:w-1/2 items-end pr-1">
+          <div className="hidden md:flex absolute right-1 top-[30%] z-10 flex flex-col justify-start w-full md:w-1/2 items-end pr-1">
+            <div className="button px-10 mb-2">
+              <Button className="bg-white text-black hover:bg-black hover:text-white transition-colors duration-300" onClick={() => setShowReviewModal(true)}>Write Reviews</Button>
+            </div>
             <Carousel className="w-full md:w-[600px]"
               plugins={[Autoplay({ delay: 4000 })]}>
 
@@ -1262,6 +1296,7 @@ const ArtisanDetails = ({ artisan }) => {
               <div className="flex items-center gap-3">
                 <CarouselPrevious className="absolute top-[85%] left-[65%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
                 <CarouselNext className="absolute top-[85%] left-[80%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
+
               </div>
             </Carousel>
           </div>
@@ -1317,6 +1352,16 @@ const ArtisanDetails = ({ artisan }) => {
                   </CarouselItem>
                 ))}
               </CarouselContent>
+              <div className="button">
+                <Button className="absolute top-0 right-0 bg-white text-black hover:bg-black hover:text-white transition-colors duration-300" onClick={() => {
+                  if (allReviews.length > 0) {
+                    setSelectedArtisan(allReviews[0].artisan); // Send artisan from first promotion
+                    setShowReviewModal(true);
+                  } else {
+                    toast.error('No promotion artisan found');
+                  }
+                }}>Write Reviews</Button>
+              </div>
               <div className="flex items-center gap-3">
                 <CarouselPrevious className="absolute top-[85%] left-[65%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
                 <CarouselNext className="absolute top-[85%] left-[80%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
@@ -1346,6 +1391,17 @@ const ArtisanDetails = ({ artisan }) => {
         open={showBlogModal}
         blog={modalBlog}
         onClose={() => { setShowBlogModal(false); setModalBlog(null); }}
+      />
+      <ReviewModal
+        open={showReviewModal}
+        artisan={artisan}
+        type="artisan"
+        onClose={() => setShowReviewModal(false)}
+        onSubmit={(data) => { 
+          setShowReviewModal(false); 
+          fetchArtisanReviews(); // Refresh reviews after submission
+          toast.success('Thank you for your review! It will be visible after approval.');
+        }}
       />
     </div >
   );

@@ -27,43 +27,56 @@ const InstaBlog = () => {
     const [news, setNews] = useState([])
     const [quickViewNews, setQuickViewNews] = useState(null); // For news modal
     const [selectedArtisan, setSelectedArtisan] = useState(null); // For news modal
-    const [customReview, setcustomReview] = useState([]);
-    const [allReviews, setAllReviews] = useState([]);
-
-
-    const [isLoadingPromotions, setIsLoadingPromotions] = useState(true);
+    const [artisanReviews, setArtisanReviews] = useState([]);
     const [isLoadingReviews, setIsLoadingReviews] = useState(true);
     const [showReviewModal, setShowReviewModal] = useState(false);
+    const [customReview, setcustomReview] = useState([]);
+    const [allReviews, setAllReviews] = useState([]);
+    const [loadingPromotions, setIsLoadingPromotions] = useState(true);
 
     // State and effect for fetching all reviews
 
-    const artisanReviews = [...customReview, ...allReviews];
+    const allArtisanReviews = [...artisanReviews, ...allReviews];
+    // console.log(allArtisanReviews)
+
 
     // Normalize reviews to a standard format
     function normalizeReview(review) {
-        // Backend reviews (MongoDB)
-        if (review.thumb || review.description) {
-            return {
-                _id: review._id || Math.random().toString(36).substr(2, 9),
-                rating: review.rating,
-                title: review.title || review.name || 'No Title',
-                shortDescription: review.description || review.shortDescription || '',
-                image: review.thumb?.url || '/placeholder.jpeg',
-                createdBy: review.name || review.title || 'Anonymous',
-            };
+        // console.log('Raw review data:', review);
+
+        // Handle different image URL structures
+        let imageUrl = '';
+        if (review.thumb?.url) {
+            imageUrl = review.thumb.url.startsWith('http') ? review.thumb.url : `https:${review.thumb.url}`;
+        } else if (review.image?.url) {
+            imageUrl = review.image.url.startsWith('http') ? review.image.url : `https:${review.image.url}`;
+        } else if (review.thumb) {
+            imageUrl = review.thumb.startsWith('http') ? review.thumb : `https:${review.thumb}`;
+        } else if (review.image) {
+            imageUrl = review.image.startsWith('http') ? review.image : `https:${review.image}`;
+        } else {
+            imageUrl = '/placeholder.jpeg';
         }
-        // Static/dummy reviews or other format
+
+        // console.log('Processed Image URL:', imageUrl);
+
         return {
-            _id: review._id || Math.random().toString(36).substr(2, 9),
-            rating: review.rating,
-            title: review.title || 'No Title',
-            shortDescription: review.shortDescription || '',
-            image: review.image || '/placeholder.jpeg',
-            createdBy: review.createdBy || review.title || 'Anonymous',
+            _id: review._id?.toString() || Math.random().toString(36).substr(2, 9),
+            rating: review.rating || 5,
+            title: review.title || review.name || 'No Title',
+            shortDescription: review.description || review.shortDescription || '',
+            image: imageUrl,
+            thumb: imageUrl, // Add thumb for backward compatibility
+            createdBy: review.name || review.title || 'Anonymous',
+            date: review.date ? new Date(review.date).toLocaleDateString() : ''
         };
     }
 
-    const normalizedReviews = artisanReviews.map(normalizeReview);
+    const normalizedReviews = allArtisanReviews.map(normalizeReview).sort((a, b) => {
+        // Sort by date if available, otherwise by ID
+        if (a.date && b.date) return new Date(b.date) - new Date(a.date);
+        return (b._id || '').localeCompare(a._id || '');
+    });
 
     const fetchBlogs = async () => {
         try {
@@ -137,27 +150,31 @@ const InstaBlog = () => {
                 setAllReviews([]);
             }
         } catch (error) {
-            console.error("Error fetching promotions:", error);
+            // console.error("Error fetching promotions:", error);
             setAllReviews([]);
         } finally {
             setIsLoadingPromotions(false);
         }
     };
-    // console.log(allReviews)
-    // Fetch Reviews
-    const fetchReviews = async () => {
+    // Fetch artisan reviews
+    const fetchArtisanReviews = async () => {
         try {
-            const res = await fetch("/api/saveReviews");
-            const data = await res.json();
-
-            if (data.success && Array.isArray(data.reviews)) {
-                setcustomReview(data.reviews);
-            } else {
-                setcustomReview([]);
+            setIsLoadingReviews(true);
+            const response = await fetch('/api/saveReviews?type=all&approved=true&active=true');
+            const data = await response.json();
+            // console.log('Fetched artisan reviews:', data);
+            if (response.ok) {
+                // Only show approved and active reviews
+                const approvedReviews = data.reviews.filter(review =>
+                    review.approved !== false &&
+                    review.deleted !== true &&
+                    (review.active !== false && review.active !== undefined)
+                );
+                setArtisanReviews(approvedReviews || []);
             }
         } catch (error) {
-            console.error("Error fetching reviews:", error);
-            setcustomReview([]);
+            // console.error('Error fetching artisan reviews:', error);
+            toast.error('Failed to load reviews');
         } finally {
             setIsLoadingReviews(false);
         }
@@ -168,8 +185,42 @@ const InstaBlog = () => {
         fetchNews();
         fetchInstagramPosts();
         fetchPromotions();
-        fetchReviews();
+        fetchArtisanReviews();
+        // fetchReviews();
     }, [])
+
+    // Handle review submission for 'all' type reviews
+    const handleReviewSubmit = async (reviewData) => {
+        try {
+            // The ReviewModal already sends all required fields
+            // We just need to ensure the type is set to 'all' and it's auto-approved
+            const response = await fetch('/api/saveReviews', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...reviewData,
+                    type: 'all',
+                    approved: true,
+                    active: true,
+                    deleted: false
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.message || 'Failed to submit review');
+            }
+
+            // Refresh reviews after submission
+            fetchReviews();
+            fetchArtisanReviews();
+            setShowReviewModal(false);
+            toast.success('Thank you for your review!');
+        } catch (error) {
+            // console.error('Error submitting review:', error);
+            toast.error(error.message || 'Failed to submit review');
+        }
+    };
 
     // Combine and sort posts by createdAt date
     const allPosts = [...instagramPosts, ...facebookPosts]
@@ -459,9 +510,13 @@ const InstaBlog = () => {
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center">
                                                 <img
-                                                    src={review.image?.url || "/placeholder.jpeg"}
+                                                    src={review.image || "/placeholder.jpeg"}
                                                     alt={review.createdBy || 'Anonymous'}
                                                     className="w-14 h-14 rounded-full border-4 border-white shadow object-cover"
+                                                    onError={(e) => {
+                                                        // console.log('Image failed to load:', e.target.src);
+                                                        e.target.src = '/placeholder.jpeg';
+                                                    }}
                                                 />
                                                 <div className="ml-4 text-left flex flex-col items-center gap-2">
                                                     <div className="font-bold text-xl text-black">{review.createdBy || review.title || 'Anonymous'}</div>
@@ -528,6 +583,10 @@ const InstaBlog = () => {
                                                         src={review.image || "/placeholder.jpeg"}
                                                         alt={review.createdBy || 'Anonymous'}
                                                         className="w-14 h-14 rounded-full border-4 border-white shadow object-cover"
+                                                        onError={(e) => {
+                                                            // console.log('Image failed to load:', e.target.src);
+                                                            e.target.src = '/placeholder.jpeg';
+                                                        }}
                                                     />
                                                     <div className="ml-4 text-left">
                                                         <div className="font-bold text-xl text-black">{review.createdBy || review.title || 'Anonymous'}</div>
@@ -552,14 +611,12 @@ const InstaBlog = () => {
                         <CarouselPrevious />
                         <CarouselNext />
                         <div className="button">
-                            <Button className="absolute top-0 right-0 bg-white text-black hover:bg-black hover:text-white transition-colors duration-300" onClick={() => {
-                                if (allReviews.length > 0) {
-                                    setSelectedArtisan(allReviews[0].artisan); // Send artisan from first promotion
-                                    setShowReviewModal(true);
-                                } else {
-                                    toast.error('No promotion artisan found');
-                                }
-                            }}>Write Reviews</Button>
+                            <Button
+                                className="absolute top-0 right-0 bg-white text-black hover:bg-black hover:text-white transition-colors duration-300"
+                                onClick={() => setShowReviewModal(true)}
+                            >
+                                Write a Review
+                            </Button>
                         </div>
                     </Carousel>
                 </div>
@@ -569,12 +626,24 @@ const InstaBlog = () => {
                 <ViewNews news={quickViewNews} onClose={() => setQuickViewNews(null)} />
             )}
 
-            <ReviewModal
-                open={showReviewModal}
-                artisan={selectedArtisan}
-                onClose={() => setShowReviewModal(false)}
-                onSubmit={(data) => { setShowReviewModal(false); toast.success('Review submitted!'); }}
-            />
+            {showReviewModal && (
+                <ReviewModal
+                    key={`review-modal-${Date.now()}`}
+                    open={showReviewModal}
+                    artisan={selectedArtisan}
+                    type="all"
+                    onClose={() => {
+                        setShowReviewModal(false);
+                        // Small delay to allow the modal to close before potentially reopening
+                        setTimeout(() => setSelectedArtisan(null), 300);
+                    }}
+                    onSubmit={(data) => {
+                        handleReviewSubmit(data);
+                        setShowReviewModal(false);
+                        setSelectedArtisan(null);
+                    }}
+                />
+            )}
 
         </div>
     )

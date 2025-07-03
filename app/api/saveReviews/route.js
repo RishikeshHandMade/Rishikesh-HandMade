@@ -2,46 +2,177 @@ import Review from "@/models/Review";
 import connectDB from "@/lib/connectDB";
 import { NextResponse } from "next/server";
 
-export const GET = async () => {
+export const GET = async (req) => {
     try {
         await connectDB();
-        const reviews = await Review.find({}).lean();
-        const safeReviews = reviews.map(r => ({
-            ...r,
-            _id: r._id?.toString(),
-            product: (r.product && r.product.toString) ? r.product.toString() : (typeof r.product === 'string' ? r.product : null),
-            artisan: (r.artisan && r.artisan.toString) ? r.artisan.toString() : (typeof r.artisan === 'string' ? r.artisan : null),
-            date: typeof r.date === 'number' ? r.date : Number(r.date),
-            createdAt: r.createdAt instanceof Date ? r.createdAt.toISOString() : r.createdAt,
-            updatedAt: r.updatedAt instanceof Date ? r.updatedAt.toISOString() : r.updatedAt,
-        }));
-        return NextResponse.json({ success: true, reviews: safeReviews }, { status: 200 });
+        const { searchParams } = new URL(req.url);
+        const status = searchParams.get('status');
+        const productId = searchParams.get('productId');
+        const type = searchParams.get('type');
+        
+        let filter = { deleted: false };
+        
+        // Handle status filters
+        if (searchParams.has('approved')) {
+            filter.approved = searchParams.get('approved') === 'true';
+        }
+        if (searchParams.has('active')) {
+            filter.active = searchParams.get('active') === 'true';
+        } else if (status === 'active') {
+            filter.$or = [{ active: true }, { active: { $exists: false } }];
+        } else if (status === 'inactive') {
+            filter.active = false;
+        } else if (status === 'deleted') {
+            filter.deleted = true;
+        }
+        
+        // Filter by product ID if provided
+        if (productId) {
+            filter.product = productId;
+        }
+        
+        // Filter by type if provided
+        if (type) {
+            filter.type = type;
+        }
+        
+        const reviews = await Review.find(filter)
+            .sort({ createdAt: -1 })
+            .populate('artisan', 'name')
+            .populate('product', 'title')
+            .lean();
+            
+        // Convert MongoDB documents to plain objects
+        const safeReviews = reviews.map(review => {
+            const serialized = {
+                ...review,
+                _id: review._id?.toString(),
+                product: review.product ? {
+                    _id: review.product._id?.toString(),
+                    title: review.product.title
+                } : null,
+                artisan: review.artisan ? {
+                    _id: review.artisan._id?.toString(),
+                    name: review.artisan.name
+                } : null,
+                thumb: review.thumb ? {
+                    url: review.thumb.url,
+                    key: review.thumb.key
+                } : null,
+                date: review.date ? Number(review.date) : null,
+                createdAt: review.createdAt ? new Date(review.createdAt).toISOString() : null,
+                updatedAt: review.updatedAt ? new Date(review.updatedAt).toISOString() : null,
+            };
+            
+            // Remove any undefined values
+            Object.keys(serialized).forEach(key => {
+                if (serialized[key] === undefined) {
+                    delete serialized[key];
+                }
+            });
+            
+            return serialized;
+        });
+        
+        return new NextResponse(JSON.stringify({ success: true, reviews: safeReviews }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
+        });
     } catch (error) {
-        return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+        console.error('Error in GET /api/saveReviews:', error);
+        return new NextResponse(JSON.stringify({ 
+            success: false, 
+            message: error.message 
+        }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' }
+        });
     }
 };
 export const POST = async (req) => {
     try {
         await connectDB();
         const data = await req.json();
-        // console.log("REVIEW PAYLOAD", data);
+        console.log('Received review data:', JSON.stringify(data, null, 2));
+        
+        // For all review types, ensure they require admin approval
+        const reviewData = { ...data };
+        // Remove artisan/product references for 'all' type reviews
+        if (reviewData.type === 'all') {
+            delete reviewData.artisan;
+            delete reviewData.product;
+        }
+        // All new reviews require admin approval
+        reviewData.approved = false;
+        reviewData.active = true; // Will be set to true when approved by admin
+        
+        // Convert date to timestamp if it's a string
+        if (reviewData.date && typeof reviewData.date === 'string') {
+            reviewData.date = new Date(reviewData.date).getTime();
+        } else if (!reviewData.date) {
+            // If no date provided, use current timestamp
+            reviewData.date = Date.now();
+        }
+
+        // Validate required fields
+        const requiredFields = ['name', 'title', 'description', 'rating'];
+        const missingFields = requiredFields.filter(field => !reviewData[field]);
+        
+        if (missingFields.length > 0) {
+            console.error('Missing required fields:', missingFields);
+            return new NextResponse(
+                JSON.stringify({ 
+                    success: false, 
+                    message: `Missing required fields: ${missingFields.join(', ')}` 
+                }), 
+                { status: 400 }
+            );
+        }
+        
+        // Create the review
         const review = new Review({
-            name: data.name,
-            date: data.date,
-            thumb: data.thumb,
-            rating: data.rating,
-            title: data.title,
-            description: data.description,
-            type: data.type,
-            product: data.product,
-            artisan: data.artisan,
-            approved: false
+            name: reviewData.name,
+            date: reviewData.date || Date.now(),
+            thumb: reviewData.thumb,
+            rating: reviewData.rating,
+            title: reviewData.title,
+            description: reviewData.description,
+            type: reviewData.type,
+            product: reviewData.product,
+            artisan: reviewData.artisan,
+            approved: reviewData.approved,
+            active: true,
+            deleted: false
         });
 
-        await review.save();
-        return NextResponse.json({ message: "Review submitted successfully" }, { status: 201 });
+        const savedReview = await review.save();
+        
+        // If this is a product review, update the product's reviews array
+        if (reviewData.type === 'product' && reviewData.product) {
+            const Product = (await import('@/models/Product')).default;
+            await Product.findByIdAndUpdate(
+                reviewData.product,
+                { $push: { reviews: savedReview._id } },
+                { new: true }
+            );
+        }
+        
+        // If this is an artisan review, update the artisan's reviews array
+        if (reviewData.type === 'artisan' && reviewData.artisan) {
+            const Artisan = (await import('@/models/Artisan')).default;
+            await Artisan.findByIdAndUpdate(
+                reviewData.artisan,
+                { $push: { reviews: savedReview._id } },
+                { new: true }
+            );
+        }
+        
+        return NextResponse.json({ 
+            message: "Review submitted successfully",
+            review: savedReview 
+        }, { status: 201 });
     } catch (error) {
-        // console.error("REVIEW ERROR", error);
+        console.error("REVIEW ERROR", error);
         return NextResponse.json({ message: error.message }, { status: 500 });
     }
 };
@@ -50,16 +181,83 @@ export const PUT = async (req) => {
     try {
         await connectDB();
         const data = await req.json();
-
         const review = await Review.findOne({ _id: data._id });
         if (!review) {
             return NextResponse.json({ message: "Review not found" }, { status: 404 });
         }
-
-        review.approved = data.approved;
+        if (typeof data.active === 'boolean') {
+            review.active = data.active;
+            if (data.active) review.deleted = false;
+        }
+        if (typeof data.deleted === 'boolean') {
+            review.deleted = data.deleted;
+            if (data.deleted) review.active = false;
+        }
+        let promotionCreated = false;
+        
+        if (typeof data.approved === 'boolean') {
+            const wasApproved = review.approved;
+            review.approved = data.approved;
+            
+            // Create promotion when approving an artisan review
+            if (data.approved && !wasApproved && review.type === 'artisan' && review.artisan) {
+                try {
+                    // First, ensure the artisan exists
+                    const Artisan = (await import('@/models/Artisan')).default;
+                    const artisan = await Artisan.findById(review.artisan);
+                    
+                    if (!artisan) {
+                        throw new Error('Artisan not found');
+                    }
+                    
+                    // Create the promotion
+                    const Promotion = (await import('@/models/Promotion')).default;
+                    const promotion = new Promotion({
+                        title: review.title || 'Customer Review',
+                        shortDescription: review.description ? 
+                            (review.description.length > 100 ? 
+                                review.description.substring(0, 100) + '...' : 
+                                review.description) : 
+                            'Customer feedback',
+                        rating: review.rating || 5,
+                        createdBy: review.name || 'Customer',
+                        date: review.date || Date.now(),
+                        image: review.thumb ? { 
+                            url: review.thumb.url || review.thumb,
+                            key: review.thumb.key || `review-${review._id}`
+                        } : null,
+                        artisan: review.artisan,
+                        review: review._id
+                    });
+                    
+                    // Save the promotion
+                    const savedPromotion = await promotion.save();
+                    
+                    // Update the review to link to the promotion
+                    review.promotion = savedPromotion._id;
+                    
+                    // Add the promotion to the artisan's promotions array if not already present
+                    if (!artisan.promotions.includes(savedPromotion._id)) {
+                        artisan.promotions.push(savedPromotion._id);
+                        await artisan.save();
+                    }
+                    
+                    promotionCreated = true;
+                } catch (error) {
+                    console.error('Error in review approval process:', error);
+                    throw new Error(`Failed to process review approval: ${error.message}`);
+                }
+            }
+        }
+        
         await review.save();
-
-        return NextResponse.json({ message: "Review approved!" }, { status: 200 });
+        
+        return NextResponse.json({ 
+            message: promotionCreated ? 
+                'Review approved and promotion created successfully' : 
+                'Review updated successfully',
+            review: review 
+        }, { status: 200 });
     } catch (error) {
         return NextResponse.json({ message: error.message }, { status: 500 });
     }
@@ -68,14 +266,15 @@ export const PUT = async (req) => {
 export const DELETE = async (req) => {
     try {
         await connectDB();
-        const { id } = await req.json();
-
-        const review = await Review.findByIdAndDelete(id);
+        const { _id } = await req.json();
+        const review = await Review.findById(_id);
         if (!review) {
             return NextResponse.json({ message: "Review not found" }, { status: 404 });
         }
-
-        return NextResponse.json({ message: "Review Deleted!" }, { status: 200 });
+        review.deleted = true;
+        review.active = false;
+        await review.save();
+        return NextResponse.json({ message: "Review deleted (soft)!" }, { status: 200 });
     } catch (error) {
         return NextResponse.json({ message: error.message }, { status: 500 });
     }

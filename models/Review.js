@@ -1,6 +1,8 @@
 import { Schema, models, model } from "mongoose";
 
 const ReviewSchema = new Schema({
+  active: { type: Boolean, default: true },
+  deleted: { type: Boolean, default: false },
   name: { type: String, required: true },
   date: { type: Number, required: true },
   thumb: {
@@ -13,7 +15,7 @@ const ReviewSchema = new Schema({
   approved: { type: Boolean, default: false },
 
   // NEW FIELDS:
-  type: { type: String, enum: ["product", "artisan"], required: true },
+  type: { type: String, enum: ["product", "artisan", "all"], required: true },
   product: { type: Schema.Types.ObjectId, ref: "Product" }, // for product reviews
   artisan: { type: Schema.Types.ObjectId, ref: "Artisan" }, // for artisan reviews
 

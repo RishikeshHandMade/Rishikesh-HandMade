@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 import { format } from "date-fns"
-import { Star, Calendar, Package, MessageSquare, Mail } from "lucide-react"
+import { Star, Calendar, Package, MessageSquare, Mail, ImageDown, ImageIcon } from "lucide-react"
 import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -41,12 +41,31 @@ const getRatingStars = (rating) => {
     return stars
 }
 
-const ReviewDetails = ({ review, onClose }) => {
-    if (!review) return null
+const ReviewDetails = ({ review, onClose, onUpdate }) => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    if (!review) return null;
+
+    // Ensure we have proper data
+    const safeReview = {
+        ...review,
+        _id: review._id?.toString(),
+        product: typeof review.product === 'string' ? { _id: review.product } : (review.product || null),
+        artisan: typeof review.artisan === 'string' ? { _id: review.artisan } : (review.artisan || null),
+        thumb: review.thumb?.url ? review.thumb : null,
+        createdAt: review.createdAt || new Date().toISOString(),
+        updatedAt: review.updatedAt || new Date().toISOString()
+    };
 
     // Format date if it exists and is valid
-    const formattedDate = review.createdAt ? format(new Date(review.createdAt), "MMM dd, yyyy") : "Date not available"
-    // Placeholder images
+    const formattedDate = safeReview.createdAt ? format(new Date(safeReview.createdAt), "MMM dd, yyyy") : "Date not available";
+    
+    // Get review type for display
+    const reviewType = safeReview.type === 'product' ? 'Product' : 'Artisan';
+    const reviewTarget = safeReview.type === 'product' 
+        ? (safeReview.product?.title || 'Product') 
+        : (safeReview.artisan?.name || 'Artisan');
 
     return (
         <Dialog open={!!review} onOpenChange={onClose}>
@@ -58,10 +77,6 @@ const ReviewDetails = ({ review, onClose }) => {
                         <div className="flex items-center justify-between w-full">
                             <div>
                                 <h2 className="text-xl sm:text-2xl font-bold">{review.name}</h2>
-                                <div className="flex items-center gap-2 text-gray-600">
-                                    <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
-                                    <span className="text-xs sm:text-sm truncate max-w-[200px] sm:max-w-none">{review.email}</span>
-                                </div>
                             </div>
                             <Badge
                                 variant="outline"
@@ -95,6 +110,23 @@ const ReviewDetails = ({ review, onClose }) => {
                             </div>
                         </div>
                     </div>
+                    <div className="mt-4 sm:mt-6">
+                        <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2">
+                            <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                            Thumb Image
+                        </h3>
+                        <div className="mt-1 sm:mt-2 p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            {review.thumb && review.thumb.url ? (
+                                <Image
+                                    src={review.thumb?.url}
+                                    alt="thumb"
+                                    width={200}
+                                    height={200}
+                                    className="object-cover rounded border shadow"
+                                />
+                            ) : '-'}
+                        </div>
+                    </div>
 
                     <div className="mt-4 sm:mt-6">
                         <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2">
@@ -102,7 +134,7 @@ const ReviewDetails = ({ review, onClose }) => {
                             Message
                         </h3>
                         <div className="mt-1 sm:mt-2 p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200">
-                            <p className="italic text-sm sm:text-base text-gray-700">{review.description}</p>
+                            <p className="italic text-sm sm:text-base text-gray-700 max-h-24 overflow-y-auto">{review.description}</p>
                         </div>
                     </div>
                 </div>
