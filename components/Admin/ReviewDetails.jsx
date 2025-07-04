@@ -41,6 +41,7 @@ const getRatingStars = (rating) => {
     return stars
 }
 
+
 const ReviewDetails = ({ review, onClose, onUpdate }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -57,15 +58,14 @@ const ReviewDetails = ({ review, onClose, onUpdate }) => {
         createdAt: review.createdAt || new Date().toISOString(),
         updatedAt: review.updatedAt || new Date().toISOString()
     };
+    // In ReviewDetails.jsx - Update the reviewTarget logic
+    const reviewType = review.type === 'product' ? 'Product' : 'Artisan';
+    const reviewTarget = review.type === 'product'
+        ? (review.product?.title || 'Product')
+        : (review.artisan?.name || 'Artisan');
 
     // Format date if it exists and is valid
     const formattedDate = safeReview.createdAt ? format(new Date(safeReview.createdAt), "MMM dd, yyyy") : "Date not available";
-    
-    // Get review type for display
-    const reviewType = safeReview.type === 'product' ? 'Product' : 'Artisan';
-    const reviewTarget = safeReview.type === 'product' 
-        ? (safeReview.product?.title || 'Product') 
-        : (safeReview.artisan?.name || 'Artisan');
 
     return (
         <Dialog open={!!review} onOpenChange={onClose}>
@@ -90,7 +90,7 @@ const ReviewDetails = ({ review, onClose, onUpdate }) => {
 
                     <Separator className="my-4 sm:my-6" />
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-6">
                         <div>
                             <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2">
                                 <Package className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
@@ -109,6 +109,17 @@ const ReviewDetails = ({ review, onClose, onUpdate }) => {
                                 <span className="text-xs sm:text-sm text-gray-600">({review.rating}/5)</span>
                             </div>
                         </div>
+                        <div>
+                            <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2">
+                                <Star className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                                Type:
+                            </h3>
+                            <div className="flex items-start flex-col gap-2 mt-1 sm:mt-2">
+                                <p className="text-md font-bold">Review From : {reviewType}</p>
+                                
+                                <h3 className="text-lg font-medium">Review for: {reviewTarget}</h3>
+                            </div>
+                        </div>
                     </div>
                     <div className="mt-4 sm:mt-6">
                         <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2">
@@ -120,8 +131,8 @@ const ReviewDetails = ({ review, onClose, onUpdate }) => {
                                 <Image
                                     src={review.thumb?.url}
                                     alt="thumb"
-                                    width={200}
-                                    height={200}
+                                    width={100}
+                                    height={100}
                                     className="object-cover rounded border shadow"
                                 />
                             ) : '-'}

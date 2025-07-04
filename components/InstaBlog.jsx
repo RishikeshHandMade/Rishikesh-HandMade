@@ -43,8 +43,7 @@ const InstaBlog = () => {
     // Normalize reviews to a standard format
     function normalizeReview(review) {
         // console.log('Raw review data:', review);
-
-        // Handle different image URL structures
+      
         let imageUrl = '';
         if (review.thumb?.url) {
             imageUrl = review.thumb.url.startsWith('http') ? review.thumb.url : `https:${review.thumb.url}`;
@@ -61,7 +60,7 @@ const InstaBlog = () => {
         // console.log('Processed Image URL:', imageUrl);
 
         return {
-            _id: review._id?.toString() || Math.random().toString(36).substr(2, 9),
+            _id: review._id?.toString(),
             rating: review.rating || 5,
             title: review.title || review.name || 'No Title',
             shortDescription: review.description || review.shortDescription || '',
@@ -162,7 +161,7 @@ const InstaBlog = () => {
             setIsLoadingReviews(true);
             const response = await fetch('/api/saveReviews?type=all&approved=true&active=true');
             const data = await response.json();
-            // console.log('Fetched artisan reviews:', data);
+            console.log('Fetched artisan reviews:', data);
             if (response.ok) {
                 // Only show approved and active reviews
                 const approvedReviews = data.reviews.filter(review =>
@@ -499,10 +498,10 @@ const InstaBlog = () => {
                                     <div className="bg-white rounded-3xl px-8 py-5 flex flex-col justify-between h-full min-h-[320px] relative overflow-visible">
                                         {/* Review text */}
                                         <div className="text-md md:text-2xl text-gray-800 font-bold leading-relaxed text-left">
-                                            {review.title || 'No review text.'}
+                                            {review?.title || 'No review text.'}
                                         </div>
                                         <div className="text-md md:text-md text-gray-800 font-medium leading-relaxed text-left">
-                                            {review.shortDescription || 'No review text.'}
+                                            {review?.shortDescription || 'No review text.'}
                                         </div>
                                         {/* Bottom row: avatar, name, subtitle, nav buttons */}
 
@@ -510,8 +509,8 @@ const InstaBlog = () => {
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center">
                                                 <img
-                                                    src={review.image || "/placeholder.jpeg"}
-                                                    alt={review.createdBy || 'Anonymous'}
+                                                    src={review?.image || "/placeholder.jpeg"}
+                                                    alt={review?.createdBy || 'Anonymous'}
                                                     className="w-14 h-14 rounded-full border-4 border-white shadow object-cover"
                                                     onError={(e) => {
                                                         // console.log('Image failed to load:', e.target.src);
@@ -519,12 +518,12 @@ const InstaBlog = () => {
                                                     }}
                                                 />
                                                 <div className="ml-4 text-left flex flex-col items-center gap-2">
-                                                    <div className="font-bold text-xl text-black">{review.createdBy || review.title || 'Anonymous'}</div>
+                                                    <div className="font-bold text-xl text-black">{review?.createdBy || review?.title || 'Anonymous'}</div>
 
                                                     <div className="flex items-center gap-1">
-                                                        {review.rating && (
+                                                        {review?.rating && (
                                                             <>
-                                                                {[...Array(review.rating)].map((_, i) => (
+                                                                {[...Array(review?.rating)].map((_, i) => (
                                                                     <Star key={i} size={15} className="text-yellow-400 fill-yellow-400" />
                                                                 ))}
                                                             </>
@@ -569,10 +568,10 @@ const InstaBlog = () => {
                                         {/* Review text */}
 
                                         <div className="text-md md:text-2xl text-gray-800 font-bold leading-relaxed mt-4 text-left">
-                                            {review.title || 'No review text.'}
+                                            {review?.title || 'No review text.'}
                                         </div>
                                         <div className="text-md text-gray-800 font-medium leading-relaxed my-2 text-left">
-                                            {review.shortDescription || 'No review text.'}
+                                            {review?.shortDescription || 'No review text.'}
                                         </div>
                                         {/* Bottom row: avatar, name, subtitle, nav buttons */}
                                         <div className="flex items-center justify-between w-full mt-auto">
@@ -580,8 +579,8 @@ const InstaBlog = () => {
                                             <div className="flex items-center justify-between gap-2">
                                                 <div className="flex items-center gap-2">
                                                     <img
-                                                        src={review.image || "/placeholder.jpeg"}
-                                                        alt={review.createdBy || 'Anonymous'}
+                                                        src={review?.image || "/placeholder.jpeg"}
+                                                        alt={review?.createdBy || 'Anonymous'}
                                                         className="w-14 h-14 rounded-full border-4 border-white shadow object-cover"
                                                         onError={(e) => {
                                                             // console.log('Image failed to load:', e.target.src);
@@ -589,13 +588,13 @@ const InstaBlog = () => {
                                                         }}
                                                     />
                                                     <div className="ml-4 text-left">
-                                                        <div className="font-bold text-xl text-black">{review.createdBy || review.title || 'Anonymous'}</div>
+                                                        <div className="font-bold text-xl text-black">{review?.createdBy || review?.title || 'Anonymous'}</div>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-1">
-                                                    {review.rating && (
+                                                    {review?.rating && (
                                                         <>
-                                                            {[...Array(review.rating)].map((_, i) => (
+                                                            {[...Array(review?.rating)].map((_, i) => (
                                                                 <Star key={i} size={22} className="text-yellow-400 fill-yellow-400" />
                                                             ))}
                                                         </>

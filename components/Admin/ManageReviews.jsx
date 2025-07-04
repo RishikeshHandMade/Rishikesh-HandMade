@@ -5,17 +5,15 @@ import toast from "react-hot-toast";
 import { Switch } from "../ui/switch";
 
 
-const actionOptions = [
-    { label: "Active", value: "active" },
-    { label: "Inactive", value: "inactive" },
-    { label: "Delete", value: "delete" },
-];
-
 const statusOptions = [
     { label: "Active", value: "active" },
     { label: "Inactive", value: "inactive" },
-    { label: "Deleted", value: "deleted" },
     { label: "All", value: "all" },
+];
+const typeOptions = [
+    { label: "All Types", value: "all" },
+    { label: "Product", value: "product" },
+    { label: "Artisan", value: "artisan" }
 ];
 
 const columns = [
@@ -41,6 +39,7 @@ const ManageReviews = () => {
     const [allReviews, setAllReviews] = useState([]);
     const [filteredReviews, setFilteredReviews] = useState([]);
     const [statusFilter, setStatusFilter] = useState("all");
+    const [typeFilter, setTypeFilter] = useState("all");
     const [selectedReview, setSelectedReview] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [reviewsPerPage] = useState(10);
@@ -53,7 +52,7 @@ const ManageReviews = () => {
 
     useEffect(() => {
         filterReviews();
-    }, [allReviews, statusFilter]);
+    }, [allReviews, statusFilter, typeFilter]);
 
     const fetchReviews = async () => {
         setLoading(true);
@@ -83,7 +82,7 @@ const ManageReviews = () => {
                     createdAt: review.createdAt ? new Date(review.createdAt).toISOString() : new Date().toISOString(),
                     updatedAt: review.updatedAt ? new Date(review.updatedAt).toISOString() : new Date().toISOString()
                 }));
-                
+
                 setAllReviews(processedReviews);
                 setFilteredReviews(processedReviews);
             } else {
@@ -97,7 +96,22 @@ const ManageReviews = () => {
     };
 
     const filterReviews = () => {
-        setFilteredReviews(allReviews);
+        let filtered = [...allReviews];
+
+        // Filter by status
+        if (statusFilter === 'active') {
+            filtered = filtered.filter(review => review.active && !review.deleted);
+        } else if (statusFilter === 'inactive') {
+            filtered = filtered.filter(review => !review.active && !review.deleted);
+        } else {
+            filtered = filtered.filter(review => !review.deleted);
+        }
+
+        // Filter by type
+        if (typeFilter !== 'all') {
+            filtered = filtered.filter(review => review.type === typeFilter);
+        }
+        setFilteredReviews(filtered);
         setCurrentPage(1);
     };
 
@@ -105,10 +119,14 @@ const ManageReviews = () => {
         setStatusFilter(e.target.value);
     };
 
+    const handleTypeChange = (e) => {
+        setTypeFilter(e.target.value);
+    };
+
     const handleAction = async (id, action) => {
         try {
             let updates = { _id: id };
-            
+
             // Determine the updates based on the action
             switch (action) {
                 case 'active':
@@ -119,23 +137,19 @@ const ManageReviews = () => {
                     updates.active = false;
                     updates.deleted = false;
                     break;
-                case 'delete':
-                    updates.deleted = true;
-                    updates.active = false;
-                    break;
                 default:
                     throw new Error('Invalid action');
             }
-            
+
             // Send the update
             const res = await fetch('/api/saveReviews', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updates)
             });
-            
+
             const data = await res.json();
-            
+
             if (res.ok) {
                 toast.success(data.message || 'Action completed successfully');
                 fetchReviews();
@@ -151,29 +165,29 @@ const ManageReviews = () => {
     const handleToggleApproved = async (review) => {
         try {
             const isApproving = !review.approved;
-            const updates = { 
-                _id: review._id, 
+            const updates = {
+                _id: review._id,
                 approved: isApproving,
                 // If approving, ensure the review is also active and not deleted
-                ...(isApproving && { 
+                ...(isApproving && {
                     active: true,
-                    deleted: false 
+                    deleted: false
                 })
             };
-            
+
             // Only create promotion when approving an artisan review
             if (isApproving && review.type === 'artisan' && review.artisan?._id) {
                 updates.createPromotion = true;
             }
-            
+
             const res = await fetch(`/api/saveReviews`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(updates)
             });
-            
+
             const data = await res.json();
-            
+
             if (res.ok) {
                 toast.success(data.message || `Review ${isApproving ? 'approved' : 'disapproved'} successfully`);
                 if (isApproving && review.type === 'artisan') {
@@ -193,33 +207,44 @@ const ManageReviews = () => {
     const indexOfFirst = indexOfLast - reviewsPerPage;
     const currentReviews = filteredReviews.slice(indexOfFirst, indexOfLast);
     const totalPages = Math.ceil(filteredReviews.length / reviewsPerPage);
-    console.log(currentReviews)
+    // console.log(currentReviews)
     return (
         <div className="w-full max-w-[1100px] mx-auto rounded-[14px] shadow-md px-4 py-6 md:py-8">
             {/* Filter Row */}
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-6">
+            {/* Existing status filter */}
+            <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                        {statusOptions.map(option => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* New type filter */}
                 <div className="flex-1">
-                    <div className="my-4 flex items-center">
-                        <label htmlFor="status-select" className="font-medium mr-2">Show:</label>
-                        <select
-                            id="status-select"
-                            value={statusFilter}
-                            onChange={handleStatusChange}
-                            className="px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        >
-                            {statusOptions.map(opt => (
-                                <option key={opt.value} value={opt.value}>{opt.label}</option>
-                            ))}
-                        </select>
-
-                        {/* <option value="pending">Pending Reviews</option>
-                            <option value="approved">Approved Reviews</option>
-                            <option value="all">All Reviews</option> */}
-
-                    </div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                    <select
+                        value={typeFilter}
+                        onChange={(e) => setTypeFilter(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                        {typeOptions.map(option => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </select>
                 </div>
             </div>
-
+      
             {/* Table */}
             <div className="overflow-x-auto bg-white rounded-xl">
                 <table className="min-w-full border-separate border-spacing-0">
@@ -266,28 +291,15 @@ const ManageReviews = () => {
                                             className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-gray-300"
                                         />
                                     </td>
-                                    {/* Active
+                                    {/* Active Status */}
                                     <td className="align-middle px-5">
                                         <Switch
-                                            checked={review.active !== false}
-                                            onCheckedChange={() => handleToggleActive(review)}
-                                            className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-gray-300"
+                                            checked={!review.deleted && review.active}
+                                            onCheckedChange={() => handleAction(review._id, review.active ? 'inactive' : 'active')}
+                                            className={`data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-gray-300 ${review.deleted ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                            disabled={review.deleted}
+                                            title={review.deleted ? 'Cannot activate deleted review' : ''}
                                         />
-                                    </td> */}
-                                    {/* Action Dropdown */}
-                                    <td className="align-middle px-5">
-                                        <div className="relative">
-                                            <select
-                                                onChange={e => handleAction(review._id, e.target.value)}
-                                                defaultValue=""
-                                                className="px-2 py-1 rounded border focus:ring-2 focus:ring-blue-400"
-                                            >
-                                                <option value="" disabled>Action</option>
-                                                {actionOptions.map(opt => (
-                                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                                ))}
-                                            </select>
-                                        </div>
                                     </td>
                                     {/* View */}
                                     <td className="align-middle px-5">
@@ -326,24 +338,24 @@ const ManageReviews = () => {
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>
                         </button>
                     </div>
+                </div>
+            )}
+
+            {/* Modal for review details */}
+            {selectedReview && (
+                <ReviewDetails
+                    review={selectedReview}
+                    onClose={() => setSelectedReview(null)}
+                    onUpdate={fetchReviews}
+                    onAction={handleAction}
+                />
+            )}
+
+            {/* Styles (copied from ManageReviewLog for consistency) */}
+
         </div>
-        )}
+    );
 
-        {/* Modal for review details */}
-        {selectedReview && (
-            <ReviewDetails
-                review={selectedReview}
-                onClose={() => setSelectedReview(null)}
-                onUpdate={fetchReviews}
-                onAction={handleAction}
-            />
-        )}
-
-        {/* Styles (copied from ManageReviewLog for consistency) */}
-
-    </div>
-);
-    
 };
 
 export default ManageReviews;

@@ -222,59 +222,65 @@ const ArtisanDetails = ({ artisan }) => {
   };
 
 
-  // Fetch artisan reviews and custom reviews
-  const fetchArtisanReviews = async () => {
+  // Add these state variables at the top of your component with other states
+  const [customReviews, setCustomReviews] = useState([]);
+
+  // Add this function to fetch custom reviews
+  const fetchCustomReviews = async () => {
     if (!artisan?._id) return;
-    
+
     try {
       setIsLoadingReviews(true);
-      
-      // Fetch both artisan reviews and custom reviews for this artisan
-      const [reviewsResponse] = await Promise.all([
-        fetch(`/api/saveReviews?artisanId=${artisan._id}&type=artisan`),
-      ]);
-      
-      const [reviewsData] = await Promise.all([
-        reviewsResponse.json(),
-      ]);
-      
-      if (reviewsResponse.ok) {
-        // Combine and filter reviews
-        const allReviews = [
-          ...(reviewsData.reviews || []),
-        ];
-        
-        // Filter to only show approved, active, and non-deleted reviews
-        const approvedReviews = allReviews.filter(review => 
-          review.approved === true &&
-          review.deleted !== true &&
-          review.active === true &&
-          (review.artisan === artisan._id || review.artisan?._id === artisan._id)
-        );
-        
-        // Sort by date, newest first
-        const sortedReviews = approvedReviews.sort((a, b) => 
-          new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date)
-        );
-        
-        setArtisanReviews(sortedReviews);
+      const response = await fetch(
+        `/api/saveReviews?artisanId=${artisan._id}&type=artisan&approved=true&active=true`
+      );
+      const data = await response.json();
+
+      if (response.ok) {
+        setCustomReviews(data.reviews || []);
       }
     } catch (error) {
-      console.error('Error fetching reviews:', error);
-      toast.error('Failed to load reviews');
-      setArtisanReviews([]); // Ensure we don't show stale data
+      console.error('Error fetching custom reviews:', error);
+      toast.error('Failed to load custom reviews');
+      setCustomReviews([]);
     } finally {
       setIsLoadingReviews(false);
     }
   };
 
+  // Add this useEffect to fetch reviews when component mounts or artisan changes
   useEffect(() => {
-    if (artisan?._id) {
-      fetchArtisanReviews();
-    }
+    fetchCustomReviews();
   }, [artisan?._id]);
-  const allArtisanReviews = [...artisanReviews, ...artisan.promotions];
-  // console.log(artisanReviews)
+
+  // Get direct artisan reviews from the artisan object
+  const directReviews = Array.isArray(artisan?.promotions) ? artisan.promotions : [];
+
+  // Combine with custom reviews
+  const allArtisanReviews = [...directReviews, ...customReviews];
+
+  // Normalize the reviews
+  const normalizeReview = (review) => {
+    return {
+      _id: review._id?.toString(),
+      rating: review.rating || 0,
+      title: review.title || 'No Title',
+      description: review.description || review.shortDescription || '',
+      name: review.name || review.createdBy || 'Anonymous',
+      date: review.date || review.createdAt,
+      image: review.image?.url || review.thumb?.url || '/placeholder.jpeg',
+      source: review.source || 'artisan' // 'direct' for artisan.reviews, 'custom' for API
+    };
+  };
+
+  // Get normalized and sorted reviews
+  const normalizedReviews = allArtisanReviews
+    .map(normalizeReview)
+    .sort((a, b) => {
+      if (a.date && b.date) return new Date(b.date) - new Date(a.date);
+      return (b._id || '').localeCompare(a._id || '');
+    });
+  console.log(normalizedReviews)
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-amber-50 to-white flex flex-col items-center px-2 md:px-0">
@@ -1257,7 +1263,7 @@ const ArtisanDetails = ({ artisan }) => {
         )}
       </div>
       {/* Reviews Section */}
-      {Array.isArray(artisan.promotions) && artisan.promotions.length > 0 && (
+      {Array.isArray(normalizedReviews) && normalizedReviews.length > 0 && (
         <div className="w-full mx-auto relative min-h-[600px] flex items-center justify-end">
           {/* Background Image */}
           <div className="hidden md:flex absolute inset-0 w-full h-full z-0">
@@ -1278,7 +1284,7 @@ const ArtisanDetails = ({ artisan }) => {
               plugins={[Autoplay({ delay: 4000 })]}>
 
               <CarouselContent className="w-full">
-                {artisan.promotions.map((review) => (
+                {normalizedReviews.map((review) => (
                   <CarouselItem
                     key={review._id}
                     className="min-w-0 snap-center w-full"
@@ -1289,14 +1295,14 @@ const ArtisanDetails = ({ artisan }) => {
                         {review.title || 'No review text.'}
                       </div>
                       <div className="text-md md:text-md text-gray-800 font-medium leading-relaxed mb-2 text-left">
-                        {review.shortDescription || 'No review text.'}
+                        {review.description || 'No review text.'}
                       </div>
 
                       {/* Bottom row: avatar, name, subtitle */}
                       <div className="flex items-center justify-between w-full mt-auto">
                         <div className="flex items-center">
                           <img
-                            src={review.image?.url || "/placeholder-user.jpg"}
+                            src={review.image || "/placeholder-user.jpg"}
                             alt={review.createdBy || 'Anonymous'}
                             className="w-14 h-14 rounded-full border-4 border-white shadow object-cover"
                           />
@@ -1334,9 +1340,11 @@ const ArtisanDetails = ({ artisan }) => {
               </span></h3>
             <Carousel className="w-full md:w-[600px]"
               plugins={[Autoplay({ delay: 4000 })]}>
-
+                <div className="button px-10 mb-2">
+              <Button className="bg-white text-black hover:bg-black hover:text-white transition-colors duration-300" onClick={() => setShowReviewModal(true)}>Write Reviews</Button>
+            </div>
               <CarouselContent className="w-full">
-                {artisan.promotions.map((review) => (
+                {normalizedReviews.map((review) => (
                   <CarouselItem
                     key={review._id}
                     className="min-w-0 snap-center w-full"
@@ -1347,14 +1355,14 @@ const ArtisanDetails = ({ artisan }) => {
                         {review.title || 'No review text.'}
                       </div>
                       <div className="text-md md:text-md text-gray-800 font-medium leading-relaxed mb-2 text-left">
-                        {review.shortDescription || 'No review text.'}
+                        {review.description || 'No review text.'}
                       </div>
 
                       {/* Bottom row: avatar, name, subtitle */}
                       <div className="flex items-center justify-between w-full mt-auto">
                         <div className="flex items-center">
                           <img
-                            src={review.image?.url || "/placeholder-user.jpg"}
+                            src={review.image || "/placeholder-user.jpg"}
                             alt={review.createdBy || 'Anonymous'}
                             className="w-14 h-14 rounded-full border-4 border-white shadow object-cover"
                           />
@@ -1377,16 +1385,7 @@ const ArtisanDetails = ({ artisan }) => {
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <div className="button">
-                <Button className="absolute top-0 right-0 bg-white text-black hover:bg-black hover:text-white transition-colors duration-300" onClick={() => {
-                  if (allReviews.length > 0) {
-                    setSelectedArtisan(allReviews[0].artisan); // Send artisan from first promotion
-                    setShowReviewModal(true);
-                  } else {
-                    toast.error('No promotion artisan found');
-                  }
-                }}>Write Reviews</Button>
-              </div>
+
               <div className="flex items-center gap-3">
                 <CarouselPrevious className="absolute top-[85%] left-[65%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
                 <CarouselNext className="absolute top-[85%] left-[80%] bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
@@ -1424,7 +1423,7 @@ const ArtisanDetails = ({ artisan }) => {
         onClose={() => setShowReviewModal(false)}
         onSubmit={(data) => {
           setShowReviewModal(false);
-          fetchArtisanReviews(); // Refresh reviews after submission
+          // fetchArtisanReviews(); // Refresh reviews after submission
           toast.success('Thank you for your review! It will be visible after approval.');
         }}
       />
