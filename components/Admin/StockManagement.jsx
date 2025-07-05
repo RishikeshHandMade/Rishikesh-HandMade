@@ -15,7 +15,6 @@ const columns = [
   "Price",
   "Stock",
   "Artisan",
-  "Status",
   "Actions"
 ];
 
@@ -32,51 +31,52 @@ const StockManagementPage = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [variantsModalOpen, setVariantsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    limit: 10,
+    hasNextPage: false,
+    hasPreviousPage: false
+  });
 
-  // Fetch products from API
-  const fetchProducts = async () => {
+  // Fetch products from API with pagination
+  const fetchProducts = async (page = 1) => {
     try {
       setLoading(true);
-      const response = await fetch('/api/product');
+      const response = await fetch(`/api/product?page=${page}&limit=${pagination.limit}`);
       const data = await response.json();
       if (response.ok) {
-        setProducts(data);
+        setProducts(data.products || data); // Handle both paginated and non-paginated responses
+        
+        // If the response includes pagination data
+        if (data.pagination) {
+          setPagination({
+            ...pagination,
+            currentPage: data.pagination.currentPage || page,
+            totalPages: data.pagination.totalPages || 1,
+            totalItems: data.pagination.total || data.length || 0,
+            hasNextPage: data.pagination?.hasNextPage || false,
+            hasPreviousPage: data.pagination?.hasPreviousPage || false
+          });
+        }
       } else {
-        toast.error('Failed to fetch products');
+        toast.error(data.error || 'Failed to fetch products');
       }
     } catch (error) {
-      // console.error('Error fetching products:', error);
+      console.error('Error fetching products:', error);
       toast.error('Error fetching products');
     } finally {
       setLoading(false);
     }
   };
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    fetchProducts(pagination.currentPage);
+  }, [pagination.currentPage]);
 
-  // Handle status toggle
-  const handleStatusToggle = async (productId, currentStatus) => {
-    try {
-      const response = await fetch(`/api/product/${productId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ active: !currentStatus }),
-      });
-
-      if (response.ok) {
-        setProducts(products.map(product =>
-          product._id === productId ? { ...product, active: !currentStatus } : product
-        ));
-        toast.success('Product status updated');
-      } else {
-        toast.error('Failed to update product status');
-      }
-    } catch (error) {
-      // console.error('Error updating product status:', error);
-      toast.error('Error updating product status');
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+      fetchProducts(newPage);
     }
   };
 
@@ -464,13 +464,12 @@ const StockManagementPage = () => {
 
   return (
     <div className="p-4 sm:p-4 min-h-screen font-['Inter']">
-      {/* Header */}
-      <div className="flex flex-wrap justify-between items-start mb-8 gap-4 ">
+      <div className="flex flex-wrap justify-between items-start mb-8 gap-4">
         <div className="flex items-center rounded-lg border border-black shadow-sm p-0.5 flex-[2_1_300px] max-w-[380px] min-w-[220px] mx-auto h-10">
           <input
             type="text"
             placeholder="Search products..."
-            className="flex-1 px-3 py-2 text-sm border-0 focus:ring-0 border"
+            className="flex-1 px-3 py-2 text-sm border-0 focus:ring-0"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -554,18 +553,6 @@ const StockManagementPage = () => {
                         product.artisan?.name ||
                         '-'
                       }</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <Switch
-                            id={`status-${product._id}`}
-                            checked={product.active}
-                            onCheckedChange={() => handleStatusToggle(product._id, product.active)}
-                          />
-                          <label htmlFor={`status-${product._id}`} className="ml-2 text-sm">
-                            {product.active ? 'Active' : 'Inactive'}
-                          </label>
-                        </div>
-                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center space-x-2">
                           <Button
@@ -627,31 +614,29 @@ const StockManagementPage = () => {
         saving={saving}
       />
       {/* Pagination */}
-      {filteredProducts.length > 10 && (
-      <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">
-        <div className="flex items-center gap-1">
-          <button className="p-1 hover:bg-gray-200 rounded" aria-label="Prev">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="2">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </button>
-          {[1, 2, 3, 4, 5].map((num) => (
+      <div className="flex flex-col items-center justify-center gap-4 mt-6">
+        <span className="text-lg font-semibold">
+          Page {pagination.currentPage} of {pagination.totalPages}
+        </span>
+        <div className="flex gap-2">
+          {pagination.currentPage > 1 && (
             <button
-              key={num}
-              className={`w-8 h-8 rounded ${num === 1 ? 'bg-gray-800 text-white' : 'hover:bg-gray-100'}`}
+              onClick={() => handlePageChange(pagination.currentPage - 1)}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
             >
-              {num}
+              Previous
             </button>
-          ))}
-          <button className="p-1 hover:bg-gray-200 rounded" aria-label="Next">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="2">
-              <path d="M9 6l6 6-6 6" />
-            </svg>
-          </button>
+          )}
+          {pagination.currentPage < pagination.totalPages && (
+            <button
+              onClick={() => handlePageChange(pagination.currentPage + 1)}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+            >
+              Next
+            </button>
+          )}
         </div>
       </div>
-      )}
-      <div className="text-sm font-semibold flex justify-end text-gray-600">Showing {filteredProducts.length|| 0} Data</div>
     </div>
   );
 };

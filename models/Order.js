@@ -1,6 +1,16 @@
 import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 
+const StatusHistorySchema = new Schema({
+    status: { type: String, required: true },
+    message: { type: String, required: true },
+    // Tracking info (only applicable for Shipped status)
+    trackingNumber: { type: String },
+    trackingUrl: { type: String },
+    updatedBy: { type: String, default: 'admin' },
+    updatedAt: { type: Date, default: Date.now }
+});
+
 const OrderSchema = new Schema({
     // Cart and products
     products: [
@@ -39,6 +49,7 @@ const OrderSchema = new Schema({
     transactionId: { type: String, default: '' },
     payment: { type: String }, // 'cod' or 'online'
     status: { type: String, default: "Pending" },
+    statusHistory: [StatusHistorySchema],
     paymentMethod: { type: String },
     datePurchased: { type: Date, default: Date.now },
     agree: { type: Boolean },

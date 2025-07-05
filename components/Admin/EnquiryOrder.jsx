@@ -37,25 +37,19 @@ const orderStatusColors = {
   Cancelled: "bg-red-100 text-red-700"
 };
 
-const sidebarLinks = [
-  { name: "Dashboard", icon: <LayoutDashboard size={20} />, url: "#" },
-  { name: "Products", icon: <Store size={20} />, url: "#" },
-  { name: "Orders", icon: <ShoppingCart size={20} />, url: "#" },
-  { name: "Customers", icon: <Users size={20} />, url: "#" },
-  { name: "Settings", icon: <Settings size={20} />, url: "#" },
-];
-
-// function classNames(...classes) {
-//   return classes.filter(Boolean).join(" ");
-// }
 
 const EnquiryOrder = () => {
-
   const [orders, setOrders] = useState([]);
+  console.log(orders)
   const [statusFilter, setStatusFilter] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [viewOrder, setViewOrder] = useState(null); // For modal
+  const [viewOrder, setViewOrder] = useState(null); // For view modal
+  const [statusUpdateOrder, setStatusUpdateOrder] = useState(null); // For status update modal
+  const [statusMessage, setStatusMessage] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [trackingNumber, setTrackingNumber] = useState("");
+  const [trackingUrl, setTrackingUrl] = useState("");
   const rowsPerPage = 8;
   console.log(orders)
   // Filtering logic
@@ -200,30 +194,18 @@ const EnquiryOrder = () => {
                                   : "bg-gray-50 border-gray-300 text-gray-700"
                         )}
                         value={order.status}
-                        onChange={async e => {
-                          const newStatus = e.target.value;
-                          setOrders(orders => orders.map(o =>
-                            o.orderId === order.orderId ? { ...o, status: newStatus } : o
-                          ));
-                          try {
-                            const res = await fetch(`/api/orders/${order._id}`, {
-                              method: 'PUT',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ status: newStatus })
-                            });
-                            const data = await res.json();
-                            if (!data.success) throw new Error(data.error || 'Update failed');
-                            toast.success('Order status updated!');
-                          } catch (err) {
-                            setOrders(orders => orders.map(o =>
-                              o.orderId === order.orderId ? { ...o, status: order.status } : o
-                            ));
-                            toast.error('Failed to update order status: ' + err.message);
-                          }
+                        onChange={(e) => {
+                          setSelectedStatus(e.target.value);
+                          setStatusUpdateOrder(order);
+                          setStatusMessage('');
+                          setTrackingNumber('');
+                          setTrackingUrl('');
                         }}
                       >
                         {orderStatusOptions.map(status => (
-                          <option key={status} value={status}>{status}</option>
+                          <option key={status} value={status}>
+                            {status}
+                          </option>
                         ))}
                       </select>
                       <span className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
@@ -273,6 +255,157 @@ const EnquiryOrder = () => {
         </div>
       </div>
 
+      {/* Modal for status update */}
+      {statusUpdateOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative animate-fade-in">
+            <button
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-2xl font-bold"
+              onClick={() => setStatusUpdateOrder(null)}
+              title="Close"
+            >
+              &times;
+            </button>
+            <h2 className="text-xl font-bold mb-4 text-blue-700">Update Order Status</h2>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                New Status
+              </label>
+              <div className="relative">
+                <select
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                >
+                  {orderStatusOptions.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Update Message (Optional)
+              </label>
+              <textarea
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                rows="3"
+                placeholder="Add a message about this status update..."
+                value={statusMessage}
+                onChange={(e) => setStatusMessage(e.target.value)}
+              />
+            </div>
+
+            {/* Tracking Information (only shown when status is Shipped) */}
+            {selectedStatus === 'Shipped' && (
+              <div className="space-y-4 mt-4 p-4 bg-gray-50 rounded-md border border-gray-200">
+                <h3 className="font-medium text-gray-700">Shipping Information</h3>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tracking Number *
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter tracking number"
+                    value={trackingNumber}
+                    onChange={(e) => setTrackingNumber(e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tracking URL (Optional)
+                  </label>
+                  <input
+                    type="url"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="https://example.com/tracking/123"
+                    value={trackingUrl}
+                    onChange={(e) => setTrackingUrl(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end space-x-3">
+              <button
+                type="button"
+                className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                onClick={() => setStatusUpdateOrder(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                onClick={async () => {
+                  try {
+                    const updateData = {
+                      status: selectedStatus,
+                      message: statusMessage || `Status updated to ${selectedStatus}`,
+                      // Always include these fields to ensure they're updated
+                      ...(selectedStatus === 'Shipped' && {
+                        trackingNumber: trackingNumber || '',
+                        trackingUrl: trackingUrl || ''
+                      })
+                    };
+                    
+                    console.log('Sending update data:', updateData);
+
+                    const res = await fetch(`/api/orders/${statusUpdateOrder._id}`, {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(updateData)
+                    });
+                    
+                    const data = await res.json();
+                    console.log('Update response:', data);
+                    if (!data.success) {
+                      throw new Error(data.error || 'Update failed');
+                    }
+                    
+                    // Update local state
+                    setOrders(orders => orders.map(o =>
+                      o._id === statusUpdateOrder._id 
+                        ? { 
+                            ...o, 
+                            status: selectedStatus,
+                            statusHistory: [
+                              ...(o.statusHistory || []),
+                              {
+                                status: selectedStatus,
+                                message: statusMessage || `Status updated to ${selectedStatus}`,
+                                ...(selectedStatus === 'Shipped' && {
+                                  trackingNumber: trackingNumber,
+                                  trackingUrl: trackingUrl
+                                }),
+                                updatedAt: new Date().toISOString()
+                              }
+                            ]
+                          } 
+                        : o
+                    ));
+                    
+                    toast.success('Order status updated!');
+                    setStatusUpdateOrder(null);
+                  } catch (err) {
+                    console.error('Error updating status:', err);
+                    toast.error('Failed to update order status: ' + err.message);
+                  }
+                }}
+              >
+                Update Status
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal for viewing order details */}
       {viewOrder && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
@@ -296,6 +429,27 @@ const EnquiryOrder = () => {
               <div className="text-gray-700 text-sm mt-1">{viewOrder.address}</div>
             </div>
             <div className="mb-4">
+              <div className="mb-3">
+                <span className="font-semibold text-gray-600">Order Status History:</span>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {(viewOrder.statusHistory || []).length > 0 ? (
+                    [...(viewOrder.statusHistory || [])]
+                      .sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0))
+                      .map((history, idx) => (
+                        <div key={idx} className="text-sm p-2 bg-gray-50 rounded border-l-4 border-blue-500">
+                          <div className="font-medium">{history.status}</div>
+                          <div className="text-gray-600">{history.message}</div>
+                          <div className="text-xs text-gray-500">
+                            {new Date(history.updatedAt || 0).toLocaleString()}
+                          </div>
+                        </div>
+                      ))
+                  ) : (
+                    <div className="text-sm text-gray-500">No status history available</div>
+                  )}
+                </div>
+              </div>
+              
               <span className="font-semibold text-gray-600">Products:</span>
               <div className="divide-y divide-gray-200 mt-2">
                 {viewOrder.products.map((p, i) => (

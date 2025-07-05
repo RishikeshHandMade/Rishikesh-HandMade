@@ -700,7 +700,8 @@ const CheckOut = () => {
     { value: 'online', label: 'Online Payment' },
     { value: 'cod', label: 'Cash on Delivery (COD)' }
   ];
-  const [payment, setPayment] = useState('online');
+  const [payment, setPayment] = useState('cod');
+  const [paymentMethod, setPaymentMethod] = useState('cod');
   const [agree, setAgree] = useState(false);
   const [saveAddress, setSaveAddress] = useState(false);
   const [mounted, setMounted] = React.useState(false);
@@ -803,6 +804,7 @@ const CheckOut = () => {
         },
         paymentInfo: {
           method: paymentMethod,
+          paymentMethod:"COD",
           status: paymentMethod === 'cod' ? 'pending' : 'completed',
           amount: subtotal,
           tax: 0, // Calculate if needed
@@ -1003,11 +1005,14 @@ const CheckOut = () => {
         // Always generate unique orderId and transactionId for COD
         orderId = `COD-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
         if (!transactionId) transactionId = orderId;
+        setPaymentMethod('cod');
         const orderPayload = buildOrderPayload({
           cart: contextCart,
           checkoutData,
           ...formFields,
           payment: 'cod',
+          paymentMethod: 'cod',
+          paymentMethodValue: 'cod',
           transactionId,
           orderId,
           agree,
@@ -1103,6 +1108,7 @@ const CheckOut = () => {
       }
       // For online, always go through Razorpay handler
       if (confirmedPaymentMethod === 'online') {
+        setPaymentMethod('online');
         const customer = {
           name: `${firstName} ${lastName}`.trim(),
           email,
@@ -1116,7 +1122,7 @@ const CheckOut = () => {
           setError,
           router,
           checkoutData,
-          formFields
+          {...formFields, paymentMethod: 'online'}
         );
         return;
       }
@@ -1529,7 +1535,11 @@ const CheckOut = () => {
                       name="payment"
                       value={option.value}
                       checked={payment === option.value}
-                      onChange={(e) => setPayment(e.target.value)}
+                      onChange={(e) => {
+                        const method = e.target.value;
+                        setPayment(method);
+                        setPaymentMethod(method);
+                      }}
                       className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 mr-3"
                     />
                     <div className="flex-1">
@@ -1574,7 +1584,7 @@ const CheckOut = () => {
         </div>
         <div className="mt-4 mb-4">
           {/* <pre className="bg-gray-100 p-4 rounded overflow-auto">
-            {JSON.stringify({
+           {JSON.stringify({
               firstName,
               lastName,
               email,
@@ -1586,9 +1596,10 @@ const CheckOut = () => {
               state,
               pincode,
               payment,
+              paymentMethod,
               checkoutData: {
                 cart: checkoutData?.cart?.map(item => ({
-                  id: item.id,
+                  id: item.id,  
                   name: item.name,
                   price: item.price,
                   qty: item.qty,
@@ -1600,7 +1611,7 @@ const CheckOut = () => {
                 cartTotal: checkoutData?.cartTotal,
                 shippingCost: checkoutData?.shippingCost
               }
-            }, null, 2)}
+            }, null, 2)} 
           </pre> */}
         </div>
         <button
@@ -1633,9 +1644,5 @@ const CheckOut = () => {
 
   );
 }
-
-// --- Clear buyNowProduct after order ---
-// Add this logic to your order placement handlers (COD & online):
-// if (buyNowMode) localStorage.removeItem('buyNowProduct');
 
 export default CheckOut;

@@ -596,3 +596,320 @@ function ChatList({ chats, setShowChat, showChat, selectedChat, setSelectedChat,
         </div>
     )
 }
+
+// "use client";
+// import { useState, useEffect, useRef } from 'react';
+// import { useSearchParams, useRouter } from 'next/navigation';
+// import { useSession } from 'next-auth/react';
+// import { Loader, Send, ArrowLeft } from 'lucide-react';
+
+// const AdminChat = () => {
+//     const router = useRouter();
+//     const searchParams = useSearchParams();
+//     const { data: session } = useSession();
+//     const [chats, setChats] = useState([]);
+//     const [selectedChat, setSelectedChat] = useState(null);
+//     const [messages, setMessages] = useState([]);
+//     const [newMessage, setNewMessage] = useState('');
+//     const [loading, setLoading] = useState(true);
+//     const [type, setType] = useState('user'); // 'user' or 'order'
+//     const [orderDetails, setOrderDetails] = useState(null);
+//     const messagesEndRef = useRef(null);
+
+//     // Get orderId from URL if present
+//     const orderId = searchParams.get('orderId');
+
+//     // Fetch chats based on type (user or order)
+//     // Inside your AdminChat component
+//     useEffect(() => {
+//         const fetchChats = async () => {
+//             try {
+//                 setLoading(true);
+//                 const res = await fetch(`/api/chats?type=${type}`);
+
+//                 if (!res.ok) {
+//                     throw new Error(`HTTP error! status: ${res.status}`);
+//                 }
+
+//                 const data = await res.json();
+//                 if (data.success) {
+//                     setChats(data.chats || []);
+
+//                     // If we have an orderId in URL, select that chat
+//                     if (orderId && !selectedChat) {
+//                         const orderChat = data.chats?.find(chat => chat.orderId === orderId);
+//                         if (orderChat) {
+//                             setSelectedChat(orderChat);
+//                         } else {
+//                             // If no chat exists for this order, create one
+//                             const newChatRes = await fetch('/api/chats', {
+//                                 method: 'POST',
+//                                 headers: { 'Content-Type': 'application/json' },
+//                                 body: JSON.stringify({
+//                                     type: 'order',
+//                                     orderId,
+//                                     participants: [session?.user?.id] // Add admin as participant
+//                                 })
+//                             });
+
+//                             if (newChatRes.ok) {
+//                                 const newChatData = await newChatRes.json();
+//                                 setSelectedChat(newChatData.chat);
+//                                 setChats(prev => [newChatData.chat, ...prev]);
+//                             }
+//                         }
+//                     }
+//                 }
+//             } catch (error) {
+//                 console.error('Error fetching chats:', error);
+//             } finally {
+//                 setLoading(false);
+//             }
+//         };
+
+//         fetchChats();
+//         const interval = setInterval(fetchChats, 10000);
+//         return () => clearInterval(interval);
+//     }, [type, orderId, selectedChat, session?.user?.id]);
+//     // Fetch messages for selected chat (user or order)
+//     useEffect(() => {
+//         if (!selectedChat) return;
+
+//         const fetchMessages = async () => {
+//             try {
+//                 const url = selectedChat.orderId
+//                     ? `/api/chat?orderId=${selectedChat.orderId}`
+//                     : `/api/chat?userId=${selectedChat.userId}`;
+
+//                 const res = await fetch(url);
+//                 const data = await res.json();
+
+//                 if (data.success) {
+//                     setMessages(data.messages);
+//                     // If this is an order chat, fetch order details
+//                     if (selectedChat.orderId && !orderDetails) {
+//                         const orderRes = await fetch(`/api/orders/${selectedChat.orderId}`);
+//                         const orderData = await orderRes.json();
+//                         if (orderData.success) {
+//                             setOrderDetails(orderData.order);
+//                         }
+//                     }
+//                 }
+//             } catch (error) {
+//                 console.error('Error fetching messages:', error);
+//             } finally {
+//                 setLoading(false);
+//             }
+//         };
+
+//         fetchMessages();
+//         const interval = setInterval(fetchMessages, 5000);
+//         return () => clearInterval(interval);
+//     }, [selectedChat, orderDetails]);
+
+//     // Auto-scroll to bottom of messages
+//     useEffect(() => {
+//         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+//     }, [messages]);
+
+//     const sendMessage = async (e) => {
+//         e.preventDefault();
+//         if (!newMessage.trim() || !selectedChat) return;
+
+//         const messageData = {
+//             orderId: selectedChat.orderId,
+//             userId: selectedChat.userId,
+//             sender: 'admin',
+//             senderId: session?.user?.id,
+//             content: newMessage.trim(),
+//             timestamp: new Date().toISOString(),
+//         };
+
+//         try {
+//             // Optimistically update UI
+//             setMessages(prev => [...prev, messageData]);
+//             setNewMessage('');
+
+//             // Send to server
+//             const res = await fetch('/api/chat', {
+//                 method: 'POST',
+//                 headers: { 'Content-Type': 'application/json' },
+//                 body: JSON.stringify(messageData),
+//             });
+
+//             if (!res.ok) {
+//                 throw new Error('Failed to send message');
+//             }
+
+//             // Refresh messages to get server-generated ID and timestamp
+//             const data = await res.json();
+//             if (data.success && data.message) {
+//                 setMessages(prev => [
+//                     ...prev.filter(m => m.tempId !== messageData.tempId),
+//                     data.message
+//                 ]);
+//             }
+//         } catch (error) {
+//             console.error('Error sending message:', error);
+//             // Show error to user
+//             alert('Failed to send message. Please try again.');
+//             // Revert optimistic update
+//             setMessages(prev => prev.filter(m => m.tempId !== messageData.tempId));
+//         }
+//     };
+
+//     // Format date for display
+//     const formatDate = (dateString) => {
+//         const date = new Date(dateString);
+//         return date.toLocaleDateString('en-US', {
+//             month: 'short',
+//             day: 'numeric',
+//             hour: '2-digit',
+//             minute: '2-digit'
+//         });
+//     };
+
+//     if (loading && !selectedChat) {
+//         return (
+//             <div className="flex items-center justify-center h-screen">
+//                 <Loader className="animate-spin h-8 w-8 text-blue-500" />
+//             </div>
+//         );
+//     }
+
+//     return (
+//         <div className="flex h-screen bg-gray-100">
+//             {/* Sidebar */}
+//             <div className="w-80 border-r bg-white">
+//                 <div className="p-4 border-b">
+//                     <h2 className="text-xl font-semibold">Chats</h2>
+//                     <div className="flex mt-2 border-b">
+//                         <button
+//                             onClick={() => setType('user')}
+//                             className={`flex-1 py-2 ${type === 'user' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-600'}`}
+//                         >
+//                             User Chats
+//                         </button>
+//                         <button
+//                             onClick={() => setType('order')}
+//                             className={`flex-1 py-2 ${type === 'order' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-600'}`}
+//                         >
+//                             Order Chats
+//                         </button>
+//                     </div>
+//                 </div>
+//                 <div className="overflow-y-auto h-[calc(100vh-120px)]">
+//                     {chats.map((chat) => (
+//                         <div
+//                             key={chat._id || chat.orderId}
+//                             onClick={() => setSelectedChat(chat)}
+//                             className={`p-4 border-b cursor-pointer hover:bg-gray-50 ${selectedChat?._id === chat._id ? 'bg-blue-50' : ''
+//                                 }`}
+//                         >
+//                             <div className="flex justify-between items-start">
+//                                 <div>
+//                                     <p className="font-medium">
+//                                         {chat.orderId ? `Order #${chat.orderId}` : chat.userName || 'Unknown User'}
+//                                     </p>
+//                                     <p className="text-sm text-gray-600 truncate">
+//                                         {chat.lastMessage?.content || 'No messages yet'}
+//                                     </p>
+//                                 </div>
+//                                 <span className="text-xs text-gray-500">
+//                                     {chat.lastMessage ? formatDate(chat.lastMessage.timestamp) : ''}
+//                                 </span>
+//                             </div>
+//                         </div>
+//                     ))}
+//                     {chats.length === 0 && (
+//                         <p className="p-4 text-gray-500 text-center">No chats found</p>
+//                     )}
+//                 </div>
+//             </div>
+
+//             {/* Chat area */}
+//             <div className="flex-1 flex flex-col">
+//                 {selectedChat ? (
+//                     <>
+//                         {/* Chat header */}
+//                         <div className="bg-white p-4 border-b flex items-center">
+//                             <button
+//                                 onClick={() => setSelectedChat(null)}
+//                                 className="md:hidden mr-2 p-1 hover:bg-gray-100 rounded-full"
+//                             >
+//                                 <ArrowLeft className="h-5 w-5" />
+//                             </button>
+//                             <div>
+//                                 <h2 className="text-lg font-semibold">
+//                                     {selectedChat.orderId
+//                                         ? `Order #${selectedChat.orderId}`
+//                                         : selectedChat.userName || 'Chat'}
+//                                 </h2>
+//                                 {selectedChat.orderId && orderDetails && (
+//                                     <p className="text-sm text-gray-600">
+//                                         {orderDetails.firstName} {orderDetails.lastName} • {orderDetails.status}
+//                                     </p>
+//                                 )}
+//                             </div>
+//                         </div>
+
+//                         {/* Messages */}
+//                         <div className="flex-1 overflow-y-auto p-4 space-y-4">
+//                             {messages.map((message, index) => (
+//                                 <div
+//                                     key={message._id || index}
+//                                     className={`flex ${message.sender === 'admin' ? 'justify-end' : 'justify-start'
+//                                         }`}
+//                                 >
+//                                     <div
+//                                         className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${message.sender === 'admin'
+//                                                 ? 'bg-blue-500 text-white rounded-br-none'
+//                                                 : 'bg-gray-200 text-gray-800 rounded-bl-none'
+//                                             }`}
+//                                     >
+//                                         <p>{message.content}</p>
+//                                         <p className="text-xs opacity-75 mt-1 text-right">
+//                                             {formatDate(message.timestamp)}
+//                                         </p>
+//                                     </div>
+//                                 </div>
+//                             ))}
+//                             <div ref={messagesEndRef} />
+//                         </div>
+
+//                         {/* Message input */}
+//                         <div className="p-4 bg-white border-t">
+//                             <form onSubmit={sendMessage} className="flex">
+//                                 <input
+//                                     type="text"
+//                                     value={newMessage}
+//                                     onChange={(e) => setNewMessage(e.target.value)}
+//                                     placeholder="Type a message..."
+//                                     className="flex-1 border rounded-l-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+//                                 />
+//                                 <button
+//                                     type="submit"
+//                                     className="bg-blue-500 text-white px-4 py-2 rounded-r-lg hover:bg-blue-600 focus:outline-none"
+//                                     disabled={!newMessage.trim() || !selectedChat}
+//                                 >
+//                                     <Send className="h-5 w-5" />
+//                                 </button>
+//                             </form>
+//                         </div>
+//                     </>
+//                 ) : (
+//                     <div className="flex-1 flex items-center justify-center bg-gray-50">
+//                         <div className="text-center p-6 max-w-md">
+//                             <h3 className="text-lg font-medium text-gray-900 mb-2">No chat selected</h3>
+//                             <p className="text-gray-500">
+//                                 Select a chat from the sidebar or create a new one to start messaging.
+//                             </p>
+//                         </div>
+//                     </div>
+//                 )}
+//             </div>
+//         </div>
+//     );
+// };
+
+// export default AdminChat;
