@@ -33,7 +33,7 @@ const productQnA = [
     a: `Q: Can I track my order?\nA: Yes, once shipped, you will receive a tracking link via email/SMS or your client dashboard.\n\nQ: Can I change or cancel my order?\nA: You can cancel or modify your order within a certain period after placing it. Please contact us immediately for assistance.`
   },
   {
-    q: "🧑‍💬 Talk to Support",
+    q: "🧑‍💬 Chat With Admin",
     a: `Yes, our customer support is available [Days & Hours]. You can also email us at support@rishikeshhandmade.com or call +91 7351009107, 9411571947.`
   }
 ];
@@ -235,26 +235,31 @@ export default function ChatBot() {
     setStep(3);
   };
   const handleQnAOption = (qna) => {
+    // Special handling for Chat With Admin
+    if (qna.q === "🧑‍💬 Chat With Admin") {
+      if (!isLoggedIn(session)) {
+        setLoginPrompt(true);
+        setOpen(true);
+        return;
+      } else {
+        window.location.href = "/dashboard?section=chatbot";
+        return;
+      }
+    }
+
     setMessages((msgs) => [...msgs, { from: "You", sender: session?.user?.id || "user", text: qna.q, createdAt: new Date().toISOString() }]);
 
     if (qna.q === "🛍 Product Information") {
-      setShowSupportOptions(false); // Always reset support mode when going to product info
+      setShowSupportOptions(false);
       setMessages((msgs) => [
         ...msgs,
         { from: "Bot", sender: "bot", text: "Sure! Please share the product name.", createdAt: new Date().toISOString() }
       ]);
       setStep("product-info");
-    } else if (qna.q === "🧑‍💬 Talk to Support") {
-      setShowSupportOptions(true); // Show only support options
-      setStep(3); // Stay on main menu step
-      setMessages((msgs) => [
-        ...msgs,
-        { from: "Bot", sender: "bot", text: qna.a, createdAt: new Date().toISOString() }
-      ]);
     } else {
-      setShowSupportOptions(false); // Hide support options for all other QnA
+      setShowSupportOptions(false);
       setMessages((msgs) => [...msgs, { from: "Bot", sender: "bot", text: qna.a, createdAt: new Date().toISOString() }]);
-      setStep(4); // Or setStep(3) if you want to stay on main menu
+      setStep(4);
     }
   };
   const handleProduct = async (e) => {
@@ -414,6 +419,17 @@ export default function ChatBot() {
   };
   const isProductNotFound = step === "faq" && messages[messages.length - 1]?.text === "Sorry, product not found."
 
+  // Handle chat with admin click
+  const handleChatWithAdminClick = () => {
+    if (!isLoggedIn(session)) {
+      setLoginPrompt(true);
+      setShowSupportOptions(true);
+      setOpen(true);
+    } else {
+      window.location.href = "/dashboard?section=chatbot";
+    }
+  };
+
   return (
     <>
       {/* Floating chat bubble */}
@@ -534,53 +550,29 @@ export default function ChatBot() {
                 </button>
               </form>
             )}
-            {/* Step 3: Product info */}
+            {/* Step 3: Main menu with Chat with Admin option */}
             {step === 3 && (
-              showSupportOptions ? (
-                <div className="flex flex-col gap-2 mt-2">
-                  {!session?.user?.id ? (
-                    <>
-                      <button
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition"
-                        onClick={() => window.location.href = "/sign-in"}
-                      >
-                        🔐 Login
-                      </button>
-                      <button
-                        className="w-full bg-gray-100 hover:bg-gray-200 text-blue-700 py-2 rounded-lg font-semibold border transition"
-                        onClick={() => window.location.href = "/sign-up"}
-                      >
-                        📝 Signup
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold transition"
-                      onClick={handleChatWithAdmin}
-                    >
-                      🧑‍💬 Chat with Admin
-                    </button>
-                  )}
+              <div className="flex flex-col gap-2 mb-1">
+                {/* Chat with Admin button */}
+                {/* <button
+                  className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold transition flex items-center justify-center gap-2"
+                  onClick={handleChatWithAdminClick}
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  Chat with Admin
+                </button> */}
+                
+                {/* Other menu items */}
+                {productQnA.map((qna) => (
                   <button
-                    className="w-full text-center px-4 py-2 rounded-lg border transition-colors duration-150 font-medium shadow-sm text-sm transition whitespace-nowrap"
-                    onClick={() => setShowSupportOptions(false)}
+                    key={qna.q}
+                    className="flex-1 text-left px-4 py-1 rounded-lg border transition-colors duration-150 font-medium transition"
+                    onClick={() => handleQnAOption(qna)}
                   >
-                    👈 Back to Chat
+                    {qna.q}
                   </button>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-2 mb-1">
-                  {productQnA.map((qna) => (
-                    <button
-                      key={qna.q}
-                      className="flex-1 text-left px-4 py-1 rounded-lg border transition-colors duration-150 font-medium transition"
-                      onClick={() => handleQnAOption(qna)}
-                    >
-                      {qna.q}
-                    </button>
-                  ))}
-                </div>
-              )
+                ))}
+              </div>
             )}
             {step === "product-info" && (
               <>
@@ -663,10 +655,29 @@ export default function ChatBot() {
               </>
             )}
             {loginPrompt && (
-              <div className="flex flex-col items-center gap-2">
-                <span className="text-sm text-gray-700 mb-2">Please log in or sign up to ask a custom question.</span>
-                <div className="flex gap-2 w-full">
-                </div>
+              <div className="flex flex-col gap-2 mt-2">
+                <p className="text-sm text-gray-700 text-center mb-2">Please log in or sign up to chat with an admin.</p>
+                <button
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition"
+                  onClick={() => window.location.href = "/sign-in?redirect=/dashboard?section=chatbot"}
+                >
+                  🔐 Login
+                </button>
+                <button
+                  className="w-full bg-gray-100 hover:bg-gray-200 text-blue-700 py-2 rounded-lg font-semibold border transition"
+                  onClick={() => window.location.href = "/sign-up?redirect=/dashboard?section=chatbot"}
+                >
+                  📝 Signup
+                </button>
+                <button
+                  className="w-full text-center px-4 py-2 rounded-lg border transition-colors duration-150 font-medium shadow-sm text-sm transition whitespace-nowrap"
+                  onClick={() => {
+                    setLoginPrompt(false);
+                    setShowSupportOptions(false);
+                  }}
+                >
+                  👈 Back to Chat
+                </button>
               </div>
             )}
             {showCustomInput && !loginPrompt && (

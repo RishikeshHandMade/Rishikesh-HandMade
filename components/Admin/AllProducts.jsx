@@ -43,7 +43,7 @@ const AllProducts = () => {
   // Fetch categories (with subMenu.products) and build submenuObjs
   const [categoryObjs, setCategoryObjs] = useState([]);
   const [submenuObjs, setSubmenuObjs] = useState([]);
-// console.log(submenuObjs)
+  // console.log(submenuObjs)
   useEffect(() => {
     const fetchData = async () => {
       try {
