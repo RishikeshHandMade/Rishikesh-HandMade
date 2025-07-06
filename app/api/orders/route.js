@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import Order from '../../../models/Order';
 import connectDB from '@/lib/connectDB';
-import Product from '@/models/Product';
+
 export async function POST(req) {
   await connectDB();
 
@@ -31,47 +31,115 @@ export async function POST(req) {
     body.agree = true; // Always set agree true for all new orders
     const order = await Order.create(body);
 
-    // ✅ Update quantity of each product
+    // ✅ Update quantities using the updateQuantities endpoint
     const products = body.products || body.items || [];
+    
+    // Debug log the raw products
+    console.log('Raw products array:', JSON.stringify(products, null, 2));
+    
+    const itemsToUpdate = [];
+    
+    // Process each product in the cart
     for (const item of products) {
-      const productId = item.productId;
-      const variantId = item.variantId; // This should be passed in the frontend
-      const qtyOrdered = item.quantity || 1;
-    
-      if (!productId || !variantId || !qtyOrdered) {
-        console.error('Invalid product data:', { productId, variantId, qtyOrdered });
-        continue;
-      }
-    
       try {
-        // Step 1: Load the product
-        const product = await Product.findById(productId);
-        if (!product) {
-          console.error('Product not found:', productId);
+        // Skip if no product ID
+        if (!item.productId && !item._id) {
+          console.warn('Skipping item with no product ID:', JSON.stringify(item, null, 2));
           continue;
         }
-    
-        // Step 2: Find the variant
-        const variant = product.variants.find(v => v._id.toString() === variantId);
-        if (!variant) {
-          console.error('Variant not found:', variantId, 'in product:', productId);
-          continue;
-        }
-    
-        // Step 3: Reduce the quantity
-        variant.qty = variant.qty - qtyOrdered;
         
-        // Step 4: Save the product
-        await product.save();
-        console.log('Successfully updated quantity for product:', productId, 'variant:', variantId);
+        const productId = item.productId || item._id;
+        
+        // If we have a quantity object with variants, find the matching variant
+        if (item.quantity?.variants?.length > 0) {
+          // If variantId is provided, use it
+          if (item.variantId !== undefined) {
+            itemsToUpdate.push({
+              productId,
+              variantId: item.variantId,
+              quantity: item.qty || item.quantity || 1
+            });
+          } 
+          // Otherwise try to find the variant by size
+          else if (item.size) {
+            const variantIndex = item.quantity.variants.findIndex(
+              v => v.size === item.size
+            );
+            
+            if (variantIndex !== -1) {
+              itemsToUpdate.push({
+                productId,
+                variantId: variantIndex,
+                quantity: item.qty || item.quantity || 1
+              });
+            } else {
+              console.warn(`Could not find matching variant for size ${item.size} in product ${productId}`);
+            }
+          }
+        } 
+        // Fallback to simple product with no variants
+        else {
+          itemsToUpdate.push({
+            productId,
+            variantId: 0,
+            quantity: item.qty || item.quantity || 1
+          });
+        }
       } catch (error) {
-        console.error('Error updating quantity for product:', productId, 'variant:', variantId, error);
+        console.error('Error processing item:', error, 'Item:', JSON.stringify(item, null, 2));
       }
     }
 
-    return NextResponse.json({ orderId: order._id, success: true }, { status: 200 });
+    console.log('Attempting to update quantities for items:', JSON.stringify(itemsToUpdate, null, 2));
+
+    if (itemsToUpdate.length > 0) {
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        const response = await fetch(`${baseUrl}/api/product/updateQuantities`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ items: itemsToUpdate })
+        });
+
+        const responseData = await response.json().catch(() => ({}));
+        
+        if (!response.ok) {
+          console.error('Failed to update quantities. Status:', response.status);
+          console.error('Response:', responseData);
+          // Continue with order creation even if quantity update fails
+        } else {
+          console.log('Successfully updated quantities:', responseData);
+          if (responseData.results) {
+            responseData.results.forEach(result => {
+              if (result.success) {
+                console.log(`Updated product ${result.productId}, variant ${result.variantId}: ${result.previousQty} → ${result.newQty}`);
+              } else {
+                console.error(`Failed to update product ${result.productId}, variant ${result.variantId}:`, result.error);
+              }
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error in quantity update process:', {
+          error: error.message,
+          stack: error.stack,
+          name: error.name
+        });
+      }
+    }
+
+    return NextResponse.json({ 
+      orderId: order._id, 
+      success: true 
+    }, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: error.message, success: false }, { status: 500 });
+    console.error('Error creating order:', error);
+    return NextResponse.json({ 
+      error: error.message, 
+      success: false 
+    }, { status: 500 });
   }
 }
 

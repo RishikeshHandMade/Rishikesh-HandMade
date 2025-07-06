@@ -48,139 +48,124 @@ function StickyAddToCartBar({ product }) {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+  const isInStock = selectedVariant?.qty > 0;
+  const hasAnyVariantInStock = product?.quantity?.variants?.some(v => v.qty > 0) ||
+    product?.quantity?.varients?.some(v => v.qty > 0);
+
+
+  // ... existing imports and component definition ...
 
   return (
     <div
-      className={`fixed left-0 bottom-0 w-full bg-white shadow-xl z-50 transition-transform duration-300 ${showBar ? "translate-y-0" : "translate-y-full"
+      className={`fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg transform transition-transform duration-300 ${showBar ? "translate-y-0" : "translate-y-full"
         }`}
     >
       <div className="flex items-center justify-end md:justify-between px-4 py-4 max-w-6xl mx-auto">
         {/* Product Info */}
+        {/* In the product info section */}
         <div className="hidden md:flex items-center gap-4">
-          <img src={product?.gallery?.mainImage?.url || "/placeholder.png"} alt={product?.title} className="w-16 h-16 object-cover rounded" />
+          <img
+            src={product?.gallery?.mainImage?.url || "/placeholder.jpeg"}
+            alt={product?.title}
+            className="w-16 h-16 object-cover rounded"
+          />
           <div>
             <div className="font-semibold text-xl">{product?.title}</div>
-            {(() => {
-              const coupon = product.coupon || product.coupons?.coupon;
-              const originalPrice = selectedVariant ? selectedVariant.price : product?.price;
-              let discountedPrice = originalPrice;
-              let couponApplied = false;
-              let couponCode = '';
-              let discountLabel = '';
-              if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
-                discountedPrice = originalPrice - (originalPrice * coupon.percent) / 100;
-                couponApplied = true;
-                couponCode = coupon.couponCode;
-                discountLabel = `-${coupon.percent}%`;
-              } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
-                discountedPrice = originalPrice - coupon.amount;
-                couponApplied = true;
-                couponCode = coupon.couponCode;
-                discountLabel = `-₹${coupon.amount?.toLocaleString('en-IN')}`;
-              }
-              if (couponApplied) {
-                return (
-                  <>
-                    <span className="inline-block border border-green-500 text-green-500 text-xs rounded px-2 py-0.5 font-semibold mb-1">
-                      Coupon Applied: {couponCode} <span className="ml-1">({discountLabel})</span>
-                    </span>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-gray-600 line-through text-lg">₹{originalPrice?.toLocaleString('en-IN')}</span>
-                      <span className="text-xl font-bold text-black">₹{Math.round(discountedPrice)?.toLocaleString('en-IN')}</span>
-                    </div>
-                  </>
-                );
-              } else {
-                return <span className="text-xl font-bold">₹{originalPrice?.toLocaleString('en-IN')}</span>;
-              }
-            })()}
+            <div className="flex items-center gap-2">
+              {selectedVariant ? (
+                selectedVariant.qty > 0 ? (
+                  <span className="text-lg font-bold text-gray-900">
+                    ₹{selectedVariant.price}
+                  </span>
+                ) : (
+                  <span className="text-red-600 font-medium">Out of Stock</span>
+                )
+              ) : hasAnyVariantInStock ? (
+                <span className="text-blue-600 font-medium">Select Variant</span>
+              ) : (
+                <span className="text-red-600 font-medium">Out of Stock</span>
+              )}
+              {selectedVariant && (
+                <span className={`text-sm px-2 py-0.5 rounded ${selectedVariant.qty > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                  }`}>
+                  {selectedVariant.qty > 0 ? 'In Stock' : 'Out of Stock'}
+                </span>
+              )}
+            </div>
           </div>
         </div>
-        {/* Options, Quantity, Add to Cart */}
-        <div className="flex items-center gap-3">
-          {/* Size Selector */}
-          {variants.length > 0 && (
-            <>
-              <select
-                className="border border-black px-4 py-2 rounded"
-                value={selectedVariantIdx}
-                onChange={e => setSelectedVariantIdx(Number(e.target.value))}
+
+        {/* Variant Selector */}
+        {variants.length > 0 && (
+          <select
+            className="border border-black px-4 py-2 rounded"
+            value={selectedVariantIdx}
+            onChange={e => setSelectedVariantIdx(Number(e.target.value))}
+          >
+            {variants.map((v, idx) => (
+              <option
+                key={v._id || idx}
+                value={idx}
+                disabled={v.qty <= 0}
               >
-                {variants.map((v, idx) => (
-                  <option
-                    key={v._id || idx}
-                    value={idx}
-                    disabled={v.qty === 0}
-                  >
-                    {`${hexToColorName(v.color) || 'Color'} / ${v.size || 'Size'}`}{v.qty === 0 ? ' (Sold out)' : ''}
-                  </option>
-                ))}
-              </select>
-              {selectedVariant?.color && (
-                <span
-                  className="inline-block w-5 h-5 rounded-full border ml-2 align-middle"
-                  style={{ background: selectedVariant.color }}
-                  title={hexToColorName(selectedVariant.color)}
-                ></span>
-              )}
-            </>
+                {`${hexToColorName(v.color) || 'Color'} / ${v.size || 'Size'}`}
+                {v.qty <= 0 ? ' (Sold Out)' : ''}
+              </option>
+            ))}
+          </select>
+        )}
+
+        {/* Action Buttons */}
+        <div className="flex items-end bg-red-100 justify-end gap-3">
+          {/* Quantity Selector - Only show if variant is selected and in stock */}
+          {selectedVariant?.qty > 0 && (
+            <div className="flex items-center gap-1">
+              <button
+                className="w-8 h-8 border border-black rounded flex items-center justify-center font-bold text-lg hover:bg-gray-100"
+                onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                aria-label="Decrease quantity"
+                disabled={quantity <= 1}
+              >
+                -
+              </button>
+              <span className="w-8 text-center font-semibold">{quantity}</span>
+              <button
+                className="w-8 h-8 border border-black rounded flex items-center justify-center font-bold text-lg hover:bg-gray-100"
+                onClick={() => setQuantity(q => Math.min(selectedVariant.qty, q + 1))}
+                aria-label="Increase quantity"
+                disabled={quantity >= selectedVariant.qty}
+              >
+                +
+              </button>
+            </div>
           )}
-          {/* Quantity Selector */}
-          <div className="hidden md:flex items-center gap-1">
-            <button
-              className="w-8 h-8 border border-black rounded flex items-center justify-center font-bold text-lg hover:bg-gray-100"
-              onClick={() => setQuantity(q => Math.max(1, q - 1))}
-              aria-label="Decrease quantity"
-              disabled={quantity <= 1}
-            >
-              -
-            </button>
-            <span className="w-8 text-center font-semibold">{quantity}</span>
-            <button
-              className="w-8 h-8 border border-black rounded flex items-center justify-center font-bold text-lg hover:bg-gray-100"
-              onClick={() => setQuantity(q => selectedVariant ? Math.min(selectedVariant.qty, q + 1) : q + 1)}
-              aria-label="Increase quantity"
-              disabled={!selectedVariant || quantity >= (selectedVariant?.qty || 1)}
-            >
-              +
-            </button>
-          </div>
+
+          {/* Add to Cart Button */}
           <button
-            className="bg-blue-600 text-white px-8 py-2 rounded-md font-bold"
+            className={`px-6 py-2 rounded-md font-medium ${selectedVariant?.qty > 0
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
             onClick={() => {
               if (!selectedVariant) {
                 toast.error("Please select a variant.");
                 return;
               }
-              // Calculate discount and coupon info
-              const coupon = product.coupon || product.coupons?.coupon;
-              const originalPrice = selectedVariant.price;
-              let discountedPrice = originalPrice;
-              let couponApplied = false;
-              let couponCode = '';
-              if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
-                discountedPrice = originalPrice - (originalPrice * coupon.percent) / 100;
-                couponApplied = true;
-                couponCode = coupon.couponCode;
-              } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
-                discountedPrice = originalPrice - coupon.amount;
-                couponApplied = true;
-                couponCode = coupon.couponCode;
+              if (selectedVariant.qty <= 0) {
+                toast.error("This variant is out of stock.");
+                return;
               }
-              addToCart({
-                id: product._id,
-                name: product.title,
-                image: product.gallery?.mainImage || "/placeholder.png",
-                price: Math.round(discountedPrice),
-                originalPrice: originalPrice,
-                size: selectedVariant.size,
-                color: selectedVariant.color,
-                couponApplied,
-                couponCode: couponApplied ? couponCode : undefined
-              }, quantity);
-              toast.success("Added to cart!");
+              const coupon = product.coupon || product.coupons?.coupon;
+              addToCart(selectedVariant, quantity, coupon);
             }}
-          >ADD TO CART</button>
+            disabled={!selectedVariant || selectedVariant.qty <= 0}
+          >
+            {!selectedVariant
+              ? 'Select Options'
+              : selectedVariant.qty > 0
+                ? 'Add to Cart'
+                : 'Out of Stock'}
+          </button>
         </div>
       </div>
     </div>

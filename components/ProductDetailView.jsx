@@ -361,7 +361,7 @@ export default function ProductDetailView({ product }) {
         })()}
         {/* Selectors */}
         {/* Price and Coupon Section */}
-        <div className="mb-4 flex items-center gap-2">
+        <div className="mb-2 flex items-center gap-2">
           {hasDiscount && (
             <div className="flex items-center gap-2 mb-1">
               <del className="text-gray-600 font-semibold text-lg mr-2">₹{formatNumeric(selectedVariant?.price)}</del>
@@ -374,39 +374,67 @@ export default function ProductDetailView({ product }) {
             <span className="font-bold text-xl text-black">₹{price}</span>
           )}
         </div>
-          {/* Stock Status */}
-          {(() => {
-            const inStock = Array.isArray(variants) && variants.some(v => v.qty > 0);
+        {/* Stock Status */}
+        {/* Quantity */}
+        {(() => {
+          const currentVariantInStock = selectedVariant?.qty > 0;
+
+          if (currentVariantInStock) {
             return (
-              <span
-                className={`mb-2 px-2 py-0.5 rounded text-xs w-fit font-bold border ${inStock ? 'bg-green-100 text-green-700 border-green-400' : 'bg-red-100 text-red-700 border-red-400'}`}
-              >
-                {inStock ? 'IN STOCK' : 'OUT OF STOCK'}
-              </span>
+              <div className="flex items-center gap-2 my-4">
+                <span className="font-bold text-md">Quantity:</span>
+                <button
+                  className="w-8 h-8 border rounded flex items-center justify-center font-bold text-lg hover:bg-gray-100"
+                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                  aria-label="Decrease quantity"
+                  disabled={quantity <= 1}
+                >
+                  -
+                </button>
+                <span className="w-8 text-center font-semibold">{quantity}</span>
+                <button
+                  className="w-8 h-8 border rounded flex items-center justify-center font-bold text-lg hover:bg-gray-100"
+                  onClick={() => setQuantity(q => Math.min(selectedVariant.qty, q + 1))}
+                  aria-label="Increase quantity"
+                  disabled={!selectedVariant || quantity >= selectedVariant.qty}
+                >
+                  +
+                </button>
+              </div>
             );
-          })()}
+          } else {
+            return (
+              <div className="text-sm my-2 text-red-600 font-medium">
+                This variant is currently out of stock
+              </div>
+            );
+          }
+        })()}
         <div className="flex flex-col gap-4 mb-6">
           {/* Quantity */}
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-md">Quantity:</span>
-            <button
-              className="w-8 h-8 border rounded flex items-center justify-center font-bold text-lg hover:bg-gray-100"
-              onClick={() => setQuantity(q => Math.max(1, q - 1))}
-              aria-label="Decrease quantity"
-              disabled={quantity <= 1}
-            >
-              -
-            </button>
-            <span className="w-8 text-center font-semibold">{quantity}</span>
-            <button
-              className="w-8 h-8 border rounded flex items-center justify-center font-bold text-lg hover:bg-gray-100"
-              onClick={() => setQuantity(q => selectedVariant ? Math.min(selectedVariant.qty, q + 1) : q + 1)}
-              aria-label="Increase quantity"
-              disabled={!selectedVariant || quantity >= (selectedVariant?.qty || 1)}
-            >
-              +
-            </button>
-          </div>
+          {product?.quantity?.varients?.[0].qty > 0 && (
+
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-md">Quantity:</span>
+              <button
+                className="w-8 h-8 border rounded flex items-center justify-center font-bold text-lg hover:bg-gray-100"
+                onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                aria-label="Decrease quantity"
+                disabled={quantity <= 1}
+              >
+                -
+              </button>
+              <span className="w-8 text-center font-semibold">{quantity}</span>
+              <button
+                className="w-8 h-8 border rounded flex items-center justify-center font-bold text-lg hover:bg-gray-100"
+                onClick={() => setQuantity(q => selectedVariant ? Math.min(selectedVariant.qty, q + 1) : q + 1)}
+                aria-label="Increase quantity"
+                disabled={!selectedVariant || quantity >= (selectedVariant?.qty || 0)}
+              >
+                +
+              </button>
+            </div>
+          )}
           {/* Size */}
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-bold text-md">Size:</span>
@@ -778,49 +806,65 @@ export default function ProductDetailView({ product }) {
           </div>
           {/* Action Buttons */}
           <div className="flex gap-4 mb-6 items-center">
-            <button
-              className="bg-black text-white py-3 px-8 font-semibold hover:bg-gray-800 w-full"
-              onClick={() => {
-                if (!selectedVariant) return;
-                const price = selectedVariant.price;
-                const couponObj = coupon || (product.coupons && product.coupons.coupon);
-                let discountedPrice = price;
-                let couponApplied = false;
-                let couponCode = "";
+            {(() => {
+              const hasAnyVariantInStock = product?.quantity?.variants?.some(v => v.qty > 0) ||
+                product?.quantity?.varients?.some(v => v.qty > 0);
+              const currentVariantInStock = selectedVariant?.qty > 0;
 
-                if (couponObj && typeof couponObj.percent === 'number' && couponObj.percent > 0) {
-                  discountedPrice = price - (price * couponObj.percent) / 100;
-                  couponApplied = true;
-                  couponCode = couponObj.couponCode;
-                } else if (couponObj && typeof couponObj.amount === 'number' && couponObj.amount > 0) {
-                  discountedPrice = price - couponObj.amount;
-                  couponApplied = true;
-                  couponCode = couponObj.couponCode;
-                }
+              if (hasAnyVariantInStock) {
+                return (
+                  <button
+                    className={`bg-black text-white py-3 px-8 font-semibold hover:bg-gray-800 w-full ${!currentVariantInStock ? 'opacity-75 cursor-not-allowed' : ''
+                      }`}
+                    onClick={() => {
+                      if (!selectedVariant) {
+                        toast.error("Please select a variant");
+                        return;
+                      }
+                      if (!currentVariantInStock) {
+                        toast.error("Selected variant is out of stock");
+                        return;
+                      }
+                      addToCart({
+                        id: product._id,
+                        name: product.title,
+                        image: typeof selectedImage === "string" ? selectedImage : selectedImage?.url || product.gallery?.mainImage?.url || '/placeholder.png',
+                        price: hasDiscount ? Math.round(discountedPrice) : selectedVariant.price,
+                        originalPrice: selectedVariant.price,
+                        couponApplied: hasDiscount,
+                        couponCode: coupon ? coupon.couponCode : '',
+                        size: selectedSize,
+                        weight: selectedWeight,
+                        color: selectedColor,
+                        qty: quantity,
+                        productCode: item.code || item.productCode || '',
+                        discountPercent: coupon && typeof coupon.percent === 'number' ? coupon.percent : undefined,
+                        discountAmount: coupon && typeof coupon.amount === 'number' ? coupon.amount : undefined,
+                        cgst: (item.taxes && item.taxes.cgst) || item.cgst || (item.tax && item.tax.cgst) || 0,
+                        sgst: (item.taxes && item.taxes.sgst) || item.sgst || (item.tax && item.tax.sgst) || 0,
+                        igst: (item.taxes && item.taxes.igst) || item.igst || (item.tax && item.tax.igst) || 0,
+                        totalQuantity: selectedVariant.qty || 0,
+                        quantity: {
+                          ...product.quantity,
+                          variants: product.quantity?.variants || []
+                        }
+                      });
+                      toast.success("Added to cart!");
+                    }}
+                  >
+                    {currentVariantInStock ? 'ADD TO CART' : 'SELECT AVAILABLE VARIANT'}
+                  </button>
+                );
+              } else {
+                return (
+                  <div className="w-full py-3 px-4 bg-gray-300 text-gray-600 font-medium text-center rounded-lg cursor-not-allowed">
+                    OUT OF STOCK
+                  </div>
+                );
+              }
+            })()}
 
-                addToCart({
-                  id: item._id,
-                  name: item.title,
-                  image: item?.gallery?.mainImage || "/placeholder.jpeg",
-                  price: Math.round(discountedPrice),
-                  size: item?.quantity?.variants[0].size,
-                  weight: item?.quantity?.variants[0].weight,
-                  originalPrice: price,
-                  qty: 1,
-                  couponApplied,
-                  couponCode: couponApplied ? couponCode : undefined,
-                  productCode: item.code || item.productCode || '',
-                  discountPercent: coupon && typeof coupon.percent === 'number' ? coupon.percent : undefined,
-                  discountAmount: coupon && typeof coupon.amount === 'number' ? coupon.amount : undefined,
-                  cgst: (item.taxes && item.taxes.cgst) || item.cgst || (item.tax && item.tax.cgst) || 0,
-                  sgst: (item.taxes && item.taxes.sgst) || item.sgst || (item.tax && item.tax.sgst) || 0,
-                  totalQuantity: item?.quantity?.variants[0]?.qty || 0,
-                });
-                toast.success("Added to cart!");
-              }}
-            >
-              ADD TO CART
-            </button>
+            {/* Keep the wishlist button outside the condition so it's always visible */}
             <button
               className={`p-2 rounded-full border hover:bg-gray-50 ${wishlist && wishlist.some(i => i.id === product._id) ? "bg-pink-600 border-pink-600" : ""}`}
               onClick={() => {
@@ -846,16 +890,20 @@ export default function ProductDetailView({ product }) {
                     discountAmount: coupon && typeof coupon.amount === 'number' ? coupon.amount : undefined,
                     cgst: (item.taxes && item.taxes.cgst) || item.cgst || (item.tax && item.tax.cgst) || 0,
                     sgst: (item.taxes && item.taxes.sgst) || item.sgst || (item.tax && item.tax.sgst) || 0,
-                    totalQuantity: item?.quantity?.variants[0]?.qty || 0,
-                    
+                    igst: (item.taxes && item.taxes.igst) || item.igst || (item.tax && item.tax.igst) || 0,
+                    totalQuantity: selectedVariant.qty || 0,
+                    quantity: {
+                      ...product.quantity,
+                      variants: product.quantity?.variants || []
+                    }
                   });
                   toast.success("Added to wishlist!");
                 }
               }}
-              aria-label="Add to Wishlist"
             >
               <Heart className={wishlist && wishlist.some(i => i.id === product._id) ? "text-white" : "text-pink-600"} />
             </button>
+
             {/* Share Button with Popover */}
             <div className="relative">
               <button
@@ -921,7 +969,10 @@ export default function ProductDetailView({ product }) {
           </div>
           {/* Buy Now Button */}
           <button
-            className="border border-black py-3 font-semibold hover:bg-gray-100 w-full"
+            className={`border border-black py-3 font-semibold w-full ${selectedVariant?.qty > 0
+                ? 'hover:bg-gray-100'
+                : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+              }`}
             onClick={async () => {
               if (!selectedVariant) return;
               // Block if pincode is not entered
@@ -1024,8 +1075,9 @@ export default function ProductDetailView({ product }) {
                 toast.error('Failed to prepare product. Please try again.');
               }
             }}
+            disabled={!selectedVariant || selectedVariant.qty <= 0}
           >
-            BUY IT NOW
+            {selectedVariant?.qty > 0 ? 'BUY IT NOW' : 'OUT OF STOCK'}
           </button>
           <Dialog open={showArtisanModal} onOpenChange={setShowArtisanModal}>
             <DialogContent className="max-w-md w-full p-0 overflow-hidden">
@@ -1076,7 +1128,7 @@ export default function ProductDetailView({ product }) {
           </Dialog>
         </div>
       </div>
-    </div>
+    </div >
 
   );
 }

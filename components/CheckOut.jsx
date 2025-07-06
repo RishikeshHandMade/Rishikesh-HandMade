@@ -784,16 +784,40 @@ const CheckOut = () => {
 
     try {
       const orderData = {
-        items: cart.map(item => ({
-          productId: item._id || item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.qty,
-          weight: item.weight,
-          image: item.image?.url || '',
-          discount: item.discountAmount || 0,
-          tax: ((item.cgst || 0) + (item.sgst || 0)) / 100 * item.price
-        })),
+        items: cart.map(item => {
+          // Find the variant index if not already set
+          const variantId = item.variantId ?? item.variantIndex ?? 0;
+          
+          // If we have the full quantity object, use it to get the current variant
+          let currentVariant = null;
+          if (item.quantity?.variants?.[variantId]) {
+            currentVariant = item.quantity.variants[variantId];
+          }
+          
+          return {
+            _id: item._id || item.id,
+            productId: item._id || item.id,
+            variantId: variantId,
+            name: item.name,
+            price: item.price,
+            quantity: item.qty || 1,
+            qty: item.qty || 1, // Include both quantity and qty for backward compatibility
+            size: item.size || currentVariant?.size,
+            weight: item.weight || currentVariant?.weight,
+            image: typeof item.image === 'string' ? item.image : item.image?.url || '',
+            discount: item.discountAmount || 0,
+            tax: ((item.cgst || 0) + (item.sgst || 0)) / 100 * item.price,
+            productCode: item.productCode || '',
+            // Include the full variant information if available
+            variant: currentVariant || {
+              size: item.size,
+              weight: item.weight,
+              qty: item.qty || 1
+            },
+            // Include the full quantity document if available
+            quantity: item.quantity
+          };
+        }),
         shippingInfo: {
           address: street,
           city,
@@ -837,24 +861,8 @@ const CheckOut = () => {
       localStorage.removeItem('cart');
       setCart([]);
 
-      // Update product quantities in backend
-      try {
-        const updateQuantitiesResponse = await fetch('/api/products/updateQuantities', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            items: cart.map(item => ({
-              id: item._id || item.id,
-              quantity: item.qty
-            }))
-          })
-        });
-        if (!updateQuantitiesResponse.ok) {
-          console.error('Failed to update product quantities');
-        }
-      } catch (error) {
-        console.error('Error updating product quantities:', error);
-      }
+      // Quantity updates are now handled by the backend
+      console.log('Order created successfully. Quantity updates are processed by the backend.');
 
       // Redirect to order confirmation page
       setShowConfirmationModal(true);
@@ -1305,47 +1313,8 @@ const CheckOut = () => {
                   />
                 </div>
               </div>
-              {/* <div className="text-center text-sm text-red-500">
-                Check Delivery to Your Area – Enter Your PIN Code
-              </div> */}
             </div>
           </div>
-
-          {/* <div>
-            <h3 className="text-md font-semibold mb-4">Ship to a different address?</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm mb-1 text-gray-600">Address</label>
-                <input
-                  className="w-full py-2 px-3 bg-gray-100 rounded-md border-0"
-                />
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm mb-1 text-gray-600">City</label>
-                  <input
-                    className="w-full py-2 px-3 bg-gray-100 rounded-md border-0"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm mb-1 text-gray-600">Distt.</label>
-                  <input
-                    className="w-full py-2 px-3 bg-gray-100 rounded-md border-0"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm mb-1 text-gray-600">State</label>
-                  <input
-                    className="w-full py-2 px-3 bg-gray-100 rounded-md border-0"
-                  />
-                </div>
-              </div>
-              <div className="text-center text-sm text-red-500">
-                Check Delivery to Your Area – Enter Your PIN Code
-              </div>
-            </div>
-          </div> */}
-
           <div className="text-center text-gray-700 text-sm">
             This helps us serve you better and keep you updated on your order status.
           </div>

@@ -162,6 +162,35 @@ export async function PUT(request) {
         } // else leave as-is if already present
         order.agree = true; // Always set agree true for online orders (on update)
         await order.save();
+
+        // Update quantities after successful payment
+        try {
+            const products = cart || order.products || [];
+            const itemsToUpdate = products.map(item => ({
+                productId: item.productId || item._id,
+                variantId: item.variantId || 0, // Default to 0 if no variantId
+                quantity: item.quantity || 1
+            })).filter(item => item.productId && item.quantity > 0);
+
+            if (itemsToUpdate.length > 0) {
+                const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+                const response = await fetch(`${baseUrl}/api/product/updateQuantities`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ items: itemsToUpdate })
+                });
+
+                if (!response.ok) {
+                    console.error('Failed to update quantities after payment:', await response.text());
+                }
+            }
+        } catch (error) {
+            console.error('Error updating quantities after payment:', error);
+            // Don't fail the payment flow if quantity update fails
+        }
+
         // Return user-facing orderId and payment details
         return NextResponse.json({
             success: true,
