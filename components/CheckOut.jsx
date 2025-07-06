@@ -128,7 +128,7 @@ const CheckOut = () => {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false); // Prevents double payment attempts
   const [error, setError] = useState(null);
   // Coupon state
-  console.log(checkoutData)
+  // console.log(checkoutData)
   const [couponInput, setCouponInput] = useState("");
   const [loadingCoupon, setLoadingCoupon] = useState(false);
   const [couponError, setCouponError] = useState("");
@@ -198,6 +198,75 @@ const CheckOut = () => {
         order_id: razorpayOrderId,
         handler: async (response) => {
           // console.log("Razorpay handler called", response);
+          
+          // Update quantities after successful payment by creating a temporary order
+          // This reuses the same logic as the COD flow
+          try {
+            const tempOrderId = `ONLINE-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+            const tempTransactionId = `TXN-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+            
+            // Create a temporary order payload with the same structure as COD
+            const tempOrderPayload = {
+              products: cart.map(item => {
+                // Extract product ID from either direct property, quantity object, or _id
+                const productId = item.id || item._id || (item.quantity?.product ? item.quantity.product.toString() : null);
+                
+                if (!productId) {
+                  console.error('Cannot determine product ID for item:', item);
+                  return null;
+                }
+
+                return {
+                  ...item,
+                  quantity: item.quantity || item.qty || 1,
+                  // Ensure we have the required fields for the order
+                  productId: productId,
+                  _id: productId, // Also set _id for backward compatibility
+                  variantId: item.variantId || 0,
+                  price: item.price || 0,
+                  name: item.name || 'Product',
+                  image: item.image?.url || item.image || ''
+                };
+              }).filter(Boolean), // Remove any null items
+              cartTotal: finalAmount,
+              subTotal: finalAmount,
+              totalTax: 0,
+              shippingCost: 0,
+              // Customer details
+              firstName: customer.name.split(' ')[0] || '',
+              lastName: customer.name.split(' ').slice(1).join(' ') || '',
+              email: customer.email,
+              phone: customer.phone,
+              // Address details
+              street: formFields.street || '',
+              city: formFields.city || '',
+              district: formFields.district || '',
+              state: formFields.state || '',
+              pincode: formFields.pincode || '',
+              // Payment details
+              payment: 'online',
+              paymentMethod: 'online',
+              orderId: tempOrderId,
+              transactionId: tempTransactionId,
+              agree: true,
+              status: 'Paid'
+            };
+
+            // Call the orders API which will handle the quantity updates
+            const res = await fetch('/api/orders', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(tempOrderPayload)
+            });
+
+            if (!res.ok) {
+              const errorData = await res.json().catch(() => ({}));
+              console.error('Failed to update quantities via order API:', errorData);
+            }
+          } catch (error) {
+            console.error('Error updating quantities after payment:', error);
+            // Don't fail the payment if quantity update fails, just log it
+          }
           toast.dismiss();
           try {
             // 5. Verify payment and update order in DB
@@ -768,107 +837,303 @@ const CheckOut = () => {
   // Handle COD order creation
   const handleCreateOrder = async (paymentMethod) => {
     setLoading(true);
-    // If buy-now mode, clear buyNowProduct after order
+    // Check for buy-now mode
     let isBuyNow = false;
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       isBuyNow = params.get('mode') === 'buy-now';
     }
-    // ... rest of function ...
-    // After successful order/payment:
-    if (isBuyNow) {
-      localStorage.removeItem('buyNowProduct');
-    }
-
+    
     setError(null);
 
     try {
-      const orderData = {
-        items: cart.map(item => {
-          // Find the variant index if not already set
-          const variantId = item.variantId ?? item.variantIndex ?? 0;
-          
-          // If we have the full quantity object, use it to get the current variant
-          let currentVariant = null;
-          if (item.quantity?.variants?.[variantId]) {
-            currentVariant = item.quantity.variants[variantId];
-          }
-          
-          return {
-            _id: item._id || item.id,
-            productId: item._id || item.id,
-            variantId: variantId,
-            name: item.name,
-            price: item.price,
-            quantity: item.qty || 1,
-            qty: item.qty || 1, // Include both quantity and qty for backward compatibility
-            size: item.size || currentVariant?.size,
-            weight: item.weight || currentVariant?.weight,
-            image: typeof item.image === 'string' ? item.image : item.image?.url || '',
-            discount: item.discountAmount || 0,
-            tax: ((item.cgst || 0) + (item.sgst || 0)) / 100 * item.price,
-            productCode: item.productCode || '',
-            // Include the full variant information if available
-            variant: currentVariant || {
-              size: item.size,
-              weight: item.weight,
-              qty: item.qty || 1
-            },
-            // Include the full quantity document if available
-            quantity: item.quantity
-          };
-        }),
-        shippingInfo: {
-          address: street,
-          city,
-          state,
-          postalCode: pincode,
-          phone,
-          district,
-        },
-        paymentInfo: {
-          method: paymentMethod,
-          paymentMethod:"COD",
-          status: paymentMethod === 'cod' ? 'pending' : 'completed',
-          amount: subtotal,
-          tax: 0, // Calculate if needed
-          shipping: shippingCost
-        },
-        user: session?.user?.id || null,
-        status: 'processing',
-        totalAmount: subtotal + shippingCost,
-        email,
-        name: `${firstName} ${lastName}`.trim()
-      };
+      // Calculate totals
+      const subTotal = cart.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0);
+      const totalTax = cart.reduce(
+        (sum, item) => sum + (((item.cgst || 0) + (item.sgst || 0)) / 100) * (item.price || 0) * (item.qty || 1),
+        0
+      );
+      const shippingCost = subTotal >= 500 ? 0 : 50; // Example shipping logic
+      const totalAmount = subTotal + totalTax + shippingCost;
 
-      // console.log('Order Payload:', orderData);
+      // Generate a unique order ID for COD
+      const orderId = `COD-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+      const transactionId = `TXN-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 
-      const response = await fetch('/api/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(orderData),
+      // Prepare products array in the same format as the online payment flow
+      const productsPayload = cart.map(item => {
+        // Get the product ID - check multiple possible locations
+        const productId = item._id || item.id || (item.product ? (item.product._id || item.product.id) : null);
+        if (!productId) {
+          console.error('Could not determine product ID for item:', item);
+          throw new Error('Invalid product: missing ID');
+        }
+
+        // Find the variant - use the same logic as online payment
+        let variant = null;
+        let variantId = item.variantId ?? item.variantIndex ?? 0;
+        
+        // Try to find the variant by ID or size
+        if (item.quantity?.variants?.length > 0) {
+          variant = item.quantity.variants.find(v => 
+            v._id === variantId || v.size === variantId || v.size === item.size
+          ) || item.quantity.variants[0];
+        }
+
+        // Build the order item in the same format as online payment
+        return {
+          ...item,
+          quantity: item.quantity || item.qty || 1,
+          productId: productId,
+          _id: productId, // Also set _id for backward compatibility
+          variantId: variantId,
+          price: item.price || 0,
+          name: item.name || 'Product',
+          image: typeof item.image === 'string' ? item.image : item.image?.url || ''
+        };
       });
 
-      const data = await response.json();
+      // Build the order data in the format expected by the backend
+      const orderData = {
+        // Order details
+        products: productsPayload,
+        cartTotal: totalAmount,
+        subTotal: subTotal,
+        totalTax: totalTax,
+        shippingCost: shippingCost,
+        payment: 'cod',
+        paymentMethod: 'cod',
+        orderId: orderId,
+        transactionId: transactionId,
+        status: 'Processing',
+        agree: true,
+        
+        // Customer details
+        firstName: firstName,
+        lastName: lastName,
+        email: user?.email || email,
+        phone: phone,
+        
+        // Address details
+        street: street,
+        city: city,
+        district: district || '',
+        state: state,
+        pincode: pincode,
+        
+        // Items for quantity updates - format exactly as expected by the backend
+        items: productsPayload.map(item => {
+          // Find the variant by size if available
+          let variant = null;
+          let variantIndex = 0;
+          
+          if (item.quantity?.variants?.length > 0) {
+            // First try to find by size
+            variant = item.quantity.variants.find(v => v.size === item.size);
+            
+            // If not found by size, use the first variant
+            if (!variant) {
+              variant = item.quantity.variants[0];
+            }
+            
+            // Get the index of the variant
+            variantIndex = item.quantity.variants.findIndex(v => v._id === variant._id);
+            if (variantIndex === -1) variantIndex = 0;
+          }
+          
+          // Create the item in the exact format the backend expects
+          const orderItem = {
+            _id: item._id || item.id,
+            productId: item._id || item.id,
+            variantId: variantIndex,
+            quantity: item.quantity,  // The full quantity object
+            qty: item.qty || 1,       // The quantity being ordered
+            size: item.size,
+            // Include the variant data for reference
+            variant: variant || {
+              size: item.size,
+              qty: item.qty || 1
+            }
+          };
+          
+          console.log('Order item being sent:', JSON.stringify(orderItem, null, 2));
+          return orderItem;
+        })
+      };
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to create order');
+      // Log the order data being sent
+      console.log('Sending order data:', {
+        products: orderData.products?.map(p => ({
+          _id: p._id,
+          name: p.name,
+          qty: p.qty,
+          variantId: p.variantId,
+          size: p.size,
+          price: p.price
+        })),
+        items: orderData.items,
+        shippingInfo: orderData.shippingInfo,
+        paymentInfo: orderData.paymentInfo,
+        user: orderData.user,
+        status: orderData.status,
+        totalAmount: orderData.totalAmount
+      });
+
+      console.log('Sending request to /api/orders with body:', JSON.stringify({
+        ...orderData,
+        products: orderData.products?.map(p => ({
+          _id: p._id,
+          name: p.name,
+          qty: p.qty,
+          variantId: p.variantId,
+          size: p.size,
+          price: p.price
+        })),
+        items: orderData.items
+      }, null, 2));
+
+      let response;
+      let data;
+      
+      try {
+        response = await fetch('/api/orders', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(orderData),
+        });
+        
+        data = await response.json().catch(() => ({}));
+        
+        console.log('Order API response:', {
+          status: response.status,
+          statusText: response.statusText,
+          data
+        });
+        
+        if (!response.ok) {
+          throw new Error(data.message || `HTTP error! status: ${response.status}`);
+        }
+      } catch (error) {
+        console.error('Error creating order:', {
+          error: error.message,
+          response: {
+            status: response?.status,
+            statusText: response?.statusText,
+            data: data || 'No data'
+          },
+          request: {
+            url: '/api/orders',
+            method: 'POST',
+            body: JSON.stringify({
+              ...orderData,
+              products: orderData.products?.map(p => ({
+                _id: p._id,
+                name: p.name,
+                qty: p.qty,
+                variantId: p.variantId,
+                size: p.size
+              })),
+              items: orderData.items
+            })
+          }
+        });
+        throw error;
       }
 
-      // Clear cart in localStorage and state
-      localStorage.removeItem('cart');
-      setCart([]);
+      if (!response.ok) {
+        console.error('Order creation failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          data
+        });
+        throw new Error(data.message || `Failed to create order: ${response.status} ${response.statusText}`);
+      }
 
-      // Quantity updates are now handled by the backend
+      try {
+        // Log state before clearing
+        console.group('🔄 Clearing Cart Data');
+        
+        // Clear the appropriate storage based on the order type
+        if (isBuyNow) {
+          console.log('🛍️ Clearing buyNowProduct from localStorage');
+          console.log('Before removal - buyNowProduct:', localStorage.getItem('buyNowProduct'));
+          localStorage.removeItem('buyNowProduct');
+          console.log('After removal - buyNowProduct:', localStorage.getItem('buyNowProduct'));
+        } else {
+          console.log('🛒 Clearing cart data from storage');
+          
+          // Log before clearing
+          console.log('📦 Before clearing - cart items:', {
+            cart: localStorage.getItem('cart'),
+            checkoutCart: localStorage.getItem('checkoutCart'),
+            cartKeys: Object.keys(localStorage).filter(k => k === 'cart' || k.startsWith('cart_'))
+          });
+          
+          // Clear all cart-related storage
+          localStorage.removeItem('checkoutCart');
+          localStorage.removeItem('cart');
+          
+          // Also clear any other cart-related keys
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('cart_') || key === 'cart') {
+              localStorage.removeItem(key);
+            }
+          });
+          
+          // Log after clearing
+          console.log('✅ After clearing - cart items:', {
+            cart: localStorage.getItem('cart'),
+            checkoutCart: localStorage.getItem('checkoutCart'),
+            remainingCartKeys: Object.keys(localStorage).filter(k => k === 'cart' || k.startsWith('cart_'))
+          });
+        }
+        
+        // Clear the cart in context
+        if (setCart) {
+          console.log('🧹 Clearing cart context');
+          console.log('Before context clear - cart:', contextCart);
+          setCart([]);
+          console.log('After context clear - cart should be empty');
+          
+          // Also clear any cart state in session storage
+          if (typeof sessionStorage !== 'undefined') {
+            console.log('🗑️ Clearing session storage cart');
+            console.log('Before session clear - cart:', sessionStorage.getItem('cart'));
+            sessionStorage.removeItem('cart');
+            console.log('After session clear - cart:', sessionStorage.getItem('cart'));
+          }
+        }
+        
+        console.groupEnd(); // End clearing group
+      } catch (storageError) {
+        console.error('Error cleaning up storage:', storageError);
+        // Don't fail the order if cleanup fails
+      }
+
       console.log('Order created successfully. Quantity updates are processed by the backend.');
 
-      // Redirect to order confirmation page
+      // Show confirmation and set order ID
       setShowConfirmationModal(true);
-      setRecentOrderId(data.order._id);
-      // router.push(`/dashboard?orderId=${data.order._id}`);
-
+      setRecentOrderId(data.order?._id);
+      
+      // Log the order creation for debugging
+      console.log('Order created with ID:', data.order?._id);
+      
+      // Show success message to user
+      toast.success('Order placed successfully!', { 
+        position: 'top-center',
+        style: { 
+          borderRadius: '10px', 
+          background: '#4CAF50',
+          color: 'white',
+          padding: '16px',
+          fontSize: '16px',
+          fontWeight: 'bold'
+        }
+      });
+      
       return data.order;
     } catch (error) {
       // console.error('Order creation error:', error);
@@ -894,10 +1159,45 @@ const CheckOut = () => {
     return '';
   };
 
+  // Debug function to log cart and storage state
+  const logCartState = (context) => {
+    console.group(`🛒 Cart State - ${context}`);
+    console.log('📦 Cart Context:', contextCart);
+    
+    console.log('💾 Local Storage:');
+    Object.keys(localStorage).forEach(key => {
+      if (key === 'cart' || key === 'checkoutCart' || key.startsWith('cart_')) {
+        try {
+          const value = localStorage.getItem(key);
+          console.log(`  ${key}:`, JSON.parse(value));
+        } catch (e) {
+          console.log(`  ${key}:`, localStorage.getItem(key));
+        }
+      }
+    });
+    
+    if (typeof sessionStorage !== 'undefined') {
+      console.log('💿 Session Storage:');
+      try {
+        const sessionCart = sessionStorage.getItem('cart');
+        console.log('  cart:', sessionCart ? JSON.parse(sessionCart) : 'empty');
+      } catch (e) {
+        console.log('  cart:', sessionStorage.getItem('cart'));
+      }
+    }
+    
+    console.groupEnd();
+  };
+
   // Place Order handler
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
     if (loading) return;
+    
+    // Log initial cart state
+    if (typeof window !== 'undefined') {
+      logCartState('Before Order Processing');
+    }
 
     // Validate required fields
     const validationError = validateForm();
@@ -944,6 +1244,13 @@ const CheckOut = () => {
     }
 
     // Handle payment based on selected method
+    // Check for buy-now mode from URL
+    let isBuyNow = false;
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      isBuyNow = params.get('mode') === 'buy-now';
+    }
+    
     if (payment === "online") {
       if (!checkoutData) {
         setError("Checkout data not found. Please refresh the page.");
@@ -958,22 +1265,67 @@ const CheckOut = () => {
       try {
         const order = await handleCreateOrder('cod');
         if (order) {
-          // ...send confirmation email...
-          if (typeof window !== 'undefined' && isBuyNow) {
-            localStorage.removeItem('buyNowProduct');
-          }
+          console.group('🔄 Clearing Cart Data (COD)');
+          
+          // Log state before clearing (COD flow)
+          console.log('📦 Before clearing - cart items (COD):', {
+            cart: localStorage.getItem('cart'),
+            checkoutCart: localStorage.getItem('checkoutCart'),
+            cartKeys: Object.keys(localStorage).filter(k => k === 'cart' || k.startsWith('cart_'))
+          });
+          
+          // Clean up based on buy-now or cart flow
           if (typeof window !== 'undefined') {
             if (isBuyNow) {
+              console.log('🛍️ Clearing buyNowProduct from localStorage (COD)');
+              console.log('Before removal - buyNowProduct:', localStorage.getItem('buyNowProduct'));
               localStorage.removeItem('buyNowProduct');
+              console.log('After removal - buyNowProduct:', localStorage.getItem('buyNowProduct'));
             } else {
+              console.log('🛒 Clearing cart data from storage (COD)');
+              
+              // Clear all cart-related storage
               localStorage.removeItem('checkoutCart');
               localStorage.removeItem('cart');
+              
+              // Also clear any other cart-related keys
+              Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('cart_') || key === 'cart') {
+                  localStorage.removeItem(key);
+                }
+              });
+              
+              // Log after clearing
+              console.log('✅ After clearing - cart items (COD):', {
+                cart: localStorage.getItem('cart'),
+                checkoutCart: localStorage.getItem('checkoutCart'),
+                remainingCartKeys: Object.keys(localStorage).filter(k => k === 'cart' || k.startsWith('cart_'))
+              });
+            }
+            
+            // Clear session storage as well
+            if (typeof sessionStorage !== 'undefined') {
+              console.log('🗑️ Clearing session storage cart (COD)');
+              console.log('Before session clear - cart (COD):', sessionStorage.getItem('cart'));
+              sessionStorage.removeItem('cart');
+              console.log('After session clear - cart (COD):', sessionStorage.getItem('cart'));
             }
           }
-          setShowConfirmationModal(true);
-          setRecentOrderId(order._id);
-          // router.push(`/dashboard?orderId=${order._id}`);
+          
+          // Clear the cart in context
+          if (setCart) {
+            console.log('🧹 Clearing cart context (COD)');
+            console.log('Before context clear - cart (COD):', contextCart);
+            setCart([]);
+            console.log('After context clear - cart should be empty (COD)');
+          }
+          
+          console.groupEnd(); // End clearing group (COD)
         }
+        
+        setShowConfirmationModal(true);
+        setRecentOrderId(order._id);
+        // router.push(`/dashboard?orderId=${order._id}`);
       } catch (error) {
         // console.error('Error creating COD order:', error);
         setError(error.message || 'Failed to create order');

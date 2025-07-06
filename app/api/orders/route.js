@@ -32,65 +32,103 @@ export async function POST(req) {
     const order = await Order.create(body);
 
     // ✅ Update quantities using the updateQuantities endpoint
-    const products = body.products || body.items || [];
+    const products = Array.isArray(body.products) ? body.products : [];
+    const items = Array.isArray(body.items) ? body.items : [];
     
-    // Debug log the raw products
-    console.log('Raw products array:', JSON.stringify(products, null, 2));
+    // Debug log the raw data
+    // console.log('Raw request body:', JSON.stringify({
+    //   products: products.map(p => ({
+    //     _id: p._id,
+    //     id: p.id,
+    //     name: p.name,
+    //     qty: p.qty,
+    //     quantity: p.quantity ? '[...]' : null,
+    //     variantId: p.variantId,
+    //     size: p.size
+    //   })),
+    //   items: items.map(i => ({
+    //     _id: i._id,
+    //     productId: i.productId,
+    //     variantId: i.variantId,
+    //     qty: i.qty,
+    //     size: i.size
+    //   }))
+    // }, null, 2));
     
     const itemsToUpdate = [];
     
-    // Process each product in the cart
-    for (const item of products) {
+    // First, process the items array if it exists (for quantity updates)
+    for (const item of items) {
       try {
-        // Skip if no product ID
-        if (!item.productId && !item._id) {
-          console.warn('Skipping item with no product ID:', JSON.stringify(item, null, 2));
+        const productId = item.productId || item._id;
+        if (!productId) {
+          // console.warn('Skipping item with no product ID:', JSON.stringify(item, null, 2));
           continue;
         }
         
-        const productId = item.productId || item._id;
-        
-        // If we have a quantity object with variants, find the matching variant
-        if (item.quantity?.variants?.length > 0) {
-          // If variantId is provided, use it
-          if (item.variantId !== undefined) {
-            itemsToUpdate.push({
-              productId,
-              variantId: item.variantId,
-              quantity: item.qty || item.quantity || 1
-            });
-          } 
-          // Otherwise try to find the variant by size
-          else if (item.size) {
-            const variantIndex = item.quantity.variants.findIndex(
-              v => v.size === item.size
-            );
-            
-            if (variantIndex !== -1) {
-              itemsToUpdate.push({
-                productId,
-                variantId: variantIndex,
-                quantity: item.qty || item.quantity || 1
-              });
-            } else {
-              console.warn(`Could not find matching variant for size ${item.size} in product ${productId}`);
-            }
-          }
-        } 
-        // Fallback to simple product with no variants
-        else {
-          itemsToUpdate.push({
-            productId,
-            variantId: 0,
-            quantity: item.qty || item.quantity || 1
-          });
-        }
+        itemsToUpdate.push({
+          productId,
+          variantId: item.variantId || 0,
+          quantity: item.qty || 1,
+          size: item.size
+        });
       } catch (error) {
         console.error('Error processing item:', error, 'Item:', JSON.stringify(item, null, 2));
       }
     }
+    
+    // If no items were found in the items array, try to extract from products
+    if (itemsToUpdate.length === 0) {
+      for (const product of products) {
+        try {
+          const productId = product._id || product.id;
+          if (!productId) {
+            // console.warn('Skipping product with no ID:', JSON.stringify(product, null, 2));
+            continue;
+          }
+          
+          // If we have variants, find the matching one
+          if (product.quantity?.variants?.length > 0) {
+            let variantIndex = 0;
+            
+            // If variant is specified, find its index
+            if (product.variantId !== undefined) {
+              variantIndex = product.quantity.variants.findIndex(
+                v => v._id === product.variantId || v.size === product.size
+              );
+              if (variantIndex === -1) variantIndex = 0;
+            }
+            // Otherwise try to find by size
+            else if (product.size) {
+              variantIndex = product.quantity.variants.findIndex(
+                v => v.size === product.size
+              );
+              if (variantIndex === -1) variantIndex = 0;
+            }
+            
+            itemsToUpdate.push({
+              productId,
+              variantId: variantIndex,
+              quantity: product.qty || 1,
+              size: product.size
+            });
+          } 
+          // No variants, just use the product
+          else {
+            itemsToUpdate.push({
+              productId,
+              variantId: 0,
+              quantity: product.qty || 1,
+              size: product.size
+            });
+          }
+        } catch (error) {
+          // console.error('Error processing product:', error, 'Product:', JSON.stringify(product, null, 2));
+        }
+      }
+    }
 
-    console.log('Attempting to update quantities for items:', JSON.stringify(itemsToUpdate, null, 2));
+    // console.log('Attempting to update quantities for items:', JSON.stringify(itemsToUpdate, null, 2));
 
     if (itemsToUpdate.length > 0) {
       try {
@@ -106,27 +144,27 @@ export async function POST(req) {
         const responseData = await response.json().catch(() => ({}));
         
         if (!response.ok) {
-          console.error('Failed to update quantities. Status:', response.status);
-          console.error('Response:', responseData);
+          // console.error('Failed to update quantities. Status:', response.status);
+          // console.error('Response:', responseData);
           // Continue with order creation even if quantity update fails
         } else {
           console.log('Successfully updated quantities:', responseData);
           if (responseData.results) {
             responseData.results.forEach(result => {
               if (result.success) {
-                console.log(`Updated product ${result.productId}, variant ${result.variantId}: ${result.previousQty} → ${result.newQty}`);
+                // console.log(`Updated product ${result.productId}, variant ${result.variantId}: ${result.previousQty} → ${result.newQty}`);
               } else {
-                console.error(`Failed to update product ${result.productId}, variant ${result.variantId}:`, result.error);
+                // console.error(`Failed to update product ${result.productId}, variant ${result.variantId}:`, result.error);
               }
             });
           }
         }
       } catch (error) {
-        console.error('Error in quantity update process:', {
-          error: error.message,
-          stack: error.stack,
-          name: error.name
-        });
+        // console.error('Error in quantity update process:', {
+        //   error: error.message,
+        //   stack: error.stack,
+        //   name: error.name
+        // });
       }
     }
 
@@ -135,7 +173,7 @@ export async function POST(req) {
       success: true 
     }, { status: 200 });
   } catch (error) {
-    console.error('Error creating order:', error);
+    // console.error('Error creating order:', error);
     return NextResponse.json({ 
       error: error.message, 
       success: false 

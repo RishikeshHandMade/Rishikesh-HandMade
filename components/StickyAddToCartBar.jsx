@@ -116,7 +116,7 @@ function StickyAddToCartBar({ product }) {
         )}
 
         {/* Action Buttons */}
-        <div className="flex items-end bg-red-100 justify-end gap-3">
+        <div className="flex items-end justify-end gap-3">
           {/* Quantity Selector - Only show if variant is selected and in stock */}
           {selectedVariant?.qty > 0 && (
             <div className="flex items-center gap-1">
