@@ -286,9 +286,14 @@ const CheckOut = () => {
 
               if (verificationResponse.data && verificationResponse.data.success) {
                 setError(null);
-                toast.success('Payment successful! Check your email for details.', {
-                  style: { borderRadius: '10px', border: '2px solid green' },
-                });
+                const cartCleared = await clearCart();
+                if (cartCleared) {
+                  toast.success('Payment successful! Check your email for details.', {
+                    style: { borderRadius: '10px', border: '2px solid green' },
+                  });
+                } else {
+                  toast.error('Payment successful, but there was an issue clearing your cart.');
+                }
                 // Send order confirmation email using /api/brevo
                 try {
                   const orderData = verificationResponse.data.order || {};
@@ -806,10 +811,74 @@ const CheckOut = () => {
     return null;
   }
 
+  // Centralized cart clearing function
+  const clearCart = async () => {
+    try {
+      console.log('🛒 Starting cart cleanup');
+      
+      // 1. Clear cart context
+      if (typeof setCart === 'function') {
+        setCart([]);
+      }
+      
+      // 2. Clear cart and checkout-related storage
+      try {
+        // Clear specific cart-related keys from localStorage
+        localStorage.removeItem('cart');
+        localStorage.removeItem('checkoutCart');
+        localStorage.removeItem('buyNowProduct');
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('cart_')) {
+            localStorage.removeItem(key);
+          }
+        });
+        console.log('✅ Cleared cart-related localStorage keys');
+        
+        // Clear sessionStorage
+        sessionStorage.removeItem('cart');
+        sessionStorage.removeItem('checkoutCart');
+        sessionStorage.removeItem('buyNowProduct');
+        console.log('✅ Cleared cart-related sessionStorage keys');
+        
+        // Clear IndexedDB if available
+        if (window.indexedDB) {
+          indexedDB.deleteDatabase('localforage');
+          console.log('✅ Cleared IndexedDB');
+        }
+      } catch (e) {
+        console.error('❌ Error clearing storage:', e);
+      }
+      
+      // 3. Reset component state
+      setCheckoutData({
+        cart: [],
+        subTotal: 0,
+        totalDiscount: 0,
+        totalTax: 0,
+        cartTotal: 0,
+        shippingCost: 0
+      });
+      console.log('✅ Reset component state');
+      
+      // 4. Redirect to dashboard with order ID
+      // setTimeout(() => {
+      //   router.push(`/dashboard?orderId=${recentOrderId}`);
+      //   console.log('✅ Redirecting to dashboard');
+      // }, 1000);
+      
+      return true;
+    } catch (error) {
+      console.error('❌ Failed to clear cart:', error);
+      return false;
+    }
+  };
+
   // Calculate cart totals safely
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
   const shippingCost = shippingOptions.find(opt => opt.value === shipping)?.cost || 0;
   const total = subtotal + shippingCost;
+
+
 
   // --- Helper: Hide coupon UI in buy-now mode ---
   const showCouponUI = !buyNowMode;
@@ -836,15 +905,21 @@ const CheckOut = () => {
   };
   // Handle COD order creation
   const handleCreateOrder = async (paymentMethod) => {
+    console.log('🔄 [handleCreateOrder] Starting order creation');
     setLoading(true);
+    
     // Check for buy-now mode
     let isBuyNow = false;
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       isBuyNow = params.get('mode') === 'buy-now';
+      console.log('📦 Order mode:', isBuyNow ? 'Buy Now' : 'Regular Cart');
     }
     
     setError(null);
+    
+    // Clear cart data once
+    await clearCart();
 
     try {
       // Calculate totals
@@ -1043,76 +1118,31 @@ const CheckOut = () => {
       }
 
       if (!response.ok) {
-        console.error('Order creation failed:', {
+        console.error('❌ Order creation failed:', {
           status: response.status,
           statusText: response.statusText,
           data
         });
         throw new Error(data.message || `Failed to create order: ${response.status} ${response.statusText}`);
       }
+      
+      console.log('✅ Order created successfully:', data);
 
-      try {
-        // Log state before clearing
-        console.group('🔄 Clearing Cart Data');
-        
-        // Clear the appropriate storage based on the order type
-        if (isBuyNow) {
-          console.log('🛍️ Clearing buyNowProduct from localStorage');
-          console.log('Before removal - buyNowProduct:', localStorage.getItem('buyNowProduct'));
-          localStorage.removeItem('buyNowProduct');
-          console.log('After removal - buyNowProduct:', localStorage.getItem('buyNowProduct'));
-        } else {
-          console.log('🛒 Clearing cart data from storage');
-          
-          // Log before clearing
-          console.log('📦 Before clearing - cart items:', {
-            cart: localStorage.getItem('cart'),
-            checkoutCart: localStorage.getItem('checkoutCart'),
-            cartKeys: Object.keys(localStorage).filter(k => k === 'cart' || k.startsWith('cart_'))
-          });
-          
-          // Clear all cart-related storage
-          localStorage.removeItem('checkoutCart');
-          localStorage.removeItem('cart');
-          
-          // Also clear any other cart-related keys
-          Object.keys(localStorage).forEach(key => {
-            if (key.startsWith('cart_') || key === 'cart') {
-              localStorage.removeItem(key);
-            }
-          });
-          
-          // Log after clearing
-          console.log('✅ After clearing - cart items:', {
-            cart: localStorage.getItem('cart'),
-            checkoutCart: localStorage.getItem('checkoutCart'),
-            remainingCartKeys: Object.keys(localStorage).filter(k => k === 'cart' || k.startsWith('cart_'))
-          });
-        }
-        
-        // Clear the cart in context
-        if (setCart) {
-          console.log('🧹 Clearing cart context');
-          console.log('Before context clear - cart:', contextCart);
-          setCart([]);
-          console.log('After context clear - cart should be empty');
-          
-          // Also clear any cart state in session storage
-          if (typeof sessionStorage !== 'undefined') {
-            console.log('🗑️ Clearing session storage cart');
-            console.log('Before session clear - cart:', sessionStorage.getItem('cart'));
-            sessionStorage.removeItem('cart');
-            console.log('After session clear - cart:', sessionStorage.getItem('cart'));
-          }
-        }
-        
-        console.groupEnd(); // End clearing group
-      } catch (storageError) {
-        console.error('Error cleaning up storage:', storageError);
-        // Don't fail the order if cleanup fails
+      // Clear cart after successful order
+      console.log('🔄 Starting cart cleanup after successful order...');
+      const cleanupSuccess = await clearCart();
+      
+      if (cleanupSuccess) {
+        toast.success('Order placed successfully!', {
+          position: 'top-center',
+          duration: 3000
+        });
+      } else {
+        toast.warning('Order placed, but there was an issue clearing your cart.', {
+          position: 'top-center',
+          duration: 5000
+        });
       }
-
-      console.log('Order created successfully. Quantity updates are processed by the backend.');
 
       // Show confirmation and set order ID
       setShowConfirmationModal(true);
@@ -1284,23 +1314,7 @@ const CheckOut = () => {
             } else {
               console.log('🛒 Clearing cart data from storage (COD)');
               
-              // Clear all cart-related storage
-              localStorage.removeItem('checkoutCart');
-              localStorage.removeItem('cart');
-              
-              // Also clear any other cart-related keys
-              Object.keys(localStorage).forEach(key => {
-                if (key.startsWith('cart_') || key === 'cart') {
-                  localStorage.removeItem(key);
-                }
-              });
-              
-              // Log after clearing
-              console.log('✅ After clearing - cart items (COD):', {
-                cart: localStorage.getItem('cart'),
-                checkoutCart: localStorage.getItem('checkoutCart'),
-                remainingCartKeys: Object.keys(localStorage).filter(k => k === 'cart' || k.startsWith('cart_'))
-              });
+              await clearCart();
             }
             
             // Clear session storage as well
@@ -1349,6 +1363,148 @@ const CheckOut = () => {
     setShowOverview(true);
     setConfirmedPaymentMethod(payment); // Save chosen payment method
   };
+    // Handle order confirmation and cart clearing
+    const handleOrderConfirm = async () => {
+      setLoading(true);
+      try {
+        // Build form fields from state for payload
+        const formFields = {
+          street, city, district, state, pincode, firstName, lastName, email, phone, altPhone
+        };
+        let orderId = checkoutData?.orderId;
+        let transactionId = checkoutData?.transactionId;
+  
+        if (confirmedPaymentMethod === 'cod') {
+          // Always generate unique orderId and transactionId for COD
+          orderId = `COD-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+          if (!transactionId) transactionId = orderId;
+          setPaymentMethod('cod');
+          const orderPayload = buildOrderPayload({
+            cart: contextCart,
+            checkoutData,
+            ...formFields,
+            payment: 'cod',
+            paymentMethod: 'cod',
+            paymentMethodValue: 'cod',
+            transactionId,
+            orderId,
+            agree,
+          });
+          const res = await fetch('/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderPayload)
+          });
+          const data = await res.json();
+          if (!data.orderId) {
+            setError('Order creation failed.');
+            setLoading(false);
+            return;
+          }
+          // Optionally send confirmation email here
+          try {
+            await fetch('/api/brevo', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                to: email,
+                subject: 'Order Confirmation',
+                htmlContent: `<!DOCTYPE html>
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Order Confirmation</title>
+      <style type="text/css">
+        body { font-family: Arial, sans-serif; background: #f8f9fa; }
+        .container { background: #fff; border-radius: 8px; margin: 32px auto; max-width: 600px; padding: 32px 24px; }
+        .header { text-align: center; }
+        .summary-table { width: 100%; border-collapse: collapse; margin: 24px 0; }
+        .summary-table th, .summary-table td { border: 1px solid #e5e7eb; padding: 8px; text-align: left; font-size: 14px; }
+        .summary-table th { background: #f3f4f6; }
+        .product-img { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid #e5e7eb; }
+        .dashboard-btn { display: block; width: 100%; margin: 32px 0 0 0; text-align: center; background: #f97316; color: #fff; padding: 12px 0; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 16px; }
+      </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h2>Thank you for your order!</h2>
+        <p>Hello, ${firstName} ${lastName}</p>
+      </div>
+      <div class="footer">
+        <p>Order ID: ${orderId}</p>
+        <p>Order Date: ${new Date().toLocaleDateString()}</p>
+      </div>
+      <h3 style="margin-top:32px; font-size:18px;">Order Summary</h3>
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Qty</th>
+            <th>Size</th>
+            <th>Weight</th>
+            <th>Shipping Charge</th>
+            <th>Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${Array.isArray(checkoutData?.cart) ? checkoutData.cart.map(item => `
+            <tr>
+              <td><img src="${item.image?.url || item.image || ''}" class="product-img" alt="${item.name || ''}" /></td>
+              <td>${item.name || ''}</td>
+              <td>${item.qty || 1}</td>
+              <td>${item.size || '-'}</td>
+              <td>${typeof item.weight !== 'undefined' && item.weight !== null ? item.weight + 'g' : '-'}</td>
+              <td>${typeof item.shipping !== 'undefined' && item.shipping !== null ? item.shipping + 'g' : '-'}</td>
+              <td>₹${typeof item.price !== 'undefined' && item.price !== null ? Number(item.price).toFixed(2) : '-'}</td>
+            </tr>
+          `).join('') : ''}
+        </tbody>
+      </table>
+      <div style="text-align:right; font-size:16px; margin-top:12px;">
+        <strong>Total: ₹${checkoutData?.cartTotal ? Number(checkoutData.cartTotal).toFixed(2) : '-'}</strong>
+      </div>
+      <a href="https://rishikeshhandmade.com/dashboard?section=orders" class="dashboard-btn">Go to Dashboard</a>
+    </div>
+  </body>
+  </html>`
+              })
+            });
+          } catch (e) { /* handle email error */ }
+          setRecentOrderId(orderId);
+          setShowConfirmationModal(true);
+          await clearCart();
+          setLoading(false);
+          return;
+        }
+        // For online, always go through Razorpay handler
+        if (confirmedPaymentMethod === 'online') {
+          setPaymentMethod('online');
+          const customer = {
+            name: `${firstName} ${lastName}`.trim(),
+            email,
+            phone
+          };
+          await handleOnlinePaymentWithOrder(
+            checkoutData?.cartTotal,
+            contextCart,
+            customer,
+            setLoading,
+            setError,
+            router,
+            checkoutData,
+            {...formFields, paymentMethod: 'online'}
+          );
+          return;
+        }
+        setLoading(false);
+      } catch (error) {
+        setError(error.message || 'Order creation failed.');
+        setLoading(false);
+      }
+    };
 
   // Handler for confirming payment on overview (step 2 → step 3)
   const handleConfirmAndPay = async () => {
@@ -1463,6 +1619,7 @@ const CheckOut = () => {
         setRecentOrderId(orderId); // orderId should be the Razorpay/order DB ID you get back
         setShowConfirmationModal(true);
         // router.push(`/dashboard?orderId=${data.orderId}`);
+await clearCart();
         setLoading(false);
         return;
       }
@@ -1939,25 +2096,34 @@ const CheckOut = () => {
           className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded font-semibold text-sm transition-colors"
           disabled={!agree || loading || isProcessingPayment || !firstName || !lastName || !email || !phone || !street || !city || !state || !pincode || !payment}
           type="button"
-          onClick={async () => {
-            if (isProcessingPayment) return;
-            setIsProcessingPayment(true);
-            setError(null);
-            try {
-              await handleShowOverview();
-            } catch (err) {
-              setError(err?.message || 'Unexpected error during payment.');
-            } finally {
-              setIsProcessingPayment(false);
+          onClick={async (e) => {
+            e.preventDefault();
+            if (loading || isProcessingPayment) return;
+            
+            // Validate form first
+            const validationError = validateForm();
+            if (validationError) {
+              setError(validationError);
+              toast.error(validationError);
+              return;
             }
+            
+            // For both COD and online, show the overview first
+            setShowOverview(true);
+            
+            // Store the payment method for later use
+            setConfirmedPaymentMethod(payment);
           }}
         >
-          {isProcessingPayment ? (
+          {loading ? (
             <>
-              <span className="animate-spin inline-block mr-2">🔄</span> Processing Payment...
+              <span className="animate-spin inline-block mr-2">🔄</span> Processing...
             </>
-          ) : loading ? "Processing..." : `Pay ₹${checkoutData?.cartTotal?.toFixed(2) || '0.00'}`}
-
+          ) : payment === 'cod' ? (
+            `Place Order (₹${checkoutData?.cartTotal?.toFixed(2) || '0.00'})`
+          ) : (
+            `Pay ₹${checkoutData?.cartTotal?.toFixed(2) || '0.00'}`
+          )}
         </button>
 
       </div>

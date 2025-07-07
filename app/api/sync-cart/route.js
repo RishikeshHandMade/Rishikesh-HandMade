@@ -2,6 +2,7 @@ import User from "@/models/User";
 import CartList from "@/models/CartList";
 import mongoose from "mongoose";
 
+// POST: Sync cart with database
 export async function POST(req) {
   try {
     const { userId, cart } = await req.json();
@@ -42,6 +43,51 @@ export async function POST(req) {
     await cartList.save();
 
     return new Response(JSON.stringify({ success: true, cart: user.cart }), { status: 200 });
+  } catch (err) {
+    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+  }
+}
+
+// DELETE: Clear cart from database
+export async function DELETE(req) {
+  try {
+    const { userId } = await req.json();
+    console.log('DELETE request received with userId:', userId);
+    
+    if (!userId) {
+      console.error('No userId provided');
+      return new Response(JSON.stringify({ error: "Missing userId" }), { status: 400 });
+    }
+
+    // Find user by id or email
+    const userQuery = mongoose.Types.ObjectId.isValid(userId)
+      ? { $or: [{ _id: userId }, { email: userId }] }
+      : { email: userId };
+    
+    console.log('Searching for user with query:', userQuery);
+    const user = await User.findOne(userQuery);
+    if (!user) {
+      console.error('User not found for query:', userQuery);
+      return new Response(JSON.stringify({ error: "User not found" }), { status: 404 });
+    }
+
+    console.log('Found user:', user._id);
+    
+    // Clear cart from User model
+    user.cart = [];
+    await user.save();
+    console.log('Successfully cleared cart from User model');
+
+    // Clear cart from CartList model
+    const cartList = await CartList.findOne({ user: user._id });
+    if (cartList) {
+      console.log('Found cartList:', cartList._id);
+      cartList.items = [];
+      await cartList.save();
+      console.log('Successfully cleared cart from CartList model');
+    }
+
+    return new Response(JSON.stringify({ success: true }), { status: 200 });
   } catch (err) {
     return new Response(JSON.stringify({ error: err.message }), { status: 500 });
   }

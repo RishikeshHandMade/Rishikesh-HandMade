@@ -1,9 +1,7 @@
 "use client";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import toast from "react-hot-toast";
-
 const CartContext = createContext();
-
 function getInitial(key, fallback) {
   if (typeof window === "undefined") return fallback;
   try {
@@ -19,9 +17,10 @@ function getAvailableQty(item) {
   return 1; // fallback if nothing present
 }
 
-export function CartProvider({ children }) {
+export function CartProvider({ children, session }) {
   const [cart, setCart] = useState(() => getInitial("cart", []));
   const [wishlist, setWishlist] = useState(() => getInitial("wishlist", []));
+  const [isClearing, setIsClearing] = useState(false);
 
   // Sync to localStorage
   useEffect(() => {
@@ -55,7 +54,60 @@ export function CartProvider({ children }) {
       return [...prev, { ...item, qty: Math.min(qty, maxQty) }];
     });
   };
-  const removeFromCart = id => setCart(prev => prev.filter(i => i.id !== id));
+  const removeFromCart = async (id) => {
+    // Temporarily set isClearing to prevent immediate re-sync
+    setIsClearing(true);
+    
+    // Remove from local state
+    setCart(prev => prev.filter(i => i.id !== id));
+    
+    // Clear cart-related data from localStorage
+    try {
+      localStorage.removeItem("cart");
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('cart_')) {
+          localStorage.removeItem(key);
+        }
+      });
+    } catch (error) {
+      console.error('Error clearing cart data from localStorage:', error);
+    }
+
+    // Sync with database if user is authenticated
+    if (session?.user) {
+      try {
+        const userId = session.user.id || session.user.email;
+        const currentCart = cart.filter(i => i.id !== id);
+        const response = await fetch('/api/sync-cart', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, cart: currentCart })
+        });
+        const data = await response.json();
+        if (!data.success) {
+          console.error('Failed to sync cart with database:', data.error);
+          // Restore previous cart state if sync fails
+          const storedCart = localStorage.getItem('cart');
+          if (storedCart) {
+            setCart(JSON.parse(storedCart));
+          }
+        }
+      } catch (error) {
+        console.error('Error syncing cart with database:', error);
+        // Restore previous cart state if sync fails
+        const storedCart = localStorage.getItem('cart');
+        if (storedCart) {
+          setCart(JSON.parse(storedCart));
+        }
+      } finally {
+        // Reset isClearing after sync
+        setTimeout(() => setIsClearing(false), 500);
+      }
+    } else {
+      // Reset isClearing if not authenticated
+      setTimeout(() => setIsClearing(false), 500);
+    }
+  };
   const updateCartQty = (id, qty) => setCart(prev => prev.map(i => {
     if (i.id === id) {
       const maxQty = getAvailableQty(i);
@@ -67,7 +119,50 @@ export function CartProvider({ children }) {
     }
     return i;
   }));
-  const clearCart = () => setCart([]);
+  const clearCart = async () => {
+    setIsClearing(true);
+    setCart([]);
+    
+    // Clear cart-related data from localStorage
+    try {
+      localStorage.removeItem("cart");
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('cart_')) {
+          localStorage.removeItem(key);
+        }
+      });
+    } catch (error) {
+      console.error('Error clearing cart data from localStorage:', error);
+    }
+  
+    // Clear cart from database if user is authenticated
+    if (session?.user) {
+      try {
+        const userId = session.user.id || session.user.email;
+        const response = await fetch('/api/sync-cart', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId })
+        });
+        const data = await response.json();
+        if (!data.success) {
+          console.error('Failed to clear cart from database:', data.error);
+          const storedCart = localStorage.getItem('cart');
+          if (storedCart) {
+            setCart(JSON.parse(storedCart));
+          }
+        }
+      } catch (error) {
+        console.error('Error clearing cart from database:', error);
+        const storedCart = localStorage.getItem('cart');
+        if (storedCart) {
+          setCart(JSON.parse(storedCart));
+        }
+      } finally {
+        setTimeout(() => setIsClearing(false), 1000);
+      }
+    }
+  };
 
   // Wishlist functions
   const addToWishlist = item => {

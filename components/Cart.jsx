@@ -9,7 +9,7 @@ export default function Cart({ open, onClose, initialTab = "cart" }) {
   const [tab, setTab] = useState(initialTab);
   const [show, setShow] = useState(true); // Always mount on first render
   const firstRender = React.useRef(true);
-  const { cart: rawCart, wishlist, setCart, setWishlist, updateCartQty, removeFromCart, removeFromWishlist } = useCart();
+  const { cart: rawCart, wishlist, setCart, setWishlist, updateCartQty, removeFromCart, removeFromWishlist, isClearing,clearCart } = useCart();
   const cart = Array.isArray(rawCart) ? rawCart : [];
   const { data: session, status } = useSession();
   const userId = session?.user?.id || session?.user?.email;
@@ -41,13 +41,19 @@ export default function Cart({ open, onClose, initialTab = "cart" }) {
 
   // Sync cart to backend on change
   useEffect(() => {
-    if (!isLoggedIn || !userId) return; // Extra guard for guests
-    fetch("/api/sync-cart", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, cart }),
-    });
-  }, [cart, isLoggedIn, userId]);
+    if (!isLoggedIn || !userId || isClearing) return; // Prevent sync when clearing
+    
+    // Only sync if cart actually changed
+    const currentCart = localStorage.getItem('cart');
+    const currentCartData = currentCart ? JSON.parse(currentCart) : [];
+    if (JSON.stringify(cart) !== JSON.stringify(currentCartData)) {
+      fetch("/api/sync-cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, cart }),
+      });
+    }
+  }, [cart, isLoggedIn, userId, isClearing]);
 
   // Sync wishlist to backend on change
   useEffect(() => {
@@ -63,7 +69,7 @@ export default function Cart({ open, onClose, initialTab = "cart" }) {
 
   // Fetch cart/wishlist from backend on mount if logged in
   useEffect(() => {
-    if (isLoggedIn && cart.length === 0) {
+    if (isLoggedIn && cart.length === 0 && !isClearing) {
       fetch(`/api/sync-cart`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -95,9 +101,6 @@ export default function Cart({ open, onClose, initialTab = "cart" }) {
   }, [isLoggedIn, userId]);
 
   const subtotal = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
-  const freeShipping = subtotal >= 150;
-  const shippingProgress = Math.min(1, subtotal / 150);
-
   if (!show || typeof window === "undefined") return null;
 
   return ReactDOM.createPortal(
@@ -158,9 +161,13 @@ export default function Cart({ open, onClose, initialTab = "cart" }) {
                 <div className="flex flex-col items-end gap-2">
                   <span className="font-semibold">₹{(item.price * (item.qty || 1)).toFixed(2)}</span>
                   {tab === "cart" ? (
-                    <button onClick={() => removeFromCart(item.id)} className="text-neutral-400 hover:text-red-500"><X size={18} /></button>
+                    <button onClick={async () => await removeFromCart(item.id)} className="text-neutral-400 hover:text-red-500">
+                      <X size={18} />
+                    </button>
                   ) : (
-                    <button onClick={() => removeFromWishlist(item.id)} className="text-neutral-400 hover:text-red-500"><X size={18} /></button>
+                    <button onClick={async () => await removeFromWishlist(item.id)} className="text-neutral-400 hover:text-red-500">
+                      <X size={18} />
+                    </button>
                   )}
                 </div>
               </div>
@@ -181,13 +188,6 @@ export default function Cart({ open, onClose, initialTab = "cart" }) {
                   </div>
                 </div> 
               </div>
-              <Link href="/checkout" className="block w-full">
-                <button
-                  className="w-full py-2 border border-black rounded-lg font-semibold mb-3 hover:bg-black hover:text-white transition"
-                  onClick={onClose}
-                  type="button"
-                >Checkout</button>
-              </Link>
               <Link href="/cartDetails" className="block w-full">
                 <button
                   className="w-full py-2 bg-black text-white rounded-lg font-semibold"
