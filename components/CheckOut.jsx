@@ -35,6 +35,18 @@ const loadRazorpayScript = () => {
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 
+// --- Centralized Order/Transaction ID Generators ---
+function generateOrderId() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  for (let i = 0; i < 6; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return `ORD-${result}`;
+}
+function generateTransactionId() {
+  return `TXN-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+}
 // --- Centralized Order Payload Builder ---
 function buildOrderPayload({
   cart,
@@ -159,6 +171,8 @@ const CheckOut = () => {
         currency: "INR",
         receipt: `order_${Date.now()}`,
         agree: true, // Always set agree true for online orders
+        orderId: checkoutData?.orderId, // pass consistent orderId
+        transactionId: checkoutData?.transactionId // pass consistent transactionId
       };
       let orderResponse;
       try {
@@ -197,12 +211,15 @@ const CheckOut = () => {
         description: "Order Payment",
         order_id: razorpayOrderId,
         handler: async (response) => {
+          // Always pass the same orderId/transactionId as generated above
+          response.orderId = checkoutData?.orderId;
+          response.transactionId = checkoutData?.transactionId;
           // console.log("Razorpay handler called", response);
           
           // Update quantities after successful payment by creating a temporary order
           // This reuses the same logic as the COD flow
           try {
-            const tempOrderId = `ONLINE-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+            const tempOrderId = `online-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
             const tempTransactionId = `TXN-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
             
             // Create a temporary order payload with the same structure as COD
@@ -872,17 +889,6 @@ const CheckOut = () => {
       return false;
     }
   };
-
-  // Calculate cart totals safely
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-  const shippingCost = shippingOptions.find(opt => opt.value === shipping)?.cost || 0;
-  const total = subtotal + shippingCost;
-
-
-
-  // --- Helper: Hide coupon UI in buy-now mode ---
-  const showCouponUI = !buyNowMode;
-
   // Collect customer info for Razorpay
   const getCustomerInfo = () => ({
     name: `${firstName} ${lastName}`.trim(),
@@ -932,8 +938,8 @@ const CheckOut = () => {
       const totalAmount = subTotal + totalTax + shippingCost;
 
       // Generate a unique order ID for COD
-      const orderId = `COD-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-      const transactionId = `TXN-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+      const orderId = generateOrderId();
+      const transactionId = orderId; // For COD, transactionId is same as orderId
 
       // Prepare products array in the same format as the online payment flow
       const productsPayload = cart.map(item => {
@@ -1151,7 +1157,7 @@ const CheckOut = () => {
       // Log the order creation for debugging
       console.log('Order created with ID:', data.order?._id);
       
-      // Show success message to user
+      // Show success message to session?.user
       toast.success('Order placed successfully!', { 
         position: 'top-center',
         style: { 
@@ -1339,7 +1345,7 @@ const CheckOut = () => {
         
         setShowConfirmationModal(true);
         setRecentOrderId(order._id);
-        // router.push(`/dashboard?orderId=${order._id}`);
+        
       } catch (error) {
         // console.error('Error creating COD order:', error);
         setError(error.message || 'Failed to create order');
@@ -1373,11 +1379,11 @@ const CheckOut = () => {
         };
         let orderId = checkoutData?.orderId;
         let transactionId = checkoutData?.transactionId;
-  
+
         if (confirmedPaymentMethod === 'cod') {
-          // Always generate unique orderId and transactionId for COD
-          orderId = `COD-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-          if (!transactionId) transactionId = orderId;
+          // Always generate unique orderId for COD using shared generator
+          orderId = generateOrderId();
+          transactionId = orderId; // For COD, transactionId is same as orderId
           setPaymentMethod('cod');
           const orderPayload = buildOrderPayload({
             cart: contextCart,
@@ -1386,7 +1392,6 @@ const CheckOut = () => {
             payment: 'cod',
             paymentMethod: 'cod',
             paymentMethodValue: 'cod',
-            transactionId,
             orderId,
             agree,
           });
@@ -1457,8 +1462,8 @@ const CheckOut = () => {
               <td>${item.qty || 1}</td>
               <td>${item.size || '-'}</td>
               <td>${typeof item.weight !== 'undefined' && item.weight !== null ? item.weight + 'g' : '-'}</td>
-              <td>${typeof item.shipping !== 'undefined' && item.shipping !== null ? item.shipping + 'g' : '-'}</td>
-              <td>₹${typeof item.price !== 'undefined' && item.price !== null ? Number(item.price).toFixed(2) : '-'}</td>
+<td>${typeof item.shipping !== 'undefined' && item.shipping !== null ? item.shipping + 'g' : '-'}</td>
+<td>₹${typeof item.price !== 'undefined' && item.price !== null ? Number(item.price).toFixed(2) : '-'}</td>
             </tr>
           `).join('') : ''}
         </tbody>
@@ -1494,8 +1499,9 @@ const CheckOut = () => {
             setLoading,
             setError,
             router,
-            checkoutData,
-            {...formFields, paymentMethod: 'online'}
+            { ...checkoutData, orderId: generateOrderId(), transactionId: generateTransactionId() }, // pass IDs
+            { ...formFields, paymentMethod: 'online' },
+            session?.user
           );
           return;
         }
@@ -1518,9 +1524,9 @@ const CheckOut = () => {
       let transactionId = checkoutData?.transactionId;
 
       if (confirmedPaymentMethod === 'cod') {
-        // Always generate unique orderId and transactionId for COD
-        orderId = `COD-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-        if (!transactionId) transactionId = orderId;
+        // Always generate unique orderId for COD using shared generator
+        orderId = generateOrderId();
+        transactionId = orderId; // For COD, transactionId is same as orderId
         setPaymentMethod('cod');
         const orderPayload = buildOrderPayload({
           cart: contextCart,
@@ -1638,8 +1644,9 @@ await clearCart();
           setLoading,
           setError,
           router,
-          checkoutData,
-          {...formFields, paymentMethod: 'online'}
+          { ...checkoutData, orderId: generateOrderId(), transactionId: generateTransactionId() }, // pass IDs
+          { ...formFields, paymentMethod: 'online' },
+          session?.user
         );
         return;
       }

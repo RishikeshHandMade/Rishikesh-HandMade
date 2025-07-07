@@ -22,7 +22,7 @@ export async function POST(request) {
             currency,
             receipt,
         });
-        console.log('Razorpay order creation response:', razorpayOrder);
+        // console.log('Razorpay order creation response:', razorpayOrder);
 
         if (!razorpayOrder || !razorpayOrder.id) {
             // console.error('Razorpay order creation failed or missing order id:', razorpayOrder);
@@ -30,11 +30,9 @@ export async function POST(request) {
         }
 
         // Save the order in the database
-        // Import the Order model at the top: import Order from "@/models/Order";
+        // Use frontend-provided orderId and transactionId if present
         let dbOrder;
         try {
-            // If user is logged in, always use their session email
-            // Only customer?.email is available here; user is not defined in POST
             let userEmail = customer?.email;
             dbOrder = await Order.create({
                 products,
@@ -54,7 +52,7 @@ export async function POST(request) {
                 email: userEmail // Always set email for online orders, prefer session user
             });
         } catch (dbErr) {
-            console.error("Failed to save order in DB:", dbErr);
+            // console.error("Failed to save order in DB:", dbErr);
             return NextResponse.json({ error: "Failed to save order in DB" }, { status: 500 });
         }
 
@@ -66,7 +64,7 @@ export async function POST(request) {
             currency: razorpayOrder.currency
         });
     } catch (error) {
-        console.error("Error creating Razorpay order:", error);
+            // console.error("Error creating Razorpay order:", error);
         return NextResponse.json(
             { error: "Failed to create order" },
             { status: 500 }
@@ -99,7 +97,9 @@ export async function PUT(request) {
             );
         }
 
-        // Step 2: Update order with transactionId (Razorpay payment ID) and payment details
+        // Step 2: Update order with Razorpay and transaction/payment details
+        // Prefer lookup by orderId from checkoutData (frontend), fallback to razorpay_order_id
+        // const lookupOrderId = checkoutData?.orderId || razorpay_order_id;
         const order = await Order.findOne({ orderId: razorpay_order_id });
         // console.log("Order found:", order);
         if (!order) {

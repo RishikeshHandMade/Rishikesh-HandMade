@@ -8,23 +8,21 @@ export async function POST(req) {
   try {
     const body = await req.json();
 
-    // 🔐 Generate unique IDs for COD orders only
-    function generateOrderId(length = 6) {
+    // Use frontend-provided orderId and transactionId for all orders
+    // (Legacy fallback: generate if missing)
+    if (!body.orderId) {
       const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
       let result = '';
-      for (let i = 0; i < length; i++) {
+      for (let i = 0; i < 10; i++) {
         result += chars.charAt(Math.floor(Math.random() * chars.length));
       }
-      return result;
+      body.orderId = `order-${result}`;
     }
-
-    function generateTransactionId() {
-      return `TXN-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
-    }
-
-    if (body.payment === 'cod') {
-      body.orderId = generateOrderId(6);
-      body.transactionId = generateTransactionId();
+    const isOnline = body.payment === 'online' || body.paymentMethod === 'online';
+    if (isOnline && !body.transactionId) {
+      body.transactionId = `TXN-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    } else if (!isOnline) {
+      delete body.transactionId;
     }
 
     // ✅ Save the order
