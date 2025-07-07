@@ -34,24 +34,24 @@ export async function POST(req) {
     const items = Array.isArray(body.items) ? body.items : [];
     
     // Debug log the raw data
-    console.log('Raw request body:', JSON.stringify({
-      products: products.map(p => ({
-        _id: p._id,
-        id: p.id,
-        name: p.name,
-        qty: p.qty,
-        quantity: p.quantity ? '[...]' : null,
-        variantId: p.variantId,
-        size: p.size
-      })),
-      items: items.map(i => ({
-        _id: i._id,
-        productId: i.productId,
-        variantId: i.variantId,
-        qty: i.qty,
-        size: i.size
-      }))
-    }, null, 2));
+    // console.log('Raw request body:', JSON.stringify({
+    //   products: products.map(p => ({
+    //     _id: p._id,
+    //     id: p.id,
+    //     name: p.name,
+    //     qty: p.qty,
+    //     quantity: p.quantity ? '[...]' : null,
+    //     variantId: p.variantId,
+    //     size: p.size
+    //   })),
+    //   items: items.map(i => ({
+    //     _id: i._id,
+    //     productId: i.productId,
+    //     variantId: i.variantId,
+    //     qty: i.qty,
+    //     size: i.size
+    //   }))
+    // }, null, 2));
     
     const itemsToUpdate = [];
     
@@ -71,7 +71,7 @@ export async function POST(req) {
           size: item.size
         });
       } catch (error) {
-        console.error('Error processing item:', error, 'Item:', JSON.stringify(item, null, 2));
+        // console.error('Error processing item:', error, 'Item:', JSON.stringify(item, null, 2));
       }
     }
     
@@ -81,7 +81,7 @@ export async function POST(req) {
         try {
           const productId = product._id || product.id;
           if (!productId) {
-            console.warn('Skipping product with no ID:', JSON.stringify(product, null, 2));
+            // console.warn('Skipping product with no ID:', JSON.stringify(product, null, 2));
             continue;
           }
           
@@ -126,7 +126,7 @@ export async function POST(req) {
       }
     }
 
-    console.log('Attempting to update quantities for items:', JSON.stringify(itemsToUpdate, null, 2));
+    // console.log('Attempting to update quantities for items:', JSON.stringify(itemsToUpdate, null, 2));
 
     if (itemsToUpdate.length > 0) {
       try {
@@ -142,27 +142,27 @@ export async function POST(req) {
         const responseData = await response.json().catch(() => ({}));
         
         if (!response.ok) {
-          console.error('Failed to update quantities. Status:', response.status);
-          console.error('Response:', responseData);
+          // console.error('Failed to update quantities. Status:', response.status);
+          // console.error('Response:', responseData);
           // Continue with order creation even if quantity update fails
         } else {
-          console.log('Successfully updated quantities:', responseData);
+          // console.log('Successfully updated quantities:', responseData);
           if (responseData.results) {
             responseData.results.forEach(result => {
               if (result.success) {
-                console.log(`Updated product ${result.productId}, variant ${result.variantId}: ${result.previousQty} → ${result.newQty}`);
+                // console.log(`Updated product ${result.productId}, variant ${result.variantId}: ${result.previousQty} → ${result.newQty}`);
               } else {
-                console.error(`Failed to update product ${result.productId}, variant ${result.variantId}:`, result.error);
+                // console.error(`Failed to update product ${result.productId}, variant ${result.variantId}:`, result.error);
               }
             });
           }
         }
       } catch (error) {
-        console.error('Error in quantity update process:', {
-          error: error.message,
-          stack: error.stack,
-          name: error.name
-        });
+        // console.error('Error in quantity update process:', {
+          // error: error.message,
+        //   stack: error.stack,
+        //   name: error.name
+        // });
       }
     }
 

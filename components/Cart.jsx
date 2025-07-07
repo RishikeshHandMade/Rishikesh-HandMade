@@ -39,7 +39,8 @@ export default function Cart({ open, onClose, initialTab = "cart" }) {
     }
   }, []);
 
-  // Sync cart to backend on change
+  // Sync cart to backend on change (DISABLED)
+  /*
   useEffect(() => {
     if (!isLoggedIn || !userId || isClearing) return; // Prevent sync when clearing
     
@@ -54,51 +55,52 @@ export default function Cart({ open, onClose, initialTab = "cart" }) {
       });
     }
   }, [cart, isLoggedIn, userId, isClearing]);
+  */
 
   // Sync wishlist to backend on change
-  useEffect(() => {
-    if (isLoggedIn) {
-      // console.log('[Cart.jsx] Syncing wishlist to backend', wishlist);
-      fetch("/api/sync-wishlist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, wishlist }),
-      });
-    }
-  }, [wishlist, isLoggedIn, userId]);
+  // useEffect(() => {
+  //   if (isLoggedIn) {
+  //     // console.log('[Cart.jsx] Syncing wishlist to backend', wishlist);
+  //     fetch("/api/sync-wishlist", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ userId, wishlist }),
+  //     });
+  //   }
+  // }, [wishlist, isLoggedIn, userId]);
 
   // Fetch cart/wishlist from backend on mount if logged in
-  useEffect(() => {
-    if (isLoggedIn && cart.length === 0 && !isClearing) {
-      fetch(`/api/sync-cart`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, cart: [] }), // empty triggers fetch only
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data.cart) {
-            // console.log('[Cart.jsx] setCart from backend fetch', data.cart);
-            setCart(data.cart);
-          }
-        });
-    }
-    if (isLoggedIn && wishlist.length === 0) {
-      fetch(`/api/sync-wishlist`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, wishlist: [] }),
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data.wishlist) {
-            // console.log('[Cart.jsx] setWishlist from backend fetch', data.wishlist);
-            setWishlist(data.wishlist);
-          }
-        });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoggedIn, userId]);
+  // useEffect(() => {
+  //   if (isLoggedIn && cart.length === 0 && !isClearing) {
+  //     fetch(`/api/sync-cart`, {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ userId, cart: [] }), // empty triggers fetch only
+  //     })
+  //       .then(res => res.json())
+  //       .then(data => {
+  //         if (data.cart) {
+  //           // console.log('[Cart.jsx] setCart from backend fetch', data.cart);
+  //           setCart(data.cart);
+  //         }
+  //       });
+  //   }
+  //   if (isLoggedIn && wishlist.length === 0) {
+  //     fetch(`/api/sync-wishlist`, {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ userId, wishlist: [] }),
+  //     })
+  //       .then(res => res.json())
+  //       .then(data => {
+  //         if (data.wishlist) {
+  //           // console.log('[Cart.jsx] setWishlist from backend fetch', data.wishlist);
+  //           setWishlist(data.wishlist);
+  //         }
+  //       });
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [isLoggedIn, userId]);
 
   const subtotal = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
   if (!show || typeof window === "undefined") return null;

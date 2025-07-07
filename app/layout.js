@@ -44,7 +44,7 @@ export const metadata = {
 };
 
 import { CartProvider } from "../context/CartContext";
-import CartSyncOnLogin from "../context/CartSyncOnLogin";
+// import CartSyncOnLogin from "../context/CartSyncOnLogin";
 
 export default function RootLayout({ children }) {
   const isPaid = process.env.NEXT_PUBLIC_IS_PAID === "true";
@@ -57,7 +57,7 @@ export default function RootLayout({ children }) {
             <NextTopLoader color="#006eff" height={3} showSpinner={false} zIndex={1600} />
             <Toaster position="top-center" reverseOrder={false} toastOptions={{ duration: 3000, style: { fontFamily: "var(--font-GildaDisplay)" } }} />
             <SessionWrapper>
-              <CartSyncOnLogin />
+              {/* <CartSyncOnLogin /> */}
               <SearchProvider>
                 <Header />
                 <GoogleTranslate />

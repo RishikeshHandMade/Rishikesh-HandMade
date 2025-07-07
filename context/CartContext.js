@@ -54,64 +54,38 @@ export function CartProvider({ children, session }) {
       return [...prev, { ...item, qty: Math.min(qty, maxQty) }];
     });
   };
-  const removeFromCart = async (id) => {
-    // Temporarily set isClearing to prevent immediate re-sync
+  const removeFromCart = (id) => {
     setIsClearing(true);
-    
-    // Remove from local state
-    setCart(prev => prev.filter(i => i.id !== id));
-    
-    // Clear cart-related data from localStorage
-    try {
-      localStorage.removeItem("cart");
-      Object.keys(localStorage).forEach(key => {
-        if (key.startsWith('cart_')) {
-          localStorage.removeItem(key);
-        }
-      });
-    } catch (error) {
-      console.error('Error clearing cart data from localStorage:', error);
-    }
 
-    // Sync with database if user is authenticated
-    if (session?.user) {
-      try {
-        const userId = session.user.id || session.user.email;
-        const currentCart = cart.filter(i => i.id !== id);
-        const response = await fetch('/api/sync-cart', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, cart: currentCart })
-        });
-        const data = await response.json();
-        if (!data.success) {
-          console.error('Failed to sync cart with database:', data.error);
-          // Restore previous cart state if sync fails
-          const storedCart = localStorage.getItem('cart');
-          if (storedCart) {
-            setCart(JSON.parse(storedCart));
-          }
+    setCart(prev => {
+      const updatedCart = prev.filter(i => i.id !== id);
+
+      // Sync with database if user is authenticated
+      if (session?.user) {
+        const userId = session.user._id || session.user.id || session.user.email;
+        // Only clear cart in local state and localStorage, do NOT call API
+        setCart([]);
+        try {
+          localStorage.removeItem("cart");
+          localStorage.removeItem("checkoutCart");
+          localStorage.removeItem("checkoutData");
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('cart_')) {
+              localStorage.removeItem(key);
+            }
+          });
+        } catch (error) {
+          console.error('Error clearing cart/checkout data from localStorage:', error);
         }
-      } catch (error) {
-        console.error('Error syncing cart with database:', error);
-        // Restore previous cart state if sync fails
-        const storedCart = localStorage.getItem('cart');
-        if (storedCart) {
-          setCart(JSON.parse(storedCart));
-        }
-      } finally {
-        // Reset isClearing after sync
         setTimeout(() => setIsClearing(false), 500);
-      }
-    } else {
-      // Reset isClearing if not authenticated
-      setTimeout(() => setIsClearing(false), 500);
-    }
+          }
+      return updatedCart;
+    });
   };
   const updateCartQty = (id, qty) => setCart(prev => prev.map(i => {
     if (i.id === id) {
       const maxQty = getAvailableQty(i);
-      if (qty > maxQty) {
+      if (qty > maxQty) {``
         toast.error(`Only ${maxQty} left in stock!`);
         return { ...i, qty: maxQty };
       }
@@ -120,49 +94,44 @@ export function CartProvider({ children, session }) {
     return i;
   }));
   const clearCart = async () => {
-    setIsClearing(true);
-    setCart([]);
-    
-    // Clear cart-related data from localStorage
-    try {
-      localStorage.removeItem("cart");
-      Object.keys(localStorage).forEach(key => {
-        if (key.startsWith('cart_')) {
-          localStorage.removeItem(key);
-        }
-      });
-    } catch (error) {
-      console.error('Error clearing cart data from localStorage:', error);
-    }
-  
-    // Clear cart from database if user is authenticated
-    if (session?.user) {
-      try {
-        const userId = session.user.id || session.user.email;
-        const response = await fetch('/api/sync-cart', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId })
-        });
-        const data = await response.json();
-        if (!data.success) {
-          console.error('Failed to clear cart from database:', data.error);
-          const storedCart = localStorage.getItem('cart');
-          if (storedCart) {
-            setCart(JSON.parse(storedCart));
-          }
-        }
-      } catch (error) {
-        console.error('Error clearing cart from database:', error);
-        const storedCart = localStorage.getItem('cart');
-        if (storedCart) {
-          setCart(JSON.parse(storedCart));
-        }
-      } finally {
-        setTimeout(() => setIsClearing(false), 1000);
-      }
-    }
-  };
+  setIsClearing(true);
+
+  // Clear cart from database if user is authenticated
+  // if (session?.user) {
+  //   try {
+  //     console.log('[CartContext][clearCart] session.user:', session.user);
+  //     const userId = session.user._id || session.user.id || session.user.email;
+  //     console.log('[CartContext][clearCart] Using userId for cart sync:', userId);
+  //     const response = await fetch('/api/sync-cart', {
+  //       method: 'DELETE',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ userId })
+  //     });
+  //     const data = await response.json();
+  //     if (data.success) {
+  //       setCart([]);
+  //       try {
+  //         localStorage.removeItem("cart");
+  //         Object.keys(localStorage).forEach(key => {
+  //           if (key.startsWith('cart_')) {
+  //             localStorage.removeItem(key);
+  //           }
+  //         });
+  //       } catch (error) {
+  //         console.error('Error clearing cart data from localStorage:', error);
+  //       } finally {
+  //         setTimeout(() => setIsClearing(false), 1000);
+  //       }
+  //     } else {
+  //       console.error('Failed to clear cart from database:', data.error);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error clearing cart from database:', error);
+  //   } finally {
+  //     setTimeout(() => setIsClearing(false), 1000);
+  //   }
+  // }
+};
 
   // Wishlist functions
   const addToWishlist = item => {
