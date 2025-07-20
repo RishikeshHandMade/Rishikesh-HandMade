@@ -2,10 +2,11 @@ import ArtisanDetails from '@/components/ArtisanDetails';
 
 // Next.js 13+ server component: fetch artisan by id from API
 export default async function Page({ params }) {
-  const { id } = await params;
+  const { slug } = await params;
+  const decodedId = decodeURIComponent(slug);
   // console.log(id)
   // Adjust the API endpoint as per your backend route
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/createArtisan/${id}`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/createArtisan/byName/${decodedId}`, {
     cache: 'no-store' // Uncomment if you want fresh data every time
   });
   if (!res.ok) {

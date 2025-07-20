@@ -23,8 +23,9 @@ const generateCode = () => {
     }
     return code;
 };
-
 const AddProduct = ({ id }) => {
+    // ...existing state
+    const [allCategories, setAllCategories] = useState([]);
     // ...existing state and hooks...
 
     // Editing state
@@ -78,15 +79,14 @@ const AddProduct = ({ id }) => {
     const [qrModalUrl, setQrModalUrl] = useState("");
     const [qrModalTitle, setQrModalTitle] = useState("");
 
-    // Slugify utility (copied from ProductProfile)
     function slugify(str) {
-        return str
+        if (!str) return ''; // Return empty string if str is undefined, null, or empty
+        return String(str)
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/^-+|-+$/g, '')
             .replace(/-+/g, '-');
     }
-
     // Copy to clipboard helper
     function copyToClipboard(text) {
         navigator.clipboard.writeText(text);
@@ -128,6 +128,16 @@ const AddProduct = ({ id }) => {
     const [title, setTitle] = useState("");
     const [order, setOrder] = useState(1);
     const [active, setActive] = useState(true);
+    const [qrModalCode, setQrModalCode] = useState('');
+    const [qrModalCategory, setQrModalCategory] = useState('');
+    const [qrModalSizes, setQrModalSizes] = useState([]);
+    const [qrModalColors, setQrModalColors] = useState([]);
+    const [qrModalPrice, setQrModalPrice] = useState('');
+    const [qrModalOldPrice, setQrModalOldPrice] = useState('');
+    const [qrModalDescription, setQrModalDescription] = useState('');
+    const [qrModalCoupon, setQrModalCoupon] = useState({ code: '', amount: 0 });
+
+    console.log(products)
 
     useEffect(() => {
         setLoading(true);
@@ -190,21 +200,26 @@ const AddProduct = ({ id }) => {
         }
     };
     const onSubmit = async () => {
+        if (!title || !artisan) {
+            toast.error("All fields are required", { style: { borderRadius: "10px", border: "2px solid red" } });
+            return;
+        }
+
         setIsLoading(true);
         try {
             const payload = {
                 title,
+                slug: slugify(title),
                 code: productCode,
                 artisan,
                 order,
-                active: typeof active === 'boolean' ? active : true, // always true by default
+                active: typeof active === 'boolean' ? active : true,
                 isDirect: !subMenuId,
                 ...(subMenuId ? { subMenuId, category: subMenuId } : {})
             };
+
             let response, result;
             if (isEditing) {
-                // Use code or _id as identifier. Preferably _id if available in state.
-                // We'll use code for now as per the form structure
                 response = await fetch('/api/admin/website-manage/addPackage', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -212,10 +227,21 @@ const AddProduct = ({ id }) => {
                 });
                 result = await response.json();
                 if (response.ok) {
-                    toast.success('Product updated successfully!');
-                    reset();
+                    toast.success('Product updated successfully!', { style: { borderRadius: "10px", border: "2px solid green" } });
+                    // Reset form and state
+                    reset({
+                        title: '',
+                        artisan: '',
+                        order: 1,
+                        active: true
+                    });
+                    setTitle('');
+                    setArtisan('');
+                    setOrder(1);
+                    setActive(true);
                     setProductCode(generateCode());
                     setIsEditing(false);
+
                     // Refetch products
                     if (subMenuId) {
                         const res = await fetch(`/api/getSubMenuById/${subMenuId}`);
@@ -231,7 +257,7 @@ const AddProduct = ({ id }) => {
                         }
                     }
                 } else {
-                    toast.error(result.message || 'Failed to update product');
+                    toast.error(result.message || 'Failed to update product', { style: { borderRadius: "10px", border: "2px solid red" } });
                 }
             } else {
                 response = await fetch('/api/admin/website-manage/addPackage', {
@@ -241,8 +267,10 @@ const AddProduct = ({ id }) => {
                 });
                 result = await response.json();
                 if (response.ok) {
-                    toast.success('Product added successfully!');
+                    toast.success('Product added successfully!', { style: { borderRadius: "10px", border: "2px solid green" } });
                     reset();
+                    setTitle('');
+                    setArtisan('');
                     setProductCode(generateCode());
                     // Refetch products
                     if (subMenuId) {
@@ -259,41 +287,15 @@ const AddProduct = ({ id }) => {
                         }
                     }
                 } else {
-                    toast.error(result.message || 'Failed to add product');
+                    toast.error(result.message || 'Failed to add product', { style: { borderRadius: "10px", border: "2px solid red" } });
                 }
             }
         } catch (error) {
-            toast.error('Something went wrong');
+            console.error('Error:', error);
+            toast.error('Something went wrong', { style: { borderRadius: "10px", border: "2px solid red" } });
         } finally {
             setIsLoading(false);
         }
-
-
-        if (!title || !artisan) {
-            toast.error("All fields are required", { style: { borderRadius: "10px", border: "2px solid red" } });
-            return;
-        }
-        try {
-            const response = await fetch("/api/admin/website-manage/addPackage", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ code: productCode, title, artisan }),
-            });
-
-            const res = await response.json();
-
-            if (response.ok) {
-                toast.success("Package added successfully!", { style: { borderRadius: "10px", border: "2px solid green" } })
-                window.location.reload();
-            } else {
-                toast.error("Failed to add package", { style: { borderRadius: "10px", border: "2px solid red" } })
-            }
-        } catch (error) {
-            toast.error("Something went wrong", { style: { borderRadius: "10px", border: "2px solid red" } })
-        }
-
     };
     return (
         <>
@@ -344,7 +346,7 @@ const AddProduct = ({ id }) => {
                     <TableBody>
                         {products && products.length > 0 ? (
                             products.map((prod, index) => {
-                                const url = typeof window !== 'undefined' ? `${window.location.origin}/product/${slugify(prod._id)}` : '';
+                                const url = typeof window !== 'undefined' ? `${window.location.origin}/product/${slugify(prod.slug)}` : '';
                                 return (
                                     <TableRow key={prod._id}>
                                         <TableCell className="border font-semibold border-blue-600">{index + 1}</TableCell>
@@ -372,6 +374,28 @@ const AddProduct = ({ id }) => {
                                                     onClick={() => {
                                                         setQrModalUrl(url);
                                                         setQrModalTitle(prod.title);
+                                                        setQrModalCode(prod.code);
+                                                        setQrModalDescription(prod.description?.overview);
+                                                        const allSizes = Array.from(new Set((prod.quantity?.variants || []).map(v => v.size)));
+                                                        const allColors = Array.from(new Set((prod.quantity?.variants || []).map(v => v.color)));
+                                                        setQrModalSizes(allSizes);
+                                                        setQrModalColors(allColors);
+                                                        // Coupon logic
+                                                        let basePrice = prod.quantity.variants[0]?.price ?? '';
+                                                        let oldPrice = prod.quantity.variants[0]?.oldPrice ?? '';
+                                                        let discount = 0;
+                                                        let couponCode = '';
+                                                        if (prod.coupons && prod.coupons.coupon) {
+                                                            discount = prod.coupons.coupon.amount || 0;
+                                                            couponCode = prod.coupons.coupon.couponCode || '';
+                                                        }
+                                                        let discountedPrice = basePrice;
+                                                        if (discount && basePrice) {
+                                                            discountedPrice = basePrice - discount;
+                                                        }
+                                                        setQrModalPrice(discountedPrice);
+                                                        setQrModalOldPrice(basePrice);
+                                                        setQrModalCoupon({ code: couponCode, amount: discount });
                                                         setQrModalOpen(true);
                                                     }}
                                                     title="View QR & Download"
@@ -431,6 +455,14 @@ const AddProduct = ({ id }) => {
                 onOpenChange={setQrModalOpen}
                 qrUrl={qrModalUrl}
                 productTitle={qrModalTitle}
+                productDescription={qrModalDescription}
+                productCode={qrModalCode}
+                sizes={qrModalSizes}
+                colors={qrModalColors}
+                price={qrModalPrice}
+                oldPrice={qrModalOldPrice}
+                logoUrl="/logo.png"
+                coupon={qrModalCoupon}
             />
         </>
     )

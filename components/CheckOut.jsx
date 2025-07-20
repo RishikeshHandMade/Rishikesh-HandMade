@@ -107,11 +107,13 @@ const CheckOut = () => {
   const [city, setCity] = useState("");
   const [district, setDistrict] = useState("");
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-  const [recentOrderId, setRecentOrderId] = useState(null);
+  const [orderId, setOrderId] = useState(null);
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [orderData, setOrderData] = useState(null);
 
   useEffect(() => {
-    // console.log('[CheckOut] showConfirmationModal:', showConfirmationModal, 'recentOrderId:', recentOrderId);
-  }, [showConfirmationModal, recentOrderId]);
+    // console.log('[CheckOut] showConfirmationModal:', showConfirmationModal, 'orderId:', orderId);
+  }, [showConfirmationModal, orderId]);
 
   useEffect(() => {
     // Load checkout data from localStorage
@@ -133,7 +135,7 @@ const CheckOut = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
-  const { cart: contextCart, setCart, removeFromCart } = useCart();
+  const { cart: contextCart, setCart, removeFromCart, clearCart } = useCart();
   const [checkoutData, setCheckoutData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -149,6 +151,8 @@ const CheckOut = () => {
   const [showOverview, setShowOverview] = useState(false);
   const [confirmedPaymentMethod, setConfirmedPaymentMethod] = useState(null);
   const [shipping, setShipping] = useState('free');
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [recentOrderId, setRecentOrderId] = useState(null);
   // Load cart data from localStorage and handle authentication state
 
   const handleOnlinePaymentWithOrder = async (finalAmount, cart, customer, setLoading, setError, routerInstance, checkoutData, formFields, user) => {
@@ -175,6 +179,7 @@ const CheckOut = () => {
         transactionId: checkoutData?.transactionId // pass consistent transactionId
       };
       let orderResponse;
+      console.log(payload)
       try {
         orderResponse = await axios.post("/api/razorpay", payload);
       } catch (error) {
@@ -303,7 +308,7 @@ const CheckOut = () => {
 
               if (verificationResponse.data && verificationResponse.data.success) {
                 setError(null);
-                // const cartCleared = await clearCart();
+                const cartCleared = await clearCart();
                 // Explicitly clear all cart and checkout data from localStorage
                 localStorage.removeItem("cart");
                 localStorage.removeItem("checkoutCart");
@@ -332,66 +337,245 @@ const CheckOut = () => {
                       to: customerEmail,
                       subject: 'Order Confirmation',
                       htmlContent: `<!DOCTYPE html>
-  <html lang="en">
-  <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Order Confirmation</title>
-      <style type="text/css">
-        body { font-family: Arial, sans-serif; background: #f8f9fa; }
-        .container { background: #fff; border-radius: 8px; margin: 32px auto; max-width: 600px; padding: 32px 24px; }
-        .header { text-align: center; }
-        .summary-table { width: 100%; border-collapse: collapse; margin: 24px 0; }
-        .summary-table th, .summary-table td { border: 1px solid #e5e7eb; padding: 8px; text-align: left; font-size: 14px; }
-        .summary-table th { background: #f3f4f6; }
-        .product-img { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid #e5e7eb; }
-        .dashboard-btn { display: block; width: 100%; margin: 32px 0 0 0; text-align: center; background: #f97316; color: #fff; padding: 12px 0; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 16px; }
-      </style>
-  </head>
-  <body>
-    <div class="container">
-      <div class="header">
-        <h2>Thank you for your order!</h2>
-        <p>Hello, ${firstName}</p>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Invoice</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f8f9fa;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .header {
+      background:rgb(146, 165, 208);
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .header img {
+      width: 60px;
+      margin-bottom: 8px;
+    }
+
+    .header .brand {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .header .contact {
+      font-size: 13px;
+      margin-top: 8px;
+      color: #93c5fd;
+    }
+
+    .header .invoice-details {
+      font-size: 13px;
+      color: #cbd5e1;
+      margin-top: 10px;
+    }
+
+    .info-section {
+      display: flex;
+      justify-content: space-between;
+      padding: 20px;
+      font-size: 14px;
+      flex-wrap: wrap;
+    }
+
+    .info-section h3 {
+      margin-bottom: 6px;
+      color: #0369a1;
+    }
+
+    .info-section > div {
+      width: 48%;
+    }
+
+    .table-container {
+      padding: 0 20px 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    thead {
+      background-color: #f3f4f6;
+    }
+
+    th, td {
+      border: 1px solid #e5e7eb;
+      padding: 10px;
+      text-align: left;
+    }
+
+    .product-img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 6px;
+    }
+
+    .summary {
+      padding: 0 20px 20px;
+      text-align: right;
+      font-size: 14px;
+    }
+
+    .summary p {
+      margin: 4px 0;
+    }
+
+    .summary strong {
+      color: #0f766e;
+    }
+
+    .note {
+      padding: 10px 20px;
+      font-size: 12px;
+      color: #6b7280;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .cta {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .cta a {
+      background: #10b981;
+      color: white;
+      padding: 10px 24px;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+
+    /* --- Mobile Responsive Fixes --- */
+    @media only screen and (max-width: 600px) {
+  .table-container {
+    overflow-x: auto;
+  }
+
+  table {
+    min-width: 600px;
+  }
+
+  .product-img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 6px;
+  }
+
+  .info-section {
+    flex-direction: column;
+  }
+
+  .info-section > div {
+    width: 100%;
+    margin-bottom: 12px;
+  }
+
+  .header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .header-left, .header-right {
+    text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <img src="https://rishikeshhandmade.com/logo.png" alt="Logo" />
+      <div class="brand">Rishikesh HandMade</div>
+      <div class="contact">📞 +91 9876543210 | ✉ rishikeshhandmade@gmail.com</div>
+      <div class="invoice-details">
+        Invoice No: #${orderId} <br />
+        Invoice Date: ${new Date().toLocaleDateString()}
       </div>
-      <div class="footer">
-        <p>Order ID: ${orderId}</p>
-        <p>Order Date: ${new Date().toLocaleDateString()}</p>
+    </div>
+
+    <!-- Billing Info -->
+    <div class="info-section">
+      <div>
+        <h3>Invoice To:</h3>
+        <p>${firstName} ${lastName}</p>
+        <p>${checkoutData.address || ''}</p>
+        <p>${checkoutData.city || ''}, ${checkoutData.state || ''} ${checkoutData.pincode || ''}</p>
+        <p>${checkoutData.country || 'India'}</p>
       </div>
-      <h3 style="margin-top:32px; font-size:18px;">Order Summary</h3>
-      <table class="summary-table">
+      <div>
+        <h3>Pay To:</h3>
+        <p>Rishikesh HandMade</p>
+        <p>Upper Road Dhalwala (Rishikesh)</p>
+        <p>Tehri Garhwal, Uttarakhand 249201</p>
+        <p>India</p>
+      </div>
+    </div>
+
+    <!-- Products Table -->
+    <div class="table-container">
+      <table>
         <thead>
           <tr>
             <th>Image</th>
-            <th>Name</th>
+            <th>Service</th>
             <th>Qty</th>
-            <th>Size</th>
-            <th>Weight</th>
-            <th>Shipping Charge</th>
             <th>Price</th>
+            <th>Total</th>
           </tr>
         </thead>
-        <tbody>
-          ${Array.isArray(checkoutData?.cart) ? checkoutData.cart.map(item => `
-            <tr>
-              <td><img src="${item.image?.url || item.image || ''}" class="product-img" alt="${item.name || ''}" /></td>
-              <td>${item.name || ''}</td>
-              <td>${item.qty || 1}</td>
-              <td>${item.size || '-'}</td>
-              <td>${typeof item.weight !== 'undefined' && item.weight !== null ? item.weight + 'g' : '-'}</td>
-<td>${typeof item.finalShipping !== 'undefined' && item.finalShipping !== null ? item.finalShipping + '₹' : '-'}</td>
-<td>₹${typeof item.price !== 'undefined' && item.price !== null ? Number(item.price).toFixed(2) : '-'}</td>
-            </tr>
-          `).join('') : ''}
-        </tbody>
+       <tbody>
+  ${Array.isArray(checkoutData?.cart) ? checkoutData.cart.map(item => `
+    <tr>
+      <td><img src="${item.image?.url || item.image}" class="product-img" alt="${item.name}" /></td>
+      <td>${item.name}</td>
+      <td>${item.qty || 1}</td>
+      <td>₹${Number(item.price).toFixed(2)}</td>
+      <td>₹${(item.qty * item.price).toFixed(2)}</td>
+    </tr>
+  `).join('') : ''}
+</tbody>
       </table>
-      <div style="text-align:right; font-size:16px; margin-top:12px;">
-        <strong>Total: ₹${checkoutData?.cartTotal ? Number(checkoutData.cartTotal).toFixed(2) : '-'}</strong>
-      </div>
-      <a href="https://rishikeshhandmade.com/dashboard?section=orders" class="dashboard-btn">Go to Dashboard</a>
     </div>
-  </body>
-  </html>`
+
+    <!-- Summary -->
+    <div class="summary">
+      <p>Subtotal: ₹${checkoutData.cartTotal?.toFixed(2) || '0.00'}</p>
+      <p>Tax: ₹${((checkoutData.cartTotal || 0)).toFixed(2)}</p>
+      <p><strong>Grand Total: ₹${((checkoutData.cartTotal || 0)).toFixed(2)}</strong></p>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta">
+      <a href="https://rishikeshhandmade.com/dashboard?section=orders">Go to Dashboard</a>
+    </div>
+
+  </div>
+</body>
+</html>
+`
                     })
                   });
                 } catch (emailError) {
@@ -412,7 +596,7 @@ const CheckOut = () => {
                   }
                   setShowConfirmationModal(true);
                   setRecentOrderId(orderId);
-                  console.log('[Razorpay Handler] Modal set: showConfirmationModal = true, recentOrderId =', orderId);
+                  // console.log('[Razorpay Handler] Modal set: showConfirmationModal = true, recentOrderId =', orderId);
                   return;
                 }
               } else {
@@ -857,10 +1041,8 @@ const CheckOut = () => {
     });
   };
   // Handle COD order creation
-  const handleCreateOrder = async (paymentMethod) => {
-    console.log('🔄 [handleCreateOrder] Starting order creation');
-    setLoading(true);
-
+  // Prepare order data without submitting
+  const prepareOrderData = (paymentMethod) => {
     // Check for buy-now mode
     let isBuyNow = false;
     if (typeof window !== "undefined") {
@@ -869,125 +1051,134 @@ const CheckOut = () => {
       console.log('📦 Order mode:', isBuyNow ? 'Buy Now' : 'Regular Cart');
     }
 
+    // Calculate totals
+    const subTotal = cart.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0);
+    const totalTax = cart.reduce(
+      (sum, item) => sum + (((item.cgst || 0) + (item.sgst || 0)) / 100) * (item.price || 0) * (item.qty || 1),
+      0
+    );
+    const shippingCost = subTotal >= 500 ? 0 : 50; // Example shipping logic
+    const totalAmount = subTotal + totalTax + shippingCost;
+
+    // Generate a unique order ID
+    const orderId = generateOrderId();
+    const transactionId = orderId;
+
+    // Prepare products array
+    const productsPayload = cart.map(item => {
+      const productId = item._id || item.id || (item.product ? (item.product._id || item.product.id) : null);
+      if (!productId) {
+        console.error('Could not determine product ID for item:', item);
+        throw new Error('Invalid product: missing ID');
+      }
+
+      let variant = null;
+      let variantId = item.variantId ?? item.variantIndex ?? 0;
+
+      if (item.quantity?.variants?.length > 0) {
+        variant = item.quantity.variants.find(v =>
+          v._id === variantId || v.size === variantId || v.size === item.size
+        ) || item.quantity.variants[0];
+      }
+
+      return {
+        ...item,
+        quantity: item.qty || 1,
+        productId: productId,
+        _id: productId,
+        variantId: variantId,
+        price: item.price || 0,
+        name: item.name || 'Product',
+        image: item.image,
+        weight: item.weight,
+        shipping: item.shipping,
+      };
+    });
+
+    // Build the order data
+    return {
+      // Order details
+      products: productsPayload,
+      cartTotal: totalAmount,
+      subTotal: subTotal,
+      totalTax: totalTax,
+      shippingCost: shippingCost,
+      payment: paymentMethod,
+      paymentMethod: paymentMethod,
+      orderId: orderId,
+      transactionId: transactionId,
+      status: 'Processing',
+      agree: true,
+
+      // Customer details
+      firstName: firstName,
+      lastName: lastName,
+      email: session?.user?.email || email,
+      phone: phone,
+
+      // Address details
+      street: street,
+      city: city,
+      district: district || '',
+      state: state,
+      pincode: pincode,
+
+      // Items for quantity updates
+      items: productsPayload.map(item => {
+        let variant = null;
+        let variantIndex = 0;
+
+        if (item.quantity?.variants?.length > 0) {
+          variant = item.quantity.variants.find(v => v.size === item.size) || item.quantity.variants[0];
+          variantIndex = item.quantity.variants.findIndex(v => v._id === variant._id);
+          if (variantIndex === -1) variantIndex = 0;
+        }
+
+        return {
+          _id: item._id || item.id,
+          productId: item._id || item.id,
+          variantId: variantIndex,
+          quantity: item.quantity,
+          qty: item.qty || 1,
+          size: item.size,
+          variant: variant || {
+            size: item.size,
+            qty: item.qty || 1
+          }
+        };
+      })
+    };
+  };
+
+  const handleCreateOrder = async (paymentMethod, orderData = null) => {
+    console.log('🔄 [handleCreateOrder] Starting order creation');
+    setLoading(true);
+
     setError(null);
 
-    // Clear cart data once
-    // await clearCart();
+    // If orderData is provided (from overview), use it
+    if (orderData) {
+      // Use the provided order data
+      console.log('Using provided order data for submission');
+    } else {
+      // Create order data from current state (for backward compatibility)
+      console.log('Creating order data from current state');
+
+      // Check for buy-now mode
+      let isBuyNow = false;
+      if (typeof window !== "undefined") {
+        const params = new URLSearchParams(window.location.search);
+        isBuyNow = params.get('mode') === 'buy-now';
+        console.log('📦 Order mode:', isBuyNow ? 'Buy Now' : 'Regular Cart');
+      }
+
+      // Create order data from current state
+      orderData = await prepareOrderData(paymentMethod);
+    }
 
     try {
-      // Calculate totals
-      const subTotal = cart.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0);
-      const totalTax = cart.reduce(
-        (sum, item) => sum + (((item.cgst || 0) + (item.sgst || 0)) / 100) * (item.price || 0) * (item.qty || 1),
-        0
-      );
-      const shippingCost = subTotal >= 500 ? 0 : 50; // Example shipping logic
-      const totalAmount = subTotal + totalTax + shippingCost;
-
-      // Generate a unique order ID for COD
-      const orderId = generateOrderId();
-      const transactionId = orderId; // For COD, transactionId is same as orderId
-
-      // Prepare products array in the same format as the online payment flow
-      const productsPayload = cart.map(item => {
-        // Get the product ID - check multiple possible locations
-        const productId = item._id || item.id || (item.product ? (item.product._id || item.product.id) : null);
-        if (!productId) {
-          console.error('Could not determine product ID for item:', item);
-          throw new Error('Invalid product: missing ID');
-        }
-
-        // Find the variant - use the same logic as online payment
-        let variant = null;
-        let variantId = item.variantId ?? item.variantIndex ?? 0;
-
-        // Try to find the variant by ID or size
-        if (item.quantity?.variants?.length > 0) {
-          variant = item.quantity.variants.find(v =>
-            v._id === variantId || v.size === variantId || v.size === item.size
-          ) || item.quantity.variants[0];
-        }
-
-        // Build the order item in the same format as online payment
-        return {
-          ...item,
-          quantity: item.quantity || item.qty || 1,
-          productId: productId,
-          _id: productId, // Also set _id for backward compatibility
-          variantId: variantId,
-          price: item.price || 0,
-          name: item.name || 'Product',
-          image: typeof item.image === 'string' ? item.image : item.image?.url || ''
-        };
-      });
-
-      // Build the order data in the format expected by the backend
-      const orderData = {
-        // Order details
-        products: productsPayload,
-        cartTotal: totalAmount,
-        subTotal: subTotal,
-        totalTax: totalTax,
-        shippingCost: shippingCost,
-        payment: 'cod',
-        paymentMethod: 'cod',
-        orderId: orderId,
-        transactionId: transactionId,
-        status: 'Processing',
-        agree: true,
-
-        // Customer details
-        firstName: firstName,
-        lastName: lastName,
-        email: user?.email || email,
-        phone: phone,
-
-        // Address details
-        street: street,
-        city: city,
-        district: district || '',
-        state: state,
-        pincode: pincode,
-
-        // Items for quantity updates - format exactly as expected by the backend
-        items: productsPayload.map(item => {
-          // Find the variant by size if available
-          let variant = null;
-          let variantIndex = 0;
-
-          if (item.quantity?.variants?.length > 0) {
-            // First try to find by size
-            variant = item.quantity.variants.find(v => v.size === item.size);
-
-            // If not found by size, use the first variant
-            if (!variant) {
-              variant = item.quantity.variants[0];
-            }
-
-            // Get the index of the variant
-            variantIndex = item.quantity.variants.findIndex(v => v._id === variant._id);
-            if (variantIndex === -1) variantIndex = 0;
-          }
-
-          // Create the item in the exact format the backend expects
-          const orderItem = {
-            _id: item._id || item.id,
-            productId: item._id || item.id,
-            variantId: variantIndex,
-            quantity: item.quantity,  // The full quantity object
-            qty: item.qty || 1,       // The quantity being ordered
-            size: item.size,
-            // Include the variant data for reference
-            variant: variant || {
-              size: item.size,
-              qty: item.qty || 1
-            }
-          };
-
-          console.log('Order item being sent:', JSON.stringify(orderItem, null, 2));
-          return orderItem;
-        })
-      };
+      // Use the prepared order data
+      const { orderId, transactionId } = orderData;
 
       // Log the order data being sent
       console.log('Sending order data:', {
@@ -1015,7 +1206,10 @@ const CheckOut = () => {
           qty: p.qty,
           variantId: p.variantId,
           size: p.size,
-          price: p.price
+          price: p.price,
+          weight: p.weight,
+          shipping: p.shipping,
+          image: p.image,
         })),
         items: orderData.items
       }, null, 2));
@@ -1061,7 +1255,10 @@ const CheckOut = () => {
                 name: p.name,
                 qty: p.qty,
                 variantId: p.variantId,
-                size: p.size
+                size: p.size,
+                image: p.image,
+                weight: p.weight,
+                shipping: p.shipping,
               })),
               items: orderData.items
             })
@@ -1081,21 +1278,23 @@ const CheckOut = () => {
 
       console.log('✅ Order created successfully:', data);
 
-      // Clear cart after successful order
-      // console.log('🔄 Starting cart cleanup after successful order...');
-      // const cleanupSuccess = await clearCart();
+      // --- Clear cart and checkout-related data from localStorage after successful COD order ---
+      try {
+        localStorage.removeItem("cart");
+        localStorage.removeItem("checkoutCart");
+        localStorage.removeItem("checkoutData");
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('cart_')) {
+            localStorage.removeItem(key);
+          }
+        });
+      } catch (e) {
+        console.warn('Could not clear localStorage after COD order:', e);
+      }
 
-      // if (cleanupSuccess) {
-      //   toast.success('Order placed successfully!', {
-      //     position: 'top-center',
-      //     duration: 3000
-      //   });
-      // } else {
-      //   toast.warning('Order placed, but there was an issue clearing your cart.', {
-      //     position: 'top-center',
-      //     duration: 5000
-      //   });
-      // }
+      // Also clear cart context and checkout state to prevent re-population
+      if (setCart) setCart([]);
+      setCheckoutData(null);
 
       // Show confirmation and set order ID
       setShowConfirmationModal(true);
@@ -1267,7 +1466,7 @@ const CheckOut = () => {
             } else {
               console.log('🛒 Clearing cart data from storage (COD)');
 
-              // await clearCart();
+              await clearCart();
             }
 
             // Clear session storage as well
@@ -1301,175 +1500,15 @@ const CheckOut = () => {
       }
     }
   };
-
-
-  // Handler for form submission (step 1 → step 2)
-  const handleShowOverview = (e) => {
-    // e.preventDefault();
-    if (loading) return;
-    const validationError = validateForm();
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-    // console.log("Setting showOverview to true");
-    setShowOverview(true);
-    setConfirmedPaymentMethod(payment); // Save chosen payment method
-  };
-  // Handle order confirmation and cart clearing
-  const handleOrderConfirm = async () => {
-    setLoading(true);
-    try {
-      // Build form fields from state for payload
-      const formFields = {
-        street, city, district, state, pincode, firstName, lastName, email, phone, altPhone
-      };
-      let orderId = checkoutData?.orderId;
-      let transactionId = checkoutData?.transactionId;
-
-      if (confirmedPaymentMethod === 'cod') {
-        // Always generate unique orderId for COD using shared generator
-        orderId = generateOrderId();
-        transactionId = orderId; // For COD, transactionId is same as orderId
-        setPaymentMethod('cod');
-        const orderPayload = buildOrderPayload({
-          cart: contextCart,
-          checkoutData,
-          ...formFields,
-          payment: 'cod',
-          paymentMethod: 'cod',
-          paymentMethodValue: 'cod',
-          orderId,
-          agree,
-        });
-        const res = await fetch('/api/orders', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(orderPayload)
-        });
-        const data = await res.json();
-        if (!data.orderId) {
-          setError('Order creation failed.');
-          setLoading(false);
-          return;
-        }
-        // Optionally send confirmation email here
-        try {
-          await fetch('/api/brevo', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              to: email,
-              subject: 'Order Confirmation',
-              htmlContent: `<!DOCTYPE html>
-  <html lang="en">
-  <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Order Confirmation</title>
-      <style type="text/css">
-        body { font-family: Arial, sans-serif; background: #f8f9fa; }
-        .container { background: #fff; border-radius: 8px; margin: 32px auto; max-width: 600px; padding: 32px 24px; }
-        .header { text-align: center; }
-        .summary-table { width: 100%; border-collapse: collapse; margin: 24px 0; }
-        .summary-table th, .summary-table td { border: 1px solid #e5e7eb; padding: 8px; text-align: left; font-size: 14px; }
-        .summary-table th { background: #f3f4f6; }
-        .product-img { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid #e5e7eb; }
-        .dashboard-btn { display: block; width: 100%; margin: 32px 0 0 0; text-align: center; background: #f97316; color: #fff; padding: 12px 0; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 16px; }
-      </style>
-  </head>
-  <body>
-    <div class="container">
-      <div class="header">
-        <h2>Thank you for your order!</h2>
-        <p>Hello, ${firstName} ${lastName}</p>
-      </div>
-      <div class="footer">
-        <p>Order ID: ${orderId}</p>
-        <p>Order Date: ${new Date().toLocaleDateString()}</p>
-      </div>
-      <h3 style="margin-top:32px; font-size:18px;">Order Summary</h3>
-      <table class="summary-table">
-        <thead>
-          <tr>
-            <th>Image</th>
-            <th>Name</th>
-            <th>Qty</th>
-            <th>Size</th>
-            <th>Weight</th>
-            <th>Shipping Charge</th>
-            <th>Price</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${Array.isArray(checkoutData?.cart) ? checkoutData.cart.map(item => `
-            <tr>
-              <td><img src="${item.image?.url || item.image || ''}" class="product-img" alt="${item.name || ''}" /></td>
-              <td>${item.name || ''}</td>
-              <td>${item.qty || 1}</td>
-              <td>${item.size || '-'}</td>
-              <td>${typeof item.weight !== 'undefined' && item.weight !== null ? item.weight + 'g' : '-'}</td>
-<td>${typeof item.shipping !== 'undefined' && item.shipping !== null ? item.shipping + 'g' : '-'}</td>
-<td>₹${typeof item.price !== 'undefined' && item.price !== null ? Number(item.price).toFixed(2) : '-'}</td>
-            </tr>
-          `).join('') : ''}
-        </tbody>
-      </table>
-      <div style="text-align:right; font-size:16px; margin-top:12px;">
-        <strong>Total: ₹${checkoutData?.cartTotal ? Number(checkoutData.cartTotal).toFixed(2) : '-'}</strong>
-      </div>
-      <a href="https://rishikeshhandmade.com/dashboard?section=orders" class="dashboard-btn">Go to Dashboard</a>
-    </div>
-  </body>
-  </html>`
-            })
-          });
-        } catch (e) { /* handle email error */ }
-        setRecentOrderId(orderId);
-        setShowConfirmationModal(true);
-        // await clearCart();
-        // Explicitly clear all cart and checkout data from localStorage
-        localStorage.removeItem("cart");
-        localStorage.removeItem("checkoutCart");
-        localStorage.removeItem("checkoutData");
-        Object.keys(localStorage).forEach(key => {
-          if (key.startsWith('cart_')) {
-            localStorage.removeItem(key);
-          }
-        });
-        setLoading(false);
-        return;
-      }
-      // For online, always go through Razorpay handler
-      if (confirmedPaymentMethod === 'online') {
-        setPaymentMethod('online');
-        const customer = {
-          name: `${firstName} ${lastName}`.trim(),
-          email,
-          phone
-        };
-        await handleOnlinePaymentWithOrder(
-          checkoutData?.cartTotal,
-          contextCart,
-          customer,
-          setLoading,
-          setError,
-          router,
-          { ...checkoutData, orderId: generateOrderId(), transactionId: generateTransactionId() }, // pass IDs
-          { ...formFields, paymentMethod: 'online' },
-          session?.user
-        );
-        return;
-      }
-      setLoading(false);
-    } catch (error) {
-      setError(error.message || 'Order creation failed.');
-      setLoading(false);
-    }
-  };
-
   // Handler for confirming payment on overview (step 2 → step 3)
   const handleConfirmAndPay = async () => {
+    console.log('handleConfirmAndPay called', confirmedPaymentMethod);
+    if (!confirmedPaymentMethod) {
+      setError('Please select a payment method.');
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       // Build form fields from state for payload
@@ -1637,8 +1676,8 @@ const CheckOut = () => {
         loading={loading}
         error={error}
         showConfirmationModal={showConfirmationModal}
-        orderId={recentOrderId}
-        onGoToDashboard={() => { window.location.href = `/dashboard?orderId=${recentOrderId}`; }}
+        orderId={orderId}
+        onGoToDashboard={() => { window.location.href = `/dashboard?orderId=${orderId}`; }}
       />
     );
   }
@@ -2059,23 +2098,13 @@ const CheckOut = () => {
           className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded font-semibold text-sm transition-colors"
           disabled={!agree || loading || isProcessingPayment || !firstName || !lastName || !email || !phone || !street || !city || !state || !pincode || !payment}
           type="button"
-          onClick={async (e) => {
-            e.preventDefault();
-            if (loading || isProcessingPayment) return;
-
-            // Validate form first
-            const validationError = validateForm();
-            if (validationError) {
-              setError(validationError);
-              toast.error(validationError);
+          onClick={() => {
+            if (!payment) {
+              setError('Please select a payment method.');
               return;
             }
-
-            // For both COD and online, show the overview first
+            setConfirmedPaymentMethod(payment); // payment = 'cod' or 'online'
             setShowOverview(true);
-
-            // Store the payment method for later use
-            setConfirmedPaymentMethod(payment);
           }}
         >
           {loading ? (

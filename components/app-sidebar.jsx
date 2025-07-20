@@ -165,11 +165,6 @@ const data = {
       icon: ShoppingCart,
     },
     {
-      name: "All Orders",
-      url: "/admin/all_orders",
-      icon: ShoppingCart,
-    },
-    {
       name: "COD Order Log",
       url: "/admin/cod_order_log",
       icon: ShoppingCart,

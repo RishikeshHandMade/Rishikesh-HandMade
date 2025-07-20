@@ -38,8 +38,21 @@ export async function POST(req) {
     // Accept profileImage as a URL (and optionally key)
     const profileImage = data.profileImage ? data.profileImage : null;
 
+    const slugify = (str) => {
+      if (!str) return '';
+      return String(str)
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w\-]+/g, '')
+        .replace(/\-\-+/g, '-')
+        .replace(/^-+/, '')
+        .replace(/-+$/, '');
+    };
+
     const artisan = new Artisan({
       title: data.title,
+      slug: data.slug,
       firstName: data.firstName,
       lastName: data.lastName,
       fatherHusbandType: data.fatherHusbandType,

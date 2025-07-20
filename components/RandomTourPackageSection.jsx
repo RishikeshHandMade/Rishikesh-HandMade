@@ -201,7 +201,7 @@ const RandomTourPackageSection = () => {
     <section className="bg-[#fcf7f1] md:mt-19 w-full overflow-hidden max-w-screen overflow-x-hidden">
       <div className=" w-full h-full overflow-hidden max-w-screen">
         {/* Product Section */}
-        <div className="w-full py-10 px-1 bg-blue-100">
+        <div className="w-full py-10 px-1 bg-[#ededed]">
           <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mt-10 uppercase">
             Trending Products: The Best, Today
           </h1>
@@ -352,7 +352,7 @@ const RandomTourPackageSection = () => {
                       {/* Name and Price Section */}
                       <div className="flex items-center justify-between px-1 pt-4 pb-2 mt-0">
                         <Link
-                          href={`/product/${item._id}`}
+                          href={`/product/${item.slug}`}
                           className="font-bold hover:underline text-lg md:text-xl text-gray-900 leading-tight max-w-[200px] truncate cursor-pointer"
                         >
                           {item?.title}
@@ -415,6 +415,7 @@ const RandomTourPackageSection = () => {
                 {(artisan && artisan.slice(0, 2).map((item, idx) => {
                   const card = {
                     id: item._id || idx,
+                    slug: item.slug,
                     name: `${item.title ? item.title + " " : ""}${item.firstName || ''} ${item.lastName || ''}`.trim() || "Unknown Artisan",
                     date: item.createdAt ? new Date(item.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase() : "N/A",
                     image: item.profileImage?.url || item.image || "/bg-custom-1.jpg",
@@ -471,7 +472,7 @@ const RandomTourPackageSection = () => {
                       <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-6 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
                         <div>
                           <Link
-                            href={`/artisan/${card.id}`}
+                            href={`/artisan/${card.slug}`}
                             className="font-bold text-2xl text-white mb-3 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
                             title={card.name}
                           >
@@ -524,6 +525,7 @@ const RandomTourPackageSection = () => {
                     {artisan.slice(2).map((item, idx) => {
                       const card = {
                         id: item._id || idx,
+                        slug:item.slug,
                         name: `${item.title ? item.title + " " : ""}${item.firstName || ''} ${item.lastName || ''}`.trim() || "Unknown Artisan",
                         date: item.createdAt ? new Date(item.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase() : "N/A",
                         image: item.profileImage?.url || item.image || "/bg-custom-1.jpg",
@@ -581,7 +583,7 @@ const RandomTourPackageSection = () => {
                             <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-6 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
                               <div>
                                 <Link
-                                  href={`/artisan/${card.id}`}
+                                  href={`/artisan/${card.slug}`}
                                   className="font-bold text-2xl text-white mb-3 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
                                   title={card.name}
                                 >

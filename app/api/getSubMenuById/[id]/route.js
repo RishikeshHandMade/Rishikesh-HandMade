@@ -18,7 +18,7 @@ export async function GET(req, { params }) {
             return NextResponse.json({ message: "SubMenu not found" }, { status: 404 });
         }
 
-        
+
         const subMenu = menu.subMenu.find((sub) => sub._id.toString() === id);
 
         if (!subMenu) {
@@ -28,7 +28,10 @@ export async function GET(req, { params }) {
         // Manually populate products array
         const mongoose = (await import('mongoose')).default;
         const Product = mongoose.model('Product');
-        const productDocs = await Product.find({ _id: { $in: subMenu.products || [] } });
+        const productDocs = await Product.find({ _id: { $in: subMenu.products || [] } })
+            .populate('description')
+            .populate('quantity')
+            .populate('coupons');
         const populatedSubMenu = { ...subMenu, products: productDocs };
 
         return NextResponse.json(populatedSubMenu);

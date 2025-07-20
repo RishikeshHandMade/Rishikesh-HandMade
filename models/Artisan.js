@@ -11,6 +11,12 @@ const artisanSchema = new mongoose.Schema({
     required: true,
     enum: ['Mr.', 'Mrs.', 'Ms.']
   },
+  slug: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true
+  },
   firstName: {
     type: String,
     required: true,

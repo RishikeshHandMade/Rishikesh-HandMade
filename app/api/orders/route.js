@@ -25,6 +25,19 @@ export async function POST(req) {
       delete body.transactionId;
     }
 
+    // Normalize products array to always include all fields and ensure image is a string
+    if (Array.isArray(body.products)) {
+      body.products = body.products.map(product => ({
+        ...product,
+        image: typeof product.image === 'string'
+          ? product.image
+          : (product.image && typeof product.image === 'object' && product.image
+              ? product.image
+              : ''),
+        _id: product.productId || product._id || product.id
+      }));
+    }
+
     // ✅ Save the order
     body.agree = true; // Always set agree true for all new orders
     const order = await Order.create(body);
@@ -34,24 +47,33 @@ export async function POST(req) {
     const items = Array.isArray(body.items) ? body.items : [];
     
     // Debug log the raw data
-    // console.log('Raw request body:', JSON.stringify({
-    //   products: products.map(p => ({
-    //     _id: p._id,
-    //     id: p.id,
-    //     name: p.name,
-    //     qty: p.qty,
-    //     quantity: p.quantity ? '[...]' : null,
-    //     variantId: p.variantId,
-    //     size: p.size
-    //   })),
-    //   items: items.map(i => ({
-    //     _id: i._id,
-    //     productId: i.productId,
-    //     variantId: i.variantId,
-    //     qty: i.qty,
-    //     size: i.size
-    //   }))
-    // }, null, 2));
+    console.log('Raw request body:', JSON.stringify({
+      products: products.map(p => ({
+        _id: p._id,
+        id: p.id,
+        name: p.name,
+        qty: p.qty,
+        quantity: p.quantity ? '[...]' : null,
+        variantId: p.variantId,
+        size: p.size,
+        price: p.price,
+        discount: p.discount,
+        total: p.total,
+        image: p.image
+
+      })),
+      items: items.map(i => ({
+        _id: i._id,
+        productId: i.productId,
+        variantId: i.variantId,
+        qty: i.qty,
+        size: i.size,
+        price: i.price,
+        discount: i.discount,
+        total: i.total,
+        image: i.image
+      }))
+    }, null, 2));
     
     const itemsToUpdate = [];
     
@@ -68,7 +90,11 @@ export async function POST(req) {
           productId,
           variantId: item.variantId || 0,
           quantity: item.qty || 1,
-          size: item.size
+          size: item.size,
+          price: item.price,
+          discount: item.discount,
+          total: item.total,
+          image:item.image
         });
       } catch (error) {
         // console.error('Error processing item:', error, 'Item:', JSON.stringify(item, null, 2));
@@ -108,7 +134,11 @@ export async function POST(req) {
               productId,
               variantId: variantIndex,
               quantity: product.qty || 1,
-              size: product.size
+              size: product.size,
+              price: product.price,
+              discount: product.discount,
+              total: product.total,
+              image: product.image
             });
           } 
           // No variants, just use the product
@@ -117,7 +147,11 @@ export async function POST(req) {
               productId,
               variantId: 0,
               quantity: product.qty || 1,
-              size: product.size
+              size: product.size,
+              price: product.price,
+              discount: product.discount,
+              total: product.total,
+              image: product.image
             });
           }
         } catch (error) {

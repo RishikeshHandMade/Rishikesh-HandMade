@@ -46,54 +46,6 @@ const CheckOutOverview = ({ checkoutData, paymentMethod, onEdit, onConfirm, load
       {showConfirmationModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-2xl shadow-lg p-8 max-w-2xl w-full relative flex flex-col items-center" id="invoice-print-section">
-            {/* Logo at the top */}
-            {/* <div className="mb-4 flex flex-col items-center w-full">
-              <img src="/logo.png" alt="Rishikesh Handmade Logo" className="h-14 mb-2" style={{ objectFit: 'contain' }} onError={e => { e.target.style.display = 'none' }} />
-            </div> */}
-            {/* Address and Customer Info */}
-            {/* <div className="mb-4 w-full text-sm text-gray-700 bg-[#fcf7f2] rounded-lg px-4 py-3">
-              <div className="font-semibold text-base mb-2">Shipping/Billing Info</div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1">
-                <div><span className="font-medium">Name:</span> {checkoutData.firstName} {checkoutData.lastName}</div>
-                <div><span className="font-medium">Email:</span> {checkoutData.email}</div>
-                <div><span className="font-medium">Phone:</span> {checkoutData.phone}</div>
-                <div><span className="font-medium">Address:</span> {checkoutData.address || `${checkoutData.street}, ${checkoutData.city}, ${checkoutData.state}, ${checkoutData.pincode}`}</div>
-                <div><span className="font-medium">City:</span> {checkoutData.city}</div>
-                <div><span className="font-medium">State:</span> {checkoutData.state}</div>
-                <div><span className="font-medium">Pincode:</span> {checkoutData.pincode}</div>
-              </div>
-            </div> */}
-            {/* Product Table */}
-            {/* <div className="mb-6 w-full overflow-x-auto">
-              <div className="font-semibold text-base mb-2">Order Details</div>
-              <table className="w-full text-xs md:text-sm border border-gray-200 rounded-lg">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="p-2 border">Image</th>
-                    <th className="p-2 border">Name</th>
-                    <th className="p-2 border">Qty</th>
-                    <th className="p-2 border">Size</th>
-                    <th className="p-2 border">Weight</th>
-                    <th className="p-2 border">Shipping</th>
-                    <th className="p-2 border">Price</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Array.isArray(checkoutData.cart) && checkoutData.cart.map((item, idx) => (
-                    <tr key={idx}>
-                      <td className="border p-1"><img src={item.image?.url || item.image || ''} alt={item.name || ''} className="h-10 w-10 object-cover rounded" /></td>
-                      <td className="border p-1">{item.name}</td>
-                      <td className="border p-1">{item.qty || 1}</td>
-                      <td className="border p-1">{item.size || '-'}</td>
-                      <td className="border p-1">{typeof item.weight !== 'undefined' && item.weight !== null ? item.weight + 'g' : '-'}</td>
-                      <td className="border p-1">{typeof item.shipping !== 'undefined' && item.shipping !== null ? item.shipping + 'g' : '-'}</td>
-                      <td className="border p-1">₹{typeof item.price !== 'undefined' && item.price !== null ? Number(item.price).toFixed(2) : '-'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div className="text-right text-base mt-2 font-semibold">Total: ₹{checkoutData.cartTotal ? Number(checkoutData.cartTotal).toFixed(2) : '-'}</div>
-            </div> */}
             {/* Rest of the modal content */}
             <h2 className="text-xl font-bold mb-2 text-center">Thank You for Confirming Your Order</h2>
             <p className="mb-4 text-center text-gray-700">
@@ -302,7 +254,11 @@ const CheckOutOverview = ({ checkoutData, paymentMethod, onEdit, onConfirm, load
             </div>
             <button
               className="w-full py-3 bg-black text-white rounded font-semibold text-base mt-2 mb-4 flex items-center justify-center gap-2 hover:bg-gray-900 transition-colors"
-              onClick={onConfirm}
+              
+              onClick={()=>{
+                console.log('Overview confirm button clicked');
+                onConfirm();
+              }}
               disabled={loading}
             >
               {loading ? 'Processing...' : (

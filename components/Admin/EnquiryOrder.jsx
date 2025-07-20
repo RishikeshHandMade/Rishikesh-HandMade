@@ -40,7 +40,7 @@ const orderStatusColors = {
 
 const EnquiryOrder = () => {
   const [orders, setOrders] = useState([]);
-  console.log(orders)
+  // console.log(orders)
   const [statusFilter, setStatusFilter] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -51,7 +51,7 @@ const EnquiryOrder = () => {
   const [trackingNumber, setTrackingNumber] = useState("");
   const [trackingUrl, setTrackingUrl] = useState("");
   const rowsPerPage = 8;
-  console.log(orders)
+  // console.log(orders)
   // Filtering logic
   const filteredOrders = orders.filter(order =>
     (statusFilter ? order.orderStatus === statusFilter : true) &&
@@ -117,6 +117,20 @@ const EnquiryOrder = () => {
           <div className="flex gap-2 items-center">
             <label className="font-medium text-gray-600">Date:</label>
             <input type="date" className="px-3 py-2 border rounded bg-gray-100 focus:outline-none" />
+          </div>
+          <div className="flex gap-2 mt-2 md:mt-0">
+            <button
+              className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 font-medium"
+              // onClick={handleReset}
+            >
+              Reset Filters
+            </button>
+            <button
+              className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 font-medium"
+            // onClick={handleApply}
+            >
+              Apply Filters
+            </button>
           </div>
         </div>
         {/* Table */}

@@ -51,13 +51,20 @@ const ProductProfile = ({ id }) => {
             })
             .catch(() => setLoading(false));
     }, []);
-
+    // Slugify utility
+    function slugify(str) {
+        return str
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '')
+            .replace(/-+/g, '-');
+    }
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!title.trim()) return toast.error('Title cannot be empty');
         if (!artisan) return toast.error('Select an artisan');
         // Always create direct product
-        let payload = { title, code, artisan, isDirect: true };
+        let payload = { title, code, slug: slugify(title), artisan, isDirect: true };
         const res = await fetch('/api/product', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -110,14 +117,7 @@ const ProductProfile = ({ id }) => {
     };
 
 
-    // Slugify utility
-    function slugify(str) {
-        return str
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-+|-+$/g, '')
-            .replace(/-+/g, '-');
-    }
+
     // Copy to clipboard helper
     function copyToClipboard(text) {
         navigator.clipboard.writeText(text);
@@ -177,7 +177,7 @@ const ProductProfile = ({ id }) => {
                         toast.error(err.error || 'Failed to update');
                     }
                 }
-                 else {
+                else {
                     // Create mode
                     const createdProduct = await handleSubmit(e);
                     // If product created and subMenuId exists, link product to submenu
@@ -263,7 +263,7 @@ const ProductProfile = ({ id }) => {
                                 <td className="py-2 px-4 text-center">
                                     {/* Product URL Copy Button Only */}
                                     {prod.title && (() => {
-                                        const url = `${window.location.origin}/product/${slugify(prod._id)}`;
+                                        const url = `${window.location.origin}/product/${slugify(prod.slug)}`;
                                         return (
                                             <Button
                                                 size="icon"
@@ -280,7 +280,7 @@ const ProductProfile = ({ id }) => {
                                 <td className="py-2 px-4 text-center">
                                     {/* Product QR Copy/View Button */}
                                     {prod.title && (() => {
-                                        const qr = `${window.location.origin}/product/${slugify(prod._id)}`;
+                                        const qr = `${window.location.origin}/product/${slugify(prod.slug)}`;
                                         return (
                                             <div className="flex gap-2 justify-center">
                                                 <Button

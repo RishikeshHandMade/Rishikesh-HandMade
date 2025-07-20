@@ -13,6 +13,7 @@ export async function POST(req) {
         // Step 1: Check for existing product
         let productQuery = {
             title: body.title,
+            slug: body.slug,
             code: body.code,
             artisan: body.artisan
         };
@@ -43,6 +44,7 @@ export async function POST(req) {
         // Step 2: Create a new Product document
         const newProduct = await Product.create({
             title: body.title,
+            slug: body.slug,
             code: body.code,
             artisan: body.artisan,
             isDirect: false,
@@ -61,7 +63,7 @@ export async function POST(req) {
         // Step 3: Link new product to submenu
         if (!body.isDirect && body.subMenuId) {
             const menuBarDoc = await MenuBar.findOne({ "subMenu._id": body.subMenuId });
-            console.log("[NEW PRODUCT] MenuBar doc for submenu:", JSON.stringify(menuBarDoc, null, 2));
+            // console.log("[NEW PRODUCT] MenuBar doc for submenu:", JSON.stringify(menuBarDoc, null, 2));
             const updateResult = await MenuBar.updateOne(
                 { "subMenu._id": body.subMenuId, "subMenu.products": { $ne: newProduct._id } },
                 { $push: { "subMenu.$.products": newProduct._id } }

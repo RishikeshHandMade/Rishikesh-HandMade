@@ -844,10 +844,6 @@ export default function ProductDetailView({ product }) {
                         sgst: (product.taxes && product.taxes.sgst) || product.sgst || (product.tax && product.tax.sgst) || 0,
                         igst: (product.taxes && product.taxes.igst) || product.igst || (product.tax && product.tax.igst) || 0,
                         totalQuantity: selectedVariant.qty || 0,
-                        quantity: {
-                          ...product.quantity,
-                          variants: product.quantity?.variants || []
-                        }
                       });
                       toast.success("Added to cart!");
                     }}
@@ -892,10 +888,6 @@ export default function ProductDetailView({ product }) {
                     sgst: (product.taxes && product.taxes.sgst) || product.sgst || (product.tax && product.tax.sgst) || 0,
                     igst: (product.taxes && product.taxes.igst) || product.igst || (product.tax && product.tax.igst) || 0,
                     totalQuantity: selectedVariant.qty || 0,
-                    quantity: {
-                      ...product.quantity,
-                      variants: product.quantity?.variants || []
-                    }
                   });
                   toast.success("Added to wishlist!");
                 }
@@ -1115,8 +1107,8 @@ export default function ProductDetailView({ product }) {
                     className="w-full bg-black text-white py-2 rounded font-semibold text-lg"
                     onClick={() => {
                       setShowArtisanModal(false);
-                      if (product.artisan && product.artisan._id) {
-                        router.push(`/artisan/${product.artisan._id}`);
+                      if (product.artisan && product.artisan.slug) {
+                        router.push(`/artisan/${product.artisan.slug}`);
                       }
                     }}
                   >

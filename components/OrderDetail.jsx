@@ -85,14 +85,13 @@ const OrderDetail = ({ order, onBack }) => {
         {/* Header */}
         <div className="flex items-start gap-4">
           <div className="flex flex-col items-center">
-            {(orderData.product?.image || (orderData.products && orderData.products[0]?.image?.url)) ? (
+            {(orderData.product?.image || (orderData.products && orderData.products[0]?.image)) ? (
               <img
-                src={orderData.product?.image || (orderData.products && orderData.products[0]?.image?.url)}
+                src={orderData.product?.image || (orderData.products && orderData.products[0]?.image)}
                 alt="product"
-                className="w-16 h-16 rounded-lg border mb-2"
+                className="w-24 h-24 rounded-lg border mb-2"
               />
             ) : null}
-            <span className="w-4 h-4 bg-pink-500 rounded-full border-2 border-white mt-1"></span>
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">

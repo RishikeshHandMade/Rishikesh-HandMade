@@ -162,7 +162,7 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, se
       {/* Name and Price Section */}
       <div className="flex flex-col items-start justify-between px-2 pt-4 pb-2 mt-0">
         <Link
-          href={`/product/${pkg._id}`}
+          href={`/product/${pkg.slug}`}
           className="font-bold hover:underline text-md md:text-xl text-gray-900 leading-tight truncate cursor-pointer"
         >
           {pkg?.title}

@@ -204,7 +204,17 @@ const CreateArtisan = () => {
       setAllSpecializations([]);
     }
   };
-
+  function slugify(str) {
+    if (!str) return '';
+    return String(str)
+      .toLowerCase()
+      .trim() // Remove leading/trailing spaces
+      .replace(/\s+/g, '-') // Replace spaces with -
+      .replace(/[^\w\-]+/g, '') // Remove all non-word chars
+      .replace(/\-\-+/g, '-') // Replace multiple - with single -
+      .replace(/^-+/, '') // Trim - from start of text
+      .replace(/-+$/, ''); // Trim - from end of text
+  }
   const onSubmit = async (data) => {
     if (imageUploading) {
       toast.error("Please wait for the image to finish uploading.");
@@ -213,6 +223,7 @@ const CreateArtisan = () => {
     // Always use selectedSpecs for specializations
     const payload = {
       title: data.title,
+      slug: slugify(`${data.firstName} ${data.lastName}`),
       firstName: data.firstName,
       lastName: data.lastName,
       fatherHusbandType: data.fatherHusbandType,
