@@ -1,17 +1,26 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-
-const teamMembers = [
-  { name: "John Doe", role: "CEO & Founder" },
-  { name: "Ivan Mathews", role: "iOS Developer" },
-  { name: "Macauley Herring", role: "Customer Success" },
-  { name: "Alya Levine", role: "CTO" },
-  { name: "Rose Hernandez", role: "Backend Developer" },
-  { name: "Elen Benitez", role: "Designer" },
-];
+import { useState, useEffect } from "react";
 
 const Team = () => {
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTeam = async () => {
+      try {
+        const res = await fetch("/api/team");
+        if (!res.ok) throw new Error("Failed to fetch team data");
+        const data = await res.json();
+        setTeamMembers(data);
+      } catch (err) {
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTeam();
+  }, []);
   return (
     <div className="w-full min-h-screen bg-[#fcf7f1]">
       {/* Banner */}
@@ -49,53 +58,64 @@ const Team = () => {
                 Our core team includes expert artisans, designers, curators, and community leaders — many of whom have over 20 years of hands-on experience in the handicraft and cottage industry.
               </p>
             </div>
-            {/* Right: Two Images in a row */}
-            <div className="w-full lg:w-[43%] flex flex-row gap-8 items-start justify-center">
-              {/* First Team Member */}
-              <div className="flex flex-col items-center">
-                <div className="relative w-72 h-72 rounded-2xl overflow-hidden shadow-lg bg-[#f6e9da] flex items-center justify-center">
-                  <Image src="/pic1_1.jpg" alt="John Doe" width={224} height={224} className="object-cover w-full h-full" />
-                  {/* Social Icons Overlay */}
-                    {/* <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-4 bg-white/80 px-4 py-2 rounded-full shadow">
-                      <a href="#" className="text-gray-700 hover:text-blue-600"><i className="fab fa-facebook-f" /></a>
-                      <a href="#" className="text-gray-700 hover:text-blue-400"><i className="fab fa-twitter" /></a>
-                      <a href="#" className="text-gray-700 hover:text-pink-500"><i className="fab fa-instagram" /></a>
-                      <a href="#" className="text-gray-700 hover:text-blue-700"><i className="fab fa-linkedin-in" /></a>
-                    </div> */}
-                </div>
-                <div className="mt-3 text-center">
-                  <div className="font-bold text-lg">John Doe</div>
-                  <div className="text-xs text-gray-600">CEO & Founder</div>
-                </div>
-              </div>
-              {/* Second Team Member */}
-              <div className="flex flex-col items-center">
-                <div className="w-72 h-72 rounded-2xl overflow-hidden shadow-lg bg-[#d6f0fa] flex items-center justify-center">
-                  <Image src="/pic1_1.jpg" alt="Ivan Mathews" width={224} height={224} className="object-cover w-full h-full" />
-                </div>
-                <div className="mt-3 text-center">
-                  <div className="font-bold text-lg">Ivan Mathews</div>
-                  <div className="text-xs text-gray-600">iOS Developer</div>
-                </div>
-              </div>
+            {/* Right: Two Images in a row (first two team members) */}
+            <div className=" hidden md:flex w-full lg:w-[43%] flex-row gap-8 items-start justify-center">
+              {loading ? (
+                <div>Loading Team Member...</div>
+              ) : teamMembers.length > 0 ? (
+                teamMembers.slice(0, 2).map((member, idx) => (
+                  <div key={member._id || idx} className="flex flex-col items-center">
+                    <div className={`relative w-72 h-72 rounded-2xl overflow-hidden shadow-lg ${idx === 0 ? "bg-[#f6e9da]" : "bg-[#d6f0fa]"} flex items-center justify-center`}>
+                      <Image src={member.image?.url || "/placeholder.jpeg"} alt={member.title} width={224} height={224} className="object-cover w-full h-full" />
+                    </div>
+                    <div className="mt-3 text-center">
+                      <div className="font-bold text-lg">{member.title}</div>
+                      <div className="text-xs text-gray-600">{member.designation}</div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div>No team members found.</div>
+              )}
             </div>
           </div>
 
-          {/* Team Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-8 mb-10">
-            {teamMembers.slice(2).map((member, idx) => (
-              <div key={idx} className="flex flex-col items-center">
-                <div className="flex flex-col items-center">
-                <div className="w-72 h-72 rounded-2xl overflow-hidden shadow-lg bg-[#d6f0fa] flex items-center justify-center">
-                  <Image src="/pic1_1.jpg" alt="Ivan Mathews" width={224} height={224} className="object-cover w-full h-full" />
+          {/* Team Grid (remaining team members) */}
+          <div className="hidden md:flex grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-8 mb-10">
+            {loading ? (
+              <div>Loading...</div>
+            ) : teamMembers.length > 2 ? (
+              teamMembers.slice(2).map((member, idx) => (
+                <div key={member._id || idx} className="flex flex-col items-center">
+                  <div className="w-72 h-72 rounded-2xl overflow-hidden shadow-lg bg-[#d6f0fa] flex items-center justify-center">
+                    <Image src={member.image?.url || "/placeholder.jpeg"} alt={member.title} width={224} height={224} className="object-cover w-full h-full" />
+                  </div>
+                  <div className="mt-3 text-center">
+                    <div className="font-bold text-lg">{member.title}</div>
+                    <div className="text-xs text-gray-600">{member.designation}</div>
+                  </div>
                 </div>
-                <div className="mt-3 text-center">
-                  <div className="font-bold text-lg">Ivan Mathews</div>
-                  <div className="text-xs text-gray-600">iOS Developer</div>
+              ))
+            ) : null}
+          </div>
+
+          {/* Team Grid (remaining team members for mobile) */}
+          <div className="md:hidden grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 md:gap-8 gap-4 mb-10">
+            {loading ? (
+              <div>Loading Team Members...</div>
+            ) : teamMembers.length > 0 ? (
+              teamMembers.map((member, idx) => (
+                <div key={member._id || idx} className="flex flex-col items-center">
+                  <div className="md:w-72 w-full h-full md:h-72 rounded-2xl overflow-hidden shadow-lg bg-[#d6f0fa] flex items-center justify-center">
+                    <Image src={member.image?.url || "/placeholder.jpeg"} alt={member.title} width={224} height={224} className="object-cover w-full h-full" />
+                  </div>
+                  <div className="mt-3 text-center">
+                    <div className="font-bold text-md">{member.title}</div>
+                    <div className="text-xs text-gray-600">{member.designation}</div>
+                  </div>
                 </div>
-              </div>
-              </div>
-            ))}
+              ))
+            ) : null}
           </div>
 
           <div className="mb-10 text-base text-gray-700">

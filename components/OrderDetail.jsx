@@ -25,6 +25,11 @@ function formatDateTime(dt) {
 }
 
 const OrderDetail = ({ order, onBack }) => {
+  const [activeTab, setActiveTab] = useState("history");
+  const [showCancelRequest, setShowCancelRequest] = useState(false);
+  const [showTrackingInfo, setShowTrackingInfo] = useState(false);
+  const [showMessage, setShowMessage] = useState(null);
+  console.log(order)
 
   if (!order) {
     return (
@@ -33,43 +38,11 @@ const OrderDetail = ({ order, onBack }) => {
       </div>
     );
   }
-  console.log(order)
-  const [activeTab, setActiveTab] = useState("history");
-  const [showCancelRequest, setShowCancelRequest] = useState(false);
+
   const orderData = order;
-  orderData.history = [
-    {
-      label: "Product Shipped",
-      date: "2024-04-08T17:23:00Z",
-      status: "success",
-      details: [
-        { label: "Courier Service", value: "UPS, R. Gosling" },
-        { label: "Estimated Delivery Date", value: "09/04/2024" }
-      ]
-    },
-    {
-      label: "Product Shipped",
-      date: "2024-04-08T17:23:00Z",
-      status: "success",
-      details: [
-        { label: "Tracking Number", value: "3409–4216–8759" },
-        { label: "Warehouse", value: "Top Shirt 12b" }
-      ]
-    },
-    {
-      label: "Product Packaging",
-      date: "2024-04-09T16:34:00Z",
-      status: "pending",
-      details: []
-    },
-    {
-      label: "Order Placed",
-      date: "2024-04-10T14:36:00Z",
-      status: "pending",
-      details: []
-    }
-  ];
-  
+  const isShipped = orderData.status === 'Shipped' || orderData.status === 'Delivered';
+  const hasTracking = orderData.trackingNumber && orderData.trackingUrl;
+
   return (
     <>
       {onBack && (
@@ -118,18 +91,46 @@ const OrderDetail = ({ order, onBack }) => {
             </div>
             {/* Action Buttons */}
             <div className="flex gap-3 mb-2 flex-wrap">
-              {/* <button
-                className="border border-black text-black px-5 py-2 rounded-lg font-semibold hover:bg-gray-100 transition"
-              //   onClick={() => setShowReturnRequest(true)}
-              >
-                Request Confirmation
-              </button> */}
-              <button
-                className="border border-red-400 text-red-600 px-5 py-2 rounded-lg font-semibold hover:bg-red-50 transition"
-                onClick={() => setShowCancelRequest(true)}
-              >
-                Cancel Order
-              </button>
+              {isShipped && hasTracking && (
+                <button
+                  onClick={() => setShowTrackingInfo(!showTrackingInfo)}
+                  className="border border-blue-400 text-blue-600 px-5 py-2 rounded-lg font-semibold hover:bg-blue-50 transition flex items-center gap-2"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  {showTrackingInfo ? 'Hide Tracking' : 'Track Order'}
+                </button>
+              )}
+
+              {orderData.status !== 'Cancelled' &&
+                (orderData.status === 'Pending' || orderData.status === 'Processing') && (
+                  <button
+                    className="border border-red-400 text-red-600 px-5 py-2 rounded-lg font-semibold hover:bg-red-50 transition flex items-center gap-2"
+                    onClick={() => setShowCancelRequest(true)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Cancel Order
+                  </button>
+                )}
+              {orderData.status === 'Delivered' && (
+                <button
+                  className="border border-green-600 text-green-700 px-5 py-2 rounded-lg font-semibold hover:bg-green-50 transition flex items-center gap-2"
+                  // onClick={() => setShowReturnRequest(true)}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582A6.5 6.5 0 1112 19" />
+                  </svg>
+                  Request Return
+                </button>
+              )}
+              {/* {showReturnRequest && (
+                <ReturnRequest orderId={orderData._id} onClose={() => setShowReturnRequest(false)} />
+              )} */}
+
+
             </div>
           </div>
         </div>
@@ -149,34 +150,84 @@ const OrderDetail = ({ order, onBack }) => {
         {/* Tab Content */}
         {activeTab === "history" && (
           <div className="mt-6">
-            <ol className="relative border-l-2 border-gray-200 ml-4 space-y-10">
-              {orderData.history?.map((step, idx) => (
-                <li key={idx} className="ml-6 relative">
-                  {/* Timeline Circle */}
-                  <span className={`absolute -left-7 top-1 w-5 h-5 rounded-full border-2 flex items-center justify-center 
-            ${step.status === "success" ? "border-green-600 bg-green-100" :
-                      step.status === "fail" ? "border-red-600 bg-red-100" :
-                        "border-gray-400 bg-gray-100"}`}>
-                    <span className={`w-3 h-3 rounded-full block 
-              ${step.status === "success" ? "bg-green-600" :
-                        step.status === "fail" ? "bg-red-600" :
-                          "bg-gray-400"}`} />
-                  </span>
+            {orderData.statusHistory?.length > 0 ? (
+              <ol className="relative border-l-2 border-gray-200 ml-8 pl-5 space-y-6">
+                {orderData.statusHistory.map((status, idx) => (
+                  <li key={idx} className="relative pb-6">
+                    {/* Timeline Circle */}
+                    <span className={`absolute -left-[30px] top-1 w-5 h-5 rounded-full border-2 flex items-center justify-center 
+                      ${status.status === 'Delivered' ? 'border-green-600 bg-green-100' :
+                        status.status === 'Cancelled' ? 'border-red-600 bg-red-100' :
+                          'border-blue-600 bg-blue-100'}`}>
+                      <span className={`w-3 h-3 rounded-full block 
+                        ${status.status === 'Delivered' ? 'bg-green-600' :
+                          status.status === 'Cancelled' ? 'bg-red-600' :
+                            'bg-blue-600'}`} />
+                    </span>
 
-                  {/* Timeline Content */}
-                  <h3 className="font-bold text-md text-black mb-1">{step.label}</h3>
-                  <p className="text-sm text-gray-600 mb-1">{formatDateTime(step.date)}</p>
+                    {/* Timeline Content */}
+                    <div className="flex flex-col">
+                      <div className="flex justify-between items-start">
+                        <h3 className="font-bold text-md text-black">{status.status}</h3>
+                        <span className="text-xs text-gray-500">
+                          {new Date(status.updatedAt).toLocaleString()}
+                        </span>
+                      </div>
 
-                  <div className="text-sm space-y-1">
-                    {step.details.map((d, i) => (
-                      <p key={i}>
-                        <span className="font-semibold">{d.label} :</span> {d.value}
-                      </p>
-                    ))}
-                  </div>
-                </li>
-              ))}
-            </ol>
+                      {status.message && (
+                        <>
+                          <button
+                            onClick={() => setShowMessage(showMessage === idx ? null : idx)}
+                            className="text-sm text-blue-600 hover:underline mt-1 text-left"
+                          >
+                            {showMessage === idx ? 'Hide Details' : 'View Details'}
+                          </button>
+
+                          {showMessage === idx && (
+                            <div className="mt-2 p-3 bg-gray-50 rounded-md text-sm">
+                              {status.message}
+                              {status.status === 'Shipped' && status.trackingNumber && (
+                                <div className="mt-3 bg-green-50 rounded-md">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-sm font-medium">Tracking Number:</span>
+                                    <span className="font-mono text-sm bg-white px-2 rounded border">
+                                      {status.trackingNumber}
+                                    </span>
+                                    {showTrackingInfo && status.trackingUrl && (
+                                      <div className="">
+                                        <a
+                                          href={status.trackingUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex items-center text-sm text-blue-600 hover:underline"
+                                        >
+                                          Track Your Package
+                                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                          </svg>
+                                        </a>
+                                      </div>
+                                    )}
+
+                                  </div>
+                                </div>
+                              )}
+
+                            </div>
+                          )}
+                        </>
+                      )}
+
+                      {/* Show tracking info if available and status is Shipped */}
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                No status history available for this order.
+              </div>
+            )}
           </div>
         )}
 

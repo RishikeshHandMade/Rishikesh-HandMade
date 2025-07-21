@@ -80,6 +80,12 @@ const data = {
     },
     { divider: true },
     {
+      name: "Add Team",
+      url: "/admin/add_team",
+      icon: Plus,
+    },
+    { divider: true },
+    {
       name: "Promotional Banner",
       url: "/admin/promotional_banner",
       icon: Image
@@ -117,7 +123,7 @@ const data = {
       url: "/admin/news",
       icon: Rss,
     },
-    
+
     // Space (empty item)
     { divider: true },
 
@@ -174,7 +180,7 @@ const data = {
       url: "/admin/online_order_log",
       icon: ShoppingCart,
     },
-  
+
     {
       name: "Sales Section",
       url: "/admin/sales_section",

@@ -126,8 +126,8 @@ const ContactPageEnquiry = () => {
                         className="border rounded-md px-3 py-1 text-sm"
                     >
                         <option value="all">All Months</option>
-                        {Object.keys(monthGroups).map((month,idx) => (
-                            <option key={idx} value={month}>{month}</option>
+                        {Object.keys(monthGroups).map((month) => (
+                            <option key={month} value={month}>{month}</option>
                         ))}
                     </select>
                 </div>
@@ -189,7 +189,7 @@ const ContactPageEnquiry = () => {
                     <div className="flex items-center gap-1">
                         {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                             <Button
-                                key={page}
+                                key={`page-${page}`}
                                 variant={currentPage === page ? "default" : "outline"}
                                 size="sm"
                                 onClick={() => handlePageChange(page)}

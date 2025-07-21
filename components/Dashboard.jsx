@@ -16,6 +16,7 @@ const sections = [
   { key: "orders", label: "Orders" },
   { key: "return", label: "Return request" },
   { key: "chatbot", label: "Chat Bot" },
+  { key: "track", label: "Track Order" },
 ];
 const settings = [
   { key: "profile", label: "Profile" },
@@ -23,6 +24,7 @@ const settings = [
 ];
 
 import ChatOrder from "./ChatOrder";
+import TrackOrder from "./TrackOrder";
 function SectionContent({ section, orderId, onViewOrder, onBackHome, showOrderDetail, selectedOrder, orderChatMode, onChatOrder,onBack }) {
    const { data: session } = useSession()
   if (section === "profile") return <Profile />;
@@ -35,6 +37,7 @@ function SectionContent({ section, orderId, onViewOrder, onBackHome, showOrderDe
     return <Chat userId={userId} />;
   }
   if (section === "orders") return <AllOrders onViewOrder={onViewOrder} onChatOrder={onChatOrder} />;
+  if (section === "track") return <TrackOrder orderId={orderId} />;
   if (section === "address") return <Address />;
   if (section === "return") return <ReturnRequest />;
   if (section === "dashboard" && orderId && !showOrderDetail) {

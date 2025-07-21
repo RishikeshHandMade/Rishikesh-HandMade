@@ -1490,6 +1490,8 @@ const CheckOut = () => {
         } catch (e) { /* handle email error */ }
         setOrderId(orderId); // orderId should be the Razorpay/order DB ID you get back
         setShowConfirmationModal(true);
+        toast.success('Order placed successfully!');
+        toast.success('Invoice Sent to Email');
         // router.push(`/dashboard?orderId=${data.orderId}`);
         await clearCart();
         if (buyNowMode) {

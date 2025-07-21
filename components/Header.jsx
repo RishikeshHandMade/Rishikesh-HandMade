@@ -177,7 +177,9 @@ const Header = () => {
                   </span>
                 )}
               </button>
+              <Link href={'/dashboard?section=track'}>
               <Truck />
+              </Link>
               <Cart open={isCartOpen} onClose={() => setIsCartOpen(false)} initialTab={initialCartTab} />
 
             </div>
