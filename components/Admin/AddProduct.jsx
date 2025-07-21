@@ -137,7 +137,7 @@ const AddProduct = ({ id }) => {
     const [qrModalDescription, setQrModalDescription] = useState('');
     const [qrModalCoupon, setQrModalCoupon] = useState({ code: '', amount: 0 });
 
-    console.log(products)
+    // console.log(products)
 
     useEffect(() => {
         setLoading(true);

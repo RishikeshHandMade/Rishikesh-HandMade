@@ -21,11 +21,17 @@ const ProductProfile = ({ id }) => {
     // For inline editing
     const [editingId, setEditingId] = useState(null);
 
-    // QR Modal state
+    // QR Modal state  
+    const [qrModalCode, setQrModalCode] = useState('');
     const [qrModalOpen, setQrModalOpen] = useState(false);
     const [qrModalUrl, setQrModalUrl] = useState("");
     const [qrModalTitle, setQrModalTitle] = useState("");
-
+    const [qrModalSizes, setQrModalSizes] = useState([]);
+    const [qrModalColors, setQrModalColors] = useState([]);
+    const [qrModalPrice, setQrModalPrice] = useState('');
+    const [qrModalOldPrice, setQrModalOldPrice] = useState('');
+    const [qrModalDescription, setQrModalDescription] = useState('');
+    const [qrModalCoupon, setQrModalCoupon] = useState({ code: '', amount: 0 });
 
 
     // Generate product code on mount
@@ -289,6 +295,31 @@ const ProductProfile = ({ id }) => {
                                                     onClick={() => {
                                                         setQrModalUrl(qr);
                                                         setQrModalTitle(prod.title);
+                                                        setQrModalCode(prod.code);
+                                                        setQrModalDescription(prod.description?.overview || '');
+                                                        
+                                                        // Safely handle variants
+                                                        const variants = prod.quantity?.variants || [];
+                                                        const allSizes = Array.from(new Set(variants.map(v => v?.size).filter(Boolean)));
+                                                        const allColors = Array.from(new Set(variants.map(v => v?.color).filter(Boolean)));
+                                                        setQrModalSizes(allSizes);
+                                                        setQrModalColors(allColors);
+                                                        
+                                                        // Coupon logic with safe access
+                                                        let basePrice = variants[0]?.price ?? '';
+                                                        let discount = 0;
+                                                        let couponCode = '';
+                                                        if (prod.coupons && prod.coupons.coupon) {
+                                                            discount = prod.coupons.coupon.amount || 0;
+                                                            couponCode = prod.coupons.coupon.couponCode || '';
+                                                        }
+                                                        let discountedPrice = basePrice;
+                                                        if (discount && basePrice) {
+                                                            discountedPrice = basePrice - discount;
+                                                        }
+                                                        setQrModalPrice(discountedPrice);
+                                                        setQrModalOldPrice(basePrice);
+                                                        setQrModalCoupon({ code: couponCode, amount: discount });
                                                         setQrModalOpen(true);
                                                     }}
                                                     title="View QR & Download"
@@ -350,10 +381,18 @@ const ProductProfile = ({ id }) => {
             </div>
             {/* QR Modal for viewing/downloading QR code */}
             <ProductQrModal
-                open={qrModalOpen}
-                onOpenChange={setQrModalOpen}
-                qrUrl={qrModalUrl}
-                productTitle={qrModalTitle}
+                 open={qrModalOpen}
+                 onOpenChange={setQrModalOpen}
+                 qrUrl={qrModalUrl}
+                 productTitle={qrModalTitle}
+                 productDescription={qrModalDescription}
+                 productCode={qrModalCode}
+                 sizes={qrModalSizes}
+                 colors={qrModalColors}
+                 price={qrModalPrice}
+                 oldPrice={qrModalOldPrice}
+                 logoUrl="/logo.png"
+                 coupon={qrModalCoupon}
             />
 
             {/* Delete Product Modal */}

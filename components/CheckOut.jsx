@@ -151,8 +151,6 @@ const CheckOut = () => {
   const [showOverview, setShowOverview] = useState(false);
   const [confirmedPaymentMethod, setConfirmedPaymentMethod] = useState(null);
   const [shipping, setShipping] = useState('free');
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [recentOrderId, setRecentOrderId] = useState(null);
   // Load cart data from localStorage and handle authentication state
 
   const handleOnlinePaymentWithOrder = async (finalAmount, cart, customer, setLoading, setError, routerInstance, checkoutData, formFields, user) => {
@@ -173,7 +171,7 @@ const CheckOut = () => {
         products: cart,
         amount: finalAmount, // in rupees
         currency: "INR",
-        receipt: `order_${Date.now()}`,
+        receipt: generateOrderId(),
         agree: true, // Always set agree true for online orders
         orderId: checkoutData?.orderId, // pass consistent orderId
         transactionId: checkoutData?.transactionId // pass consistent transactionId
@@ -224,9 +222,6 @@ const CheckOut = () => {
           // Update quantities after successful payment by creating a temporary order
           // This reuses the same logic as the COD flow
           try {
-            const tempOrderId = `online-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-            const tempTransactionId = `TXN-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-
             // Create a temporary order payload with the same structure as COD
             const tempOrderPayload = {
               products: cart.map(item => {
@@ -268,8 +263,8 @@ const CheckOut = () => {
               // Payment details
               payment: 'online',
               paymentMethod: 'online',
-              orderId: tempOrderId,
-              transactionId: tempTransactionId,
+              orderId: generateOrderId(),
+              transactionId: generateTransactionId(),
               agree: true,
               status: 'Paid'
             };
@@ -308,24 +303,28 @@ const CheckOut = () => {
 
               if (verificationResponse.data && verificationResponse.data.success) {
                 setError(null);
-                const cartCleared = await clearCart();
-                // Explicitly clear all cart and checkout data from localStorage
-                localStorage.removeItem("cart");
-                localStorage.removeItem("checkoutCart");
-                localStorage.removeItem("checkoutData");
-                Object.keys(localStorage).forEach(key => {
-                  if (key.startsWith('cart_')) {
-                    localStorage.removeItem(key);
-                  }
-                });
-                // if (cartCleared) {
-                //   toast.success('Payment successful! Check your email for details.', {
-                //     style: { borderRadius: '10px', border: '2px solid green' },
-                //   });
-                // } else {
-                //   toast.error('Payment successful, but there was an issue clearing your cart.');
-                // }
-                // Send order confirmation email using /api/brevo
+
+                // Check if this is a buy-now order
+                const isBuyNow = typeof window !== "undefined" &&
+                  new URLSearchParams(window.location.search).get('mode') === 'buy-now';
+
+                if (isBuyNow) {
+                  // Only clear buy-now specific data
+                  localStorage.removeItem("buyNowItem");
+                  // Clear cart context but keep the actual cart items
+                  if (setCart) setCart(contextCart.filter(item => !item.isBuyNow));
+                } else {
+                  // For regular cart checkout, clear everything
+                  const cartCleared = await clearCart();
+                  localStorage.removeItem("cart");
+                  localStorage.removeItem("checkoutCart");
+                  localStorage.removeItem("checkoutData");
+                  Object.keys(localStorage).forEach(key => {
+                    if (key.startsWith('cart_')) {
+                      localStorage.removeItem(key);
+                    }
+                  });
+                }
                 try {
                   const orderData = verificationResponse.data.order || {};
                   const customerEmail = (formFields && formFields.email) || (user && user.email) || (customer && customer.email);
@@ -595,7 +594,7 @@ const CheckOut = () => {
                     }
                   }
                   setShowConfirmationModal(true);
-                  setRecentOrderId(orderId);
+                  setOrderId(orderId);
                   // console.log('[Razorpay Handler] Modal set: showConfirmationModal = true, recentOrderId =', orderId);
                   return;
                 }
@@ -629,8 +628,6 @@ const CheckOut = () => {
     }
 
   }
-
-
   useEffect(() => {
     // Detect buy-now mode from URL
     let isBuyNow = false;
@@ -1029,17 +1026,6 @@ const CheckOut = () => {
     address: `${street}, ${city}, ${state}, ${pincode}`,
     district,
   });
-  const updateCartQty = (id, qty) => {
-    setCheckoutData(prev => {
-      const updated = prev.cart.map(item =>
-        item.id === id ? { ...item, qty, afterDiscount: (item.price - (item.discountAmount || 0)) * qty } : item
-      );
-      const subTotal = updated.reduce((sum, item) => sum + item.price * item.qty, 0);
-      const totalDiscount = updated.reduce((sum, item) => sum + (item.discountAmount || 0) * item.qty, 0);
-      const cartTotal = updated.reduce((sum, item) => sum + item.afterDiscount, 0) + prev.taxTotal + prev.finalShipping;
-      return { ...prev, cart: updated, subTotal, totalDiscount, cartTotal };
-    });
-  };
   // Handle COD order creation
   // Prepare order data without submitting
   const prepareOrderData = (paymentMethod) => {
@@ -1151,69 +1137,27 @@ const CheckOut = () => {
   };
 
   const handleCreateOrder = async (paymentMethod, orderData = null) => {
-    console.log('🔄 [handleCreateOrder] Starting order creation');
     setLoading(true);
-
     setError(null);
-
-    // If orderData is provided (from overview), use it
-    if (orderData) {
-      // Use the provided order data
-      console.log('Using provided order data for submission');
-    } else {
-      // Create order data from current state (for backward compatibility)
-      console.log('Creating order data from current state');
-
-      // Check for buy-now mode
-      let isBuyNow = false;
-      if (typeof window !== "undefined") {
-        const params = new URLSearchParams(window.location.search);
-        isBuyNow = params.get('mode') === 'buy-now';
-        console.log('📦 Order mode:', isBuyNow ? 'Buy Now' : 'Regular Cart');
-      }
-
-      // Create order data from current state
-      orderData = await prepareOrderData(paymentMethod);
-    }
+    let createdOrder = null;
 
     try {
-      // Use the prepared order data
-      const { orderId, transactionId } = orderData;
+      // If orderData is provided (from overview), use it
+      if (orderData) {
+        // Use the provided order data
+      } else {
+        // Create order data from current state (for backward compatibility)
 
-      // Log the order data being sent
-      console.log('Sending order data:', {
-        products: orderData.products?.map(p => ({
-          _id: p._id,
-          name: p.name,
-          qty: p.qty,
-          variantId: p.variantId,
-          size: p.size,
-          price: p.price
-        })),
-        items: orderData.items,
-        shippingInfo: orderData.shippingInfo,
-        paymentInfo: orderData.paymentInfo,
-        user: orderData.user,
-        status: orderData.status,
-        totalAmount: orderData.totalAmount
-      });
+        // Check for buy-now mode
+        let isBuyNow = false;
+        if (typeof window !== "undefined") {
+          const params = new URLSearchParams(window.location.search);
+          isBuyNow = params.get('mode') === 'buy-now';
+        }
 
-      console.log('Sending request to /api/orders with body:', JSON.stringify({
-        ...orderData,
-        products: orderData.products?.map(p => ({
-          _id: p._id,
-          name: p.name,
-          qty: p.qty,
-          variantId: p.variantId,
-          size: p.size,
-          price: p.price,
-          weight: p.weight,
-          shipping: p.shipping,
-          image: p.image,
-        })),
-        items: orderData.items
-      }, null, 2));
-
+        // Create order data from current state
+        orderData = await prepareOrderData(paymentMethod);
+      }
       let response;
       let data;
 
@@ -1228,80 +1172,51 @@ const CheckOut = () => {
 
         data = await response.json().catch(() => ({}));
 
-        console.log('Order API response:', {
-          status: response.status,
-          statusText: response.statusText,
-          data
-        });
-
         if (!response.ok) {
           throw new Error(data.message || `HTTP error! status: ${response.status}`);
         }
       } catch (error) {
-        console.error('Error creating order:', {
-          error: error.message,
-          response: {
-            status: response?.status,
-            statusText: response?.statusText,
-            data: data || 'No data'
-          },
-          request: {
-            url: '/api/orders',
-            method: 'POST',
-            body: JSON.stringify({
-              ...orderData,
-              products: orderData.products?.map(p => ({
-                _id: p._id,
-                name: p.name,
-                qty: p.qty,
-                variantId: p.variantId,
-                size: p.size,
-                image: p.image,
-                weight: p.weight,
-                shipping: p.shipping,
-              })),
-              items: orderData.items
-            })
-          }
-        });
         throw error;
       }
 
       if (!response.ok) {
-        console.error('❌ Order creation failed:', {
-          status: response.status,
-          statusText: response.statusText,
-          data
-        });
         throw new Error(data.message || `Failed to create order: ${response.status} ${response.statusText}`);
       }
+      // Store order data to return
+      createdOrder = response.data;
 
-      console.log('✅ Order created successfully:', data);
+      // --- Clear cart and checkout-related data based on order type ---
+      const isBuyNow = typeof window !== "undefined" &&
+        new URLSearchParams(window.location.search).get('mode') === 'buy-now';
 
-      // --- Clear cart and checkout-related data from localStorage after successful COD order ---
       try {
-        localStorage.removeItem("cart");
-        localStorage.removeItem("checkoutCart");
-        localStorage.removeItem("checkoutData");
-        Object.keys(localStorage).forEach(key => {
-          if (key.startsWith('cart_')) {
-            localStorage.removeItem(key);
-          }
-        });
+        if (isBuyNow) {
+          // Only clear buy-now specific data
+          localStorage.removeItem("buyNowItem");
+          // Clear cart context but keep the actual cart items
+          if (setCart) setCart(contextCart.filter(item => !item.isBuyNow));
+        } else {
+          // For regular cart checkout, clear everything
+          localStorage.removeItem("cart");
+          localStorage.removeItem("checkoutCart");
+          localStorage.removeItem("checkoutData");
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('cart_')) {
+              localStorage.removeItem(key);
+            }
+          });
+          // Clear cart context
+          if (setCart) setCart([]);
+        }
       } catch (e) {
-        console.warn('Could not clear localStorage after COD order:', e);
+        console.warn('Could not clear localStorage after order:', e);
       }
 
-      // Also clear cart context and checkout state to prevent re-population
-      if (setCart) setCart([]);
       setCheckoutData(null);
 
       // Show confirmation and set order ID
       setShowConfirmationModal(true);
-      setRecentOrderId(data.order?._id);
-
-      // Log the order creation for debugging
-      console.log('Order created with ID:', data.order?._id);
+      setOrderId(data.order?._id);
 
       // Show success message to session?.user
       toast.success('Order placed successfully!', {
@@ -1318,9 +1233,8 @@ const CheckOut = () => {
 
       return data.order;
     } catch (error) {
-      // console.error('Order creation error:', error);
       setError(error.message || 'Failed to create order');
-      return null;
+      toast.error(error.message || 'Failed to place order. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -1340,47 +1254,10 @@ const CheckOut = () => {
     if (!pincode || !/^[0-9]{5,6}$/.test(pincode)) return 'A valid PIN code is required.';
     return '';
   };
-
-  // Debug function to log cart and storage state
-  const logCartState = (context) => {
-    console.group(`🛒 Cart State - ${context}`);
-    console.log('📦 Cart Context:', contextCart);
-
-    console.log('💾 Local Storage:');
-    Object.keys(localStorage).forEach(key => {
-      if (key === 'cart' || key === 'checkoutCart' || key.startsWith('cart_')) {
-        try {
-          const value = localStorage.getItem(key);
-          console.log(`  ${key}:`, JSON.parse(value));
-        } catch (e) {
-          console.log(`  ${key}:`, localStorage.getItem(key));
-        }
-      }
-    });
-
-    if (typeof sessionStorage !== 'undefined') {
-      console.log('💿 Session Storage:');
-      try {
-        const sessionCart = sessionStorage.getItem('cart');
-        console.log('  cart:', sessionCart ? JSON.parse(sessionCart) : 'empty');
-      } catch (e) {
-        console.log('  cart:', sessionStorage.getItem('cart'));
-      }
-    }
-
-    console.groupEnd();
-  };
-
   // Place Order handler
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
     if (loading) return;
-
-    // Log initial cart state
-    if (typeof window !== 'undefined') {
-      logCartState('Before Order Processing');
-    }
-
     // Validate required fields
     const validationError = validateForm();
     if (validationError) {
@@ -1419,7 +1296,6 @@ const CheckOut = () => {
         }
         addressSaved = true;
       } catch (err) {
-        // console.error('Error saving address:', err);
         setError("Failed to save shipping address");
         return;
       }
@@ -1441,68 +1317,63 @@ const CheckOut = () => {
       const customer = getCustomerInfo();
       const finalAmount = checkoutData.cartTotal;
       await handleOnlinePaymentWithOrder(finalAmount, checkoutData.cart, customer, setLoading, setError, router, checkoutData);
-    } else if (payment === "cod") {
+    }
+    else if (payment === "cod") {
       // Handle Cash on Delivery
       setLoading(true);
       try {
-        const order = await handleCreateOrder('cod');
-        if (order) {
-          console.group('🔄 Clearing Cart Data (COD)');
+        // Prepare and create COD order
+        setPaymentMethod('cod');
+        const orderData = prepareOrderData('cod');
+        const result = await handleCreateOrder('cod', orderData);
+        if (result) {
+          // Clear the form
+          setFirstName('');
+          setLastName('');
+          setPhone('');
+          setAltPhone('');
+          setStreet('');
+          setCity('');
+          setDistrict('');
+          setState('');
+          setPincode('');
 
-          // Log state before clearing (COD flow)
-          console.log('📦 Before clearing - cart items (COD):', {
-            cart: localStorage.getItem('cart'),
-            checkoutCart: localStorage.getItem('checkoutCart'),
-            cartKeys: Object.keys(localStorage).filter(k => k === 'cart' || k.startsWith('cart_'))
+          // Show success toast
+          toast.success('Order placed successfully!', {
+            position: 'top-center',
+            style: {
+              borderRadius: '10px',
+              background: '#4CAF50',
+              color: 'white',
+              padding: '16px',
+              fontSize: '16px',
+              fontWeight: 'bold'
+            }
           });
 
-          // Clean up based on buy-now or cart flow
-          if (typeof window !== 'undefined') {
-            if (isBuyNow) {
-              console.log('🛍️ Clearing buyNowProduct from localStorage (COD)');
-              console.log('Before removal - buyNowProduct:', localStorage.getItem('buyNowProduct'));
-              localStorage.removeItem('buyNowProduct');
-              console.log('After removal - buyNowProduct:', localStorage.getItem('buyNowProduct'));
-            } else {
-              console.log('🛒 Clearing cart data from storage (COD)');
+          // Show confirmation modal
+          setShowConfirmationModal(true);
+          setOrderId(result._id || result.orderId);
 
-              await clearCart();
-            }
-
-            // Clear session storage as well
-            if (typeof sessionStorage !== 'undefined') {
-              console.log('🗑️ Clearing session storage cart (COD)');
-              console.log('Before session clear - cart (COD):', sessionStorage.getItem('cart'));
-              sessionStorage.removeItem('cart');
-              console.log('After session clear - cart (COD):', sessionStorage.getItem('cart'));
-            }
-          }
-
-          // Clear the cart in context
-          if (setCart) {
-            console.log('🧹 Clearing cart context (COD)');
-            console.log('Before context clear - cart (COD):', contextCart);
-            setCart([]);
-            console.log('After context clear - cart should be empty (COD)');
-          }
-
-          console.groupEnd(); // End clearing group (COD)
+          // Force a page reload to ensure all state is reset
+          setTimeout(() => {
+            // Clear everything again before redirecting
+            window.location.href = `/order-confirmation?orderId=${result._id || result.orderId}`;
+          }, 1000);
         }
+      }
 
-        setShowConfirmationModal(true);
-        setRecentOrderId(order._id);
-
-      } catch (error) {
-        // console.error('Error creating COD order:', error);
+      catch (error) {
         setError(error.message || 'Failed to create order');
+        toast.error(error.message || 'Failed to place order. Please try again.');
       } finally {
         setLoading(false);
       }
     }
   };
+
   // Handler for confirming payment on overview (step 2 → step 3)
   const handleConfirmAndPay = async () => {
-    console.log('handleConfirmAndPay called', confirmedPaymentMethod);
     if (!confirmedPaymentMethod) {
       setError('Please select a payment method.');
       setLoading(false);
@@ -1617,11 +1488,26 @@ const CheckOut = () => {
             })
           });
         } catch (e) { /* handle email error */ }
-        setRecentOrderId(orderId); // orderId should be the Razorpay/order DB ID you get back
+        setOrderId(orderId); // orderId should be the Razorpay/order DB ID you get back
         setShowConfirmationModal(true);
         // router.push(`/dashboard?orderId=${data.orderId}`);
         await clearCart();
-        setLoading(false);
+        if (buyNowMode) {
+          localStorage.removeItem('buyNowProduct');
+        }
+        else {
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem("cart");
+            localStorage.removeItem("checkoutCart");
+            localStorage.removeItem("checkoutData");
+            Object.keys(localStorage).forEach(key => {
+              if (key.startsWith('cart_')) {
+                localStorage.removeItem(key);
+              }
+            });
+          }
+        }
+          setLoading(false);
         return;
       }
       // For online, always go through Razorpay handler
@@ -1651,8 +1537,6 @@ const CheckOut = () => {
       setLoading(false);
     }
   }
-
-
   if (showOverview) {
     return (
       <CheckOutOverview
@@ -1855,18 +1739,9 @@ const CheckOut = () => {
                     <div className="font-medium text-sm leading-tight mb-1">{item.name}</div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center border rounded-md bg-gray-100">
-                        <button
-                          className="px-2 py-1 text-gray-500 hover:text-black"
-                          type="button"
-                          onClick={() => updateCartQty(item.id, Math.max(1, item.qty - 1))}
-                          disabled={item.qty <= 1}
-                        >-</button>
+
                         <span className="px-3 py-1 text-base font-semibold">{item.qty}</span>
-                        <button
-                          className="px-2 py-1 text-gray-500 hover:text-black"
-                          type="button"
-                          onClick={() => updateCartQty(item.id, item.qty + 1)}
-                        >+</button>
+
                       </div>
                       <div className="text-md text-black font-semibold whitespace-nowrap">₹{(item.originalPrice).toFixed(2)}</div>
                     </div>
@@ -2098,7 +1973,7 @@ const CheckOut = () => {
           className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded font-semibold text-sm transition-colors"
           disabled={!agree || loading || isProcessingPayment || !firstName || !lastName || !email || !phone || !street || !city || !state || !pincode || !payment}
           type="button"
-          onClick={() => {
+          onClick={async () => {
             if (!payment) {
               setError('Please select a payment method.');
               return;

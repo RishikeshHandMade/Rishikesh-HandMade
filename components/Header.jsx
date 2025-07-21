@@ -1,7 +1,7 @@
 "use client"
 import { usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { ChevronDown, LogOutIcon, Mail, Phone, User2Icon } from "lucide-react"
+import { ChevronDown, LogOutIcon, Mail, Phone, Truck, User2Icon } from "lucide-react"
 import Link from "next/link"
 import MenuBar from "./MenuBar"
 import { Button } from "./ui/button"
@@ -177,7 +177,7 @@ const Header = () => {
                   </span>
                 )}
               </button>
-
+              <Truck />
               <Cart open={isCartOpen} onClose={() => setIsCartOpen(false)} initialTab={initialCartTab} />
 
             </div>
@@ -241,7 +241,7 @@ const Header = () => {
           </button>
 
           <Cart open={isCartOpen} onClose={() => setIsCartOpen(false)} initialTab={initialCartTab} />
-
+          <Truck />
 
           <div className="relative">
             {status === "loading" ? (

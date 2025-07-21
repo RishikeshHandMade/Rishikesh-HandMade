@@ -11,12 +11,10 @@ export default function ProductQrModal({
   const qrRef = useRef();
   const contentRef = useRef(); // For capturing modal content
 
-  // Enhanced download function to capture all product details
-  
+  // Enhanced download function to capture all product details with proper styling
   const handleDownload = async () => {
     const downloadBtn = document.querySelector('.download-btn');
     const originalText = downloadBtn?.textContent;
-    
     
     try {
       if (downloadBtn) {
@@ -41,6 +39,30 @@ export default function ProductQrModal({
       const buttons = contentToCapture.querySelectorAll('button');
       buttons.forEach(btn => btn.remove());
       
+      // Ensure proper spacing for the description
+      const description = contentToCapture.querySelector('.description-container');
+      if (description) {
+        description.style.minHeight = '40px';
+        description.style.overflow = 'hidden';
+      }
+
+      // Fix color swatches alignment
+      const colorCells = contentToCapture.querySelectorAll('td');
+      colorCells.forEach(cell => {
+        if (cell.textContent?.trim() === 'Color :') {
+          cell.style.verticalAlign = 'middle';
+          cell.style.paddingTop = '8px';
+          cell.style.paddingBottom = '8px';
+        }
+      });
+
+      // Fix price strikethrough alignment
+      const oldPrice = contentToCapture.querySelector('s');
+      if (oldPrice) {
+        oldPrice.style.verticalAlign = 'middle';
+        oldPrice.style.marginLeft = '8px';
+      }
+
       container.appendChild(contentToCapture);
       document.body.appendChild(container);
 
@@ -51,7 +73,16 @@ export default function ProductQrModal({
         scale: 2, // Higher resolution
         useCORS: true,
         allowTaint: true,
-        logging: true
+        logging: true,
+        onclone: (clonedDoc) => {
+          // Ensure all fonts are loaded before capture
+          const style = document.createElement('style');
+          style.textContent = `
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+            * { font-family: 'Inter', sans-serif; }
+          `;
+          clonedDoc.head.appendChild(style);
+        }
       });
 
       // Clean up
@@ -115,16 +146,12 @@ export default function ProductQrModal({
                   <td>{productCode}</td>
                 </tr>
                 <tr>
-                  <td className="font-bold p-2 w-1/3">Size:</td>
-                  <td>{Array.isArray(sizes) ? sizes.join(', ') : sizes}</td>
-                </tr>
-                <tr>
                   <td className="font-bold p-2">Size :</td>
-                  <td>{Array.isArray(sizes) ? sizes.join(' ') : sizes}</td>
+                  <td>{Array.isArray(sizes) ? sizes.join(' , ') : sizes}</td>
                 </tr>
                 <tr>
-                  <td className="font-bold p-2">Color :</td>
-                  <td className="flex items-center gap-2 py-1">
+                  <td className="font-bold py-2">Color :</td>
+                  <td className="flex items-center gap-2 ">
                     {colors?.map((clr, i) => (
                       <span
                         key={i}
@@ -137,11 +164,13 @@ export default function ProductQrModal({
                 <tr>
                   <td className="align-top p-2 font-bold">Price :</td>
                   <td className="align-top">
-                    <span className="text-lg font-bold text-black ml-1">₹{price}</span>
-                    {oldPrice && price !== oldPrice && (
-                      <span className="text-gray-500 line-through text-sm ml-2">₹{oldPrice}</span>
-                    )}
-                    <div className="text-xs text-gray-600 ml-4">inclusive of all taxes</div>
+                    <div className="flex items-baseline">
+                      <span className="text-lg font-bold text-black">₹{price}</span>
+                      {oldPrice && price !== oldPrice && (
+                        <span className="text-gray-500 line-through text-sm ml-2">₹{oldPrice}</span>
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-600">inclusive of all taxes</div>
                   </td>
                   <td className="text-right" rowSpan={6}>
                     {logoUrl && (
@@ -159,7 +188,7 @@ export default function ProductQrModal({
               </tbody>
             </table>
             <hr className="w-full my-2 border-gray-300" />
-            <div className="text-xs text-center w-full">www.rishikeshhandmade.com</div>
+            <div className="text-md text-center w-full">www.rishikeshhandmade.com</div>
           </div>
 
         </div>
