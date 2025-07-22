@@ -1093,7 +1093,7 @@ export default function ProductDetailView({ product }) {
             {selectedVariant?.qty > 0 ? 'BUY IT NOW' : 'OUT OF STOCK'}
           </button>
           <Dialog open={showArtisanModal} onOpenChange={setShowArtisanModal}>
-            <DialogContent className="max-w-md w-full p-0 overflow-hidden">
+            <DialogContent className="max-w-md h-[80vh] overflow-y-auto w-full p-0 md:overflow-hidden">
               <VisuallyHidden>
                 <DialogTitle>Artisan Details</DialogTitle>
               </VisuallyHidden>
@@ -1111,7 +1111,7 @@ export default function ProductDetailView({ product }) {
                 <img
                   src={product.artisan?.profileImage?.url || "/placeholder.jpeg"}
                   alt={product.artisan?.artisanName}
-                  className="w-full h-56 object-cover"
+                  className="w-full h-42 md:h-56 object-cover"
                 />
                 {/* Card body */}
                 <div className="bg-white p-6">

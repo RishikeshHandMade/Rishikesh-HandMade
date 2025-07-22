@@ -18,6 +18,8 @@ import * as NavigationMenu from "@radix-ui/react-navigation-menu";
 import { motion, AnimatePresence } from "framer-motion";
 import clsx from "clsx";
 const Header = () => {
+  const authDropdownRef = React.useRef(null);
+  const profileMenuRef = React.useRef(null);
   const pathName = usePathname();
   const [isMounted, setIsMounted] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -30,6 +32,36 @@ const Header = () => {
   const [showHeader, setShowHeader] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [openFixedMenu, setOpenFixedMenu] = useState(null);
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      // Close auth dropdown if open and click is outside
+      if (isAuthDropdownOpen && authDropdownRef.current && !authDropdownRef.current.contains(e.target)) {
+        // Check if the click is not on the profile menu
+        if (!profileMenuRef.current || !profileMenuRef.current.contains(e.target)) {
+          setIsAuthDropdownOpen(false);
+        }
+      }
+      
+      // Close profile menu if open and click is outside
+      if (isProfileOpen && profileMenuRef.current && !profileMenuRef.current.contains(e.target)) {
+        // Check if the click is not on the auth dropdown
+        if (!authDropdownRef.current || !authDropdownRef.current.contains(e.target)) {
+          setIsProfileOpen(false);
+        }
+      }
+    };
+
+    // Add event listeners
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    
+    // Cleanup
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isAuthDropdownOpen, isProfileOpen]);
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -90,15 +122,17 @@ const Header = () => {
           <div className="items-center z-50 gap-4 flex">
             <div className="flex items-center gap-3">
 
-              <div className="relative">
+              <div className="relative" ref={profileMenuRef}>
                 {status === "loading" ? (
                   <Loader2 className="animate-spin text-blue-600" size={36} />
-                  
                 ) : isUser ? (
                   <>
                     {/* Profile Picture Button */}
                     <button
-                      onClick={() => setIsProfileOpen(!isProfileOpen)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsProfileOpen(!isProfileOpen);
+                      }}
                       className="focus:outline-none border-dashed border-4 border-blue-600 rounded-full"
                     >
                       <Image
@@ -112,7 +146,10 @@ const Header = () => {
 
                     {/* Dropdown Menu */}
                     {isProfileOpen && (
-                      <div className="absolute top-14 right-0 mt-2 w-fit text-black bg-white shadow-lg rounded-lg border z-50">
+                      <div 
+                        className="absolute top-14 right-0 mt-2 w-fit text-black bg-white shadow-lg rounded-lg border z-50"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <p className="px-4 pt-2 text-sm font-bold text-gray-700">{session.user.name}</p>
                         <p className="px-4 pb-2 text-sm text-gray-700">{session.user.email}</p>
                         <div className="h-px bg-gray-200" />
@@ -139,7 +176,7 @@ const Header = () => {
                       <h2 className="text-xs font-semibold">Sign In / Login</h2>
                     </button>
                     {isAuthDropdownOpen && (
-                      <div className="absolute top-12 right-0 mt-2 w-48 text-black bg-white shadow-lg rounded-lg border">
+                      <div ref={authDropdownRef} className="absolute top-12 right-0 mt-2 w-48 text-black bg-white shadow-lg rounded-lg border">
                         <Link href="/sign-in" onClick={() => setIsAuthDropdownOpen(false)} className="block px-4 py-2 hover:bg-blue-100">Sign In</Link>
                         <Link href="/sign-up" onClick={() => setIsAuthDropdownOpen(false)} className="block px-4 py-2 hover:bg-blue-100">Create Account</Link>
                       </div>
@@ -235,7 +272,7 @@ const Header = () => {
           <MenuBar menuItems={menuItems} />
         </div>
         <Link href={"/"}>
-          <img className="w-32 drop-shadow-xl" src="/logo.png" alt="Rishikesh Handmade" />
+          <img className="w-[100px] drop-shadow-xl" src="/logo.png" alt="Rishikesh Handmade" />
         </Link>
 
         <div className="flex items-center gap-3">
@@ -319,14 +356,41 @@ const Header = () => {
                 )}
               </>
             ) : (
-              <div className="relative">
-                <button onClick={() => setIsAuthDropdownOpen(!isAuthDropdownOpen)} className="flex items-center px-4 py-2">
+              <div className="relative" ref={authDropdownRef}>
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsAuthDropdownOpen(!isAuthDropdownOpen);
+                  }} 
+                  className="flex items-center px-4 py-2"
+                >
                   <User className="ml-2" size={20} />
                 </button>
                 {isAuthDropdownOpen && (
-                  <div className="absolute top-12 right-0 mt-2 w-48 text-black bg-white shadow-lg rounded-lg border z-100">
-                    <Link href="/sign-in" onClick={() => setIsAuthDropdownOpen(false)} className="block px-4 py-2 hover:bg-blue-100">Sign In</Link>
-                    <Link href="/sign-up" onClick={() => setIsAuthDropdownOpen(false)} className="block px-4 py-2 hover:bg-blue-100">Create Account</Link>
+                  <div 
+                    className="absolute top-10 right-0 mt-2 w-48 text-black bg-white shadow-lg rounded-lg border z-50"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Link 
+                      href="/sign-in" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsAuthDropdownOpen(false);
+                      }} 
+                      className="block px-4 py-2 hover:bg-blue-100"
+                    >
+                      Sign In
+                    </Link>
+                    <Link 
+                      href="/sign-up" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsAuthDropdownOpen(false);
+                      }} 
+                      className="block px-4 py-2 hover:bg-blue-100"
+                    >
+                      Create Account
+                    </Link>
                   </div>
                 )}
               </div>

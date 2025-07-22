@@ -81,15 +81,15 @@ const Footer = () => {
 
                 <div className="flex flex-col gap-1">
                     <h1 className="font-semibold text-xl flex items-center gap-2"> More Inquiry</h1>
-                    <Link href={'tel:+917351009107'} className="my-2 block rounded-full py-1 font-barlow text-black flex items-center">
+                    <Link href={'tel:+917351009107'} className="gap-2 my-2 block rounded-full py-1 font-barlow text-black flex items-center">
                         <Phone size={20} className="text-blue-600" />
                         +91 7351009107
                     </Link>
-                    <Link href={'mailto:support@rishikeshhandmade.com'} className="my-2 block rounded-full font-barlow text-black flex items-center">
+                    <Link href={'mailto:support@rishikeshhandmade.com'} className="gap-2 my-2 block rounded-full font-barlow text-black flex items-center">
                         <Send className="text-blue-600" size={20} />
                         support@rishikeshhandmade.com
                     </Link>
-                    <p className="my-2 font-barlow text-black mb-5 flex items-center">
+                    <p className="gap-2 my-2 font-barlow text-black mb-5 flex items-center">
                         <MapPin className="text-blue-600" size={20} />
                         Upper Road Dhalwala (Rishikesh)
                         <br />
@@ -118,7 +118,7 @@ const Footer = () => {
                     <Link href={'/faq'} className="text-sm block text-black font-barlow ">FAQ</Link>
                 </div>
             </div>
-            <div className="flex flex-col gap-1 p-5">
+            <div className="md:hidden flex flex-col gap-1 p-5">
                 <h1 className="font-semibold text-xl flex items-center gap-2"> More Inquiry</h1>
                 <Link href={'tel:+917351009107'} className="my-2 text-sm block rounded-full py-1 font-barlow text-black flex items-center gap-2">
                     <Phone size={20} className="text-blue-600" />

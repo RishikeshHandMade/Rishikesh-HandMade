@@ -94,7 +94,7 @@ const decodedId = decodeURIComponent(slug);
         </div>
 
         {frequentlyBoughtTogether.length > 0 && (
-          <div className="mt-8 px-4 py-10 bg-blue-100">
+          <div className="mt-8 px-4 py-10 bg-[#ededed]">
             <h2 className="text-2xl md:text-3xl font-semibold px-10">Frequently Bought Together</h2>
             <ResponsiveFeaturedCarousel products={frequentlyBoughtTogether} />
           </div>

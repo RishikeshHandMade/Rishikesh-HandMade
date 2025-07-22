@@ -51,7 +51,23 @@ const staticMenuItems = [
     }
 ];
 const MenuBar = (props) => {
+    const menuRef = React.useRef(null);
     const [isOpen, setIsOpen] = useState(false);
+    // Close menu when clicking outside (mobile)
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleClick = (e) => {
+            if (menuRef.current && !menuRef.current.contains(e.target)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClick);
+        document.addEventListener('touchstart', handleClick);
+        return () => {
+            document.removeEventListener('mousedown', handleClick);
+            document.removeEventListener('touchstart', handleClick);
+        };
+    }, [isOpen]);
     const [openMenu, setOpenMenu] = useState(null);
     const [openFixedMenu, setOpenFixedMenu] = useState(null);
     const [menuItems, setMenuItems] = useState(props.menuItems || []);
@@ -126,7 +142,7 @@ const MenuBar = (props) => {
             <div className={clsx(
                 "absolute top-8  md:top-12 mt-4 rounded-xl left-0 w-[90vw] text-black bg-white shadow-md lg:hidden transition-all duration-300 overflow-hidden",
                 isOpen ? "max-h-[500px]" : "max-h-0"
-            )}>
+            )} ref={menuRef}>
                 {menuItems.map((item, index) => (
                     <div key={index} className="border-b">
                         <button

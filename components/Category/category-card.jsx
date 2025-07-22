@@ -21,7 +21,7 @@ export const CategoryCarousel = ({ categories = [] }) => {
         {categories.map((category, index) => (
           <CarouselItem
             key={index}
-            className="pl-5 md:basis-1/2 lg:basis-1/6 min-w-0 snap-start"
+            className="pl-5 basis-1/2 md:basis-1/2 lg:basis-1/6 min-w-0 snap-start"
           >
             <CategoryCard category={category} />
           </CarouselItem>
@@ -38,7 +38,7 @@ const CategoryCard = ({ category }) => {
   // console.log(category)
   return (
     
-      <div className="group w-44 h-72 transition-transform mx-2 my-2 flex flex-col">
+      <div className="group w-44 max-h-72 transition-transform mx-2 my-2 flex flex-col">
         <div className="relative w-full h-60 overflow-hidden rounded-xl mb-2">
           <Image
             src={category.profileImage?.url || "/placeholder.jpeg"}
