@@ -93,6 +93,7 @@ const Header = () => {
               <div className="relative">
                 {status === "loading" ? (
                   <Loader2 className="animate-spin text-blue-600" size={36} />
+                  
                 ) : isUser ? (
                   <>
                     {/* Profile Picture Button */}
@@ -116,19 +117,12 @@ const Header = () => {
                         <p className="px-4 pb-2 text-sm text-gray-700">{session.user.email}</p>
                         <div className="h-px bg-gray-200" />
                         <Link
-                          href="/dashboard"
+                          href="/dashboard?section=orders"
                           className="flex items-center rounded-lg w-full text-left px-4 py-2 hover:bg-blue-100"
                           onClick={() => setIsProfileOpen(false)}
                         >
                           <User2Icon size={20} className="mr-2" /> Dashboard
                         </Link>
-                        {/* <Link
-                        href={`/account/${session.user.id}`}
-                        className="flex items-center rounded-lg w-full text-left px-4 py-2 hover:bg-blue-100"
-                        onClick={() => setIsProfileOpen(false)}
-                      >
-                        <User2Icon size={20} className="mr-2" /> My Account
-                      </Link> */}
                         <button
                           className="flex items-center rounded-lg w-full text-red-600 text-left px-4 py-2 hover:bg-blue-100"
                           onClick={() => signOut()}
@@ -140,8 +134,9 @@ const Header = () => {
                   </>
                 ) : (
                   <div className="relative">
-                    <button onClick={() => setIsAuthDropdownOpen(!isAuthDropdownOpen)} className="flex items-center px-4 py-2">
+                    <button onClick={() => setIsAuthDropdownOpen(!isAuthDropdownOpen)} className="flex flex-col items-center py-2">
                       <User className="ml-2" size={20} />
+                      <h2 className="text-xs font-semibold">Sign In / Login</h2>
                     </button>
                     {isAuthDropdownOpen && (
                       <div className="absolute top-12 right-0 mt-2 w-48 text-black bg-white shadow-lg rounded-lg border">
@@ -152,40 +147,69 @@ const Header = () => {
                   </div>
                 )}
               </div>
-              <button
-                className="relative p-2 rounded-full hover:bg-neutral-100 transition"
-                onClick={() => { setInitialCartTab('wishlist'); setIsCartOpen(true); }}
-                aria-label="Open Wishlist"
-              >
-                <Heart size={20} />
-                {wishlist.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-pink-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
-                    {wishlist.length}
-                  </span>
-                )}
-              </button>
-              {/* Cart & Wishlist Icons */}
-              <button
-                className="relative p-2 rounded-full hover:bg-neutral-100 transition"
-                onClick={() => { setInitialCartTab('cart'); setIsCartOpen(true); }}
-                aria-label="Open Cart"
-              >
-                <ShoppingCart size={20} />
-                {cart.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
-                    {cart.length}
-                  </span>
-                )}
-              </button>
-              <Link href={'/dashboard?section=track'}>
-              <Truck />
-              </Link>
-              <Cart open={isCartOpen} onClose={() => setIsCartOpen(false)} initialTab={initialCartTab} />
+              {/* Wishlist Button */}
+              <div className="relative group">
+                <button
+                  onClick={() => { setInitialCartTab('wishlist'); setIsCartOpen(true); }}
+                  className="flex flex-col items-center p-2 rounded-lg hover:bg-neutral-100 transition-colors"
+                  aria-label="Wishlist"
+                >
+                  <div className="relative">
+                    <Heart size={20} />
+                    {wishlist.length > 0 && (
+                      <span className="absolute -top-3 -right-3 bg-pink-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
+                        {wishlist.length}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs font-medium mt-1">Wishlist</span>
+                </button>
+              </div>
 
-            </div>
-            {/* Mobile Language Selector - only visible on small screens */}
-            <div className="text-right">
-              <LanguageSelector />
+              {/* Cart Button */}
+              <div className="relative group">
+                <button
+                  onClick={() => { setInitialCartTab('cart'); setIsCartOpen(true); }}
+                  className="flex flex-col items-center p-2 rounded-lg hover:bg-neutral-100 transition-colors"
+                  aria-label="Cart"
+                >
+                  <div className="relative">
+                    <ShoppingCart size={20} />
+                    {cart.length > 0 && (
+                      <span className="absolute -top-3 -right-3 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
+                        {cart.length}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs font-medium mt-1">Cart</span>
+                </button>
+              </div>
+
+              {/* Track Order Button */}
+              <div className="group">
+                <Link 
+                  href="/dashboard?section=track"
+                  className="flex flex-col items-center p-2 rounded-lg hover:bg-neutral-100 transition-colors"
+                >
+                  <Truck size={20} />
+                  <span className="text-xs font-medium mt-1">Track Order</span>
+                </Link>
+              </div>
+
+              {/* Language Selector */}
+              <div className="group relative">
+                <button 
+                  className="flex flex-col items-center p-2 rounded-lg hover:bg-neutral-100 transition-colors"
+                  aria-label="Language"
+                >
+                <div className="flex flex-col items-start justify-start">
+                <LanguageSelector size={20}
+                
+                />
+                <h2 className="text-sm font-medium">Language</h2>
+                </div>
+                </button>
+              </div>
             </div>
           </div>
         </div>

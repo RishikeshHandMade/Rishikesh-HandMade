@@ -93,7 +93,7 @@ const LanguageSelector = () => {
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg"
+                className="flex items-center gap-2 px-3 rounded-lg"
             >
                 <Globe size={22} />
                 {/* <ChevronDown size={16} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} /> */}

@@ -1,7 +1,7 @@
 "use client"
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import ReturnRequest from "./ReturnRequest";
-import CancelRequest from "./CancelRequest";
+import CancelOrder from "./CancelOrder";
 
 
 const statusBadge = {
@@ -29,8 +29,14 @@ const OrderDetail = ({ order, onBack }) => {
   const [showCancelRequest, setShowCancelRequest] = useState(false);
   const [showTrackingInfo, setShowTrackingInfo] = useState(false);
   const [showMessage, setShowMessage] = useState(null);
-  console.log(order)
-
+  const [showReturnRequest, setShowReturnRequest] = useState(false);
+  const [showCancelOrder, setShowCancelOrder] = useState(false);
+  
+  // Debug function to check modal state
+  useEffect(() => {
+    console.log('Modal state - showCancelOrder:', showCancelOrder);
+  }, [showCancelOrder]);
+  
   if (!order) {
     return (
       <div className="text-center text-red-500 mt-10">
@@ -42,6 +48,22 @@ const OrderDetail = ({ order, onBack }) => {
   const orderData = order;
   const isShipped = orderData.status === 'Shipped' || orderData.status === 'Delivered';
   const hasTracking = orderData.trackingNumber && orderData.trackingUrl;
+  
+  // Debug status history
+  console.log('Status History:', orderData.statusHistory);
+  
+  // Check if order is cancellable (not shipped or delivered)
+  const isOrderShippedOrDelivered = orderData.statusHistory?.some(
+    status => status.status === 'Shipped' || status.status === 'Delivered'
+  );
+  
+  console.log('Is Order Shipped or Delivered:', isOrderShippedOrDelivered);
+  
+  // For testing: Force the cancel button to be visible
+  const isCancellable = true; // Temporarily force to true for testing
+  
+  console.log('Order Status:', orderData.status);
+  console.log('Is Cancellable (after override):', isCancellable);
 
   return (
     <>
@@ -91,6 +113,21 @@ const OrderDetail = ({ order, onBack }) => {
             </div>
             {/* Action Buttons */}
             <div className="flex gap-3 mb-2 flex-wrap">
+              {isCancellable && (
+                <button
+                  onClick={() => {
+                    console.log('Cancel button clicked');
+                    console.log('Setting showCancelOrder to true');
+                    setShowCancelOrder(true);
+                  }}
+                  className="border border-red-400 text-red-600 px-5 py-2 rounded-lg font-semibold hover:bg-red-50 transition flex items-center gap-2"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Cancel Order
+                </button>
+              )}
               {isShipped && hasTracking && (
                 <button
                   onClick={() => setShowTrackingInfo(!showTrackingInfo)}
@@ -102,35 +139,24 @@ const OrderDetail = ({ order, onBack }) => {
                   {showTrackingInfo ? 'Hide Tracking' : 'Track Order'}
                 </button>
               )}
-
-              {orderData.status !== 'Cancelled' &&
-                (orderData.status === 'Pending' || orderData.status === 'Processing') && (
-                  <button
-                    className="border border-red-400 text-red-600 px-5 py-2 rounded-lg font-semibold hover:bg-red-50 transition flex items-center gap-2"
-                    onClick={() => setShowCancelRequest(true)}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    Cancel Order
-                  </button>
-                )}
-              {orderData.status === 'Delivered' && (
+              {orderData.statusHistory?.some(status => status.status === 'Delivered') && (
                 <button
                   className="border border-green-600 text-green-700 px-5 py-2 rounded-lg font-semibold hover:bg-green-50 transition flex items-center gap-2"
-                  // onClick={() => setShowReturnRequest(true)}
+                  onClick={() => {
+                    if (typeof window !== 'undefined' && window.handleReturnOrder) {
+                      window.handleReturnOrder(orderData);
+                    } else if (onBack) {
+                      // If not in dashboard, navigate directly
+                      window.location.href = `/dashboard?section=return&orderId=${orderData._id}`;
+                    }
+                  }}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582A6.5 6.5 0 1112 19" />
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 01-1.555.832L10 14.202l-4.445 2.63A1 1 0 014 16V4z" clipRule="evenodd" />
                   </svg>
                   Request Return
                 </button>
               )}
-              {/* {showReturnRequest && (
-                <ReturnRequest orderId={orderData._id} onClose={() => setShowReturnRequest(false)} />
-              )} */}
-
-
             </div>
           </div>
         </div>
@@ -192,22 +218,22 @@ const OrderDetail = ({ order, onBack }) => {
                                     <span className="text-sm font-medium">Tracking Number:</span>
                                     <span className="font-mono text-sm bg-white px-2 rounded border">
                                       {status.trackingNumber}
+                                      {showTrackingInfo && status.trackingUrl && (
+                                        <div className="">
+                                          <a
+                                            href={status.trackingUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center text-sm text-blue-600 hover:underline"
+                                          >
+                                            Track Your Package
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                            </svg>
+                                          </a>
+                                        </div>
+                                      )}
                                     </span>
-                                    {showTrackingInfo && status.trackingUrl && (
-                                      <div className="">
-                                        <a
-                                          href={status.trackingUrl}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="inline-flex items-center text-sm text-blue-600 hover:underline"
-                                        >
-                                          Track Your Package
-                                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                          </svg>
-                                        </a>
-                                      </div>
-                                    )}
 
                                   </div>
                                 </div>
@@ -283,6 +309,50 @@ const OrderDetail = ({ order, onBack }) => {
           <div className="mt-6 text-gray-700 text-[15px]">Receiver section (implement as needed)</div>
         )}
       </div>
+
+      {/* Return Request Modal */}
+      {showReturnRequest && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Return Request</h2>
+              <button 
+                onClick={() => setShowReturnRequest(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <ReturnRequest orderId={orderData.orderId} onClose={() => setShowReturnRequest(false)} />
+          </div>
+        </div>
+      )}
+      
+      {/* Cancel Order Modal */}
+      {console.log('Rendering modal with showCancelOrder:', showCancelOrder) || showCancelOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Cancel Order</h2>
+              <button 
+                onClick={() => setShowCancelOrder(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <CancelOrder 
+              order={orderData} 
+              orderId={orderData.orderId || orderData._id} 
+              onClose={() => setShowCancelOrder(false)} 
+            />
+          </div>
+        </div>
+      )}
     </>
   );
 };

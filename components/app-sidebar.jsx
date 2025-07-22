@@ -80,6 +80,12 @@ const data = {
     },
     { divider: true },
     {
+      name: "Activity Page",
+      url: "/admin/add_activity",
+      icon: Plus,
+    },
+    { divider: true },
+    {
       name: "Add Team",
       url: "/admin/add_team",
       icon: Plus,
@@ -189,6 +195,11 @@ const data = {
     {
       name: "Payment Report",
       url: "/admin/payment_report",
+      icon: ClipboardList,
+    },
+    {
+      name: "Cancel Order",
+      url: "/admin/cancel_orders",
       icon: ClipboardList,
     },
     // Space (empty item)

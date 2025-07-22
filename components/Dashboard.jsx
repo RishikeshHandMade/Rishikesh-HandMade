@@ -10,12 +10,14 @@ import OrderDetail from "./OrderDetail";
 import AllOrders from "./AllOrders";
 import Address from "./Address";
 import ReturnRequest from "./ReturnRequest";
+import CancelOrder from "./CancelOrder";
 import Chat from "./Chat";
 
 const sections = [
-  { key: "orders", label: "Orders" },
-  { key: "return", label: "Return request" },
-  { key: "chatbot", label: "Chat Bot" },
+  { key: "orders", label: "Order Overview" },
+  { key: "return", label: "Return Request" },
+  { key: "cancel", label: "Cancel Order" },
+  { key: "chatbot", label: "Chat With Admin" },
   { key: "track", label: "Track Order" },
 ];
 const settings = [
@@ -25,21 +27,48 @@ const settings = [
 
 import ChatOrder from "./ChatOrder";
 import TrackOrder from "./TrackOrder";
-function SectionContent({ section, orderId, onViewOrder, onBackHome, showOrderDetail, selectedOrder, orderChatMode, onChatOrder,onBack }) {
+function SectionContent({ section, orderId, onViewOrder, onBackHome, showOrderDetail, selectedOrder, orderChatMode, onChatOrder, onBack, returnOrder }) {
    const { data: session } = useSession()
   if (section === "profile") return <Profile />;
   if (section === "orders" && selectedOrder && orderChatMode) return <ChatOrder order={selectedOrder} onBack={onBack} onViewOrder={onViewOrder} />;
   if (section === "orders" && selectedOrder) return <OrderDetail order={selectedOrder} onBack={onBack} />;
   if (section === "chatbot") {
+    // Get orderId from URL if present
+    const searchParams = new URLSearchParams(window.location.search);
+    const orderId = searchParams.get('orderId');
     // Pass userId from session to Chat
     const userId = session?.user?.id || session?.user?._id;
-    // console.log("Rendering Chat with userId:", userId);
+    
+    // If we have an orderId, initialize chat with order context
+    if (orderId) {
+      return (
+        <div className="space-y-4">
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-blue-800">Return Assistance</h3>
+                <div className="mt-2 text-sm text-blue-700">
+                  <p>You're chatting about Order #{orderId}. Our team is here to help with your return request.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <Chat userId={userId} context={{ orderId }} />
+        </div>
+      );
+    }
     return <Chat userId={userId} />;
   }
   if (section === "orders") return <AllOrders onViewOrder={onViewOrder} onChatOrder={onChatOrder} />;
   if (section === "track") return <TrackOrder orderId={orderId} />;
   if (section === "address") return <Address />;
-  if (section === "return") return <ReturnRequest />;
+  if (section === "return") return <ReturnRequest order={returnOrder} orderId={orderId} />;
+  if (section === "cancel") return <CancelOrder orderId={orderId} />;
   if (section === "dashboard" && orderId && !showOrderDetail) {
     return <OrderConfirm orderId={orderId} onViewOrder={onViewOrder} onBackHome={onBackHome} />;
   }
@@ -70,6 +99,7 @@ const Dashboard = () => {
   const [showOrderDetail, setShowOrderDetail] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderChatMode, setOrderChatMode] = useState(false);
+  const [returnOrder, setReturnOrder] = useState(null);
 
   const user = session?.user || {
     name: "User Name",
@@ -81,6 +111,18 @@ const Dashboard = () => {
   useEffect(() => {
     setActiveSection(sectionFromUrl);
   }, [sectionFromUrl]);
+
+  // Expose handleReturnOrder to window for OrderDetail
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.handleReturnOrder = handleReturnOrder;
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.handleReturnOrder = null;
+      }
+    };
+  }, []);
 
   // Sync chat order from URL
   useEffect(() => {
@@ -118,6 +160,12 @@ const Dashboard = () => {
     setShowOrderDetail(false);
     setActiveSection("orders");
     router.push("/dashboard?section=orders");
+  };
+
+  const handleReturnOrder = (order) => {
+    setReturnOrder(order);
+    setActiveSection("return");
+    router.push(`/dashboard?section=return&orderId=${order._id}`);
   };
 
   const handleChatOrder = (order) => {
@@ -198,8 +246,10 @@ const Dashboard = () => {
           selectedOrder={selectedOrder}
           orderChatMode={orderChatMode}
           onChatOrder={handleChatOrder}
+          onReturnOrder={handleReturnOrder}
           onOrdersFetched={handleOrdersFetched}
           onBack={handleBackToOrders}
+          returnOrder={returnOrder}
         />
       </main>
     </div>
