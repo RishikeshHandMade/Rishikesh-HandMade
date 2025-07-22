@@ -57,13 +57,13 @@ const Banner = () => {
         <div className="bg-[#fcf7f1] w-full overflow-hidden max-w-screen overflow-x-hidden">
             {/* Promotional Banner Section */}
             {promotinalBanner.length > 0 && (
-                <div className="w-full py-20 bg-blue-100">
+                <div className="w-full py-10 px-2 md:py-20 bg-[#ededed]">
                     <h2 className="text-2xl md:text-4xl font-bold text-center mb-5 uppercase">
                         <span className="italic">Click</span>,
                         <span >Collect</span>,
                         <span>Checkout</span>
                     </h2>
-                    <p className="font-barlow text-gray-600 mb-5 w-[50%] mx-auto text-center">From everyday essentials to the latest trends, we bring everything to your fingertips. Enjoy easy browsing, secure checkout, and doorstep delivery with exciting deals and free shipping.</p>
+                    <p className="font-barlow text-gray-600 mb-5 md:w-[50%] w-full mx-auto text-center">From everyday essentials to the latest trends, we bring everything to your fingertips. Enjoy easy browsing, secure checkout, and doorstep delivery with exciting deals and free shipping.</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {promotinalBanner.map((item, idx) => (
                             <div key={idx} className="rounded-2xl flex flex-col h-[300px] md:h-[400px] p-0 overflow-hidden relative group">
@@ -88,7 +88,7 @@ const Banner = () => {
                                             </div>
                                         );
                                     })()}
-                                    <span className="text-2xl md:text-3xl font-bold text-black mb-2 leading-tight max-w-[40%]">{item?.title}</span>
+                                    <span className="text-xl md:text-3xl font-bold text-black mb-2 leading-tight max-w-[40%]">{item?.title}</span>
                                     <Link href={item?.buttonLink || '#'} target="_blank" rel="noopener noreferrer" className="px-10 text-md py-2 bg-black text-white hover:bg-gray-800 transition w-fit">View Now</Link>
                                 </div>
                             </div>
@@ -99,7 +99,7 @@ const Banner = () => {
 
             {/* Featured Offer For You Section */}
             {featuredOffer.length > 0 && (
-                <div className="w-full my-20 px-10">
+                <div className="w-full md:py-20 py-10 px-2 md:px-10">
                     <h2 className="text-2xl md:text-3xl font-bold text-center mb-5 uppercase">Featured Offer For You</h2>
                     <Carousel className="w-full">
                         <CarouselContent>
@@ -127,7 +127,7 @@ const Banner = () => {
                                                     </div>
                                                 );
                                             })()}
-                                            <span className="text-2xl md:text-3xl font-bold text-black mb-2 leading-tight max-w-[80%]">{item?.title}</span>
+                                            <span className="text-xl md:text-3xl font-bold text-black mb-2 leading-tight max-w-[80%]">{item?.title}</span>
                                             <Link href={item?.buttonLink || '#'} target="_blank" rel="noopener noreferrer" className="px-10 text-md py-2 bg-black text-white hover:bg-gray-800 transition w-fit">View Now</Link>
                                         </div>
                                     </div>

@@ -142,55 +142,7 @@ const RandomTourPackageSection = () => {
     fetchProducts();
   }, []);
 
-  if (isLoading) {
-    return (
-      <section className="bg-[#fcf7f1] md:mt-19 w-full px-2 md:px-8 lg:px-16 overflow-hidden max-w-screen overflow-x-hidden">
-        <div className=" w-full h-full overflow-hidden max-w-screen overflow-x-hidden">
-          <div className="w-full py-10">
-            <h2 className="flex items-center text-sm md:text-md lg:text-lg uppercase font-barlow font-semibold"></h2>
-            <h1 className="font-bold text-xl md:text-3xl lg:text-4xl uppercase text-center">
-              Trending Products: The Best, Today
-            </h1>
-            <Carousel className="w-[75%] md:w-[95%] drop-shadow-xl mx-auto xl:w-full my-6 md:my-12">
-              <CarouselContent className="-ml-1">
-                {[...Array(4)].map((_, index) => (
-                  <CarouselItem
-                    key={index}
-                    className="pl-1 md:basis-1/2 lg:basis-1/3 xl:basis-1/4"
-                  >
-                    <div className="p-1">
-                      <Card>
-                        <CardContent className="p-0 rounded-xl flex flex-col aspect-video object-cover justify-between">
-                          <Skeleton className="rounded-t-xl w-full h-[200px]" />
-                          <div className="p-4 flex flex-col gap-2 h-36">
-                            <div className="flex items-center justify-between font-barlow">
-                              <Skeleton className="w-1/2 h-4" />
-                              <Skeleton className="w-1/3 h-4" />
-                            </div>
-                            <Skeleton className="w-2/3 h-6" />
-                          </div>
-                          <div className="h-px bg-gray-200" />
-                          <div className="p-4 flex items-center justify-between gap-2 font-barlow">
-                            <div>
-                              <Skeleton className="w-1/2 h-4" />
-                              <Skeleton className="w-1/3 h-4" />
-                            </div>
-                            <Skeleton className="w-[80px] h-[30px] rounded-sm" />
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
-            </Carousel>
-          </div>
-        </div>
-      </section>
-    );
-  }
+
 
   const formatNumeric = (num) => {
     return new Intl.NumberFormat("en-IN").format(num);
@@ -201,8 +153,8 @@ const RandomTourPackageSection = () => {
     <section className="bg-[#fcf7f1] md:mt-19 w-full overflow-hidden max-w-screen overflow-x-hidden">
       <div className=" w-full h-full overflow-hidden max-w-screen">
         {/* Product Section */}
-        <div className="w-full py-10 px-1 bg-[#ededed]">
-          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mt-10 uppercase">
+        <div className="w-full py-10 px-2 bg-[#ededed]">
+          <h1 className="text-xl md:text-3xl lg:text-4xl font-bold text-center md:mt-10 uppercase">
             Trending Products: The Best, Today
           </h1>
           <p className=" text-gray-600 py-4 text-center font-barlow md:w-[50%] w-full mx-auto">
@@ -221,7 +173,7 @@ const RandomTourPackageSection = () => {
                     key={index}
                     className="pl-5 md:basis-1/2 lg:basis-1/4 min-w-0 snap-start"
                   >
-                    <div className="flex flex-col md:w-[290px]">
+                    <div className="flex flex-col md:w-[290px] ">
                       {/* Image Section */}
                       <div className="relative w-full md:h-96 rounded-3xl overflow-hidden flex items-center justify-center group/image">
                         {item.productTagLine?.tagLine && item.productTagLine.tagLine.length > 0 && (
@@ -397,7 +349,7 @@ const RandomTourPackageSection = () => {
 
 
         {/* Artisan Carousel Section */}
-        <div className="w-full py-20">
+        <div className="w-full py-10 md:py-20">
           {/* Desktop: Grid/List */}
           <div className="w-full max-w-[90%] mx-auto mb-16">
             <div className="flex flex-col md:flex-row items-start gap-5">
@@ -643,6 +595,7 @@ const RandomTourPackageSection = () => {
                     {artisan.map((item, idx) => {
                       const card = {
                         id: item._id || idx,
+                        slug: item.slug,
                         name: `${item.title ? item.title + " " : ""}${item.firstName || ''} ${item.lastName || ''}`.trim() || "Unknown Artisan",
                         date: item.createdAt ? new Date(item.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase() : "N/A",
                         image: item.profileImage?.url || item.image || "/bg-custom-1.jpg",
@@ -700,7 +653,7 @@ const RandomTourPackageSection = () => {
                             <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-6 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
                               <div>
                                 <Link
-                                  href={`/artisan/${card.id}`}
+                                  href={`/artisan/${card.slug}`}
                                   className="font-bold text-2xl text-white mb-3 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
                                   title={card.name}
                                 >
@@ -746,8 +699,8 @@ const RandomTourPackageSection = () => {
                     })}
                   </CarouselContent>
                   <div className="flex items-center gap-3 mt-4 justify-center">
-                    <CarouselPrevious className="bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
-                    <CarouselNext className="bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
+                  <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 p-5" />
+                  <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 p-5" />
                   </div>
                 </Carousel>
               </div>

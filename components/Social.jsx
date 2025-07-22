@@ -37,7 +37,7 @@ const Social = () => {
     <div
       style={{
         position: "fixed",
-        top: "50%",
+        top: "45%",
         right: 0,
         transform: "translateY(-50%)",
         zIndex: 1000,

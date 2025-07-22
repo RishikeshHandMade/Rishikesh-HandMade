@@ -122,7 +122,7 @@ const HeroSection = () => {
   }
 
   return (
-    <section className="bg-[#fcf7f1] relative xl:h-screen h-full w-full px-2 overflow-hidden z-0 group">
+    <section className="bg-[#fcf7f1] relative xl:h-screen h-full w-full px-2 md:px-0 overflow-hidden z-0 group">
       <div className="hidden xl:block w-full h-screen ">
         {/* Carousel for desktop: each slide shows front image, details, back image in a single row */}
         <div className="flex flex-col items-center justify-center h-screen w-full relative">
@@ -287,7 +287,7 @@ const HeroSection = () => {
         </div>
       </div>
 
-      <div className="block xl:hidden w-full h-full pt-4 pb-12 relative max-h-[90vh]">
+      <div className="block xl:hidden w-full h-full pt-4 relative max-h-[90vh]">
         {/* Mobile Carousel: Only show first image, center content over image, add to cart above image */}
         <Carousel className="w-full max-w-md mx-auto" plugins={[plugin.current]} onMouseLeave={plugin.current.reset} setApi={setApi} >
           <CarouselContent>

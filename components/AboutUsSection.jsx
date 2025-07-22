@@ -80,12 +80,11 @@ const AboutUsSection = () => {
         );
     }
     return (
-        <section className="bg-[url('/aboutUsBanner.jpg')] bg-no-repeat bg-cover bg-center relative py-10 w-full px-10 md:px-5 overflow-hidden max-w-screen overflow-x-hidden">
+        <section className="bg-[url('/aboutUsBanner.jpg')] bg-no-repeat bg-cover bg-center relative py-10 w-full px-5 overflow-hidden max-w-screen overflow-x-hidden">
             <div className="w-full">
                 <h2 className="font-bold text-2xl md:text-4xl text-center mt-2 md:mt-7 uppercase">
                     <span className="italic">Crafted by Hand,</span>
                     <span> Cherished by Heart.</span>
-
                 </h2>
                 <p className=" text-xl font-lg md:text-xl text-center mt-2">
                     emphasizes uniqueness, tradition, artistry, and authentic
@@ -103,7 +102,7 @@ const AboutUsSection = () => {
                         Array.from({ length: 5 }).map((_, idx) => (
                             <div
                                 key={idx}
-                                className="flex flex-col items-center w-52 rounded-3xl animate-pulse"
+                                className="flex flex-col items-center w-42 rounded-3xl animate-pulse"
                                 style={{ padding: "1rem 0 0.5rem 0" }}
                             >
                                 <div className="w-full aspect-[4/5] rounded-2xl overflow-hidden flex items-end justify-center bg-gray-200" />
@@ -128,7 +127,7 @@ const AboutUsSection = () => {
                                 </div>
                                 <div className="mt-4 text-center px-2 w-full flex justify-start">
                                     <Link key={item._id} href={item.link}>
-                                        <div className="font-bold text-sm md:text-xl text-black hover:underline transition cursor-pointer">{item.title}</div>
+                                        <div className="font-bold text-md md:text-xl text-black hover:underline transition cursor-pointer">{item.title}</div>
                                     </Link>
                                 </div>
                             </div>

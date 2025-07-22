@@ -58,7 +58,7 @@ const Footer = () => {
             {/* <div className="w-full flex justify-center pb-8">
                 <div className="h-[3px] bg-black w-full mx-auto px-4" />
             </div> */}
-            <div className="flex flex-wrap lg:justify-between px-10 justify-start md:gap-20 lg:gap-0 gap-12 max-w-[22rem] md:maxw-[45rem] lg:max-w-[60rem] xl:max-w-6xl mx-auto">
+            <div className="hidden md:flex flex-wrap lg:justify-between px-10 justify-start md:gap-20 lg:gap-0 gap-12 max-w-[22rem] md:maxw-[45rem] lg:max-w-[60rem] xl:max-w-6xl mx-auto">
                 <div className="flex flex-col gap-2 px-5">
                     <h1 className="font-semibold text-xl my-4">Main Menu</h1>
                     {pages.filter(page => !page?.link?.includes('policy')).map(page => (
@@ -97,6 +97,45 @@ const Footer = () => {
                     </p>
                 </div>
             </div>
+            <div className="md:hidden flex items-center gap-2 lg:justify-between justify-start px-5">
+                <div className="flex flex-col gap-2 px-2">
+                    <h1 className="font-semibold text-xl my-4">Main Menu</h1>
+                    {pages.filter(page => !page?.link?.includes('policy')).map(page => (
+                        <Link key={page._id} href={page.url} className="text-sm block text-black font-barlow ">
+                            {page.title}
+                        </Link>
+                    ))}
+                    <Link href={'/contact'} className="text-sm block text-black font-barlow ">Contact</Link>
+                </div>
+
+                <div className="flex flex-col gap-2 px-2">
+                    <h1 className="font-semibold text-xl my-4">Our Policy</h1>
+                    {pages.filter(page => page?.link?.includes('policy')).map(page => (
+                        <Link key={page._id} href={page.url} className="text-sm block text-black font-barlow">
+                            {page.title}
+                        </Link>
+                    ))}
+                    <Link href={'/faq'} className="text-sm block text-black font-barlow ">FAQ</Link>
+                </div>
+            </div>
+            <div className="flex flex-col gap-1 p-5">
+                <h1 className="font-semibold text-xl flex items-center gap-2"> More Inquiry</h1>
+                <Link href={'tel:+917351009107'} className="my-2 text-sm block rounded-full py-1 font-barlow text-black flex items-center gap-2">
+                    <Phone size={20} className="text-blue-600" />
+                    +91 7351009107
+                </Link>
+                <Link href={'mailto:support@rishikeshhandmade.com'} className="my-2 text-sm block rounded-full font-barlow text-black flex items-center gap-2">
+                    <Send className="text-blue-600" size={20} />
+                    support@rishikeshhandmade.com
+                </Link>
+                <p className="my-2 text-sm font-barlow text-black mb-5 flex items-center gap-2">
+                    <MapPin className="text-blue-600" size={20} />
+                    Upper Road Dhalwala (Rishikesh)
+                    <br />
+                    Tehri Garhwal,Uttarakhand 249201
+                </p>
+            </div>
+
             {/* Accordance Section */}
             <div className="w-full flex justify-center my-4">
                 <div className="w-[85%]">
