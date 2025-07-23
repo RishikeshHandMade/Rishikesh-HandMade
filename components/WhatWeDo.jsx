@@ -33,34 +33,33 @@ const WhatWeDo = () => {
   return (
     <div className="w-full min-h-screen bg-[#fcf7f1]">
       {/* Banner */}
-      <div className="relative w-full h-[320px] flex items-center justify-center">
+      <div className="relative w-full h-[100px] md:h-[320px] flex items-center justify-center">
         <Image src="/bg7.jpg" alt="Banner" layout="fill" objectFit="cover" className="z-0 opacity-80" priority />
-        <div className="absolute left-[10%] top-10 z-10 container w-fit mx-auto px-4 flex flex-col justify-center h-full bg-white rounded-xl">
-          <div className="max-w-2xl flex flex-col items-center justify-center px-10">
+        <div className="absolute left-[10%] top-10 z-10 container w-fit mx-auto px-4 hidden md:flex flex-col justify-center h-full bg-white rounded-xl">
+          <div className=" max-w-2xl flex-col items-center justify-center px-10">
             <h1 className="text-3xl  font-semibold text-black mb-2 drop-shadow-lg">The Impact of What We Do How <br /> We Make a Difference</h1>
-            {/* <nav aria-label="breadcrumb" className="mb-4">
-              <ul className="flex gap-2 text-lg text-white">
-                <li><Link href="/" className="hover:underline">Home</Link></li>
-                <li>/</li>
-                <li className="text-amber-300">What We Do</li>
-              </ul>
-            </nav> */}
             <div className="w-96 rounded-lg overflow-hidden shadow-lg">
               <Image src="/pic7.jpg" alt="Intro" width={300} height={300} className="object-cover w-full h-full" />
             </div>
           </div>
         </div>
       </div>
+      <div className="md:hidden py-10 flex flex-col items-center justify-center">
+            <h1 className="text-xl font-semibold text-center text-black mb-2 drop-shadow-lg">The Impact of What We Do How <br /> We Make a Difference</h1>
+            <div className="w-96 rounded-lg overflow-hidden shadow-lg px-2">
+              <Image src="/pic7.jpg" alt="Intro" width={300} height={300} className="object-cover w-full h-full" />
+            </div>
+          </div>
 
       {/* Main Content */}
-      <section className="content-inner about-style3 py-16">
+      <section className="content-inner about-style3 md:py-16 py-5">
         <div className="container mx-auto px-4">
           <div className="flex flex-col lg:flex-row gap-10">
             {/* Left Side */}
             <div className="lg:w-7/12 w-full">
-              <div className=" p-8  mb-8">
-                <h4 className="text-2xl md:text-3xl font-bold mb-4 text-amber-700">Bringing you soulful, sustainable art — one handmade piece at a time.</h4>
-                <p className="text-base text-gray-700 mb-4">
+              <div className="md:p-8 mb-8">
+                <h4 className="text-xl md:text-2xl md:text-3xl font-bold mb-4 text-amber-700">Bringing you soulful, sustainable art — one handmade piece at a time.</h4>
+                <p className="text-sm md:text-base text-gray-700 mb-4">
                   At Rishikesh Handmade Craft, we don’t just sell handmade products — we offer a piece of nature, culture, and community. While many marketplaces source mass-produced or factory-replicated goods, we stay firmly committed to authentic, eco-conscious craftsmanship, with a strong specialization in natural fiber products. <br /><br />
                   Our collections are made using locally sourced, biodegradable materials such as jute, hemp, cotton, bamboo, and banana fiber — all chosen for their minimal environmental impact and natural beauty. These fibers are not only sustainable but also deeply embedded in India’s artisanal traditions, making each product a harmonious blend of heritage and environmental responsibility.<br /><br />
                   Unlike others, we work directly with artisans, ensuring they receive fair wages and continued support. This hands-on, ethical approach allows us to maintain quality, authenticity, and transparency in every step — from sourcing raw materials to the final handcrafted piece you receive.
@@ -123,9 +122,10 @@ const WhatWeDo = () => {
       </section>
       {/* Get in Touch Section */}
       <section className="w-full bg-black py-5 text-white flex flex-col md:flex-row items-center justify-between  md:px-24 gap-6 ">
-        <div className="mb-6 md:mb-0 px-3">
-          <h3 className="text-2xl md:text-3xl font-bold gap-2">Questions?
-            <span className="text-lg font-normal px-2">Our experts will help find the gear that’s right for you</span>
+        <div className="md:mb-6 md:mb-0 md:px-3">
+          <h3 className="text-xl md:text-3xl font-bold gap-2 text-center md:text-start">Questions?
+            <br className="md:hidden" />
+            <span className="text-sm md:text-lg font-normal px-2">Our experts will help find the gear that’s right for you</span>
           </h3>
         </div>
         <Link href="/contact" className="btn bg-white text-black font-bold px-8 py-3 rounded-lg shadow transition">Get In Touch</Link>

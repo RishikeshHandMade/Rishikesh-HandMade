@@ -84,7 +84,7 @@ const CategoryPage = async ({ params }) => {
 
   return (
     <SidebarInset>
-      <div className="min-h-screen p-2 bg-[#fcf7f1]">
+      <div className="min-h-screen bg-[#fcf7f1]">
         {/* Category Banner at the top */}
         <CategoryBanner 
         title={categoryData.title} 
@@ -100,10 +100,10 @@ const CategoryPage = async ({ params }) => {
           </div>
 
           {/* Middle Section: Category Cards + Package Cards */}
-          <div className="flex-1 min-w-0 gap-4">
+          <div className="flex-1 min-w-0 gap-4 px-2">
             {/* Category Cards Row */}
             <div>
-              <h2 className="text-2xl font-bold px-4">Category</h2>
+              <h2 className="text-2xl font-bold px-4 underline">Category</h2>
               <Carousel className="w-full mx-auto my-4">
                 <CarouselContent className="w-full gap-5">
                   {Array.isArray(allCategories) && allCategories.flatMap(cat =>

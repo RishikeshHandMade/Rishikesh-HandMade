@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useCart } from "../context/CartContext";
 import Link from "next/link";
 import toast from "react-hot-toast"
-import {MapPin} from "lucide-react"
+import { MapPin } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -114,7 +114,7 @@ const CartDetails = () => {
   const [districtInput, setDistrictInput] = React.useState("");
   // const [cityInput, setCityInput] = React.useState("");
   const [pincodeInput, setPincodeInput] = React.useState("");
-  const [loadingShipping, setLoadingShipping] = useState(false);  
+  const [loadingShipping, setLoadingShipping] = useState(false);
   const [FinalShipping, setFinalShipping] = useState(0);
   const [shippingTierLabel, setShippingTierLabel] = useState("");
   const [shippingPerUnit, setShippingPerUnit] = useState(null);
@@ -322,17 +322,17 @@ const CartDetails = () => {
     const maxDiscount = totalAfterDiscount + taxTotal + finalShipping;
     if (promoDiscount > maxDiscount) promoDiscount = maxDiscount;
   }
-    const taxTotal = cart.reduce(
-      (sum, item) =>
-        sum +
-        ((getAfterDiscount(item) *
-          ((Number(item.cgst) || 0) + (Number(item.sgst) || 0))) /
-          100) *
-        item.qty,
-      0
-    );
-    const finalAmount = totalAfterDiscount + taxTotal + FinalShipping - (promoDiscount || 0);
-  
+  const taxTotal = cart.reduce(
+    (sum, item) =>
+      sum +
+      ((getAfterDiscount(item) *
+        ((Number(item.cgst) || 0) + (Number(item.sgst) || 0))) /
+        100) *
+      item.qty,
+    0
+  );
+  const finalAmount = totalAfterDiscount + taxTotal + FinalShipping - (promoDiscount || 0);
+
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => {
     setMounted(true);
@@ -340,7 +340,7 @@ const CartDetails = () => {
   if (!mounted) return null;
   // UI
   return (
-    <div className="w-full px-5 mx-auto p-4 bg-white">
+    <div className="w-full md:px-5 mx-auto p-2 md:p-4 bg-white">
       <div className="flex justify-between items-center mb-2">
         <h2 className="text-2xl font-bold">Add To Cart</h2>
         {/* <Link href="/shop" className="text-green-700 font-semibold text-sm">Continuew Shopping &gt;&gt;</Link> */}
@@ -353,94 +353,126 @@ const CartDetails = () => {
       ) : (
         <div className="flex flex-col md:flex-row gap-6">
           {/* Left: Product Table */}
-          <div className="w-full md:w-3/2">
-            <table className="w-full border-collapse rounded overflow-hidden shadow text-xs md:text-base">
-              <thead>
-                <tr className="bg-blue-200 text-black text-sm">
-                  <th className="border p-2">Image</th>
-                  <th className="border p-2">Name / Code</th>
-                  <th className="border p-2">Base Price</th>
-                  <th className="border p-2">Discount</th>
-                  <th className="border p-2">After Discount</th>
-                  <th className="border p-2">Weight</th>
-                  <th className="border p-2">CGST %</th>
-                  <th className="border p-2">SGST %</th>
-                  <th className="border p-2">Qty</th>
-                  <th className="border p-2">Amount</th>
-                  <th className="border p-2">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {cart.map((item, idx) => (
-                  <tr
-                    key={item.id}
-                    className={idx % 2 === 0 ? "bg-orange-100" : "bg-gray-100"}
-                  >
-                    <td className="border p-2 text-center">
-                      <img
-                        src={item.image?.url || item.image}
-                        alt={item.name}
-                        className="w-20 h-20 rounded object-cover mx-auto"
-                      />
-                    </td>
-                    <td className="border p-2 text-center align-center gap-2">
-                      <div className="font-bold text-base leading-tight">
-                        {item.name}
-                      </div>
-                      <div className="italic text-base text-black">
-                        {item.productCode || "N/A"}
-                      </div>
-                    </td>
-                    <td className="border p-2 text-center">
-                      ₹{item.originalPrice ?? item.price}
-                    </td>
-                    <td className="border p-2 text-center">
-                      {getDiscount(item)}
-                    </td>
-                    <td className="border p-2 text-center">
-                      ₹{getAfterDiscount(item)}
-                    </td>
-                    <td className="border p-2 text-center">{item.weight ?? 0}g</td>
-                    <td className="border p-2 text-center">₹{(item.price * item.cgst / 100).toFixed(2)}</td>
-                    <td className="border p-2 text-center">₹{(item.price * item.sgst / 100).toFixed(2)}</td>
-                    <td className="border p-2 text-center">
-                      <div className="flex items-center justify-center gap-2">
+          <div className="w-full">
+
+            {/* Desktop Table */}
+            <div className="hidden md:block">
+              <table className="w-full border-collapse rounded overflow-hidden shadow text-xs md:text-base">
+                <thead>
+                  <tr className="bg-blue-200 text-black text-sm">
+                    <th className="border p-2">Image</th>
+                    <th className="border p-2">Name / Code</th>
+                    <th className="border p-2">Base Price</th>
+                    <th className="border p-2">Discount</th>
+                    <th className="border p-2">After Discount</th>
+                    <th className="border p-2">Weight</th>
+                    <th className="border p-2">CGST %</th>
+                    <th className="border p-2">SGST %</th>
+                    <th className="border p-2">Qty</th>
+                    <th className="border p-2">Amount</th>
+                    <th className="border p-2">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cart.map((item, idx) => (
+                    <tr key={item.id} className={idx % 2 === 0 ? "bg-orange-100" : "bg-gray-100"}>
+                      <td className="border p-2 text-center">
+                        <img src={item.image?.url || item.image} alt={item.name} className="w-20 h-20 rounded object-cover mx-auto" />
+                      </td>
+                      <td className="border p-2 text-center">
+                        <div className="font-bold text-base leading-tight">{item.name}</div>
+                        <div className="italic text-base text-black">{item.productCode || "N/A"}</div>
+                      </td>
+                      <td className="border p-2 text-center">₹{item.originalPrice ?? item.price}</td>
+                      <td className="border p-2 text-center">{getDiscount(item)}</td>
+                      <td className="border p-2 text-center">₹{getAfterDiscount(item)}</td>
+                      <td className="border p-2 text-center">{item.weight ?? 0}g</td>
+                      <td className="border p-2 text-center">₹{(item.price * item.cgst / 100).toFixed(2)}</td>
+                      <td className="border p-2 text-center">₹{(item.price * item.sgst / 100).toFixed(2)}</td>
+                      <td className="border p-2 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <button onClick={() => updateCartQty(item.id, Math.max(1, item.qty - 1))} className="w-7 h-7 bg-black text-white rounded-full flex items-center justify-center">-</button>
+                          <span className="w-7 text-center font-semibold">{item.qty}</span>
+                          <button onClick={() => updateCartQty(item.id, item.qty + 1)} className="w-7 h-7 bg-black text-white rounded-full flex items-center justify-center">+</button>
+                        </div>
+                      </td>
+                      <td className="border p-2 text-center font-bold">₹{getAmount(item)}</td>
+                      <td className="border p-2 text-center">
+                        <button onClick={() => removeFromCart(item.id)} className="bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 text-xl flex items-center justify-center" title="Remove">
+                          &#10006;
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card Layout */}
+            {/* Mobile Row Layout */}
+            <div className="block md:hidden space-y-4">
+              {cart.map((item) => (
+                <div key={item.id} className="bg-orange-100 rounded-lg shadow p-2 flex items-center gap-3">
+
+                  {/* Product Image */}
+                  <img
+                    src={item.image?.url || item.image}
+                    alt={item.name}
+                    className="w-20 h-20 rounded object-cover flex-shrink-0"
+                  />
+
+                  {/* Product Info */}
+                  <div className="flex flex-grow text-xs gap-1">
+                    <div className="flex items-center flex-col gap-2" >
+
+                    <div className="italic text-xs">{item.productCode || "N/A"}</div>
+                    <div className="font-semibold text-sm">{item.name}</div>
+                    </div>
+                    <div>Base: ₹{item.originalPrice ?? item.price}</div>
+                    <div>Discount: {getDiscount(item)}</div>
+                    <div>Final: ₹{getAfterDiscount(item)}</div>
+                    <div>Weight: {item.weight ?? 0}g</div>
+                    <div>CGST: ₹{(item.price * item.cgst / 100).toFixed(2)} | SGST: ₹{(item.price * item.sgst / 100).toFixed(2)}</div>
+
+                    {/* Quantity and Total */}
+                    <div className="flex justify-between items-center mt-1">
+                      <div className="flex items-center gap-1">
                         <button
-                          onClick={() =>
-                            updateCartQty(item.id, Math.max(1, item.qty - 1))
-                          }
-                          className="w-7 h-7 bg-black text-white rounded-full flex items-center justify-center"
+                          onClick={() => updateCartQty(item.id, Math.max(1, item.qty - 1))}
+                          className="w-6 h-6 bg-black text-white rounded-full flex items-center justify-center"
                         >
                           -
                         </button>
-                        <span className="w-7 text-center font-semibold">
-                          {item.qty}
-                        </span>
+                        <span className="px-2 font-bold">{item.qty}</span>
                         <button
                           onClick={() => updateCartQty(item.id, item.qty + 1)}
-                          className="w-7 h-7 bg-black text-white rounded-full flex items-center justify-center"
+                          className="w-6 h-6 bg-black text-white rounded-full flex items-center justify-center"
                         >
                           +
                         </button>
                       </div>
-                    </td>
-                    <td className="border p-2 text-center font-bold">
-                      ₹{getAmount(item)}
-                    </td>
-                    <td className="border p-2 text-center">
-                      <button
-                        onClick={() => removeFromCart(item.id)}
-                        className="bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 text-xl flex items-center justify-center"
-                        title="Remove"
-                      >
-                        &#10006;
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      <div className="font-bold text-sm">₹{getAmount(item)}</div>
+                    </div>
+                  </div>
+
+                  {/* Remove Button */}
+                  <div className="ml-2">
+                    <button
+                      onClick={() => removeFromCart(item.id)}
+                      className="bg-red-500 hover:bg-red-600 text-white rounded-full w-7 h-7 text-xl flex items-center justify-center"
+                      title="Remove"
+                    >
+                      &#10006;
+                    </button>
+                  </div>
+
+                </div>
+              ))}
+            </div>
+
+
           </div>
+
 
           {/* Right: Order Summary Card */}
           <div className="w-full md:w-1/2 flex flex-col gap-2 mt-8 md:mt-0">
@@ -451,7 +483,7 @@ const CartDetails = () => {
                   Subtotal{" "}
                   <span className="text-xs text-gray-500 font-normal">
                     (INR)
-                </span>
+                  </span>
                 </span>
                 <span className="font-semibold text-base">
                   {subTotal.toFixed(2)}
@@ -511,7 +543,7 @@ const CartDetails = () => {
                 </button>
               </div>
 
-             
+
               {/* Note about coupons */}
               <div className="text-xs text-red-600 mb-2">
                 Note : If discount promo code already applied extra additional
@@ -525,7 +557,7 @@ const CartDetails = () => {
                   on your order.
                 </div>
               )}
-               {promoError && (
+              {promoError && (
                 <div className="text-xs text-red-600 mt-1">{promoError}</div>
               )}
               {/* Shipping Charges */}

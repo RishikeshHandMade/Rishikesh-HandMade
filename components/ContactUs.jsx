@@ -98,18 +98,18 @@ const ContactUs = () => {
     };
     return (
         <div className="bg-[#fdf7f2] min-h-screen w-full flex flex-col items-center justify-start pt-5">
-            <div className="container mx-auto px-10">
+            <div className="container mx-auto px-5 md:px-10">
                 <div className="flex flex-col lg:flex-row gap-8 w-full justify-center mt-10">
                     {/* Contact Info */}
                     <div className="lg:w-1/2 w-full flex flex-col justify-center text-black">
-                        <h2 className="text-5xl font-bold mb-4">DISCOVER US</h2>
+                        <h2 className="text-2xl md:text-5xl font-bold mb-4">DISCOVER US</h2>
                         <p className="mb-6 text-base w-[90%] ">
-                            <span className="underline text-3xl">Rishikesh Handmade is here to help you.</span>
+                            <span className="underline text-xl md:text-3xl">Rishikesh Handmade is here to help you.</span>
                             <br />
-                            <span className='text-3xl'> Our experts are available to answer any questions you might have. We’ve got the answers.</span>
+                            <span className='text-xl md:text-3xl'> Our experts are available to answer any questions you might have. We’ve got the answers.</span>
                         </p>
                         <div className="mb-4">
-                            <h3 className="font-bold text-2xl mb-2">Call Us</h3>
+                            <h3 className="font-bold text-xl md:text-2xl mb-2">Call Us</h3>
                             <ul className="mb-2">
                                 <li className='flex flex-row gap-2'>
                                     <a href="tel:+917351009107" className="hover:underline text-xl">+91 7351009107</a>
@@ -118,19 +118,19 @@ const ContactUs = () => {
                             </ul>
                         </div>
                         <div className=''>
-                            <h3 className="font-bold text-2xl mb-2 ">E-mail</h3>
+                            <h3 className="font-bold text-xl md:text-2xl mb-2 ">E-mail</h3>
                             <ul className="mb-2">
                                 <li className='text-xl'>
                                     For Sales:
-                                    <a href="mailto:info@rishikeshhandmade.com" className="hover:underline text-xl"> info@rishikeshhandmade.com</a>
+                                    <a href="mailto:info@rishikeshhandmade.com" className="hover:underline text-md md:text-xl"> info@rishikeshhandmade.com</a>
                                 </li>
                                 <li className='text-xl'>
                                     For Support:
-                                    <a href="mailto:care@rishikeshhandmade.com" className="hover:underline text-xl"> care@rishikeshhandmade.com</a>
+                                    <a href="mailto:care@rishikeshhandmade.com" className="hover:underline text-md md:text-xl"> care@rishikeshhandmade.com</a>
                                 </li>
                                 <li className='text-xl'>
                                     For Official:
-                                    <a href="mailto:rishikeshhandmade@gmail.com" className="hover:underline text-xl"> rishikeshhandmade@gmail.com</a>
+                                    <a href="mailto:rishikeshhandmade@gmail.com" className="hover:underline text-md md:text-xl"> rishikeshhandmade@gmail.com</a>
                                 </li>
                             </ul>
                         </div>
@@ -210,17 +210,7 @@ const ContactUs = () => {
             </div>
             {/* Google Maps */}
             <div className="w-full mt-10 flex justify-center">
-                <div className="w-full h-[400px]  overflow-hidden ">
-                    {/* <iframe
-                        src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d2839.0776501691057!2d78.2849206552164!3d30.12616554867223!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e1!3m2!1sen!2sin!4v1748107187292!5m2!1sen!2sin"
-                        width="100%"
-                        height="100%"
-                        style={{ border: 0 }}
-                        allowFullScreen=""
-                        loading="lazy"
-                        referrerPolicy="no-referrer-when-downgrade"
-                        title="Rishikesh Handmade Location"
-                    ></iframe> */}
+                <div className="w-full h-[200px md:h-[400px]  overflow-hidden ">
                     <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1767600.128857061!2d77.9893110379553!3d30.084332843614234!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x45ba13fe538cbec1%3A0xc0e4978d8b7433ca!2sRishikesh%20Handmade!5e0!3m2!1sen!2sin!4v1751718901773!5m2!1sen!2sin" width="100%"
                         height="100%"
                         style={{ border: 0 }} allowFullScreen="" loading="lazy" 

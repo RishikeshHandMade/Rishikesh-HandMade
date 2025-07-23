@@ -282,11 +282,11 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
           <Carousel className="w-full">
             <CarouselContent className="w-full gap-2">
               {chunkArray(displayProducts, 2).map((row, rowIdx) => (
-                <CarouselItem key={rowIdx} className="flex gap-4 justify-start">
+                <CarouselItem key={rowIdx} className="flex gap-2 justify-center">
                   {row.map((product, idx) => {
                     const globalIdx = rowIdx * 2 + idx;
                     return (
-                      <div key={product.id || product._id || globalIdx} className="rounded-2xl border border-gray-200 bg-white p-4 flex flex-col w-44 min-w-[150px] justify-between">
+                      <div key={product.id || product._id || globalIdx} className="rounded-2xl border border-gray-200 bg-white p-4 flex flex-col w-full min-w-[150px] justify-between">
                         <div>
                           <div className="w-full h-52 relative mb-3 rounded-xl overflow-hidden flex items-center justify-center bg-gray-50 hover:scale-105 transition-all duration-300">
                             <Image

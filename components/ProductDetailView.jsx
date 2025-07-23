@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { Heart, Share2, Ruler, Mail, Star, MapPin, InfoIcon, X } from "lucide-react"
+import { Heart, Share2, Ruler, Mail, Star, MapPin, InfoIcon, X, Loader2 } from "lucide-react"
 import { useCart } from "../context/CartContext";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -82,10 +82,10 @@ export default function ProductDetailView({ product }) {
   const [productUrl, setProductUrl] = React.useState("");
 
   React.useEffect(() => {
-    if (typeof window !== "undefined" && product && product._id) {
-      setProductUrl(window.location.origin + "/product/" + product._id);
-    } else if (product && product._id) {
-      setProductUrl("/product/" + product._id);
+    if (typeof window !== "undefined" && product && product.slug) {
+      setProductUrl(window.location.origin + "/product/" + product.slug);
+    } else if (product && product.slug) {
+      setProductUrl("/product/" + product.slug);
     }
   }, [product]);
 
@@ -329,7 +329,7 @@ export default function ProductDetailView({ product }) {
       {/* CENTER: Product Details/Description/Selectors */}
       <div className="w-full lg:w-1/3 max-w-xl mx-auto flex flex-col">
         <div className="flex items-center gap-4 mb-1">
-          <h1 className="text-3xl font-bold">{product.title}</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">{product.title}</h1>
         </div>
         {/* Product Code */}
         {product.code && (
@@ -374,7 +374,7 @@ export default function ProductDetailView({ product }) {
             );
           }
           return (
-            <div className="text-gray-700 my-4 text-md max-w-lg">
+            <div className="text-gray-700 my-4 text-sm md:text-md max-w-lg">
               <div dangerouslySetInnerHTML={{ __html: words.slice(0, 20).join(' ') + '...' }} />
               <button className="text-blue-600 underline" onClick={() => setShowFullDesc(true)}>Read more</button>
             </div>
@@ -385,8 +385,8 @@ export default function ProductDetailView({ product }) {
         <div className="mb-2 flex items-center gap-2">
           {hasDiscount && (
             <div className="flex items-center gap-2 mb-1">
-              <del className="text-gray-600 font-semibold text-lg mr-2">₹{formatNumeric(selectedVariant?.price)}</del>
               <span className="font-bold text-xl text-black">₹{formatNumeric(Math.round(discountedPrice))}</span>
+              <del className="text-gray-600 font-semibold text-sm mr-2">₹{formatNumeric(selectedVariant?.price)}</del>
               <span className="border border-green-500 text-green-700 px-2 py-0.5 rounded text-xs font-semibold bg-green-50">Coupon Applied: {couponText}</span>
             </div>
 
@@ -467,7 +467,7 @@ export default function ProductDetailView({ product }) {
                 <button
                   key={size || idx}
                   className={`relative min-w-24 px-3 py-2 border rounded-xl bg-white text-sm font-medium transition-all duration-150
-          ${selectedSize === size ? 'border-black ring-2 ring-black' : 'border-gray-300'}
+          ${selectedSize === size ? 'border-black ring-1 ring-black' : 'border-gray-300'}
           hover:bg-gray-100
         `}
                   onClick={() => {
@@ -495,7 +495,7 @@ export default function ProductDetailView({ product }) {
           </div>
 
           {/* Size Chart Link/Button */}
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-4 items-center">
             {product?.size?.sizeChartUrl?.url && (
               <>
                 <span
@@ -533,7 +533,7 @@ export default function ProductDetailView({ product }) {
             {/* Ask An Expert Modal */}
             {showExpertModal && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative animate-fade-in">
+                <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative animate-fade-in h-[90vh] md:h-fit overflow-y-auto">
                   <button
                     className="absolute top-2 right-2 text-gray-500 hover:text-black text-4xl font-bold"
                     onClick={() => setShowExpertModal(false)}
@@ -670,7 +670,7 @@ export default function ProductDetailView({ product }) {
                 <button
                   key={color || idx}
                   className={`relative w-8 h-8 rounded-full border-2 transition-all duration-150
-          ${selectedColor === color ? 'border-black ring-2 ring-black' : ''}
+          ${selectedColor === color ? 'border-black ring-1 ring-black' : ''}
           ${!enabled ? 'border-gray-300 opacity-40 cursor-not-allowed' : 'hover:ring-2 hover:ring-black'}
         `}
                   style={{ background: color, position: 'relative' }}
@@ -694,7 +694,7 @@ export default function ProductDetailView({ product }) {
           </div>
           {/* Pincode check UI */}
           <div className="">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 my-2">
               <span className="text-base font-medium flex items-center gap-1">
                 <MapPin size={18} className="inline-block" />
                 Delivery Options
@@ -746,7 +746,15 @@ export default function ProductDetailView({ product }) {
                     }
                   }}
                 >
-                  {loadingShipping ? 'Checking...' : 'Check'}
+                  {loadingShipping ? (
+                    <span className="flex items-center">
+                      <Loader2 className="animate-spin mr-2" />
+                      Checking...
+                    </span>
+                  ) : (
+                    'Check'
+                  )}
+
                 </button>
               </div>
             ) : (
@@ -1093,7 +1101,7 @@ export default function ProductDetailView({ product }) {
             {selectedVariant?.qty > 0 ? 'BUY IT NOW' : 'OUT OF STOCK'}
           </button>
           <Dialog open={showArtisanModal} onOpenChange={setShowArtisanModal}>
-            <DialogContent className="max-w-md h-[80vh] overflow-y-auto w-full p-0 md:overflow-hidden">
+            <DialogContent className="max-w-md h-[80vh] md:h-fit overflow-y-auto w-full p-0 md:overflow-hidden">
               <VisuallyHidden>
                 <DialogTitle>Artisan Details</DialogTitle>
               </VisuallyHidden>

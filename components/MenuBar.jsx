@@ -129,6 +129,13 @@ const MenuBar = (props) => {
     const toggleFixedMenu = (index) => {
         setOpenFixedMenu(openFixedMenu === index ? null : index);
     };
+    
+    // Close mobile menu when a link is clicked
+    const closeMobileMenu = () => {
+        setIsOpen(false);
+        setOpenMenu(null);
+        setOpenFixedMenu(null);
+    };
 
     return (
         <>
@@ -161,7 +168,11 @@ const MenuBar = (props) => {
                                     .sort((a, b) => a.order - b.order)
                                     .map((subItem, subIndex) => (
                                         <li key={subIndex} className="py-1">
-                                            <Link href={`/category/${subItem.url}`} className="text-sm text-gray-700 ">
+                                            <Link 
+                                                href={`/category/${subItem.url}`} 
+                                                className="text-sm text-gray-700 block py-1"
+                                                onClick={closeMobileMenu}
+                                            >
                                                 {subItem.title}
                                             </Link>
                                         </li>
@@ -174,7 +185,11 @@ const MenuBar = (props) => {
                 {allMenuItems.length > 0 && allMenuItems.map((cat, index) => (
                     <div key={index} className="border-b">
                         {cat.catTitle === "Contact Us" ? (
-                            <Link href="/contact-us" className="w-full block p-3 text-sm font-medium hover:bg-gray-100">
+                            <Link 
+                                href="/contact" 
+                                className="w-full block p-3 text-sm font-medium hover:bg-gray-100"
+                                onClick={closeMobileMenu}
+                            >
                                 {cat.catTitle}
                             </Link>
                         ) : (
@@ -200,7 +215,7 @@ const MenuBar = (props) => {
                                                     {category.subCatPackage
                                                         .filter(pkg => pkg.active)
                                                         .map((pkg, pkgIdx) => (
-                                                            <Link key={pkgIdx} href={`${pkg.url}`} className="flex flex-col gap-4 py-2 pl-4 text-sm text-gray-700 hover:text-blue-600">
+                                                            <Link key={pkgIdx} href={`${pkg.url}`} className="flex flex-col gap-4 py-2 pl-4 text-sm text-gray-700 hover:text-blue-600" onClick={closeMobileMenu}>
                                                                 - {pkg.title}
                                                             </Link>
                                                         ))}

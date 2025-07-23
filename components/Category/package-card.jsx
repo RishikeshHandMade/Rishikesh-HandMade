@@ -20,7 +20,7 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, se
   return (
     <div className="flex flex-col w-58 md:w-[250px] rounded-3xl mb-2 group cursor-pointer">
       {/* Image Section */}
-      <div className="relative w-full h-80 rounded-3xl overflow-hidden flex items-center justify-center group/image">
+      <div className="relative w-full  md:h-80 rounded-3xl overflow-hidden flex items-center justify-center group/image">
         {/* GET 10% OFF Tag */}
         <div className="absolute top-6 left-4 z-10">
           {(() => {
@@ -163,7 +163,7 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, se
       <div className="flex flex-col items-start justify-between px-2 pt-4 pb-2 mt-0">
         <Link
           href={`/product/${pkg.slug}`}
-          className="font-bold hover:underline text-md md:text-xl text-gray-900 leading-tight truncate cursor-pointer"
+          className="font-bold hover:underline text-sm md:text-xl text-gray-900 leading-tight truncate cursor-pointer"
         >
           {pkg?.title}
         </Link>
@@ -188,7 +188,7 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, se
             return (
               <span>
                 <span className="font-semibold text-md md:text-xl text-black px-2">₹{formatNumber(Math.round(discountedPrice))}</span>
-                <del className="text-black font-semibold text-md md:text-xl mr-2">₹{formatNumber(originalPrice)}</del>
+                <del className="text-black font-semibold text-sm md:text-xl mr-2">₹{formatNumber(originalPrice)}</del>
               </span>
             );
           } else {

@@ -4,9 +4,9 @@ import Link from "next/link";
 
 const VisionMission = () => {
   return (
-    <section className="w-full  bg-[#fcf7f1] min-h-screen">
+    <section className="w-full bg-[#fcf7f1] min-h-screen">
       <div className="w-full">
-        <div className="relative w-full h-[250px] flex items-center justify-center bg-[#fcf7f1] overlay-black-light">
+        <div className="relative w-full h-[100px] md:h-[250px] flex items-center justify-center bg-[#fcf7f1] overlay-black-light">
           <Image
             src="/bg1.jpg"
             alt="About Banner"
@@ -17,34 +17,25 @@ const VisionMission = () => {
           />
           <div className="relative z-10 text-center text-white">
             <h1 className="text-4xl md:text-5xl font-bold mb-2 drop-shadow-lg">Our Vision & Mission</h1>
-            {/* <nav aria-label="breadcrumb" className="flex justify-center"> */}
-            {/* <ul className="flex gap-2 text-lg">
-                      <li>
-                        <Link href="/" className="hover:underline">Home</Link>
-                      </li>
-                      <li>/</li>
-                      <li className="text-amber-300">About Me</li>
-                    </ul> */}
-            {/* </nav> */}
-          </div>
+            </div>
         </div>
-        <div className="w-full container mx-auto flex gap-10 items-center mt-10">
+        <div className="w-full px-2 container mx-auto flex gap-10 items-center mt-10">
           {/* Left: Intro & Image */}
           <div className="w-full flex flex-col items-start">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6 text-gray-800 text-start lg:text-start">“Rooted in Nature, Crafted by Tradition.”</h2>
-            <p className="text-lg text-gray-700 leading-relaxed mb-6 text-center lg:text-justify">
+            <h2 className="text-xl md:text-4xl font-bold mb-6 text-gray-800 text-start lg:text-start">“Rooted in Nature, Crafted by Tradition.”</h2>
+            <p className="text-md md:text-lg text-gray-700 leading-relaxed mb-6 text-start lg:text-justify">
               At Rishikesh Handmade Craft, we are more than just an e-commerce platform — we are a movement to revive, support, and celebrate the timeless heritage of Rishikesh through handcrafted art. Nestled in the foothills of the Himalayas, Rishikesh is a land known not only for its spiritual aura but also for its deeply rooted artistic traditions. Our mission is to bring these soulful creations to a global audience while uplifting the lives of the skilled artisans behind them.<br /><br />
               We partner directly with local craftsmen and women from Rishikesh and nearby villages who specialize in traditional art forms passed down through generations. These artisans pour their heart and soul into every product — whether it's an intricately carved wooden artifact, a hand-painted canvas, ethically made jewelry, or eco-friendly home décor. Each piece reflects the essence of Indian culture, spirituality, and sustainability.
             </p>
           </div>
 
         </div> {/* Right: Vision & Mission */}
-        <div className="container mx-auto w-full flex flex-row gap-8">
-          <div className="w-2/3 flex justify-center mb-6 ">
+        <div className="container mx-auto w-full flex flex-col md: flex-row gap-8 px-2">
+          <div className="w-full md:w-2/3 flex justify-center mb-6 ">
             <Image src="/Vision.jpg" alt="Vision" width={300} height={300} className="rounded-xl shadow-lg object-cover w-fit h-auto " />
           </div>
           {/* Vision */}
-          <div className="w-1/2 flex-col mb-4">
+          <div className="w-full md:w-1/2 flex-col mb-4">
             <div className="rounded-xl  p-6 mb-4 border border-gray-400">
               <h3 className="text-2xl font-bold mb-2 text-amber-700">Our Vision</h3>
               <p className="text-gray-700 text-base">
@@ -67,11 +58,12 @@ const VisionMission = () => {
 
         </div>
       </div>
-      {/* Get In Touch Section */}
-      <section className="w-full bg-black py-5 text-white flex flex-col md:flex-row items-center justify-between  md:px-24 gap-6 ">
-        <div className="md:mb-0 px-3">
-          <h3 className="text-2xl md:text-3xl font-bold gap-2">Questions?
-            <span className="text-lg font-normal px-2">Our experts will help find the gear that’s right for you</span>
+   {/* Get In Touch Section */}
+   <section className="w-full bg-black py-5 text-white flex flex-col md:flex-row items-center justify-between  md:px-24 gap-6 ">
+        <div className="md:mb-6 md:mb-0 md:px-3">
+          <h3 className="text-xl md:text-3xl font-bold gap-2 text-center md:text-start">Questions?
+            <br className="md:hidden" />
+            <span className="text-sm md:text-lg font-normal px-2">Our experts will help find the gear that’s right for you</span>
           </h3>
         </div>
         <Link href="/contact" className="btn bg-white text-black font-bold px-8 py-3 rounded-lg shadow transition">Get In Touch</Link>

@@ -95,14 +95,14 @@ const decodedId = decodeURIComponent(slug);
 
         {frequentlyBoughtTogether.length > 0 && (
           <div className="mt-8 px-4 py-10 bg-[#ededed]">
-            <h2 className="text-2xl md:text-3xl font-semibold px-10">Frequently Bought Together</h2>
+            <h2 className="text-2xl underline md:text-3xl font-semibold px-5 md:px-10">Frequently Bought Together</h2>
             <ResponsiveFeaturedCarousel products={frequentlyBoughtTogether} />
           </div>
         )}
 
         {allCategories.length > 0 && (
           <div className="mt-8 px-4 py-5">
-            <h2 className="text-2xl md:text-3xl font-semibold px-10">Categories</h2>
+            <h2 className="text-2xl md:text-3xl font-semibold md:px-10 px-5 underline">Categories</h2>
             <CategoryCarousel
               categories={allCategories.flatMap(cat =>
                 Array.isArray(cat.subMenu)

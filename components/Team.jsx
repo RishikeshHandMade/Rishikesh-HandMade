@@ -24,7 +24,7 @@ const Team = () => {
   return (
     <div className="w-full min-h-screen bg-[#fcf7f1]">
       {/* Banner */}
-      <div className="relative w-full h-[250px] flex items-center justify-center">
+      <div className="relative w-full h-[100px] md:h-[250px] flex items-center justify-center">
         <Image
           src="/bg1.jpg"
           alt="Team Banner"
@@ -48,13 +48,13 @@ const Team = () => {
       </div>
 
       {/* Main Content */}
-      <section className="content-inner py-16">
+      <section className="content-inner py-10 md:py-16">
         <div className="container mx-auto px-4">
           <div className="flex flex-col lg:flex-row gap-8 mb-10 items-start">
             {/* Left: Heading and Paragraph */}
             <div className="w-full lg:w-[57%]">
-              <h2 className="text-3xl md:text-5xl font-semibold mb-4 text-gray-800 leading-tight">Behind Rishikesh Handmade Craft is a dedicated team of experienced professionals and industry veterans who share a deep passion for traditional Indian craftsmanship.</h2>
-              <p className="text-xl text-gray-700 mb-4">
+              <h2 className="text-xl md:text-5xl font-semibold mb-4 text-gray-800 leading-tight">Behind Rishikesh Handmade Craft is a dedicated team of experienced professionals and industry veterans who share a deep passion for traditional Indian craftsmanship.</h2>
+              <p className="text-md md:text-xl text-gray-700 mb-4">
                 Our core team includes expert artisans, designers, curators, and community leaders — many of whom have over 20 years of hands-on experience in the handicraft and cottage industry.
               </p>
             </div>
@@ -123,9 +123,9 @@ const Team = () => {
           </div>
 
           {/* Contributions Section */}
-          <div className="rounded-xl p-8 border border-gray-400">
-            <h2 className="text-3xl font-bold mb-4 text-gray-800">Our Team’s Contributions Include:</h2>
-            <ul className="list-decimal pl-6 text-base text-gray-700 space-y-2">
+          <div className="rounded-xl p-4 md:p-8 border border-gray-400">
+            <h2 className="text-xl md:text-3xl font-bold mb-4 text-gray-800">Our Team’s Contributions Include:</h2>
+            <ul className="list-decimal pl-6 text-sm md:text-lg text-gray-700 space-y-2">
               <li><span className="font-bold">Mentoring and Training:</span> Providing skill development and mentorship to hundreds of young and emerging artisans in and around Rishikesh.</li>
               <li><span className="font-bold">Empowering Communities:</span> Helping local craftspeople access fair markets, increase income, and gain financial independence.</li>
               <li><span className="font-bold">Innovation with Tradition:</span> Blending ancient techniques with contemporary design to make traditional products appealing to modern audiences.</li>
