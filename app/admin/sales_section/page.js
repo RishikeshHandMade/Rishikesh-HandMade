@@ -6,21 +6,51 @@ import { GetAllCustomOrder } from "@/actions/GetAllCustomOrder";
 
 export const dynamic = 'force-dynamic'
 
-function convertObjectIdsToStrings(obj) {
+function convertObjectIdsToStrings(obj, visited = new WeakMap()) {
+  // Handle null/undefined
+  if (obj === null || obj === undefined) return obj;
+  
+  // Handle primitive types
+  if (typeof obj !== 'object') return obj;
+  
+  // Handle circular references
+  if (visited.has(obj)) return visited.get(obj);
+  
+  // Handle Date objects
+  if (obj instanceof Date) return new Date(obj);
+  
+  // Handle arrays
   if (Array.isArray(obj)) {
-    return obj.map(convertObjectIdsToStrings);
-  } else if (obj && typeof obj === "object") {
-    const newObj = {};
-    for (const key in obj) {
-      if (key === "_id" && obj[key] && typeof obj[key].toString === "function") {
-        newObj[key] = obj[key].toString();
-      } else {
-        newObj[key] = convertObjectIdsToStrings(obj[key]);
-      }
+    const result = [];
+    visited.set(obj, result);
+    for (let i = 0; i < obj.length; i++) {
+      result[i] = convertObjectIdsToStrings(obj[i], visited);
     }
-    return newObj;
+    return result;
   }
-  return obj;
+  
+  // Handle objects
+  const result = {};
+  visited.set(obj, result);
+  
+  // Check if it's an ObjectId
+  if (obj._id && typeof obj._id === 'object' && 'toString' in obj._id) {
+    result._id = obj._id.toString();
+  }
+  
+  // Process all other properties
+  for (const key in obj) {
+    if (key === '__v') continue; // Skip version key
+    if (typeof obj[key] === 'object' && obj[key] !== null) {
+      result[key] = convertObjectIdsToStrings(obj[key], visited);
+    } else if (key === '_id' && obj[key] && typeof obj[key].toString === 'function') {
+      result[key] = obj[key].toString();
+    } else {
+      result[key] = obj[key];
+    }
+  }
+  
+  return result;
 }
 
 export default async function SalesSection() {

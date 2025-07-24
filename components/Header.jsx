@@ -170,17 +170,44 @@ const Header = () => {
                     )}
                   </>
                 ) : (
-                  <div className="relative">
-                    <button onClick={() => setIsAuthDropdownOpen(!isAuthDropdownOpen)} className="flex flex-col items-center py-2">
+                  <div className="relative" ref={authDropdownRef}>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsAuthDropdownOpen(!isAuthDropdownOpen);
+                      }} 
+                      className="flex flex-col items-center py-2"
+                    >
                       <User className="ml-2" size={20} />
                       <h2 className="text-xs font-semibold">Sign In / Login</h2>
                     </button>
-                    {isAuthDropdownOpen && (
-                      <div ref={authDropdownRef} className="absolute top-12 right-0 mt-2 w-48 text-black bg-white shadow-lg rounded-lg border">
-                        <Link href="/sign-in" onClick={() => setIsAuthDropdownOpen(false)} className="block px-4 py-2 hover:bg-blue-100">Sign In</Link>
-                        <Link href="/sign-up" onClick={() => setIsAuthDropdownOpen(false)} className="block px-4 py-2 hover:bg-blue-100">Create Account</Link>
-                      </div>
-                    )}
+                    <AnimatePresence>
+                      {isAuthDropdownOpen && (
+                        <motion.div 
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 10 }}
+                          transition={{ duration: 0.2 }}
+                          className="absolute top-12 right-0 w-48 text-black bg-white shadow-lg rounded-lg border z-[9999]"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Link 
+                            href="/sign-in" 
+                            onClick={() => setIsAuthDropdownOpen(false)} 
+                            className="block px-4 py-2 hover:bg-blue-100 text-sm"
+                          >
+                            Sign In
+                          </Link>
+                          <Link 
+                            href="/sign-up" 
+                            onClick={() => setIsAuthDropdownOpen(false)} 
+                            className="block px-4 py-2 hover:bg-blue-100 text-sm border-t border-gray-100"
+                          >
+                            Create Account
+                          </Link>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 )}
               </div>
@@ -235,17 +262,15 @@ const Header = () => {
 
               {/* Language Selector */}
               <div className="group relative">
-                <button 
-                  className="flex flex-col items-center p-2 rounded-lg hover:bg-neutral-100 transition-colors"
+                <div 
+                  className="flex flex-col items-center p-2 rounded-lg hover:bg-neutral-100 transition-colors cursor-pointer"
                   aria-label="Language"
                 >
-                <div className="flex flex-col items-start justify-start">
-                <LanguageSelector size={20}
-                
-                />
-                <h2 className="text-sm font-medium">Language</h2>
+                  <div className="flex flex-col items-start justify-start">
+                    <LanguageSelector size={20} />
+                    <span className="text-sm font-medium">Language</span>
+                  </div>
                 </div>
-                </button>
               </div>
             </div>
           </div>

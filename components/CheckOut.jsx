@@ -168,7 +168,15 @@ const CheckOut = () => {
         city: formFields.city,
         state: formFields.state,
         pincode: formFields.pincode,
-        products: cart,
+        products: cart.map(item => ({
+          productId: item._id,
+          name: item.name,
+          price: item.price,
+          qty: item.quantity,  // Changed from quantity to qty to match model
+          image: item.image?.url || item.image,
+          color: item.color,
+          size: item.size
+      })),
         amount: finalAmount, // in rupees
         currency: "INR",
         receipt: generateOrderId(),
@@ -1337,20 +1345,6 @@ const CheckOut = () => {
           setDistrict('');
           setState('');
           setPincode('');
-
-          // Show success toast
-          toast.success('Order placed successfully!', {
-            position: 'top-center',
-            style: {
-              borderRadius: '10px',
-              background: '#4CAF50',
-              color: 'white',
-              padding: '16px',
-              fontSize: '16px',
-              fontWeight: 'bold'
-            }
-          });
-
           // Show confirmation modal
           setShowConfirmationModal(true);
           setOrderId(result._id || result.orderId);
@@ -1568,13 +1562,14 @@ const CheckOut = () => {
     );
   }
   return (
-    <div className="flex flex-col md:flex-row gap-10 w-full min-h-screen bg-[#fcf7f2] p-10">
+    <div className="flex flex-col md:flex-row gap-10 w-full min-h-screen bg-[#fcf7f2] p-2 md:p-10">
       {/* Billing Details Form */}
-      <div className="flex-1 bg-white rounded-lg shadow p-8">
+      <div className="flex-1 bg-white rounded-lg shadow p-4 md:p-8">
         <div className="border-b border-gray-200 pb-4 mb-6">
-          <p className="text-xl font-bold">Thanks for being a loyal customer, Your cart is ready. Rishkish Handmade is a trusted growth partner to millions of everyday entrepreneurs.</p>
+          <h2 className="text-xl py-5 md:text-2xl font-bold">Thanks for being a loyal customer,</h2>
+          <p className="text-md md:text-xl font-semibold"> Your cart is ready. Rishkish Handmade is a trusted growth partner to millions of everyday entrepreneurs.</p>
           <br />
-          <p className="text-lg font-bold">Dear Customer,To proceed with your order and ensure smooth delivery, we kindly request you to provide the following basic information:</p>
+          <p className="text-sm md:text-lg font-semibold">Dear Customer,To proceed with your order and ensure smooth delivery, we kindly request you to provide the following basic information:</p>
         </div>
 
         <form className="space-y-6" onSubmit={(e) => {

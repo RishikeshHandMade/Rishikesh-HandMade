@@ -1,5 +1,6 @@
 // components/Admin/CancelOrder.jsx
 "use client";
+import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 
@@ -8,6 +9,7 @@ const CancelOrder = () => {
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [adminNotes, setAdminNotes] = useState('');
+    console.log(requests)
 
     useEffect(() => {
         fetchRequests();
@@ -63,9 +65,9 @@ const CancelOrder = () => {
                 <table className="min-w-full bg-white">
                     <thead>
                         <tr>
-                            <th className="py-2 px-4 border">Order ID</th>
-                            <th className="py-2 px-4 border">Customer</th>
-                            <th className="py-2 px-4 border">Reason</th>
+                            <th className="py-2 px-4 border">Order Name</th>
+                            {/* <th className="py-2 px-4 border">Customer</th> */}
+                            {/* <th className="py-2 px-4 border">Reason</th> */}
                             <th className="py-2 px-4 border">Refund Amount</th>
                             <th className="py-2 px-4 border">Status</th>
                             <th className="py-2 px-4 border">Actions</th>
@@ -74,13 +76,13 @@ const CancelOrder = () => {
                     <tbody>
                         {requests.map((request) => (
                             <tr key={request._id}>
-                                <td className="py-2 px-4 border">{request.orderId}</td>
-                                <td className="py-2 px-4 border">
+                                <td className="py-2 px-4 border text-center">{request.order.items[0].name}</td>
+                                {/* <td className="py-2 px-4 border">
                                     {request.userDetails?.name}
-                                </td>
-                                <td className="py-2 px-4 border">{request.reason}</td>
-                                <td className="py-2 px-4 border">₹{request.refundAmount}</td>
-                                <td className="py-2 px-4 border">
+                                </td> */}
+                                {/* <td className="py-2 px-4 border">{request.reason}</td> */}
+                                <td className="py-2 px-4 border text-center">₹{request.products[0].price}</td>
+                                <td className="py-2 px-4 border text-center">
                                     <span className={`px-2 py-1 rounded-full text-xs ${request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                                             request.status === 'approved' ? 'bg-green-100 text-green-800' :
                                                 'bg-red-100 text-red-800'
@@ -88,7 +90,7 @@ const CancelOrder = () => {
                                         {request.status}
                                     </span>
                                 </td>
-                                <td className="py-2 px-4 border">
+                                <td className="py-2 px-4 border text-center">
                                     <button
                                         onClick={() => setSelectedRequest(request)}
                                         className="text-blue-600 hover:underline"
@@ -106,7 +108,19 @@ const CancelOrder = () => {
             {selectedRequest && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+                        <div className="flex items-center justify-between">
+
                         <h3 className="text-xl font-bold mb-4">Request Details</h3>
+                        <button
+                                onClick={() => {
+                                    setSelectedRequest(null);
+                                    setAdminNotes('');
+                                }}
+                                className="px-1 text-sm border rounded"
+                                >
+                                <X/>
+                            </button>
+                                </div>
 
                         <div className="grid grid-cols-2 gap-4 mb-4">
                             <div>
@@ -119,15 +133,9 @@ const CancelOrder = () => {
                             </div>
                             <div>
                                 <p className="font-semibold">Refund Amount:</p>
-                                <p>₹{selectedRequest.refundAmount}</p>
-                            </div>
-                            <div>
-                                <p className="font-semibold">Reason:</p>
-                                <p>{selectedRequest.reason}</p>
+                                <p>₹{selectedRequest.products[0].price}</p>
                             </div>
                         </div>
-            // components/Admin/CancelOrder.jsx
-                        // In the modal where you show request details, add:
                         <div className="mb-4">
                             <h4 className="font-semibold mb-2">Order Items:</h4>
                             {selectedRequest.order?.items?.map((item, index) => (
@@ -154,7 +162,7 @@ const CancelOrder = () => {
                         </div>
 
                         {/* Shipping Address */}
-                        <div className="mb-4">
+                        {/* <div className="mb-4">
                             <h4 className="font-semibold mb-2">Shipping Address:</h4>
                             <div className="bg-gray-50 p-3 rounded">
                                 <p>{selectedRequest.order?.shippingAddress?.name}</p>
@@ -166,7 +174,7 @@ const CancelOrder = () => {
                                 </p>
                                 <p>Phone: {selectedRequest.order?.shippingAddress?.contactNumber}</p>
                             </div>
-                        </div>
+                        </div> */}
 
                         <div className="mb-4">
                             <h4 className="font-semibold mb-2">Bank Details:</h4>
@@ -174,7 +182,7 @@ const CancelOrder = () => {
                                 <p>Account Holder: {selectedRequest.bankDetails?.accountHolderName}</p>
                                 <p>Account Number: {selectedRequest.bankDetails?.accountNumber}</p>
                                 <p>IFSC: {selectedRequest.bankDetails?.ifscCode}</p>
-                                <p>Bank: {selectedRequest.bankDetails?.bankName}</p>
+                                {/* <p>Bank: {selectedRequest.bankDetails?.bankName}</p> */}
                                 {selectedRequest.bankDetails?.upiId && (
                                     <p>UPI ID: {selectedRequest.bankDetails.upiId}</p>
                                 )}

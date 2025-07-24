@@ -409,7 +409,6 @@ const CartDetails = () => {
             </div>
 
             {/* Mobile Card Layout */}
-            {/* Mobile Row Layout */}
             <div className="block md:hidden space-y-4">
               {cart.map((item) => (
                 <div key={item.id} className="bg-orange-100 rounded-lg shadow p-2 flex items-center gap-3">
@@ -418,7 +417,7 @@ const CartDetails = () => {
                   <img
                     src={item.image?.url || item.image}
                     alt={item.name}
-                    className="w-20 h-20 rounded object-cover flex-shrink-0"
+                    className="w-14 h-14 rounded object-cover flex-shrink-0"
                   />
 
                   {/* Product Info */}
@@ -426,7 +425,7 @@ const CartDetails = () => {
                     <div className="flex items-center flex-col gap-2" >
 
                     <div className="italic text-xs">{item.productCode || "N/A"}</div>
-                    <div className="font-semibold text-sm">{item.name}</div>
+                    <div className="font-semibold text-xs">{item.name}</div>
                     </div>
                     <div>Base: ₹{item.originalPrice ?? item.price}</div>
                     <div>Discount: {getDiscount(item)}</div>

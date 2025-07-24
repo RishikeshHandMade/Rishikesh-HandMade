@@ -8,34 +8,74 @@ export async function POST(req) {
   try {
     await connectDB();
     const data = await req.json();
+    
+    console.log('Cancel Order Request Data:', JSON.stringify(data, null, 2));
+    
+    if (!data.orderId) {
+      console.error('No orderId provided in request');
+      return NextResponse.json(
+        { success: false, error: 'Order ID is required' },
+        { status: 400 }
+      );
+    }
+    
+    console.log('Finding order with ID:', data.orderId);
     const order = await Order.findById(data.orderId)
-    populate('items.productId')
-    .lean();
-    // Create new cancellation request
+      .populate('products.productId')
+      .lean();
+      
+    console.log('Found order:', order ? 'Order found' : 'Order not found');
+    
+    if (!order) {
+      return NextResponse.json(
+        { success: false, error: 'Order not found' },
+        { status: 404 }
+      );
+    }
+    // Create new cancellation request with schema matching the model
     const cancelRequest = new CancelOrder({
-      ...data,
+      orderId: data.orderId,
+      userId: order.userId || null,
       order: {
-        items: order.items.map(item => ({
-          productId: item.productId._id,
-          name: item.productId.name,
-          price: item.price,
-          quantity: item.quantity,
-          image: item.productId.images[0], // First image
-          size: item.size,
-          color: item.color
+        items: data.products.map(product => ({
+          productId: product._id,
+          name: product.name,
+          price: product.price,
+          quantity: product.qty,
+          image: product.image,
+          size: product.size,
+          color: product.color
         })),
-        totalAmount: order.totalAmount,
-        shippingAddress: order.shippingAddress,
-        paymentStatus: order.paymentStatus,
-        paymentMethod: order.paymentMethod,
-        orderDate: order.createdAt
+        totalAmount: order.totalAmount || order.cartTotal,
+        shippingAddress: {
+          name: data.userDetails?.name || '',
+          address: order.shippingAddress?.address || '',
+          city: order.shippingAddress?.city || '',
+          state: order.shippingAddress?.state || '',
+          pincode: order.shippingAddress?.pincode || '',
+          phone: data.userDetails?.contactNumber || ''
+        },
+        paymentStatus: order.paymentStatus || 'pending',
+        paymentMethod: order.paymentMethod || 'online',
+        orderDate: order.createdAt || new Date()
       },
+      products: data.products.map(p => ({
+        productId: p._id,
+        quantity: p.qty,
+        price: p.price
+      })),
+      reason: data.reason,
+      bankDetails: data.bankDetails,
+      userDetails: data.userDetails,
       status: 'pending',
       statusHistory: [{
         status: 'pending',
-        note: 'Cancellation request submitted'
+        note: 'Cancellation request submitted',
+        changedAt: new Date()
       }]
     });
+    
+    console.log('Creating cancellation request:', JSON.stringify(cancelRequest, null, 2));
     
     await cancelRequest.save();
     

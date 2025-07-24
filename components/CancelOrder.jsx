@@ -29,13 +29,24 @@ const RefundForm = ({ order, orderId, onClose }) => {
 
     try {
       setIsSubmitting(true);
+      
+      // Debug logs
+      console.log('Selected Order:', selectedOrder);
+      console.log('Order prop:', order);
+      console.log('Current Order ID:', currentOrderId);
+      
+      if (!selectedOrder?._id) {
+        console.error('No order ID found in selectedOrder:', selectedOrder);
+        throw new Error('Order information is missing. Please refresh and try again.');
+      }
+
       const response = await fetch('/api/cancelOrder', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          orderId: order._id,
-          userId: order.userId,
-          products: order.products,
+          orderId: selectedOrder._id,
+          userId: selectedOrder.userId,
+          products: selectedOrder.products,
           reason: formData.reason,
           bankDetails: {
             accountNumber: formData.accountNumber,
@@ -45,9 +56,10 @@ const RefundForm = ({ order, orderId, onClose }) => {
             upiId: formData.upiId
           },
           userDetails: {
-            name: order.shippingAddress?.name,
+            name: selectedOrder.shippingAddress?.name,
             contactNumber: formData.contactNumber
-          }
+          },
+          shippingAddress: selectedOrder.shippingAddress
         })
       });
 
@@ -63,7 +75,7 @@ const RefundForm = ({ order, orderId, onClose }) => {
       setIsSubmitting(false);
     }
   };
-  const currentOrderId = orderId || searchParams?.get("orderId");
+  const currentOrderId = orderId || searchParams?.get("orderId") || '';
 
   useEffect(() => {
     if (!selectedOrder && currentOrderId) {
@@ -82,12 +94,6 @@ const RefundForm = ({ order, orderId, onClose }) => {
     <div className="max-w-2xl mx-auto bg-[#f8f3ee] p-6 rounded-md shadow-md">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold text-center w-full">Require Detail For Refund</h2>
-        <button
-          className="text-xl font-bold text-gray-600"
-          onClick={onClose}
-        >
-          ×
-        </button>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">

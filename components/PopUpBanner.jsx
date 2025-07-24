@@ -62,9 +62,9 @@ const PopUpBanner = () => {
         </div>
         {/* Right: Text content */}
         <div className="md:w-1/2 w-full px-5 md:py-5 py-2 flex flex-col justify-center items-center">
-          <div className="mb-4">
+          <div className="mb-4 py-2">
             <div className="text-base font-semibold text-center text-gray-500 mb-2">Crafted with Heart</div>
-            <div className="text-xl md:text-2xl font-bold mb-4 text-center text-black leading-tight">
+            <div className="text-md md:text-xl font-bold mb-4 text-center text-black leading-tight">
               Unwrap the Beauty of Handmade<br />
               <span className="font-normal text-center">– Now on Special Offer!</span>
             </div>

@@ -186,17 +186,6 @@ const data = {
       url: "/admin/online_order_log",
       icon: ShoppingCart,
     },
-
-    {
-      name: "Sales Section",
-      url: "/admin/sales_section",
-      icon: BarChart,
-    },
-    {
-      name: "Payment Report",
-      url: "/admin/payment_report",
-      icon: ClipboardList,
-    },
     {
       name: "Cancel Order",
       url: "/admin/cancel_orders",

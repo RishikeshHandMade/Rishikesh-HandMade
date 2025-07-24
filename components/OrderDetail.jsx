@@ -1,5 +1,5 @@
 "use client"
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import ReturnRequest from "./ReturnRequest";
 import CancelOrder from "./CancelOrder";
 
@@ -14,8 +14,8 @@ const statusBadge = {
 const tabList = [
   { key: "history", label: "Order History" },
   { key: "items", label: "Item Details" },
-  { key: "courier", label: "Courier" },
-  { key: "receiver", label: "Receiver" },
+  // { key: "courier", label: "Courier" },
+  // { key: "receiver", label: "Receiver" },
 ];
 
 function formatDateTime(dt) {
@@ -31,12 +31,12 @@ const OrderDetail = ({ order, onBack }) => {
   const [showMessage, setShowMessage] = useState(null);
   const [showReturnRequest, setShowReturnRequest] = useState(false);
   const [showCancelOrder, setShowCancelOrder] = useState(false);
-  
+
   // Debug function to check modal state
   useEffect(() => {
     console.log('Modal state - showCancelOrder:', showCancelOrder);
   }, [showCancelOrder]);
-  
+
   if (!order) {
     return (
       <div className="text-center text-red-500 mt-10">
@@ -44,26 +44,26 @@ const OrderDetail = ({ order, onBack }) => {
       </div>
     );
   }
-
+  console.log(order)
   const orderData = order;
   const isShipped = orderData.status === 'Shipped' || orderData.status === 'Delivered';
   const hasTracking = orderData.trackingNumber && orderData.trackingUrl;
-  
+
   // Debug status history
-  console.log('Status History:', orderData.statusHistory);
-  
+  // console.log('Status History:', orderData.statusHistory);
+
   // Check if order is cancellable (not shipped or delivered)
   const isOrderShippedOrDelivered = orderData.statusHistory?.some(
     status => status.status === 'Shipped' || status.status === 'Delivered'
   );
-  
-  console.log('Is Order Shipped or Delivered:', isOrderShippedOrDelivered);
-  
+
+  // console.log('Is Order Shipped or Delivered:', isOrderShippedOrDelivered);
+
   // For testing: Force the cancel button to be visible
   const isCancellable = true; // Temporarily force to true for testing
-  
-  console.log('Order Status:', orderData.status);
-  console.log('Is Cancellable (after override):', isCancellable);
+
+  // console.log('Order Status:', orderData.status);
+  // console.log('Is Cancellable (after override):', isCancellable);
 
   return (
     <>
@@ -99,21 +99,39 @@ const OrderDetail = ({ order, onBack }) => {
                 <div className="font-semibold">{orderData.product?.name || (orderData.products && orderData.products[0]?.name) || '-'}</div>
               </div>
               <div>
-                <div className="text-xs text-gray-500">Courier</div>
-                <div className="font-semibold">{orderData.courier || '-'}</div>
+                <div className="text-xs text-gray-500">Price</div>
+                <div className="font-semibold">{orderData.product?.price || (orderData.products && orderData.products[0]?.price) || '-'}</div>
               </div>
               <div>
-                <div className="text-xs text-gray-500">Start Time</div>
-                <div className="font-semibold">{orderData.startTime ? formatDateTime(orderData.startTime) : '-'}</div>
+                <div className="text-xs text-gray-500">Quantity</div>
+                <div className="font-semibold">{orderData.product?.qty || (orderData.products && orderData.products[0]?.qty) || '-'}</div>
               </div>
               <div>
-                <div className="text-xs text-gray-500">Address</div>
-                <div className="font-semibold">{orderData.address || '-'}</div>
+                <div className="text-xs text-gray-500">Size</div>
+                <div className="font-semibold">{orderData.product?.size || (orderData.products && orderData.products[0]?.size) || '-'}</div>
               </div>
+              <div>
+                <div className="text-xs text-gray-500">Color</div>
+                <div
+                  className="font-semibold w-6 h-6 border-2 border-black rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: orderData.product?.color || (orderData.products?.[0]?.color) || '#ccc' }}
+                ></div>
+              </div>
+
             </div>
             {/* Action Buttons */}
             <div className="flex gap-3 mb-2 flex-wrap">
-              {isCancellable && (
+              {orderData.statusHistory?.some(status => status.status.toLowerCase() === 'cancelled') ? (
+                <button
+                  disabled
+                  className="border border-gray-300 text-gray-500 px-5 py-2 rounded-lg font-semibold cursor-not-allowed flex items-center gap-2"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Order Cancelled
+                </button>
+              ) : isCancellable ? (
                 <button
                   onClick={() => {
                     console.log('Cancel button clicked');
@@ -127,7 +145,7 @@ const OrderDetail = ({ order, onBack }) => {
                   </svg>
                   Cancel Order
                 </button>
-              )}
+              ) : null}
               {isShipped && hasTracking && (
                 <button
                   onClick={() => setShowTrackingInfo(!showTrackingInfo)}
@@ -265,7 +283,7 @@ const OrderDetail = ({ order, onBack }) => {
             {orderData.products.map((product, index) => (
               <div key={index} className="flex gap-4 items-start">
                 <img
-                  src={product.image?.url}
+                  src={product.image}
                   alt={product.name}
                   className="w-24 h-24 object-cover rounded-lg border"
                 />
@@ -316,7 +334,7 @@ const OrderDetail = ({ order, onBack }) => {
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Return Request</h2>
-              <button 
+              <button
                 onClick={() => setShowReturnRequest(false)}
                 className="text-gray-500 hover:text-gray-700"
               >
@@ -329,14 +347,14 @@ const OrderDetail = ({ order, onBack }) => {
           </div>
         </div>
       )}
-      
+
       {/* Cancel Order Modal */}
-      {console.log('Rendering modal with showCancelOrder:', showCancelOrder) || showCancelOrder && (
+      {showCancelOrder && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Cancel Order</h2>
-              <button 
+              <button
                 onClick={() => setShowCancelOrder(false)}
                 className="text-gray-500 hover:text-gray-700"
               >
@@ -345,10 +363,10 @@ const OrderDetail = ({ order, onBack }) => {
                 </svg>
               </button>
             </div>
-            <CancelOrder 
-              order={orderData} 
-              orderId={orderData.orderId || orderData._id} 
-              onClose={() => setShowCancelOrder(false)} 
+            <CancelOrder
+              order={orderData}
+              orderId={orderData.orderId || orderData._id}
+              onClose={() => setShowCancelOrder(false)}
             />
           </div>
         </div>

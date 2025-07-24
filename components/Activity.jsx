@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import React from 'react'
-// import './fonts/fonts.css';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "./ui/carousel";
 
 const Activity = ({ data }) => {
@@ -12,9 +11,9 @@ const Activity = ({ data }) => {
   return (
     <div className="w-full min-h-screen bg-[#fcf7f1]">
       {/* Banner */}
-      <div className="relative w-full h-[320px] flex items-center justify-center">
+      <div className="relative w-full h-[150px] md:h-[320px] flex items-center justify-center">
         <Image src={data.bannerImage?.url} alt="Banner" layout="fill" objectFit="cover" className="z-0 opacity-100" priority />
-        <div className="absolute left-[10%] top-10 z-10 container w-fit mx-auto px-4 flex flex-col justify-center h-full bg-[#fcf7f1] rounded-xl">
+        <div className="hidden md:flex absolute top-20 z-10 container w-fit mx-auto px-4 flex-col justify-center h-full bg-[#fcf7f1] rounded-xl">
           <div className="max-w-2xl flex flex-col items-center justify-center px-10">
             <h1 className="text-2xl font-semibold text-black mb-2 drop-shadow-lg">{data.firstTitle}</h1>
               <div className="w-96 rounded-lg overflow-hidden">
@@ -23,10 +22,18 @@ const Activity = ({ data }) => {
           </div>
         </div>
       </div>
+      <div className="md:hidden relative container w-fit mx-auto flex flex-col justify-center h-full bg-[#fcf7f1] rounded-xl">
+          <div className="flex flex-col items-center justify-center px-2">
+            <h1 className="text-2xl font-semibold text-black mb-2 drop-shadow-lg">{data.firstTitle}</h1>
+              <div className="w-full rounded-lg overflow-hidden">
+              <Image src={data.imageFirst?.url} alt="Intro" width={550} height={300} className="object-cover w-full h-[250px]" />
+            </div>
+          </div>
+        </div>
 
       {/* Main Content */}
-      <section className="py-10">
-        <div className="w-full max-w-7xl mx-auto px-4">
+      <section className="py-10 md:py-20">
+        <div className="w-full max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row gap-5 items-start">
             {/* Left Side */}
             <div className="lg:w-1/2 w-full">
@@ -135,7 +142,7 @@ const Activity = ({ data }) => {
                             onClick={() => setOpenIndex(isOpen ? -1 : idx)}
                             aria-expanded={isOpen}
                           >
-                            <span>{item.title}</span>
+                            <span className="text-sm md:text-xl">{item.title}</span>
                             <span className="text-3xl">{isOpen ? '-' : '+'}</span>
                           </button>
                           <div
@@ -158,9 +165,9 @@ const Activity = ({ data }) => {
               </div>
             </div>
             {/* Right Side - keep width fixed and separated */}
-            <div className="lg:w-1/2 flex flex-col items-center justify-start lg:static relative">
+            <div className="lg:w-1/2 px-2 w-full flex flex-col items-center justify-start lg:static relative">
               {data.mainProfileImage && (
-                <div className="w-full max-w-md rounded-xl overflow-hidden">
+                <div className="w-full  max-w-md rounded-xl overflow-hidden">
                   <Image
                     src={data.mainProfileImage.url}
                     alt="Rishikesh"
@@ -201,15 +208,18 @@ const Activity = ({ data }) => {
             </div>
           </div>
           {/* Long Paragraph */}
+          <div className="px-2">
+
           {data.longPara && (
             <div className="mt-4 w-full rounded-xl overflow-hidden border-2 border-black p-5">
               <div
                 className="custom-desc-list my-4"
                 dangerouslySetInnerHTML={{ __html: data.longPara }}
-              />
+                />
             </div>
           )}
         </div>
+          </div>
       </section>
     </div>
   );
