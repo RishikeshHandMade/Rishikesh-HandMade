@@ -3,23 +3,23 @@ import connectDB from '@/lib/connectDB';
 import Order from '@/models/Order';
 
 export async function GET(request, { params }) {
-  console.log('Track Order API called with params:', params);
+  // console.log('Track Order API called with params:', params);
   
   try {
     await connectDB();
-    console.log('Connected to database');
+    // console.log('Connected to database');
     
     const { id } = params;
     
     if (!id) {
-      console.error('No order ID provided');
+      // console.error('No order ID provided');
       return NextResponse.json(
         { success: false, message: 'Order ID is required' },
         { status: 400 }
       );
     }
 
-    console.log('Searching for order with ID:', id);
+    // console.log('Searching for order with ID:', id);
     
     let order;
     let searchMethod = '';
@@ -49,7 +49,7 @@ export async function GET(request, { params }) {
       }
     }
 
-    console.log(`Search method used: ${searchMethod}`);
+    // console.log(`Search method used: ${searchMethod}`);
     
     if (!order) {
       return NextResponse.json(

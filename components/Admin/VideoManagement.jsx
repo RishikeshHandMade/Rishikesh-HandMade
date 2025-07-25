@@ -28,7 +28,7 @@ const VideoManagement = ({ productData, productId }) => {
     // Helper for edit mode
     const isSameVideo = (v, url) => typeof v === 'object' ? v.url === url : v === url;
     e.preventDefault();
-    console.log(productId);
+    // console.log(productId);
     if (!videoUrl || !productId) {
       toast.error('Please provide a video URL and valid product.');
       return;

@@ -74,7 +74,7 @@ export async function POST(req) {
       userDetails: data.userDetails,
       status: 'pending',
       statusHistory: [{
-        status: statusUpdate,
+        status: 'pending',
         note: 'Cancellation request submitted',
         changedAt: new Date()
       }]

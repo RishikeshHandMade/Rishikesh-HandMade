@@ -188,7 +188,7 @@ const ProductProfile = ({ id }) => {
                     const createdProduct = await handleSubmit(e);
                     // If product created and subMenuId exists, link product to submenu
                     if (createdProduct && subMenuId) {
-                        console.log('Linking product to submenu:', createdProduct._id, subMenuId);
+                        // console.log('Linking product to submenu:', createdProduct._id, subMenuId);
                         await fetch('/api/linkProductToSubMenu', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },

@@ -9,7 +9,7 @@ const CancelOrder = () => {
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [adminNotes, setAdminNotes] = useState('');
-    console.log(requests)
+    // console.log(requests)
 
     useEffect(() => {
         fetchRequests();

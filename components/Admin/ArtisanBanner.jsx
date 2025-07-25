@@ -61,7 +61,7 @@ const ArtisanBanner = ({ artisanId, artisanDetails = null }) => {
       const currentArtisanId = selectedArtisan || artisanId;
       const res = await fetch(`/api/artisanBanner?artisanId=${currentArtisanId}`);
       const data = await res.json();
-      console.log(data);
+      // console.log(data);
       if (data.success) {
         setBanners(data.banner || []);
       } else {

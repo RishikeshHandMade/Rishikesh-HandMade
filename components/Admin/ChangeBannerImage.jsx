@@ -33,7 +33,7 @@ const ChangeBannerImage = () => {
         backImg: { url: "", key: "" },
         order: 1,
     });
-    console.log(coupons)
+    // console.log(coupons)
 
     useEffect(() => {
         const fetchCoupons = async () => {
@@ -123,7 +123,7 @@ const ChangeBannerImage = () => {
                 couponAmount: couponObj?.amount || null,
                 couponPercent: couponObj?.percent || null,
             };
-            console.log("Submitting banner form data:", payload); // Debug: see exactly what is sent
+            // console.log("Submitting banner form data:", payload); // Debug: see exactly what is sent
             const response = await fetch("/api/addBanner", {
                 method,
                 headers: { "Content-Type": "application/json" },

@@ -91,19 +91,12 @@ export async function POST(request) {
             );
         }
 
-        // Log the incoming request for debugging
-        console.log('Creating Razorpay order with:', {
-            amount,
-            currency,
-            receipt,
-            productsCount: products.length,
-            customerEmail: customer.email
-        });
+       
 
         // Create Razorpay order
         let razorpayOrder;
         try {
-            console.log('Creating Razorpay order with amount:', Math.round(Number(amount) * 100));
+            // console.log('Creating Razorpay order with amount:', Math.round(Number(amount) * 100));
             razorpayOrder = await razorpay.orders.create({
                 amount: Math.round(Number(amount) * 100), // Convert to paise and ensure integer
                 currency: currency.toUpperCase(),
@@ -113,19 +106,9 @@ export async function POST(request) {
                     customer_email: customer.email
                 }
             });
-            console.log('Razorpay order created successfully:', {
-                id: razorpayOrder.id,
-                amount: razorpayOrder.amount,
-                currency: razorpayOrder.currency,
-                status: razorpayOrder.status
-            });
+      
         } catch (razorpayError) {
-            console.error('Razorpay order creation failed:', {
-                error: razorpayError.message,
-                code: razorpayError.error?.code,
-                description: razorpayError.error?.description,
-                field: razorpayError.error?.field
-            });
+           
             return NextResponse.json(
                 {
                     error: 'Failed to create payment order',
@@ -136,7 +119,7 @@ export async function POST(request) {
         }
 
         if (!razorpayOrder || !razorpayOrder.id) {
-            console.error('Razorpay order creation failed - no order ID returned:', razorpayOrder);
+            // console.error('Razorpay order creation failed - no order ID returned:', razorpayOrder);
             return NextResponse.json(
                 { error: 'Failed to create payment order - no order ID received' },
                 { status: 500 }
@@ -254,29 +237,13 @@ export async function POST(request) {
                 throw new Error('At least one product is required');
             }
 
-            console.log('Attempting to save order with data:', {
-                ...orderData,
-                products: orderData.products.map(p => ({
-                    productId: p.productId,
-                    name: p.name,
-                    qty: p.qty,
-                    price: p.price
-                }))
-            });
+         
 
             // Save to database
             dbOrder = await Order.create(orderData);
-            console.log('Order saved successfully with ID:', dbOrder._id);
 
         } catch (dbErr) {
-            console.error('Database save error details:', {
-                message: dbErr.message,
-                stack: dbErr.stack,
-                code: dbErr.code,
-                name: dbErr.name,
-                keyPattern: dbErr.keyPattern,
-                keyValue: dbErr.keyValue
-            });
+            
             return NextResponse.json({
                 error: 'Failed to save order in DB',
                 details: process.env.NODE_ENV === 'development' ? dbErr.message : undefined
@@ -316,13 +283,10 @@ export async function PUT(request) {
             .update(`${razorpay_order_id}|${razorpay_payment_id}`)
             .digest("hex");
 
-        console.log('Signature verification completed');
+        // console.log('Signature verification completed');
 
         if (generatedSignature !== razorpay_signature) {
-            console.error('Invalid signature:', {
-                generated: generatedSignature,
-                received: razorpay_signature
-            });
+          
             return NextResponse.json(
                 { success: false, error: "Invalid payment signature" },
                 { status: 400 }
@@ -330,7 +294,7 @@ export async function PUT(request) {
         }
 
         // Step 2: Find and update the order
-        console.log('Looking up order with orderId:', razorpay_order_id);
+     
         const order = await Order.findOne({
             $or: [
                 { orderId: razorpay_order_id },
@@ -339,14 +303,14 @@ export async function PUT(request) {
         });
 
         if (!order) {
-            console.error('Order not found for orderId/razorpayOrderId:', razorpay_order_id);
+            // console.error('Order not found for orderId/razorpayOrderId:', razorpay_order_id);
             return NextResponse.json(
                 { success: false, error: "Order not found. Please contact support with order ID: " + razorpay_order_id },
                 { status: 404 }
             );
         }
 
-        console.log('Found order:', order._id);
+        // console.log('Found order:', order._id);
 
         // Update order status and payment details
         order.transactionId = razorpay_payment_id;
@@ -356,7 +320,7 @@ export async function PUT(request) {
 
         // Update products if cart data is provided
         if (cart && Array.isArray(cart)) {
-            console.log('Updating products from cart:', cart.length, 'items');
+            // console.log('Updating products from cart:', cart.length, 'items');
             try {
                 order.products = cart.map(item => {
                     // Handle image field - extract URL if it's an object
@@ -402,14 +366,14 @@ export async function PUT(request) {
                 });
                 // console.log('Products updated successfully');
             } catch (cartError) {
-                console.error('Error updating products:', cartError);
+                // console.error('Error updating products:', cartError);
                 // Continue with the order update even if product update fails
             }
         }
 
         // Update checkout summary if available
         if (checkoutData) {
-            console.log('Updating checkout summary');
+            // console.log('Updating checkout summary');
             // Use taxTotal if available, otherwise use totalTax
             const taxTotal = Number(checkoutData.taxTotal) || Number(checkoutData.totalTax) || 0;
             // Use finalShipping if available, otherwise use shippingCost or shipping
@@ -425,18 +389,12 @@ export async function PUT(request) {
             order.promoCode = checkoutData.promoCode || '';
             order.promoDiscount = Number(checkoutData.promoDiscount) || 0;
 
-            console.log('Checkout summary updated:', {
-                cartTotal: order.cartTotal,
-                subTotal: order.subTotal,
-                totalDiscount: order.totalDiscount,
-                totalTax: order.totalTax,
-                shippingCost: order.shippingCost
-            });
+            
         }
 
         // Update customer details if form fields are provided
         if (formFields) {
-            console.log('Updating customer details');
+            // console.log('Updating customer details');
             const firstName = formFields.firstName || formFields.fullName?.split(' ')[0] || order.firstName || '';
             const lastName = formFields.lastName || formFields.fullName?.split(' ').slice(1).join(' ') || order.lastName || '';
             const street = formFields.street || order.street || '';
@@ -463,25 +421,20 @@ export async function PUT(request) {
                     .filter(Boolean)
                     .join(', ');
 
-            console.log('Customer details updated:', {
-                name: `${firstName} ${lastName}`.trim(),
-                email: order.email,
-                phone: order.phone,
-                address: order.address
-            });
+          
         }
 
         // Update user ID if available
         if (user && user._id) {
-            console.log('Updating user ID:', user._id);
+
             order.userId = user._id;
         }
 
         try {
             await order.save();
-            console.log('Order updated successfully');
+     
         } catch (orderSaveError) {
-            console.error('Error updating order:', orderSaveError);
+      
             return NextResponse.json(
                 { success: false, error: "Failed to update order" },
                 { status: 500 }
@@ -535,11 +488,11 @@ export async function PUT(request) {
                 });
 
                 if (!response.ok) {
-                    console.error('Failed to update quantities after payment:', await response.text());
+         
                 }
             }
         } catch (error) {
-            console.error('Error updating quantities after payment:', error);
+
             // Don't fail the payment flow if quantity update fails
         }
 

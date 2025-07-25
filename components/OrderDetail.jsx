@@ -22,33 +22,6 @@ const tabList = [
   // { key: "courier", label: "Courier" },
   // { key: "receiver", label: "Receiver" },
 ];
-const getStatusColor = (status) => {
-  switch (status) {
-    case 'Paid':
-    case 'Delivered':
-      return 'text-green-600';
-    case 'Pending':
-      return 'text-yellow-600';
-    case 'Processing':
-    case 'Shipped':
-      return 'text-blue-600';
-    case 'Cancelled':
-      return 'text-red-600';
-    default:
-      return 'text-gray-600';
-  }
-};
-// Add this helper function at the top of your component
-const formatDate = (dateString) => {
-  if (!dateString) return 'N/A';
-  return new Date(dateString).toLocaleString('en-IN', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-}
 
 const OrderDetail = ({ order, onBack }) => {
   const [activeTab, setActiveTab] = useState("history");
@@ -61,6 +34,7 @@ const OrderDetail = ({ order, onBack }) => {
   const [error, setError] = useState(null);
   const [ordersData, setOrdersData] = useState(order);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [hasRequestedCancel, setHasRequestedCancel] = useState(false);
   // Debug function to check modal state
   // useEffect(() => {
   //   console.log('Modal state - showCancelOrder:', showCancelOrder);
@@ -84,9 +58,23 @@ const OrderDetail = ({ order, onBack }) => {
   const hasPendingCancellation = orderData.statusHistory?.some(
     status => status.status.toLowerCase() === 'cancellation requested'
   );
-  console.log('Order Status:', orderData.status);
-  console.log('Status History:', orderData.statusHistory);
-  console.log('Has Pending Cancellation:', hasPendingCancellation);
+  useEffect(() => {
+    const checkCancellation = async () => {
+      try {
+        const response = await fetch(`/api/checkCancelRequest?orderId=${orderData._id}`);
+        const data = await response.json();
+        if (data.hasRequest) {
+          setHasRequestedCancel(true);
+        }
+      } catch (error) {
+        console.error('Error checking cancellation:', error);
+      }
+    };
+
+    if (orderData?._id) {
+      checkCancellation();
+    }
+  }, [orderData?._id]);
   return (
     <>
       {onBack && (
@@ -143,35 +131,33 @@ const OrderDetail = ({ order, onBack }) => {
             </div>
 
             <div className="flex gap-3 mb-2 flex-wrap">
-              
-       
-              
+
+
+
+              {/* Replace your button rendering logic with this */}
               {orderData.status !== 'Shipped' &&
                 orderData.status !== 'Delivered' &&
                 !orderData.statusHistory?.some(status => status.status.toLowerCase() === 'cancelled') ? (
-                hasPendingCancellation ? null : ( // Don't show cancel button if cancellation is pending
-                  isCancelling ? (
-                    <button
-                      disabled
-                      className="border border-yellow-400 text-yellow-600 px-5 py-2 rounded-lg font-semibold flex items-center gap-2"
-                    >
-                      <svg className="animate-spin -ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Cancelling...
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => setShowCancelOrder(true)}
-                      className="border border-red-400 text-red-600 px-5 py-2 rounded-lg font-semibold hover:bg-red-50 transition flex items-center gap-2"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                      Cancel Order
-                    </button>
-                  )
+                hasRequestedCancel ? (
+                  <button
+                    disabled
+                    className="border border-yellow-400 text-yellow-600 px-5 py-2 rounded-lg font-semibold flex items-center gap-2"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Cancellation Requested
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setShowCancelOrder(true)}
+                    className="border border-red-400 text-red-600 px-5 py-2 rounded-lg font-semibold hover:bg-red-50 transition flex items-center gap-2"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Cancel Order
+                  </button>
                 )
               ) : orderData.statusHistory?.some(status => status.status.toLowerCase() === 'cancelled') ? (
                 <button
@@ -237,71 +223,69 @@ const OrderDetail = ({ order, onBack }) => {
                     return statusOrder[a.status] - statusOrder[b.status] ||
                       new Date(a.updatedAt) - new Date(b.updatedAt);
                   })
-                  .map((status, idx) => (
-                    <li key={idx} className="relative pb-6">
-                      {/* Timeline Circle */}
-                      <span className={`absolute -left-[30px] top-1 w-5 h-5 rounded-full border-2 flex items-center justify-center 
-                ${status.status === 'Delivered' ? 'border-green-600 bg-green-100' :
-                          status.status === 'Cancelled' ? 'border-red-600 bg-red-100' :
-                            'border-blue-600 bg-blue-100'}`}>
-                        <span className={`w-3 h-3 rounded-full block 
-                  ${status.status === 'Delivered' ? 'bg-green-600' :
-                            status.status === 'Cancelled' ? 'bg-red-600' :
-                              'bg-blue-600'}`} />
-                      </span>
+                  .map((status, idx) => {
+                    const badge = getStatusBadge(status.status);
+                    return (
+                      <li key={idx} className="relative pb-6">
+                        {/* Timeline Circle with dynamic color */}
+                        <span className={`absolute -left-[30px] top-1 w-5 h-5 rounded-full border-2 flex items-center justify-center ${badge.bg.replace('bg-', 'border-')} border-opacity-50`}>
+                          <span className="w-3 h-3 rounded-full block" style={{ backgroundColor: badge.bg.split('-')[1] === 'red' ? '#DC2626' : badge.bg.split('-')[1] === 'green' ? '#059669' : badge.bg.split('-')[1] === 'blue' ? '#2563EB' : '#4B5563' }} />
+                        </span>
 
-                      {/* Rest of your timeline item code remains the same */}
-                      <div className="flex flex-col">
-                        <div className="flex justify-between items-start">
-                          <h3 className="font-bold text-md text-black">{status.status}</h3>
-                          <span className="text-xs text-gray-500">
-                            {new Date(status.updatedAt).toLocaleString()}
-                          </span>
-                        </div>
+                        <div className="flex flex-col">
+                          <div className="flex justify-between items-start">
+                            <div className="flex items-center gap-2">
+                              {badge.icon}
+                              <h3 className="font-bold text-md text-black">{status.status}</h3>
+                            </div>
+                            <span className="text-xs text-gray-500">
+                              {new Date(status.updatedAt).toLocaleString()}
+                            </span>
+                          </div>
 
-                        {status.message && (
-                          <>
-                            <button
-                              onClick={() => setShowMessage(showMessage === idx ? null : idx)}
-                              className="text-sm text-blue-600 hover:underline mt-1 text-left"
-                            >
-                              {showMessage === idx ? 'Hide Details' : 'View Details'}
-                            </button>
+                          {status.message && (
+                            <>
+                              <button
+                                onClick={() => setShowMessage(showMessage === idx ? null : idx)}
+                                className="text-sm text-blue-600 hover:underline mt-1 text-left"
+                              >
+                                {showMessage === idx ? 'Hide Details' : 'View Details'}
+                              </button>
 
-                            {showMessage === idx && (
-                              <div className="mt-2 p-3 bg-gray-50 rounded-md text-sm">
-                                {status.message}
-                                {status.status === 'Shipped' && status.trackingNumber && (
-                                  <div className="mt-3 bg-green-50 rounded-md p-2">
-                                    <div className="flex items-center gap-2 text-md font-medium">
-                                      <span>Tracking Number:</span>
-                                      <span className="font-mono bg-white px-2 rounded border">
-                                        {status.trackingNumber}
-                                      </span>
-                                      {status.trackingUrl && (
-                                        <a
-                                          href={status.trackingUrl}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="inline-flex items-center text-blue-600 hover:underline"
-                                        >
-                                          Track Your Package
-                                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                          </svg>
-                                        </a>
-                                      )}
+                              {showMessage === idx && (
+                                <div className="mt-2 p-3 bg-gray-50 rounded-md text-sm">
+                                  {status.message}
+                                  {status.status === 'Shipped' && status.trackingNumber && (
+                                    <div className="mt-3 bg-green-50 rounded-md p-2">
+                                      <div className="flex items-center gap-2 text-md font-medium">
+                                        <span>Tracking Number:</span>
+                                        <span className="font-mono bg-white px-2 rounded border">
+                                          {status.trackingNumber}
+                                        </span>
+                                        {status.trackingUrl && (
+                                          <a
+                                            href={status.trackingUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center text-blue-600 hover:underline"
+                                          >
+                                            Track Your Package
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                            </svg>
+                                          </a>
+                                        )}
+                                      </div>
                                     </div>
-                                  </div>
-                                )}
-
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    </li>
-                  ))}
+                                  )}
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })}
               </ol>
             ) : (
               <div className="text-center py-8 text-gray-500">
@@ -444,6 +428,7 @@ const OrderDetail = ({ order, onBack }) => {
                 order={orderData}
                 orderId={orderData.orderId || orderData._id}
                 onClose={() => setShowCancelOrder(false)}
+                setHasRequestedCancel={setHasRequestedCancel}
                 onSubmitStart={() => {
                   setIsCancelling(true);
                 }}

@@ -114,7 +114,7 @@ const CategoryAdvertisment = () => {
 
     const handleEdit = (banner) => {
         setEditBanner(banner._id);
-        console.log(banner)
+        // console.log(banner)
         setFormData({
             buttonLink: banner.buttonLink,
             order: banner.order,

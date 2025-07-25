@@ -18,7 +18,7 @@ const Page = async ({ searchParams }) => {
 
     // Ensure both orders and customOrders are arrays
     const allOrders = [...(orders || []), ...(customOrders || [])];
-console.log(allOrders)
+// console.log(allOrders)
     const getStatusBadge = (status) => {
         switch (status?.toLowerCase()) {    
             case "confirmed":

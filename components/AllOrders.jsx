@@ -73,7 +73,7 @@ const AllOrders = ({ onViewOrder, onChatOrder, onBack }) => {
                                     <th className="py-3 px-2 font-semibold text-sm text-[#333]">ORDER #</th>
                                     <th className="py-3 px-2 font-semibold text-sm text-[#333]">DATE PURCHASED</th>
                                     <th className="py-3 px-2 font-semibold text-sm text-[#333]">VIEW</th>
-                                    <th className="py-3 px-2 font-semibold text-sm text-[#333]">Enquiry Order</th>
+                                    {/* <th className="py-3 px-2 font-semibold text-sm text-[#333]">Enquiry Order</th> */}
                                 </tr>
                             </thead>
                             <tbody>
@@ -95,14 +95,14 @@ const AllOrders = ({ onViewOrder, onChatOrder, onBack }) => {
                                                 View
                                             </button>
                                         </td>
-                                        <td className="py-3 px-2 text-sm">
+                                        {/* <td className="py-3 px-2 text-sm">
                                             <button
                                                 className="text-blue-600 hover:underline"
                                                 onClick={() => onChatOrder ? onChatOrder(order, onBack) : null}
                                             >
                                                 Chat
                                             </button>
-                                        </td>
+                                        </td> */}
                                     </tr>
                                 ))}
                             </tbody>

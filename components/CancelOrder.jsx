@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { useRouter } from 'next/navigation';
-const RefundForm = ({ order, orderId, onClose,onSubmitStart, onSubmitComplete }) => {
+const RefundForm = ({ order, orderId, onClose, onSubmitStart, onSubmitComplete,setHasRequestedCancel }) => {
   const searchParams = useSearchParams();
   const [selectedOrder, setSelectedOrder] = useState(order || null);
   const router = useRouter();
@@ -21,7 +21,7 @@ const RefundForm = ({ order, orderId, onClose,onSubmitStart, onSubmitComplete })
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (onSubmitStart) onSubmitStart();
+    onSubmitStart();
     if (formData.accountNumber !== formData.confirmAccountNumber) {
       toast.error('Account numbers do not match');
       return;
@@ -29,12 +29,12 @@ const RefundForm = ({ order, orderId, onClose,onSubmitStart, onSubmitComplete })
 
     try {
       setIsSubmitting(true);
-      
+
       // // Debug logs
       // console.log('Selected Order:', selectedOrder);
       // console.log('Order prop:', order);
       // console.log('Current Order ID:', currentOrderId);
-      
+
       if (!selectedOrder?._id) {
         // console.error('No order ID found in selectedOrder:', selectedOrder);
         throw new Error('Order information is missing. Please refresh and try again.');
@@ -65,12 +65,12 @@ const RefundForm = ({ order, orderId, onClose,onSubmitStart, onSubmitComplete })
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Failed to submit request');
+      // Update local state
+      setHasRequestedCancel(true);
       if (onClose) onClose();
-
       toast.success('Cancellation request submitted successfully');
       router.refresh();
-      // onClose?.();
-     } catch (error) { 
+    } catch (error) {
       toast.error(error.message);
     } finally {
       if (onSubmitComplete) onSubmitComplete();
