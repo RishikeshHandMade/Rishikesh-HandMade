@@ -30,7 +30,7 @@ const VisionMission = () => {
           </div>
 
         </div> {/* Right: Vision & Mission */}
-        <div className="container mx-auto w-full flex flex-col md: flex-row gap-8 px-2">
+        <div className="container mx-auto w-full flex flex-col md:flex-row gap-8 px-2">
           <div className="w-full md:w-2/3 flex justify-center mb-6 ">
             <Image src="/Vision.jpg" alt="Vision" width={300} height={300} className="rounded-xl shadow-lg object-cover w-fit h-auto " />
           </div>
