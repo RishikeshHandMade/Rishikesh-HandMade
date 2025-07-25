@@ -8,8 +8,13 @@ export async function POST(req) {
   try {
     await connectDB();
     const data = await req.json();
+    const statusUpdate = {
+      status: "Cancellation Requested",
+      timestamp: new Date(),
+      message: "User requested order cancellation"
+    };
     
-    console.log('Cancel Order Request Data:', JSON.stringify(data, null, 2));
+
     
     if (!data.orderId) {
       console.error('No orderId provided in request');
@@ -24,7 +29,7 @@ export async function POST(req) {
       .populate('products.productId')
       .lean();
       
-    console.log('Found order:', order ? 'Order found' : 'Order not found');
+    // console.log('Found order:', order ? 'Order found' : 'Order not found');
     
     if (!order) {
       return NextResponse.json(
@@ -69,13 +74,13 @@ export async function POST(req) {
       userDetails: data.userDetails,
       status: 'pending',
       statusHistory: [{
-        status: 'pending',
+        status: statusUpdate,
         note: 'Cancellation request submitted',
         changedAt: new Date()
       }]
     });
     
-    console.log('Creating cancellation request:', JSON.stringify(cancelRequest, null, 2));
+    // console.log('Creating cancellation request:', JSON.stringify(cancelRequest, null, 2));
     
     await cancelRequest.save();
     

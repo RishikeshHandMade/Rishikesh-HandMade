@@ -90,7 +90,7 @@ const ContactUs = () => {
                 message: "",
             }))
         } catch (error) {
-            console.error("Error submitting form:", error);
+            // console.error("Error submitting form:", error);
             toast.error("Something went wrong. Please try again later.", {
                 style: { borderRadius: "10px", border: "2px solid red" },
             });

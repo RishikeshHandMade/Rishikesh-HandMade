@@ -40,7 +40,7 @@ const BlogDetail = () => {
     };
     fetchNews();
   }, []);
-  console.log(news)
+  // console.log(news)
 
   useEffect(() => {
     if (!blogId) return;

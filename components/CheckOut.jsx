@@ -87,11 +87,6 @@ function buildOrderPayload({
     datePurchased: new Date(),
   };
 }
-
-// Unified Handler for Online Payment with Order Creation
-
-
-
 import CheckOutOverview from './CheckOutOverview';
 import { usePathname, useRouter } from "next/navigation"
 
@@ -137,12 +132,19 @@ const CheckOut = () => {
   const pathname = usePathname();
   const { cart: contextCart, setCart, removeFromCart, clearCart } = useCart();
   const [checkoutData, setCheckoutData] = useState(null);
+
+  // Redirect to home if no cart items or checkout data
   const [isLoading, setIsLoading] = useState(true);
   const [loading, setLoading] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false); // Prevents double payment attempts
   const [error, setError] = useState(null);
+  useEffect(() => {
+    if (!isLoading && (!checkoutData || !checkoutData.cart || checkoutData.cart.length === 0)) {
+      router.push('/');
+    }
+  }, [checkoutData, isLoading, router]);
   // Coupon state
-  console.log(checkoutData)
+  // console.log(checkoutData)
   const [couponInput, setCouponInput] = useState("");
   const [loadingCoupon, setLoadingCoupon] = useState(false);
   const [couponError, setCouponError] = useState("");
@@ -191,7 +193,7 @@ const CheckOut = () => {
       const products = cart.map(item => {
         const productId = item._id || item.productId || item.id;
         if (!productId) {
-          console.error('Invalid product in cart:', item);
+          // console.error('Invalid product in cart:', item);
           throw new Error('One or more products in cart are invalid');
         }
   
@@ -301,7 +303,7 @@ const CheckOut = () => {
       rzp.open();
   
     } catch (error) {
-      console.error('Payment error:', error);
+      // console.error('Payment error:', error);
       setError(error.message || 'Payment processing failed. Please try again.');
       setLoading(false);
     }
@@ -358,7 +360,7 @@ const CheckOut = () => {
         setShowOverview(true);
   
       } catch (error) {
-        console.error('Payment verification error:', error);
+        // console.error('Payment verification error:', error);
         setError(error.message || 'Payment verification failed');
       }
     };
@@ -720,6 +722,7 @@ const CheckOut = () => {
   const [paymentMethod, setPaymentMethod] = useState('cod');
   const [agree, setAgree] = useState(false);
   const [saveAddress, setSaveAddress] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
   const [mounted, setMounted] = React.useState(false);
   // Billing form state
   const [firstName, setFirstName] = useState("");
@@ -769,7 +772,7 @@ const CheckOut = () => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       isBuyNow = params.get('mode') === 'buy-now';
-      console.log('📦 Order mode:', isBuyNow ? 'Buy Now' : 'Regular Cart');
+      // console.log('📦 Order mode:', isBuyNow ? 'Buy Now' : 'Regular Cart');
     }
 
     // Calculate totals
@@ -789,7 +792,7 @@ const CheckOut = () => {
     const productsPayload = cart.map(item => {
       const productId = item._id || item.id || (item.product ? (item.product._id || item.product.id) : null);
       if (!productId) {
-        console.error('Could not determine product ID for item:', item);
+        // console.error('Could not determine product ID for item:', item);
         throw new Error('Invalid product: missing ID');
       }
 
@@ -966,7 +969,7 @@ const CheckOut = () => {
           if (setCart) setCart([]);
         }
       } catch (e) {
-        console.warn('Could not clear localStorage after order:', e);
+        // console.warn('Could not clear localStorage after order:', e);
       }
 
       setCheckoutData(null);
@@ -999,64 +1002,78 @@ const CheckOut = () => {
 
   // Validate all required form fields
   const validateForm = () => {
-    if (!firstName.trim()) return 'First name is required.';
-    if (!lastName.trim()) return 'Last name is required.';
-    if (!email.trim()) return 'Email is required.';
-    if (!phone.trim()) return 'Phone number is required.';
-    if (!street.trim()) return 'Address is required.';
-    if (!city.trim()) return 'City is required.';
-    if (!district.trim()) return 'District is required.';
-    if (!state.trim()) return 'State is required.';
-    if (!altPhone.trim()) return 'Alt Phone number is required.';
-    if (!pincode || !/^[0-9]{5,6}$/.test(pincode)) return 'A valid PIN code is required.';
-    return '';
+    const errors = {};
+    if (!firstName.trim()) errors.firstName = 'First name is required';
+    if (!lastName.trim()) errors.lastName = 'Last name is required';
+    if (!email.trim()) errors.email = 'Email is required';
+    if (!phone.trim()) errors.phone = 'Phone number is required';
+    if (!street.trim()) errors.street = 'Address is required';
+    if (!city.trim()) errors.city = 'City is required';
+    if (!state.trim()) errors.state = 'State is required';
+    if (!pincode.trim()) {
+      errors.pincode = 'Pincode is required';
+    } else if (!/^\d{6}$/.test(pincode)) {
+      errors.pincode = 'Pincode must be 6 digits';
+    }
+    if (!payment) errors.payment = 'Please select a payment method';
+    if (!agree) errors.agree = 'You must agree to the terms and conditions';
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
+
   // Place Order handler
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
-    if (loading) return;
-    // Validate required fields
-    const validationError = validateForm();
-    if (validationError) {
-      setError(validationError);
+    
+    if (!validateForm()) {
+      // Scroll to first error
+      const firstError = Object.keys(formErrors)[0];
+      if (firstError) {
+        const element = document.querySelector(`[name="${firstError}"]`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
       return;
     }
-
+    
+    setLoading(true);
     setError("");
     let addressSaved = false;
 
     // Save address if requested
-    if (saveAddress) {
-      const shippingData = {
-        firstName,
-        lastName,
-        address: street,
-        city,
-        state,
-        postalCode: pincode,
-        phone,
-        email,
-        district,
-        altPhone,
-      };
+    // if (saveAddress) {
+    //   const shippingData = {
+    //     firstName,
+    //     lastName,
+    //     address: street,
+    //     city,
+    //     state,
+    //     postalCode: pincode,
+    //     phone,
+    //     email,
+    //     district,
+    //     altPhone,
+    //   };
 
-      try {
-        const res = await fetch('/api/shippingAddress', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(shippingData)
-        });
-        const result = await res.json();
-        if (!res.ok) {
-          setError(result.message || "Failed to save shipping address");
-          return;
-        }
-        addressSaved = true;
-      } catch (err) {
-        setError("Failed to save shipping address");
-        return;
-      }
-    }
+    //   try {
+    //     const res = await fetch('/api/shippingAddress', {
+    //       method: 'POST',
+    //       headers: { 'Content-Type': 'application/json' },
+    //       body: JSON.stringify(shippingData)
+    //     });
+    //     const result = await res.json();
+    //     if (!res.ok) {
+    //       setError(result.message || "Failed to save shipping address");
+    //       return;
+    //     }
+    //     addressSaved = true;
+    //   } catch (err) {
+    //     setError("Failed to save shipping address");
+    //     return;
+    //   }
+    // }
 
     // Handle payment based on selected method
     // Check for buy-now mode from URL
@@ -1203,8 +1220,30 @@ const CheckOut = () => {
               subTotal: checkoutData?.subTotal || 0,
               totalDiscount: checkoutData?.totalDiscount || 0,
               totalTax: checkoutData?.totalTax || checkoutData?.taxTotal || 0,
+              // Ensure promo code data is included from the root of checkoutData
+              promoCode: checkoutData?.promoCode || checkoutData?.appliedCoupon?.code || null,
+              promoDiscount: checkoutData?.promoDiscount || checkoutData?.appliedCoupon?.discount || 0,
+              // Include the appliedCoupon object if it exists
+              ...(checkoutData?.appliedCoupon && {
+                appliedCoupon: {
+                  code: checkoutData.appliedCoupon.code,
+                  discount: checkoutData.appliedCoupon.discount || 0,
+                  type: checkoutData.appliedCoupon.type || 'fixed',
+                  minPurchase: checkoutData.appliedCoupon.minPurchase,
+                  maxDiscount: checkoutData.appliedCoupon.maxDiscount
+                }
+              }),
               // Use the calculated shipping cost
               shippingCost: shippingCost,
+              // Include coupon data from products if available
+              ...(preparedProducts.some(p => p.couponCode) && {
+                products: preparedProducts.map(p => ({
+                  ...p,
+                  // Ensure coupon data is included in each product
+                  couponApplied: p.couponApplied || false,
+                  couponCode: p.couponCode || ''
+                }))
+              })
             },
             ...formFields,
             payment: 'cod',
@@ -1231,8 +1270,32 @@ const CheckOut = () => {
             cgst: item.cgst || 0,
             sgst: item.sgst || 0,
             discountAmount: item.discountAmount || 0,
-            discountPercent: item.discountPercent || 0
+            discountPercent: item.discountPercent || 0,
+            // Ensure tax and discount info is included
+            tax: item.tax || 0,
+            taxPercentage: item.taxPercentage || 0,
+            taxType: item.taxType || 'inclusive',
+            discountType: item.discountType || 'amount'
           })),
+          // Ensure order-level tax and promo data is included
+          tax: checkoutData?.totalTax || 0,
+          taxPercentage: checkoutData?.taxPercentage || 0,
+          // Get promo code from multiple possible locations in checkoutData
+          promoCode: checkoutData?.promoCode || checkoutData?.appliedCoupon?.code || null,
+          promoDiscount: checkoutData?.promoDiscount || checkoutData?.appliedCoupon?.discount || 0,
+          // Include applied coupon details if available
+          ...(checkoutData?.appliedCoupon ? {
+            appliedCoupon: {
+              code: checkoutData.appliedCoupon.code,
+              discount: checkoutData.appliedCoupon.discount || 0,
+              type: checkoutData.appliedCoupon.type || 'fixed',
+              minPurchase: checkoutData.appliedCoupon.minPurchase,
+              maxDiscount: checkoutData.appliedCoupon.maxDiscount
+            }
+          } : {}),
+          // Ensure coupon data is included in the root of the order
+          couponApplied: preparedProducts.some(p => p.couponApplied) || false,
+          couponCode: preparedProducts.find(p => p.couponCode)?.couponCode || null,
           // Ensure these fields are included
           status: 'Pending',
           paymentStatus: 'Pending',
@@ -1319,10 +1382,58 @@ const CheckOut = () => {
         `).join('') : ''}
       </tbody>
     </table>
-    <div style="text-align:right; font-size:16px; margin-top:12px;">
-      <strong>Total: ₹${checkoutData?.cartTotal ? Number(checkoutData.cartTotal).toFixed(2) : '-'}</strong>
+    </table>
+    
+    <!-- Order Summary -->
+    <div style="margin-top: 24px; padding: 16px; background: #f9fafb; border-radius: 6px;">
+      <h3 style="margin-top: 0; margin-bottom: 12px; font-size: 16px; font-weight: 600;">Order Summary</h3>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <span>Subtotal:</span>
+        <span>₹${checkoutData?.subTotal ? Number(checkoutData.subTotal).toFixed(2) : '0.00'}</span>
+      </div>
+      ${checkoutData?.totalDiscount > 0 ? `
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #10b981;">
+          <span>Discount:</span>
+          <span>-₹${Number(checkoutData.totalDiscount).toFixed(2)}</span>
+        </div>
+      ` : ''}
+      ${checkoutData?.promoCode ? `
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+          <span>Promo Code (${checkoutData.promoCode}):</span>
+          <span>-₹${checkoutData.promoDiscount ? Number(checkoutData.promoDiscount).toFixed(2) : '0.00'}</span>
+        </div>
+      ` : ''}
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <span>Tax (GST):</span>
+        <span>₹${checkoutData?.totalTax ? Number(checkoutData.totalTax).toFixed(2) : '0.00'}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
+        <span>Shipping:</span>
+        <span>${checkoutData?.shippingCost ? `₹${Number(checkoutData.shippingCost).toFixed(2)}` : 'Free'}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: 600; margin-top: 12px;">
+        <span>Total Amount:</span>
+        <span>₹${checkoutData?.cartTotal ? Number(checkoutData.cartTotal).toFixed(2) : '0.00'}</span>
+      </div>
     </div>
-    <a href="https://rishikeshhandmade.com/dashboard?section=orders" class="dashboard-btn">Go to Dashboard</a>
+
+    <!-- Order Status -->
+    <div style="margin: 24px 0; padding: 16px; background: #fff7ed; border-radius: 6px; border-left: 4px solid #f97316;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h3 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 600;">Order Status: ${order.status || 'Pending'}</h3>
+          <p style="margin: 0; font-size: 14px; color: #4b5563;">
+            Payment Method: ${order.payment === 'online' ? 'Online Payment' : 'Cash on Delivery'}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <p style="margin: 24px 0; font-size: 14px; color: #6b7280;">
+      Thank you for shopping with us! You can check your order status anytime in your dashboard.
+    </p>
+
+    <a href="https://rishikeshhandmade.com/dashboard?section=orders" class="dashboard-btn">View Order in Dashboard</a>
   </div>
 </body>
 </html>`
@@ -1458,62 +1569,88 @@ const CheckOut = () => {
               <div>
                 <label className="block text-sm mb-1 text-gray-600">First Name</label>
                 <input
-                  className="w-full py-2 px-3 bg-gray-100 rounded-md border-0"
+                  className={`w-full py-2 px-3 bg-gray-100 rounded-md ${formErrors.firstName ? 'border-2 border-red-500' : 'border-0'}`}
                   required
                   type="text"
+                  name="firstName"
                   placeholder="Enter First Name"
                   value={firstName}
-                  onChange={e => setFirstName(e.target.value)}
+                  onChange={e => {
+                    setFirstName(e.target.value);
+                    if (formErrors.firstName) {
+                      setFormErrors(prev => ({ ...prev, firstName: '' }));
+                    }
+                  }}
                 />
+                {formErrors.firstName && <p className="text-red-500 text-xs mt-1">{formErrors.firstName}</p>}
               </div>
               <div>
                 <label className="block text-sm mb-1 text-gray-600">Last Name</label>
                 <input
-                  className="w-full py-2 px-3 bg-gray-100 rounded-md border-0"
+                  className={`w-full py-2 px-3 bg-gray-100 rounded-md ${formErrors.lastName ? 'border-2 border-red-500' : 'border-0'}`}
                   required
                   type="text"
+                  name="lastName"
                   placeholder="Enter Last Name"
                   value={lastName}
-                  onChange={e => setLastName(e.target.value)}
+                  onChange={e => {
+                    setLastName(e.target.value);
+                    if (formErrors.lastName) {
+                      setFormErrors(prev => ({ ...prev, lastName: '' }));
+                    }
+                  }}
                 />
+                {formErrors.lastName && <p className="text-red-500 text-xs mt-1">{formErrors.lastName}</p>}
               </div>
               <div>
                 <label className="block text-sm mb-1 text-gray-600">Email</label>
                 <input
-                  className="w-full py-2 px-3 bg-gray-100 rounded-md border-0 cursor-not-allowed"
+                  className={`w-full py-2 px-3 bg-gray-100 rounded-md border-0 cursor-not-allowed ${formErrors.email ? 'border-2 border-red-500' : ''}`}
                   type="email"
+                  name="email"
                   placeholder="example@gmail.com"
                   required
                   value={checkoutData?.email || email}
                   onChange={e => setEmail(e.target.value)}
                   disabled
                 />
+                {formErrors.email && <p className="text-red-500 text-xs mt-1">{formErrors.email}</p>}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm mb-1 text-gray-600">Call No.</label>
                   <input
-                    className="w-full py-2 px-3 bg-gray-100 rounded-md border-0"
+                    className={`w-full py-2 px-3 bg-gray-100 rounded-md ${formErrors.phone ? 'border-2 border-red-500' : 'border-0'}`}
                     type="tel"
+                    name="phone"
                     placeholder="Type Number"
                     required
                     maxLength={10}
                     pattern="[0-9]{10}"
                     value={phone}
-                    onChange={e => setPhone(e.target.value)}
+                    onChange={e => {
+                      setPhone(e.target.value);
+                      if (formErrors.phone) {
+                        setFormErrors(prev => ({ ...prev, phone: '' }));
+                      }
+                    }}
                   />
+                  {formErrors.phone && <p className="text-red-500 text-xs mt-1">{formErrors.phone}</p>}
                 </div>
                 <div>
                   <label className="block text-sm mb-1 text-gray-600">Alt. Call No.</label>
                   <input
-                    className="w-full py-2 px-3 bg-gray-100 rounded-md border-0"
+                    className={`w-full py-2 px-3 bg-gray-100 rounded-md`}
                     type="tel"
                     maxLength={10}
                     placeholder="Type Number"
                     pattern="[0-9]{10}"
                     value={altPhone}
-                    onChange={e => setAltPhone(e.target.value)}
+                    onChange={e => {
+                      setAltPhone(e.target.value);
+                    }}
                   />
+                
                 </div>
               </div>
             </div>
@@ -1525,44 +1662,66 @@ const CheckOut = () => {
               <div>
                 <label className="block text-sm mb-1 text-gray-600">Address</label>
                 <input
-                  className="w-full py-2 px-3 bg-gray-100 rounded-md border-0"
+                  className={`w-full py-2 px-3 bg-gray-100 rounded-md ${formErrors.street ? 'border-2 border-red-500' : 'border-0'}`}
                   required
                   type="text"
+                  name="street"
                   placeholder="Enter Address"
                   value={street}
-                  onChange={e => setStreet(e.target.value)}
+                  onChange={e => {
+                    setStreet(e.target.value);
+                    if (formErrors.street) {
+                      setFormErrors(prev => ({ ...prev, street: '' }));
+                    }
+                  }}
                 />
+                {formErrors.street && <p className="text-red-500 text-xs mt-1">{formErrors.street}</p>}
               </div>
               <div>
                 <label className="block text-sm mb-1 text-gray-600">Pincode</label>
-                <input
-                  className="w-fit py-2 px-3 bg-gray-100 rounded-md border-0"
-                  required
-                  type="number"
-                  maxLength={6}
-                  pattern="[0-9]{6}"
-                  placeholder='Enter Pincode'
-                  value={pincode}
-                  onChange={e => setPincode(e.target.value)}
-                />
+                <div>
+                  <input
+                    className={`w-fit py-2 px-3 bg-gray-100 rounded-md ${formErrors.pincode ? 'border-2 border-red-500' : 'border-0'}`}
+                    required
+                    type="number"
+                    name="pincode"
+                    maxLength={6}
+                    pattern="[0-9]{6}"
+                    placeholder='Enter Pincode'
+                    value={pincode}
+                    onChange={e => {
+                      setPincode(e.target.value);
+                      if (formErrors.pincode) {
+                        setFormErrors(prev => ({ ...prev, pincode: '' }));
+                      }
+                    }}
+                  />
+                  {formErrors.pincode && <p className="text-red-500 text-xs mt-1">{formErrors.pincode}</p>}
+                </div>
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm mb-1 text-gray-600">City</label>
                   <input
-                    className="w-full py-2 px-3 bg-gray-100 rounded-md border-0"
+                    className={`w-full py-2 px-3 bg-gray-100 rounded-md ${formErrors.city ? 'border-2 border-red-500' : 'border-0'}`}
                     required
                     type="text"
+                    name="city"
                     placeholder="Enter City"
                     value={city}
-                    onChange={e => setCity(e.target.value)}
+                    onChange={e => {
+                      setCity(e.target.value);
+                      if (formErrors.city) {
+                        setFormErrors(prev => ({ ...prev, city: '' }));
+                      }
+                    }}
                   />
+                  {formErrors.city && <p className="text-red-500 text-xs mt-1">{formErrors.city}</p>}
                 </div>
                 <div>
                   <label className="block text-sm mb-1 text-gray-600">Distt.</label>
                   <input
                     className="w-full py-2 px-3 bg-gray-100 rounded-md border-0"
-                    required
                     type="text"
                     placeholder="Enter District"
                     value={district}
@@ -1572,13 +1731,20 @@ const CheckOut = () => {
                 <div>
                   <label className="block text-sm mb-1 text-gray-600">State</label>
                   <input
-                    className="w-full py-2 px-3 bg-gray-100 rounded-md border-0"
+                    className={`w-full py-2 px-3 bg-gray-100 rounded-md ${formErrors.state ? 'border-2 border-red-500' : 'border-0'}`}
                     required
                     type="text"
+                    name="state"
                     placeholder="Enter State"
                     value={state}
-                    onChange={e => setState(e.target.value)}
+                    onChange={e => {
+                      setState(e.target.value);
+                      if (formErrors.state) {
+                        setFormErrors(prev => ({ ...prev, state: '' }));
+                      }
+                    }}
                   />
+                  {formErrors.state && <p className="text-red-500 text-xs mt-1">{formErrors.state}</p>}
                 </div>
               </div>
             </div>
@@ -1588,7 +1754,7 @@ const CheckOut = () => {
           </div>
         </form>
 
-        <div className="flex items-center gap-2 mt-4">
+        {/* <div className="flex items-center gap-2 mt-4">
           <input
             type="checkbox"
             id="saveAddress"
@@ -1596,8 +1762,8 @@ const CheckOut = () => {
             onChange={e => setSaveAddress(e.target.checked)}
             className="accent-pink-600 w-4 h-4"
           />
-          <label htmlFor="saveAddress" className="text-sm select-none">Save this address to my account</label>
-        </div>
+           <label htmlFor="saveAddress" className="text-sm select-none">Save this address to my account</label> 
+        </div> */}
       </div>
       {/* Order Summary Card */}
       <div className="w-full md:w-[420px] bg-white rounded-lg shadow p-6 self-start">
@@ -1611,8 +1777,9 @@ const CheckOut = () => {
                   <div className="flex-1">
                     <div className="font-medium text-sm leading-tight mb-1">{item.name}</div>
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center border rounded-md bg-gray-100">
-
+                    
+                      <div className="flex items-center border rounded-md bg-gray-100 px-2">
+                      Qty: 
                         <span className="px-3 py-1 text-base font-semibold">{item.qty}</span>
 
                       </div>
@@ -1799,17 +1966,31 @@ const CheckOut = () => {
         )}
 
         <div className="flex items-start gap-2 mt-6 mb-4">
-          <input
-            type="checkbox"
-            id="terms"
-            checked={agree}
-            onChange={e => setAgree(e.target.checked)}
-            className="accent-pink-600 w-4 h-4 mt-1"
-          />
-          <label htmlFor="terms" className="text-xs text-gray-600">
-            I have read and agree to the website terms and conditions
-          </label>
+          <div className="flex items-start">
+            <input
+              type="checkbox"
+              id="terms"
+              name="agree"
+              checked={agree}
+              onChange={e => {
+                setAgree(e.target.checked);
+                if (formErrors.agree) {
+                  setFormErrors(prev => ({ ...prev, agree: '' }));
+                }
+              }}
+              className={`accent-pink-600 w-4 h-4 mt-1 ${formErrors.agree ? 'ring-2 ring-red-500' : ''}`}
+            />
+            <label htmlFor="terms" className="text-xs text-gray-600 ml-2">
+              I have read and agree to the website terms and conditions
+            </label>
+          </div>
+          {formErrors.agree && <p className="text-red-500 text-xs mt-1 ml-6">{formErrors.agree}</p>}
         </div>
+        {formErrors.payment && (
+          <div className="mb-4 p-2 bg-red-50 border-l-4 border-red-500">
+            <p className="text-red-700 text-sm">{formErrors.payment}</p>
+          </div>
+        )}
         <div className="mt-4 mb-4">
           {/* <pre className="bg-gray-100 p-4 rounded overflow-auto">
            {JSON.stringify({
@@ -1844,13 +2025,31 @@ const CheckOut = () => {
         </div>
         <button
           className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded font-semibold text-sm transition-colors"
-          disabled={!agree || loading || isProcessingPayment || !firstName || !lastName || !email || !phone || !street || !city || !state || !pincode || !payment}
+          disabled={loading || isProcessingPayment}
           type="button"
           onClick={async () => {
-            if (!payment) {
-              setError('Please select a payment method.');
+            if (!validateForm()) {
+              // Scroll to first error
+              const firstError = Object.keys(formErrors)[0];
+              if (firstError) {
+                const element = document.querySelector(`[name="${firstError}"]`);
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+              }
               return;
             }
+            
+            if (!payment) {
+              setFormErrors(prev => ({ ...prev, payment: 'Please select a payment method' }));
+              return;
+            }
+            
+            if (!agree) {
+              setFormErrors(prev => ({ ...prev, agree: 'You must agree to the terms and conditions' }));
+              return;
+            }
+            
             setConfirmedPaymentMethod(payment); // payment = 'cod' or 'online'
             setShowOverview(true);
           }}

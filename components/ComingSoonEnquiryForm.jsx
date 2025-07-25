@@ -24,7 +24,7 @@ export default function ComingSoonEnquiryForm({ packageId }) {
       children: form.children.value === '' ? 0 : form.children.value,
       infants: form.infants.value === '' ? 0 : form.infants.value
     };
-    console.log(data)
+    // console.log(data)
     const res = await fetch("/api/comingSoonEnquiry", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -34,7 +34,7 @@ export default function ComingSoonEnquiryForm({ packageId }) {
 
     if (res.ok) {
       setSubmitted(true);
-      console.log(res)
+      // console.log(res)
       toast.success("Enquiry submitted!");
       form.reset();
     } else {

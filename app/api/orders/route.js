@@ -58,8 +58,10 @@ export async function POST(req) {
           sgst: Number(product.sgst) || 0,
           discountAmount: discountAmount,
           discountPercent: Number(product.discountPercent) || 0,
-          couponApplied: Boolean(product.couponApplied),
-          couponCode: product.couponCode || ''
+          // Handle both couponApplied boolean and string values
+          couponApplied: product.couponApplied === true || String(product.couponApplied).toLowerCase() === 'true',
+          // Get coupon code from multiple possible fields
+          couponCode: String(product.couponCode || product.coupon || '').trim()
         };
       });
     }
@@ -70,6 +72,32 @@ export async function POST(req) {
     body.totalDiscount = Number(body.totalDiscount) || 0;
     body.totalTax = Number(body.taxTotal) || Number(body.totalTax) || 0;
     body.shippingCost = Number(body.shippingCost) || 0;
+    
+    // Handle coupon data from multiple possible sources
+    // 1. Check for appliedCoupon object first
+    if (body.appliedCoupon) {
+      body.promoCode = body.appliedCoupon.code || body.promoCode || '';
+      body.promoDiscount = Number(body.appliedCoupon.discount) || Number(body.promoDiscount) || 0;
+    } 
+    // 2. Check for coupon data in products
+    else if (body.products && Array.isArray(body.products)) {
+      const productWithCoupon = body.products.find(p => p.couponCode);
+      if (productWithCoupon) {
+        body.promoCode = productWithCoupon.couponCode || body.promoCode || '';
+        body.promoDiscount = Number(productWithCoupon.discountAmount) || Number(body.promoDiscount) || 0;
+      }
+    }
+    // 3. Fall back to root level promo data
+    else if (body.promoCode || body.promoDiscount) {
+      body.promoCode = String(body.promoCode || '');
+      body.promoDiscount = Number(body.promoDiscount) || 0;
+    }
+    
+    // Ensure coupon data is properly set in the order
+    if (body.couponCode) {
+      body.promoCode = String(body.couponCode);
+      body.promoDiscount = Number(body.promoDiscount) || 0;
+    }
 
     // ✅ Save the order
     body.agree = true; // Always set agree true for all new orders

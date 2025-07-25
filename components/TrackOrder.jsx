@@ -28,7 +28,7 @@ const TrackOrder = ({ orderId: initialOrderId = '' }) => {
     setOrderData(null);
 
     try {
-      console.log(`Fetching order details for ID: ${orderId.trim()}`);
+      // console.log(`Fetching order details for ID: ${orderId.trim()}`);
       const res = await fetch(`/api/orders/track/${orderId.trim()}`);
       
       if (!res.ok) {
@@ -45,14 +45,14 @@ const TrackOrder = ({ orderId: initialOrderId = '' }) => {
         throw new Error(result.message || 'Failed to fetch order details');
       }
 
-      console.log('Received order data:', result.data);
+      // console.log('Received order data:', result.data);
       setOrderData(result.data);
     } catch (err) {
-      console.error('Tracking error:', {
-        message: err.message,
-        stack: err.stack,
-        orderId: orderId.trim()
-      });
+      // console.error('Tracking error:', {
+      //   message: err.message,
+      //   stack: err.stack,
+      //   orderId: orderId.trim()
+      // });
       setError(err.message || 'Failed to track order. Please try again.');
     } finally {
       setLoading(false);

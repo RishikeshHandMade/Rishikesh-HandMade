@@ -18,7 +18,7 @@ const Faq = () => {
   const [search, setSearch] = useState('');
   const [openIdx, setOpenIdx] = useState(null);
   const [faqs, setFaqs] = useState({});
-  console.log(faqs)
+  // console.log(faqs)
 
   useEffect(() => {
     const fetchFaqs = async () => {

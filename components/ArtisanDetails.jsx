@@ -254,7 +254,7 @@ const ArtisanDetails = ({ artisan }) => {
         setCustomReviews(data.reviews || []);
       }
     } catch (error) {
-      console.error('Error fetching custom reviews:', error);
+      // console.error('Error fetching custom reviews:', error);
       toast.error('Failed to load custom reviews');
       setCustomReviews([]);
     } finally {

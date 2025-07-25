@@ -9,7 +9,7 @@ import Autoplay from "embla-carousel-autoplay";
 import toast from "react-hot-toast"
 export default function QuickViewProductCard({ product, onClose }) {
   // ...existing hooks
-  console.log(product)
+  // console.log(product)
   if (!product) return null;
   const { addToCart, addToWishlist, removeFromWishlist, wishlist } = useCart();
   const [quantity, setQuantity] = useState(1);

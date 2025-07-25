@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { useRouter } from 'next/navigation';
-const RefundForm = ({ order, orderId, onClose }) => {
+const RefundForm = ({ order, orderId, onClose,onSubmitStart, onSubmitComplete }) => {
   const searchParams = useSearchParams();
   const [selectedOrder, setSelectedOrder] = useState(order || null);
   const router = useRouter();
@@ -21,7 +21,7 @@ const RefundForm = ({ order, orderId, onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    if (onSubmitStart) onSubmitStart();
     if (formData.accountNumber !== formData.confirmAccountNumber) {
       toast.error('Account numbers do not match');
       return;
@@ -30,13 +30,13 @@ const RefundForm = ({ order, orderId, onClose }) => {
     try {
       setIsSubmitting(true);
       
-      // Debug logs
-      console.log('Selected Order:', selectedOrder);
-      console.log('Order prop:', order);
-      console.log('Current Order ID:', currentOrderId);
+      // // Debug logs
+      // console.log('Selected Order:', selectedOrder);
+      // console.log('Order prop:', order);
+      // console.log('Current Order ID:', currentOrderId);
       
       if (!selectedOrder?._id) {
-        console.error('No order ID found in selectedOrder:', selectedOrder);
+        // console.error('No order ID found in selectedOrder:', selectedOrder);
         throw new Error('Order information is missing. Please refresh and try again.');
       }
 
@@ -65,14 +65,15 @@ const RefundForm = ({ order, orderId, onClose }) => {
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Failed to submit request');
+      if (onClose) onClose();
 
       toast.success('Cancellation request submitted successfully');
       router.refresh();
-      onClose?.();
-    } catch (error) {
+      // onClose?.();
+     } catch (error) { 
       toast.error(error.message);
     } finally {
-      setIsSubmitting(false);
+      if (onSubmitComplete) onSubmitComplete();
     }
   };
   const currentOrderId = orderId || searchParams?.get("orderId") || '';

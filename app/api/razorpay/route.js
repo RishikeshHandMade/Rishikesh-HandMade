@@ -9,7 +9,17 @@ import User from "@/models/User";
 if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
     console.error('Razorpay credentials are not properly configured');
 }
-
+function generateOrderId() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return `ORD-${result}`;
+}
+function generateTransactionId() {
+    return `TXN-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+}
 let razorpay;
 try {
     razorpay = new Razorpay({
@@ -32,7 +42,7 @@ export async function POST(request) {
     try {
         // Connect to database first
         await connectDB();
-        
+
         // Parse and validate request body
         let requestBody;
         try {
@@ -46,14 +56,14 @@ export async function POST(request) {
         }
 
         const { amount, currency = 'INR', receipt, products, customer } = requestBody;
-        
+
         // Basic validation
         const missingFields = [];
         if (amount === undefined || amount === null) missingFields.push('amount');
         if (!receipt) missingFields.push('receipt');
         if (!products) missingFields.push('products');
         if (!customer) missingFields.push('customer');
-        
+
         if (missingFields.length > 0) {
             const errorMsg = `Missing required fields: ${missingFields.join(', ')}`;
             console.error('Validation error:', errorMsg);
@@ -117,10 +127,10 @@ export async function POST(request) {
                 field: razorpayError.error?.field
             });
             return NextResponse.json(
-                { 
+                {
                     error: 'Failed to create payment order',
                     details: process.env.NODE_ENV === 'development' ? razorpayError.message : undefined
-                }, 
+                },
                 { status: 500 }
             );
         }
@@ -136,31 +146,23 @@ export async function POST(request) {
         // Save the order in the database
         let dbOrder;
         try {
-            console.log('Preparing to save order to database with:', {
-                productsCount: products.length,
-                customerEmail: customer?.email,
-                amount: amount,
-                receipt: receipt,
-                razorpayOrderId: razorpayOrder.id
-            });
-
             // First validate all products
             const validatedProducts = products.map((item, index) => {
                 const productId = item.productId || item._id;
                 if (!productId) {
                     throw new Error(`Product at index ${index} is missing an ID`);
                 }
-                
+
                 const price = Number(item.price) || 0;
                 const qty = Number(item.qty || item.quantity || 1);
-                
+
                 if (isNaN(price) || price < 0) {
                     throw new Error(`Invalid price for product ${productId}: ${item.price}`);
                 }
                 if (isNaN(qty) || qty < 1) {
                     throw new Error(`Invalid quantity for product ${productId}: ${item.qty}`);
                 }
-                
+
                 return {
                     _id: productId,
                     productId: productId,
@@ -234,9 +236,9 @@ export async function POST(request) {
                 pincode: customer?.pincode || '',
                 address: customer?.address || '',
                 // Payment/order info
-                orderId: `order_${Date.now()}`,
+                orderId: generateOrderId(),
                 razorpayOrderId: razorpayOrder.id,
-                transactionId: `txn_${Date.now()}`,
+                transactionId: generateTransactionId(),
                 payment: 'online',
                 status: 'Pending',
                 paymentMethod: 'razorpay',
@@ -275,7 +277,7 @@ export async function POST(request) {
                 keyPattern: dbErr.keyPattern,
                 keyValue: dbErr.keyValue
             });
-            return NextResponse.json({ 
+            return NextResponse.json({
                 error: 'Failed to save order in DB',
                 details: process.env.NODE_ENV === 'development' ? dbErr.message : undefined
             }, { status: 500 });
@@ -289,7 +291,7 @@ export async function POST(request) {
             currency: razorpayOrder.currency
         });
     } catch (error) {
-            // console.error("Error creating Razorpay order:", error);
+        // console.error("Error creating Razorpay order:", error);
         return NextResponse.json(
             { error: "Failed to create order" },
             { status: 500 }
@@ -305,15 +307,15 @@ export async function PUT(request) {
         // console.log('Starting payment verification...');
         const body = await request.json();
         const { razorpay_payment_id, razorpay_order_id, razorpay_signature, cart, checkoutData, formFields, user } = body;
-        
-    
-    
-        
+
+
+
+
         const generatedSignature = crypto
             .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
             .update(`${razorpay_order_id}|${razorpay_payment_id}`)
             .digest("hex");
-            
+
         console.log('Signature verification completed');
 
         if (generatedSignature !== razorpay_signature) {
@@ -329,13 +331,13 @@ export async function PUT(request) {
 
         // Step 2: Find and update the order
         console.log('Looking up order with orderId:', razorpay_order_id);
-        const order = await Order.findOne({ 
+        const order = await Order.findOne({
             $or: [
                 { orderId: razorpay_order_id },
                 { razorpayOrderId: razorpay_order_id }
             ]
         });
-        
+
         if (!order) {
             console.error('Order not found for orderId/razorpayOrderId:', razorpay_order_id);
             return NextResponse.json(
@@ -343,15 +345,15 @@ export async function PUT(request) {
                 { status: 404 }
             );
         }
-        
+
         console.log('Found order:', order._id);
-        
+
         // Update order status and payment details
         order.transactionId = razorpay_payment_id;
         order.status = "Paid";
         order.paymentMethod = "online";
         order.datePurchased = new Date();
-        
+
         // Update products if cart data is provided
         if (cart && Array.isArray(cart)) {
             console.log('Updating products from cart:', cart.length, 'items');
@@ -362,19 +364,19 @@ export async function PUT(request) {
                     if (item.image && typeof item.image === 'object') {
                         imageUrl = item.image.url || '';
                     }
-                    
+
                     // Calculate pricing fields with proper fallbacks
                     const price = Number(item.price) || 0;
                     const originalPrice = Number(item.originalPrice) || price;
                     const discountAmount = Number(item.discountAmount) || (originalPrice - price);
                     const afterDiscount = price;
-                    
+
                     // Calculate discount percentage if not provided
                     let discountPercent = Number(item.discountPercent) || 0;
                     if (!discountPercent && originalPrice > 0) {
                         discountPercent = Math.round((discountAmount / originalPrice) * 100);
                     }
-                    
+
                     return {
                         _id: item._id || item.productId || item.id,
                         productId: item.productId || item._id || item.id,
@@ -404,17 +406,17 @@ export async function PUT(request) {
                 // Continue with the order update even if product update fails
             }
         }
-        
+
         // Update checkout summary if available
         if (checkoutData) {
             console.log('Updating checkout summary');
             // Use taxTotal if available, otherwise use totalTax
             const taxTotal = Number(checkoutData.taxTotal) || Number(checkoutData.totalTax) || 0;
             // Use finalShipping if available, otherwise use shippingCost or shipping
-            const shippingCost = Number(checkoutData.finalShipping) || 
-                               Number(checkoutData.shippingCost) || 
-                               Number(checkoutData.shipping) || 0;
-            
+            const shippingCost = Number(checkoutData.finalShipping) ||
+                Number(checkoutData.shippingCost) ||
+                Number(checkoutData.shipping) || 0;
+
             order.cartTotal = Number(checkoutData.cartTotal) || 0;
             order.subTotal = Number(checkoutData.subTotal) || 0;
             order.totalDiscount = Number(checkoutData.totalDiscount) || 0;
@@ -422,7 +424,7 @@ export async function PUT(request) {
             order.shippingCost = shippingCost;
             order.promoCode = checkoutData.promoCode || '';
             order.promoDiscount = Number(checkoutData.promoDiscount) || 0;
-            
+
             console.log('Checkout summary updated:', {
                 cartTotal: order.cartTotal,
                 subTotal: order.subTotal,
@@ -431,7 +433,7 @@ export async function PUT(request) {
                 shippingCost: order.shippingCost
             });
         }
-        
+
         // Update customer details if form fields are provided
         if (formFields) {
             console.log('Updating customer details');
@@ -442,7 +444,7 @@ export async function PUT(request) {
             const district = formFields.district || order.district || '';
             const state = formFields.state || order.state || '';
             const pincode = formFields.pincode || order.pincode || '';
-            
+
             // Update fields
             order.firstName = firstName;
             order.lastName = lastName;
@@ -454,13 +456,13 @@ export async function PUT(request) {
             order.district = district;
             order.state = state;
             order.pincode = pincode;
-            
+
             // Build address string ensuring district is included
-            order.address = formFields.address || 
+            order.address = formFields.address ||
                 [street, city, district, state, pincode]
                     .filter(Boolean)
                     .join(', ');
-                    
+
             console.log('Customer details updated:', {
                 name: `${firstName} ${lastName}`.trim(),
                 email: order.email,
@@ -468,13 +470,13 @@ export async function PUT(request) {
                 address: order.address
             });
         }
-        
+
         // Update user ID if available
         if (user && user._id) {
             console.log('Updating user ID:', user._id);
             order.userId = user._id;
         }
-        
+
         try {
             await order.save();
             console.log('Order updated successfully');
@@ -485,7 +487,7 @@ export async function PUT(request) {
                 { status: 500 }
             );
         }
-        
+
         // Fetch Full Payment Details from Razorpay
         const paymentResponse = await fetch(
             `https://api.razorpay.com/v1/payments/${razorpay_payment_id}`,

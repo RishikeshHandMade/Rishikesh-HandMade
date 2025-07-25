@@ -256,7 +256,7 @@ const CheckOutOverview = ({ checkoutData, paymentMethod, onEdit, onConfirm, load
               className="w-full py-3 bg-black text-white rounded font-semibold text-base mt-2 mb-4 flex items-center justify-center gap-2 hover:bg-gray-900 transition-colors"
               
               onClick={()=>{
-                console.log('Overview confirm button clicked');
+                // console.log('Overview confirm button clicked');
                 onConfirm();
               }}
               disabled={loading}

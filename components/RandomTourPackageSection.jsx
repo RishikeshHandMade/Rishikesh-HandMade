@@ -176,13 +176,13 @@ const RandomTourPackageSection = () => {
                     <div className="flex flex-col md:w-[290px] ">
                       {/* Image Section */}
                       <div className="relative w-full md:h-96 rounded-3xl overflow-hidden flex items-center justify-center group/image">
-                        {item.productTagLine?.tagLine && item.productTagLine.tagLine.length > 0 && (
+                        {/* {item.productTagLine?.tagLine && item.productTagLine.tagLine.length > 0 && (
                           <div className="absolute top-4 left-1 z-10 w-10 h-fit px-4 py-1 text-md font-bold shadow text-black tracking-tight" style={{ letterSpacing: 0 }}>
                             {item.productTagLine.tagLine.split('').map((char, idx) => (
                               <span key={idx} style={{ display: 'block', lineHeight: '1.2' }}>{char}</span>
                             ))}
                           </div>
-                        )}
+                        )} */}
                         {/* GET 10% OFF Tag */}
                         {(() => {
                           const coupon = item.coupon || item.coupons?.coupon;

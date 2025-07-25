@@ -223,7 +223,7 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
                                 style={{ marginTop: 2 }}
                               />
                               <Link
-                                href={`/product/${product._id}`}
+                                href={`/product/${product.slug}`}
                                 className="font-semibold text-[16px] text-black leading-tight hover:underline"
                                 style={{ lineHeight: '1.2' }}
                               >
@@ -307,7 +307,7 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
                                 style={{ marginTop: 2 }}
                               />
                               <Link
-                                href={`/product/${product._id}`}
+                                href={`/product/${product.slug}`}
                                 className="font-semibold text-[15px] text-black leading-tight hover:underline"
                                 style={{ lineHeight: '1.2' }}
                               >

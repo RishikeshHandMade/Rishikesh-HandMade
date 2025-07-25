@@ -236,7 +236,7 @@ const HeroSection = () => {
                               toast.success('Product added to cart!');
                             } catch (error) {
                               toast.error('Failed to add product to cart');
-                              console.error('Add to cart error:', error);
+                              // console.error('Add to cart error:', error);
                             } finally {
                               setLoading(false);
                             }
@@ -376,7 +376,7 @@ const HeroSection = () => {
                             toast.success('Product added to cart!');
                           } catch (error) {
                             toast.error('Failed to add product to cart');
-                            console.error('Add to cart error:', error);
+                            // console.error('Add to cart error:', error);
                           } finally {
                             setLoading(false);
                           }

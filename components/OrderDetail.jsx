@@ -2,26 +2,52 @@
 import React, { useState, useEffect } from "react";
 import ReturnRequest from "./ReturnRequest";
 import CancelOrder from "./CancelOrder";
-
-
-const statusBadge = {
-  "IN PROGRESS": "bg-pink-600 text-white",
-  CANCELED: "bg-red-500 text-white",
-  DELIVERED: "bg-green-500 text-white",
-  DELAYED: "bg-yellow-500 text-white",
+import { Clock, CheckCircle, Truck, XCircle, Info, ArrowLeft } from 'lucide-react';
+const getStatusBadge = (status) => {
+  const statusMap = {
+    'Paid': { bg: 'bg-green-100 text-green-800', icon: <CheckCircle size={18} className="mr-1" /> },
+    'Pending': { bg: 'bg-yellow-100 text-yellow-800', icon: <Clock size={18} className="mr-1" /> },
+    'Processing': { bg: 'bg-blue-100 text-blue-800', icon: <Info size={18} className="mr-1" /> },
+    'Shipped': { bg: 'bg-indigo-100 text-indigo-800', icon: <Truck size={18} className="mr-1" /> },
+    'Delivered': { bg: 'bg-green-100 text-green-800', icon: <CheckCircle size={18} className="mr-1" /> },
+    'Cancelled': { bg: 'bg-red-100 text-red-800', icon: <XCircle size={18} className="mr-1" /> },
+    'default': { bg: 'bg-gray-100 text-gray-800', icon: <Info size={18} className="mr-1" /> }
+  };
+  return statusMap[status] || statusMap['default'];
 };
-
+// import './globals.css'
 const tabList = [
   { key: "history", label: "Order History" },
   { key: "items", label: "Item Details" },
   // { key: "courier", label: "Courier" },
   // { key: "receiver", label: "Receiver" },
 ];
-
-function formatDateTime(dt) {
-  const d = new Date(dt);
-  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" }) +
-    ", " + d.toLocaleTimeString("en-GB");
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'Paid':
+    case 'Delivered':
+      return 'text-green-600';
+    case 'Pending':
+      return 'text-yellow-600';
+    case 'Processing':
+    case 'Shipped':
+      return 'text-blue-600';
+    case 'Cancelled':
+      return 'text-red-600';
+    default:
+      return 'text-gray-600';
+  }
+};
+// Add this helper function at the top of your component
+const formatDate = (dateString) => {
+  if (!dateString) return 'N/A';
+  return new Date(dateString).toLocaleString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 }
 
 const OrderDetail = ({ order, onBack }) => {
@@ -31,11 +57,14 @@ const OrderDetail = ({ order, onBack }) => {
   const [showMessage, setShowMessage] = useState(null);
   const [showReturnRequest, setShowReturnRequest] = useState(false);
   const [showCancelOrder, setShowCancelOrder] = useState(false);
-
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [ordersData, setOrdersData] = useState(order);
+  const [isCancelling, setIsCancelling] = useState(false);
   // Debug function to check modal state
-  useEffect(() => {
-    console.log('Modal state - showCancelOrder:', showCancelOrder);
-  }, [showCancelOrder]);
+  // useEffect(() => {
+  //   console.log('Modal state - showCancelOrder:', showCancelOrder);
+  // }, [showCancelOrder]);
 
   if (!order) {
     return (
@@ -49,22 +78,15 @@ const OrderDetail = ({ order, onBack }) => {
   const isShipped = orderData.status === 'Shipped' || orderData.status === 'Delivered';
   const hasTracking = orderData.trackingNumber && orderData.trackingUrl;
 
-  // Debug status history
-  // console.log('Status History:', orderData.statusHistory);
-
-  // Check if order is cancellable (not shipped or delivered)
-  const isOrderShippedOrDelivered = orderData.statusHistory?.some(
-    status => status.status === 'Shipped' || status.status === 'Delivered'
-  );
-
-  // console.log('Is Order Shipped or Delivered:', isOrderShippedOrDelivered);
-
-  // For testing: Force the cancel button to be visible
   const isCancellable = true; // Temporarily force to true for testing
 
-  // console.log('Order Status:', orderData.status);
-  // console.log('Is Cancellable (after override):', isCancellable);
 
+  const hasPendingCancellation = orderData.statusHistory?.some(
+    status => status.status.toLowerCase() === 'cancellation requested'
+  );
+  console.log('Order Status:', orderData.status);
+  console.log('Status History:', orderData.statusHistory);
+  console.log('Has Pending Cancellation:', hasPendingCancellation);
   return (
     <>
       {onBack && (
@@ -90,28 +112,28 @@ const OrderDetail = ({ order, onBack }) => {
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
-              {/* <span className={`px-2 py-1 rounded text-xs font-bold ${statusBadge[orderData.status]}`}>{orderData.status}</span> */}
+              {/* <span className={`px-2 py-1 rounded text-xs font-bold ${getStatusColor(orderData.status)}`}>{orderData.status}</span> */}
               <span className="text-lg font-bold">Order #{orderData.orderId || orderData.transactionId || orderData._id}</span>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-2 gap-4 text-sm text-gray-700 mb-4">
+            <div className="grid grid-cols-2 md:grid-cols-2 gap-4 text-md text-black mb-4">
               <div>
-                <div className="text-xs text-gray-500">Item</div>
-                <div className="font-semibold">{orderData.product?.name || (orderData.products && orderData.products[0]?.name) || '-'}</div>
+                <div className="text-xs text-black pb-2">Item</div>
+                <div className="font-semibold text-md">{orderData.product?.name || (orderData.products && orderData.products[0]?.name) || '-'}</div>
               </div>
               <div>
-                <div className="text-xs text-gray-500">Price</div>
-                <div className="font-semibold">{orderData.product?.price || (orderData.products && orderData.products[0]?.price) || '-'}</div>
+                <div className="text-xs text-black pb-2">Price</div>
+                <div className="font-semibold text-md">₹{orderData.product?.price || (orderData.products && orderData.products[0]?.price) || '-'}</div>
               </div>
               <div>
-                <div className="text-xs text-gray-500">Quantity</div>
-                <div className="font-semibold">{orderData.product?.qty || (orderData.products && orderData.products[0]?.qty) || '-'}</div>
+                <div className="text-xs text-black pb-2">Quantity</div>
+                <div className="font-semibold text-md">{orderData.product?.qty || (orderData.products && orderData.products[0]?.qty) || '-'}</div>
               </div>
               <div>
-                <div className="text-xs text-gray-500">Size</div>
-                <div className="font-semibold">{orderData.product?.size || (orderData.products && orderData.products[0]?.size) || '-'}</div>
+                <div className="text-xs text-black pb-2">Size</div>
+                <div className="font-semibold text-md">{orderData.product?.size || (orderData.products && orderData.products[0]?.size) || '-'}</div>
               </div>
               <div>
-                <div className="text-xs text-gray-500">Color</div>
+                <div className="text-xs text-black pb-2">Color</div>
                 <div
                   className="font-semibold w-6 h-6 border-2 border-black rounded-full flex items-center justify-center"
                   style={{ backgroundColor: orderData.product?.color || (orderData.products?.[0]?.color) || '#ccc' }}
@@ -119,9 +141,39 @@ const OrderDetail = ({ order, onBack }) => {
               </div>
 
             </div>
-            {/* Action Buttons */}
+
             <div className="flex gap-3 mb-2 flex-wrap">
-              {orderData.statusHistory?.some(status => status.status.toLowerCase() === 'cancelled') ? (
+              
+       
+              
+              {orderData.status !== 'Shipped' &&
+                orderData.status !== 'Delivered' &&
+                !orderData.statusHistory?.some(status => status.status.toLowerCase() === 'cancelled') ? (
+                hasPendingCancellation ? null : ( // Don't show cancel button if cancellation is pending
+                  isCancelling ? (
+                    <button
+                      disabled
+                      className="border border-yellow-400 text-yellow-600 px-5 py-2 rounded-lg font-semibold flex items-center gap-2"
+                    >
+                      <svg className="animate-spin -ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Cancelling...
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setShowCancelOrder(true)}
+                      className="border border-red-400 text-red-600 px-5 py-2 rounded-lg font-semibold hover:bg-red-50 transition flex items-center gap-2"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      Cancel Order
+                    </button>
+                  )
+                )
+              ) : orderData.statusHistory?.some(status => status.status.toLowerCase() === 'cancelled') ? (
                 <button
                   disabled
                   className="border border-gray-300 text-gray-500 px-5 py-2 rounded-lg font-semibold cursor-not-allowed flex items-center gap-2"
@@ -131,32 +183,8 @@ const OrderDetail = ({ order, onBack }) => {
                   </svg>
                   Order Cancelled
                 </button>
-              ) : isCancellable ? (
-                <button
-                  onClick={() => {
-                    console.log('Cancel button clicked');
-                    console.log('Setting showCancelOrder to true');
-                    setShowCancelOrder(true);
-                  }}
-                  className="border border-red-400 text-red-600 px-5 py-2 rounded-lg font-semibold hover:bg-red-50 transition flex items-center gap-2"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  Cancel Order
-                </button>
               ) : null}
-              {isShipped && hasTracking && (
-                <button
-                  onClick={() => setShowTrackingInfo(!showTrackingInfo)}
-                  className="border border-blue-400 text-blue-600 px-5 py-2 rounded-lg font-semibold hover:bg-blue-50 transition flex items-center gap-2"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  {showTrackingInfo ? 'Hide Tracking' : 'Track Order'}
-                </button>
-              )}
+
               {orderData.statusHistory?.some(status => status.status === 'Delivered') && (
                 <button
                   className="border border-green-600 text-green-700 px-5 py-2 rounded-lg font-semibold hover:bg-green-50 transition flex items-center gap-2"
@@ -178,6 +206,7 @@ const OrderDetail = ({ order, onBack }) => {
             </div>
           </div>
         </div>
+
         <hr className="my-6" />
         {/* Tabs */}
         <div className="flex gap-7 border-b">
@@ -196,76 +225,83 @@ const OrderDetail = ({ order, onBack }) => {
           <div className="mt-6">
             {orderData.statusHistory?.length > 0 ? (
               <ol className="relative border-l-2 border-gray-200 ml-8 pl-5 space-y-6">
-                {orderData.statusHistory.map((status, idx) => (
-                  <li key={idx} className="relative pb-6">
-                    {/* Timeline Circle */}
-                    <span className={`absolute -left-[30px] top-1 w-5 h-5 rounded-full border-2 flex items-center justify-center 
-                      ${status.status === 'Delivered' ? 'border-green-600 bg-green-100' :
-                        status.status === 'Cancelled' ? 'border-red-600 bg-red-100' :
-                          'border-blue-600 bg-blue-100'}`}>
-                      <span className={`w-3 h-3 rounded-full block 
-                        ${status.status === 'Delivered' ? 'bg-green-600' :
-                          status.status === 'Cancelled' ? 'bg-red-600' :
-                            'bg-blue-600'}`} />
-                    </span>
+                {[...orderData.statusHistory]
+                  .sort((a, b) => {
+                    const statusOrder = {
+                      'Pending': 1,
+                      'Processing': 2,
+                      'Shipped': 3,
+                      'Delivered': 4,
+                      'Cancelled': 5
+                    };
+                    return statusOrder[a.status] - statusOrder[b.status] ||
+                      new Date(a.updatedAt) - new Date(b.updatedAt);
+                  })
+                  .map((status, idx) => (
+                    <li key={idx} className="relative pb-6">
+                      {/* Timeline Circle */}
+                      <span className={`absolute -left-[30px] top-1 w-5 h-5 rounded-full border-2 flex items-center justify-center 
+                ${status.status === 'Delivered' ? 'border-green-600 bg-green-100' :
+                          status.status === 'Cancelled' ? 'border-red-600 bg-red-100' :
+                            'border-blue-600 bg-blue-100'}`}>
+                        <span className={`w-3 h-3 rounded-full block 
+                  ${status.status === 'Delivered' ? 'bg-green-600' :
+                            status.status === 'Cancelled' ? 'bg-red-600' :
+                              'bg-blue-600'}`} />
+                      </span>
 
-                    {/* Timeline Content */}
-                    <div className="flex flex-col">
-                      <div className="flex justify-between items-start">
-                        <h3 className="font-bold text-md text-black">{status.status}</h3>
-                        <span className="text-xs text-gray-500">
-                          {new Date(status.updatedAt).toLocaleString()}
-                        </span>
-                      </div>
+                      {/* Rest of your timeline item code remains the same */}
+                      <div className="flex flex-col">
+                        <div className="flex justify-between items-start">
+                          <h3 className="font-bold text-md text-black">{status.status}</h3>
+                          <span className="text-xs text-gray-500">
+                            {new Date(status.updatedAt).toLocaleString()}
+                          </span>
+                        </div>
 
-                      {status.message && (
-                        <>
-                          <button
-                            onClick={() => setShowMessage(showMessage === idx ? null : idx)}
-                            className="text-sm text-blue-600 hover:underline mt-1 text-left"
-                          >
-                            {showMessage === idx ? 'Hide Details' : 'View Details'}
-                          </button>
+                        {status.message && (
+                          <>
+                            <button
+                              onClick={() => setShowMessage(showMessage === idx ? null : idx)}
+                              className="text-sm text-blue-600 hover:underline mt-1 text-left"
+                            >
+                              {showMessage === idx ? 'Hide Details' : 'View Details'}
+                            </button>
 
-                          {showMessage === idx && (
-                            <div className="mt-2 p-3 bg-gray-50 rounded-md text-sm">
-                              {status.message}
-                              {status.status === 'Shipped' && status.trackingNumber && (
-                                <div className="mt-3 bg-green-50 rounded-md">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-sm font-medium">Tracking Number:</span>
-                                    <span className="font-mono text-sm bg-white px-2 rounded border">
-                                      {status.trackingNumber}
-                                      {showTrackingInfo && status.trackingUrl && (
-                                        <div className="">
-                                          <a
-                                            href={status.trackingUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="inline-flex items-center text-sm text-blue-600 hover:underline"
-                                          >
-                                            Track Your Package
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                            </svg>
-                                          </a>
-                                        </div>
+                            {showMessage === idx && (
+                              <div className="mt-2 p-3 bg-gray-50 rounded-md text-sm">
+                                {status.message}
+                                {status.status === 'Shipped' && status.trackingNumber && (
+                                  <div className="mt-3 bg-green-50 rounded-md p-2">
+                                    <div className="flex items-center gap-2 text-md font-medium">
+                                      <span>Tracking Number:</span>
+                                      <span className="font-mono bg-white px-2 rounded border">
+                                        {status.trackingNumber}
+                                      </span>
+                                      {status.trackingUrl && (
+                                        <a
+                                          href={status.trackingUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex items-center text-blue-600 hover:underline"
+                                        >
+                                          Track Your Package
+                                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                          </svg>
+                                        </a>
                                       )}
-                                    </span>
-
+                                    </div>
                                   </div>
-                                </div>
-                              )}
+                                )}
 
-                            </div>
-                          )}
-                        </>
-                      )}
-
-                      {/* Show tracking info if available and status is Shipped */}
-                    </div>
-                  </li>
-                ))}
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </li>
+                  ))}
               </ol>
             ) : (
               <div className="text-center py-8 text-gray-500">
@@ -274,103 +310,151 @@ const OrderDetail = ({ order, onBack }) => {
             )}
           </div>
         )}
-
         {activeTab === "items" && (
-          <div className="mt-6 text-gray-800 text-[15px] space-y-6 bg-[#fefaf6] p-6 rounded-xl">
-            <h2 className="text-lg font-bold mb-4">Item Details</h2>
-
+          <div className="mt-6 text-gray-800 text-[15px] space-y-6 bg-[#fefaf6] p-2 md:p-6 rounded-xl">
+            <h2 className="text-lg font-bold mb-2">Item Details</h2>
             {/* Product Card */}
             {orderData.products.map((product, index) => (
-              <div key={index} className="flex gap-4 items-start">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-24 h-24 object-cover rounded-lg border"
-                />
-                <div>
-                  <h3 className="font-semibold text-lg">{product.name}</h3>
-                  <p className="text-gray-700"><span className="font-medium">Price :</span> ₹{product.price}</p>
-                  <p className="text-gray-700"><span className="font-medium">Size :</span> {product.size || "N/A"}</p>
+              <div key={index} className="flex flex-col md:flex-row gap-2 items-start justify-between border bg-gray-100 rounded p-2">
+                <div className="flex items-center gap-2">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-24 h-24 object-cover rounded-lg border"
+                  />
+                  <div>
+                    <h3 className="font-semibold text-lg">{product.name}</h3>
+                    <p className="text-gray-700"><span className="font-medium">Price :</span> ₹{product.price}</p>
+                    <p className="text-gray-700"><span className="font-medium">Size :</span> {product.size || "N/A"}</p>
+                    <p className="text-gray-700 flex items-center gap-2"> Color :
+                      <p className="text-gray-700 flex items-center gap-2">
+                        Color :
+                        <span
+                          className="inline-block w-6 h-6 border-2 border-black rounded-full"
+                          style={{ backgroundColor: product.color || '#ccc' }}
+                          title={product.color || 'N/A'}
+                        ></span>
+                      </p>
+                    </p>
+                    <p className="text-gray-700"> Quantity :<span className="font-medium"> {product.qty}</span></p>
+                  </div>
+                </div>
+                {/* Payment & Order Info */}
+                <div className="">
+                  <div className="rounded-lg">
+                    <h3 className="font-semibold mb-2">Payment Information</h3>
+                    <div className="space-y-1 text-sm">
+                      <p><span className="text-gray-600">Payment Method:</span> {orderData.paymentMethod || orderData.payment || 'N/A'}</p>
+                      <p><span className="text-gray-600">Payment Status:</span> <span className={`px-2 py-0.5 rounded text-xs ${orderData.status === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                        }`}>{orderData.status}</span></p>
+                      {orderData.transactionId && (
+                        <p className="truncate"><span className="text-gray-600">Transaction ID:</span> {orderData.transactionId}</p>
+                      )}
+                      {orderData.razorpayOrderId && (
+                        <p className="truncate"><span className="text-gray-600">Razorpay Order ID:</span> {orderData.razorpayOrderId}</p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
 
             {/* Divider */}
             <hr className="my-6 border-gray-300" />
-
-            {/* Summary */}
-            {/* Summary Section */}
-            <div className="mt-6 w-full border-t pt-4">
-              <div className="space-y-2 text-[15px] max-w-md">
+            <div className="p-4 rounded-lg">
+              <h3 className="font-semibold mb-3 text-md">Order Summary</h3>
+              <div className="space-y-2 text-[15px]">
                 <div className="flex justify-between">
-                  <span className="text-gray-600 font-medium">Total Price</span>
-                  <span className="text-black font-semibold">+ ₹{orderData.subTotal}</span>
+                  <span>Subtotal ({orderData.products?.reduce((sum, item) => sum + item.qty, 0)} items):</span>
+                  <span>₹{orderData.subTotal?.toFixed(2)}</span>
                 </div>
+                {orderData.totalDiscount > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <span>Discount ({orderData.promoCode}):</span>
+                    <span>-₹{orderData.totalDiscount?.toFixed(2)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
-                  <span className="text-green-600 font-medium">Total Discounts</span>
-                  <span className="text-green-700 font-semibold">- ₹{orderData.totalDiscount}</span>
+                  <span>Tax (GST):</span>
+                  <span>₹{orderData.totalTax?.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between border-t pt-3 mt-2">
-                  <span className="font-bold text-gray-800">Order Total</span>
-                  <span className="font-bold text-lg text-black">₹{orderData.cartTotal}</span>
+                <div className="flex justify-between border-t pt-2 mt-2">
+                  <span className="font-medium">Shipping:</span>
+                  <span>{orderData.shippingCost ? `₹${orderData.shippingCost.toFixed(2)}` : 'Free'}</span>
+                </div>
+                <div className="flex justify-between font-semibold text-lg pt-2 border-t mt-2">
+                  <span>Total Amount:</span>
+                  <span>₹{orderData.cartTotal?.toFixed(2)}</span>
                 </div>
               </div>
+
+
+
             </div>
 
           </div>
         )}
-
         {activeTab === "courier" && (
           <div className="mt-6 text-gray-700 text-[15px]">Courier section (implement as needed)</div>
         )}
         {activeTab === "receiver" && (
           <div className="mt-6 text-gray-700 text-[15px]">Receiver section (implement as needed)</div>
         )}
-      </div>
+      </div >
 
       {/* Return Request Modal */}
-      {showReturnRequest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Return Request</h2>
-              <button
-                onClick={() => setShowReturnRequest(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+      {
+        showReturnRequest && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">Return Request</h2>
+                <button
+                  onClick={() => setShowReturnRequest(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <ReturnRequest orderId={orderData.orderId} onClose={() => setShowReturnRequest(false)} />
             </div>
-            <ReturnRequest orderId={orderData.orderId} onClose={() => setShowReturnRequest(false)} />
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Cancel Order Modal */}
-      {showCancelOrder && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Cancel Order</h2>
-              <button
-                onClick={() => setShowCancelOrder(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+      {
+        showCancelOrder && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">Cancel Order</h2>
+                <button
+                  onClick={() => setShowCancelOrder(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <CancelOrder
+                order={orderData}
+                orderId={orderData.orderId || orderData._id}
+                onClose={() => setShowCancelOrder(false)}
+                onSubmitStart={() => {
+                  setIsCancelling(true);
+                }}
+                onSubmitComplete={() => {
+                  setIsCancelling(false);
+                }}
+              />
             </div>
-            <CancelOrder
-              order={orderData}
-              orderId={orderData.orderId || orderData._id}
-              onClose={() => setShowCancelOrder(false)}
-            />
           </div>
-        </div>
-      )}
+        )
+      }
     </>
   );
 };

@@ -79,7 +79,7 @@ const MenuBar = (props) => {
             fetch("/api/getAllMenuItems")
                 .then(res => res.json())
                 .then(data => {
-                    console.log(data)
+                    // console.log(data)
                     let arr = Array.isArray(data) ? data : (Array.isArray(data.packages) ? data.packages : []);
                     setMenuItems(arr.filter(item => item.active));
                 });

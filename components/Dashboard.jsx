@@ -15,7 +15,7 @@ import Chat from "./Chat";
 
 const sections = [
   { key: "orders", label: "Order Overview" },
-  { key: "cancel", label: "Cancel Order" },
+  // { key: "cancel", label: "Cancel Order" },
   { key: "chatbot", label: "Chat With Admin" },
   { key: "track", label: "Track Order" },
 ];

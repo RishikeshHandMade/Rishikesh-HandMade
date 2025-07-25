@@ -104,21 +104,7 @@ export default function ProductDetailView({ product }) {
 
   // console.log(product)
   const [selectedImage, setSelectedImage] = React.useState(product?.gallery?.mainImage?.url || []);
-  const [isZoomed, setIsZoomed] = React.useState(false);
-  const [zoomPosition, setZoomPosition] = React.useState({ x: 50, y: 50 });
 
-  const handleMouseMove = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    setZoomPosition({ x, y });
-  };
-
-  const handleMouseEnter = () => setIsZoomed(true);
-  const handleMouseLeave = () => {
-    setIsZoomed(false);
-    setZoomPosition({ x: 50, y: 50 });
-  };
   const [quantity, setQuantity] = React.useState(1);
   const [showSizeChart, setShowSizeChart] = React.useState(false);
   const [selectedSize, setSelectedSize] = React.useState(null);
@@ -259,10 +245,6 @@ export default function ProductDetailView({ product }) {
                 {allImages.map((img, idx) => (
                   <CarouselItem key={idx} className="flex items-center justify-center h-full">
                     <div className="relative w-full h-[420px] md:h-[500px] flex items-center justify-center"
-                      onMouseMove={handleMouseMove}
-                      onMouseEnter={handleMouseEnter}
-                      onMouseLeave={handleMouseLeave}
-                      style={{ cursor: isZoomed ? 'zoom-out' : 'zoom-in' }}
                     >
                       <Image
                         src={img}
@@ -276,11 +258,7 @@ export default function ProductDetailView({ product }) {
                           width: '100%',
                           height: '100%',
                           transition: 'transform 0.3s',
-                          transform:
-                            isZoomed && activeImageIdx === idx
-                              ? `scale(1.5) translate(${-zoomPosition.x + 50}%, ${-zoomPosition.y + 50}%)`
-                              : 'scale(1) translate(0, 0)',
-                          pointerEvents: 'none',
+                          
                         }}
                       />
                     </div>

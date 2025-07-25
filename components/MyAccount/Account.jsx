@@ -78,7 +78,7 @@ export default function Account({ session, user, orders, customOrders, enquiries
                 });
             }
         } catch (error) {
-            console.error("Failed to fetch chat data:", error);
+            // console.error("Failed to fetch chat data:", error);
         } finally {
             setIsRefreshing(false);
         }

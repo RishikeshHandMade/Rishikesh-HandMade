@@ -69,11 +69,11 @@ const ReturnRequest = ({ order: propOrder, orderId, onClose }) => {
         
       setSelectedItems(itemIds);
     } catch (error) {
-      console.error('Error in fetchOrderDetails:', {
-        error,
-        message: error.message,
-        stack: error.stack,
-      });
+      // console.error('Error in fetchOrderDetails:', {
+      //   error,
+      //   message: error.message,
+      //   stack: error.stack,
+      // });
       toast.error(`Failed to load order details: ${error.message}`);
     } finally {
       setLoading(false);
@@ -146,7 +146,7 @@ const ReturnRequest = ({ order: propOrder, orderId, onClose }) => {
   // }
 
   if (!order) {
-    console.log('No order data yet, showing loading state');
+    // console.log('No order data yet, showing loading state');
     return (
       <div className="p-6 text-center">
         <p className="text-gray-600">Loading order details...</p>

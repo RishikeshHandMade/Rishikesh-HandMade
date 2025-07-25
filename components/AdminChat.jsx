@@ -242,7 +242,7 @@ export default function AdminChat() {
                 toast.error(errorData.message || "Failed to update status.");
             }
         } catch (error) {
-            console.error("Update error:", error);
+            // console.error("Update error:", error);
             toast.error("Network error while updating status.");
         }
     };

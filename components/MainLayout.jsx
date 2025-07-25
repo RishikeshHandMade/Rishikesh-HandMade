@@ -37,7 +37,7 @@ export default function MainLayout({ children }) {
                     setPolicy([]);
                 }
             } catch (error) {
-                console.error("Failed to fetch policies:", error);
+                // console.error("Failed to fetch policies:", error);
             }
         }
 

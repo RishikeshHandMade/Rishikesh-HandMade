@@ -136,7 +136,7 @@ export default function ReviewModal({ open, onClose, onSubmit, artisan, type = '
     setIsSubmitting(true);
 
     try {
-      console.log('Submitting review with payload:', payload);
+      // console.log('Submitting review with payload:', payload);
       const response = await fetch("/api/saveReviews", {
         method: "POST",
         headers: { 
@@ -149,7 +149,7 @@ export default function ReviewModal({ open, onClose, onSubmit, artisan, type = '
       const responseData = await response.json().catch(() => ({}));
       
       if (!response.ok) {
-        console.error('Server validation error:', responseData);
+        // console.error('Server validation error:', responseData);
         throw new Error(responseData.message || "Failed to submit review. Please try again.");
       }
 
@@ -172,7 +172,7 @@ export default function ReviewModal({ open, onClose, onSubmit, artisan, type = '
       }
       
     } catch (error) {
-      console.error("Error submitting review:", error);
+      // console.error("Error submitting review:", error);
       toast.error(`Failed to submit review: ${error.message}`, {
         id: toastId
       });

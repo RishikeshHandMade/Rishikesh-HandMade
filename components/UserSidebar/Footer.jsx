@@ -27,7 +27,7 @@ const Footer = ({ className = "" }) => {
                 const data = await response.json()
                 setPages(data.pages)
             } catch (error) {
-                console.error("Error fetching pages:", error)
+                // console.error("Error fetching pages:", error)
             }
         }
         fetchPages()

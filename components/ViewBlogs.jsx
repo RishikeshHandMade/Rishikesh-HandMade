@@ -7,7 +7,7 @@ const ViewBlogs = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [visibleCount, setVisibleCount] = useState(6);
-  console.log(blogs)
+  // console.log(blogs)
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
