@@ -230,9 +230,7 @@ const EnquiryOrder = () => {
                   <td className="p-3 text-center">{order.datePurchased ? new Date(order.datePurchased).toLocaleString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}</td>
                   {/* <td className="p-3 max-w-xs truncate">{order.address}</td> */}
                   <td className="p-3 text-center flex gap-2 justify-center">
-                    <button className="p-2 rounded hover:bg-blue-100" title="View" onClick={() => setViewOrder(order)}><Eye className="text-blue-600" size={18} /></button>
-                    <button className="p-2 rounded hover:bg-green-100" title="Edit"><Edit className="text-green-600" size={18} /></button>
-                    <button className="p-2 rounded hover:bg-red-100" title="Delete"><Trash2 className="text-red-600" size={18} /></button>
+                    <button className="py-2 rounded hover:bg-blue-100" title="View" onClick={() => setViewOrder(order)}><Eye className="text-blue-600" size={18} /></button>
                   </td>
                 </tr>
               ))}

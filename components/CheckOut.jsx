@@ -152,490 +152,217 @@ const CheckOut = () => {
   const [confirmedPaymentMethod, setConfirmedPaymentMethod] = useState(null);
   const [shipping, setShipping] = useState('free');
   // Load cart data from localStorage and handle authentication state
-
   const handleOnlinePaymentWithOrder = async (finalAmount, cart, customer, setLoading, setError, routerInstance, checkoutData, formFields, user) => {
     setLoading(true);
     setError(null);
+    
     try {
-      // Build a robust payload for Razorpay order creation (and DB save)
-      const payload = {
-        userId: user?._id,
-        name: formFields.fullName || (formFields.firstName ? `${formFields.firstName} ${formFields.lastName}` : undefined),
-        email: formFields.email,
-        phone: formFields.mobile || formFields.phone,
-        address: formFields.address || [formFields.street, formFields.city, formFields.district, formFields.state, formFields.pincode].filter(Boolean).join(', '),
-        apartment: formFields.apartment,
-        city: formFields.city,
-        state: formFields.state,
-        pincode: formFields.pincode,
-        products: cart.map(item => ({
-          productId: item._id,
-          name: item.name,
-          price: item.price,
-          qty: item.quantity,  // Changed from quantity to qty to match model
-          image: item.image?.url || item.image,
-          color: item.color,
-          size: item.size
-      })),
-        amount: finalAmount, // in rupees
-        currency: "INR",
-        receipt: generateOrderId(),
-        agree: true, // Always set agree true for online orders
-        orderId: checkoutData?.orderId, // pass consistent orderId
-        transactionId: checkoutData?.transactionId // pass consistent transactionId
+      // 1. Validate input
+      if (!cart || !Array.isArray(cart) || cart.length === 0) {
+        // If cart is empty but we're in buy now mode, try to get the product from localStorage
+        if (formFields?.isBuyNow || checkoutData?.isBuyNow) {
+          const buyNowProductRaw = typeof window !== 'undefined' ? localStorage.getItem('buyNowProduct') : null;
+          if (buyNowProductRaw) {
+            const buyNowProduct = JSON.parse(buyNowProductRaw);
+            cart = [{
+              ...buyNowProduct,
+              qty: Number(buyNowProduct.qty) || 1,
+              price: Number(buyNowProduct.price) || 0,
+              originalPrice: Number(buyNowProduct.originalPrice) || Number(buyNowProduct.price) || 0,
+              color: buyNowProduct.color || '',
+              size: buyNowProduct.size || '',
+              weight: Number(buyNowProduct.weight) || 0,
+              cgst: Number(buyNowProduct.cgst) || 0,
+              sgst: Number(buyNowProduct.sgst) || 0,
+              image: typeof buyNowProduct.image === 'string' 
+                ? buyNowProduct.image 
+                : buyNowProduct.image?.url || ''
+            }];
+          }
+        }
+        
+        // If cart is still empty after checking for buy now product, throw error
+        if (!cart || cart.length === 0) {
+          throw new Error('Cart is empty or invalid');
+        }
+      }
+  
+      // 2. Prepare products array with validation
+      const products = cart.map(item => {
+        const productId = item._id || item.productId || item.id;
+        if (!productId) {
+          console.error('Invalid product in cart:', item);
+          throw new Error('One or more products in cart are invalid');
+        }
+  
+        // Handle image URL - ensure it's always a string
+        let imageUrl = '';
+        if (typeof item.image === 'string') {
+          imageUrl = item.image;
+        } else if (item.image?.url) {
+          imageUrl = item.image.url;
+        }
+  
+        return {
+          _id: productId,
+          productId,
+          name: item.name || 'Product',
+          price: Number(item.price) || 0,
+          qty: Number(item.qty) || 1,
+          image: imageUrl,
+          color: String(item.color || ''),
+          size: String(item.size || ''),
+          weight: Number(item.weight) || 0,
+          cgst: Number(item.cgst) || 0,
+          sgst: Number(item.sgst) || 0,
+          originalPrice: Number(item.originalPrice) || Number(item.price) || 0,
+          discountAmount: Number(item.discountAmount) || 0,
+          discountPercent: Number(item.discountPercent) || 0
+        };
+      });
+  
+      // 3. Prepare customer data
+      const customerName = formFields.firstName 
+        ? `${formFields.firstName} ${formFields.lastName || ''}`.trim() 
+        : customer.name || '';
+  
+      const customerData = {
+        name: customerName,
+        email: formFields.email || customer.email || '',
+        phone: formFields.phone || customer.phone || '',
+        address: [
+          formFields.street,
+          formFields.city,
+          formFields.district,
+          formFields.state,
+          formFields.pincode
+        ].filter(Boolean).join(', ')
       };
-      let orderResponse;
-      console.log(payload)
-      try {
-        orderResponse = await axios.post("/api/razorpay", payload);
-      } catch (error) {
-        // console.error('Order creation error:', error, error?.response?.data);
-        setError(error?.response?.data?.error || error.message || 'Order creation failed.');
-        setLoading(false);
-        return;
+  
+      // 4. Create order in backend and get Razorpay order
+      const response = await fetch('/api/razorpay', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          amount: Number(finalAmount),
+          currency: 'INR',
+          receipt: generateOrderId(),
+          products,
+          customer: customerData
+        })
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to create Razorpay order');
       }
-      // console.log('Backend response for order creation:', orderResponse.data);
-      if (orderResponse.data.error) {
-        setError(orderResponse.data.error);
-        setLoading(false);
-        return;
-      }
-      const { id: razorpayOrderId, orderId } = orderResponse.data;
+  
+      const orderData = await response.json();
+      const { id: razorpayOrderId, orderId } = orderData;
+  
       if (!razorpayOrderId) {
-        setError('Order creation failed. No order ID returned.');
-        setLoading(false);
-        return;
+        throw new Error('Order creation failed. No order ID returned from server.');
       }
-      // 3. Load Razorpay script
+  
+      // 5. Load Razorpay script
       const loaded = await loadRazorpayScript();
       if (!loaded) {
-        setError('Failed to load Razorpay SDK.');
-        setLoading(false);
-        return;
+        throw new Error('Failed to load Razorpay SDK. Please try again.');
       }
-      // 4. Open Razorpay modal
+  
+      // 6. Open Razorpay payment modal
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: finalAmount * 100,
+        amount: Math.round(Number(finalAmount) * 100), // Convert to paise
         currency: "INR",
         name: "Rishikesh Handmade",
         description: "Order Payment",
         order_id: razorpayOrderId,
-        handler: async (response) => {
-          // Always pass the same orderId/transactionId as generated above
-          response.orderId = checkoutData?.orderId;
-          response.transactionId = checkoutData?.transactionId;
-          // console.log("Razorpay handler called", response);
-
-          // Update quantities after successful payment by creating a temporary order
-          // This reuses the same logic as the COD flow
-          try {
-            // Create a temporary order payload with the same structure as COD
-            const tempOrderPayload = {
-              products: cart.map(item => {
-                // Extract product ID from either direct property, quantity object, or _id
-                const productId = item.id || item._id || (item.quantity?.product ? item.quantity.product.toString() : null);
-
-                if (!productId) {
-                  console.error('Cannot determine product ID for item:', item);
-                  return null;
-                }
-
-                return {
-                  ...item,
-                  quantity: item.quantity || item.qty || 1,
-                  // Ensure we have the required fields for the order
-                  productId: productId,
-                  _id: productId, // Also set _id for backward compatibility
-                  variantId: item.variantId || 0,
-                  price: item.price || 0,
-                  name: item.name || 'Product',
-                  image: item.image?.url || item.image || ''
-                };
-              }).filter(Boolean), // Remove any null items
-              cartTotal: finalAmount,
-              subTotal: finalAmount,
-              totalTax: 0,
-              shippingCost: 0,
-              // Customer details
-              firstName: customer.name.split(' ')[0] || '',
-              lastName: customer.name.split(' ').slice(1).join(' ') || '',
-              email: customer.email,
-              phone: customer.phone,
-              // Address details
-              street: formFields.street || '',
-              city: formFields.city || '',
-              district: formFields.district || '',
-              state: formFields.state || '',
-              pincode: formFields.pincode || '',
-              // Payment details
-              payment: 'online',
-              paymentMethod: 'online',
-              orderId: generateOrderId(),
-              transactionId: generateTransactionId(),
-              agree: true,
-              status: 'Paid'
-            };
-
-            // Call the orders API which will handle the quantity updates
-            const res = await fetch('/api/orders', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(tempOrderPayload)
-            });
-
-            if (!res.ok) {
-              const errorData = await res.json().catch(() => ({}));
-              console.error('Failed to update quantities via order API:', errorData);
-            }
-          } catch (error) {
-            console.error('Error updating quantities after payment:', error);
-            // Don't fail the payment if quantity update fails, just log it
-          }
-          toast.dismiss();
-          try {
-            // 5. Verify payment and update order in DB
-            try {
-              const verificationResponse = await axios.put("/api/razorpay", {
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_signature: response.razorpay_signature,
-                // Send all order/cart/form details for backend merge
-                cart,
-                checkoutData,
-                formFields,
-                user,
-                agree: true, // Always set agree true for online orders
-                // You can add any other info needed for a complete order
-              });
-
-              if (verificationResponse.data && verificationResponse.data.success) {
-                setError(null);
-
-                // Check if this is a buy-now order
-                const isBuyNow = typeof window !== "undefined" &&
-                  new URLSearchParams(window.location.search).get('mode') === 'buy-now';
-
-                if (isBuyNow) {
-                  // Only clear buy-now specific data
-                  localStorage.removeItem("buyNowItem");
-                  // Clear cart context but keep the actual cart items
-                  if (setCart) setCart(contextCart.filter(item => !item.isBuyNow));
-                } else {
-                  // For regular cart checkout, clear everything
-                  const cartCleared = await clearCart();
-                  localStorage.removeItem("cart");
-                  localStorage.removeItem("checkoutCart");
-                  localStorage.removeItem("checkoutData");
-                  Object.keys(localStorage).forEach(key => {
-                    if (key.startsWith('cart_')) {
-                      localStorage.removeItem(key);
-                    }
-                  });
-                }
-                try {
-                  const orderData = verificationResponse.data.order || {};
-                  const customerEmail = (formFields && formFields.email) || (user && user.email) || (customer && customer.email);
-                  const firstName = (formFields && formFields.firstName) || (user && user.firstName) || '';
-                  await fetch('/api/brevo', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      to: customerEmail,
-                      subject: 'Order Confirmation',
-                      htmlContent: `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Invoice</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f8f9fa;
-      margin: 0;
-      padding: 0;
-    }
-
-    .container {
-      max-width: 720px;
-      margin: 0 auto;
-      background: white;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .header {
-      background:rgb(146, 165, 208);
-      color: white;
-      text-align: center;
-      padding: 20px;
-    }
-
-    .header img {
-      width: 60px;
-      margin-bottom: 8px;
-    }
-
-    .header .brand {
-      font-size: 20px;
-      font-weight: bold;
-    }
-
-    .header .contact {
-      font-size: 13px;
-      margin-top: 8px;
-      color: #93c5fd;
-    }
-
-    .header .invoice-details {
-      font-size: 13px;
-      color: #cbd5e1;
-      margin-top: 10px;
-    }
-
-    .info-section {
-      display: flex;
-      justify-content: space-between;
-      padding: 20px;
-      font-size: 14px;
-      flex-wrap: wrap;
-    }
-
-    .info-section h3 {
-      margin-bottom: 6px;
-      color: #0369a1;
-    }
-
-    .info-section > div {
-      width: 48%;
-    }
-
-    .table-container {
-      padding: 0 20px 20px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-
-    thead {
-      background-color: #f3f4f6;
-    }
-
-    th, td {
-      border: 1px solid #e5e7eb;
-      padding: 10px;
-      text-align: left;
-    }
-
-    .product-img {
-      width: 60px;
-      height: 60px;
-      object-fit: cover;
-      border-radius: 6px;
-    }
-
-    .summary {
-      padding: 0 20px 20px;
-      text-align: right;
-      font-size: 14px;
-    }
-
-    .summary p {
-      margin: 4px 0;
-    }
-
-    .summary strong {
-      color: #0f766e;
-    }
-
-    .note {
-      padding: 10px 20px;
-      font-size: 12px;
-      color: #6b7280;
-      border-top: 1px solid #e5e7eb;
-    }
-
-    .cta {
-      text-align: center;
-      padding: 20px;
-    }
-
-    .cta a {
-      background: #10b981;
-      color: white;
-      padding: 10px 24px;
-      text-decoration: none;
-      border-radius: 6px;
-      font-weight: bold;
-    }
-
-    /* --- Mobile Responsive Fixes --- */
-    @media only screen and (max-width: 600px) {
-  .table-container {
-    overflow-x: auto;
-  }
-
-  table {
-    min-width: 600px;
-  }
-
-  .product-img {
-    width: 60px;
-    height: 60px;
-    object-fit: cover;
-    border-radius: 6px;
-  }
-
-  .info-section {
-    flex-direction: column;
-  }
-
-  .info-section > div {
-    width: 100%;
-    margin-bottom: 12px;
-  }
-
-  .header {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .header-left, .header-right {
-    text-align: center;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-
-    <!-- Header -->
-    <div class="header">
-      <img src="https://rishikeshhandmade.com/logo.png" alt="Logo" />
-      <div class="brand">Rishikesh HandMade</div>
-      <div class="contact">📞 +91 9876543210 | ✉ rishikeshhandmade@gmail.com</div>
-      <div class="invoice-details">
-        Invoice No: #${orderId} <br />
-        Invoice Date: ${new Date().toLocaleDateString()}
-      </div>
-    </div>
-
-    <!-- Billing Info -->
-    <div class="info-section">
-      <div>
-        <h3>Invoice To:</h3>
-        <p>${firstName} ${lastName}</p>
-        <p>${checkoutData.address || ''}</p>
-        <p>${checkoutData.city || ''}, ${checkoutData.state || ''} ${checkoutData.pincode || ''}</p>
-        <p>${checkoutData.country || 'India'}</p>
-      </div>
-      <div>
-        <h3>Pay To:</h3>
-        <p>Rishikesh HandMade</p>
-        <p>Upper Road Dhalwala (Rishikesh)</p>
-        <p>Tehri Garhwal, Uttarakhand 249201</p>
-        <p>India</p>
-      </div>
-    </div>
-
-    <!-- Products Table -->
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th>Image</th>
-            <th>Service</th>
-            <th>Qty</th>
-            <th>Price</th>
-            <th>Total</th>
-          </tr>
-        </thead>
-       <tbody>
-  ${Array.isArray(checkoutData?.cart) ? checkoutData.cart.map(item => `
-    <tr>
-      <td><img src="${item.image?.url || item.image}" class="product-img" alt="${item.name}" /></td>
-      <td>${item.name}</td>
-      <td>${item.qty || 1}</td>
-      <td>₹${Number(item.price).toFixed(2)}</td>
-      <td>₹${(item.qty * item.price).toFixed(2)}</td>
-    </tr>
-  `).join('') : ''}
-</tbody>
-      </table>
-    </div>
-
-    <!-- Summary -->
-    <div class="summary">
-      <p>Subtotal: ₹${checkoutData.cartTotal?.toFixed(2) || '0.00'}</p>
-      <p>Tax: ₹${((checkoutData.cartTotal || 0)).toFixed(2)}</p>
-      <p><strong>Grand Total: ₹${((checkoutData.cartTotal || 0)).toFixed(2)}</strong></p>
-    </div>
-
-    <!-- CTA -->
-    <div class="cta">
-      <a href="https://rishikeshhandmade.com/dashboard?section=orders">Go to Dashboard</a>
-    </div>
-
-  </div>
-</body>
-</html>
-`
-                    })
-                  });
-                } catch (emailError) {
-                  // Don't block order completion if email fails
-                }
-                if (routerInstance && orderId) {
-                  // Clear localStorage after successful payment
-                  let isBuyNow = false;
-                  if (typeof window !== 'undefined') {
-                    const params = new URLSearchParams(window.location.search);
-                    isBuyNow = params.get('mode') === 'buy-now';
-                    if (isBuyNow) {
-                      localStorage.removeItem('buyNowProduct');
-                    } else {
-                      localStorage.removeItem('checkoutCart');
-                      localStorage.removeItem('cart');
-                    }
-                  }
-                  setShowConfirmationModal(true);
-                  setOrderId(orderId);
-                  // console.log('[Razorpay Handler] Modal set: showConfirmationModal = true, recentOrderId =', orderId);
-                  return;
-                }
-              } else {
-                setError(verificationResponse.data?.error || 'Payment verification or order update failed!');
-                toast.error(verificationResponse.data?.error || 'Payment verification or order update failed!');
-                return;
-              }
-            } catch (err) {
-              setError('Payment verification or order update failed!');
-              toast.error('Payment verification or order update failed!');
-            }
-          } catch (error) {
-            setError(error.message || 'Payment failed. Please try again.');
+        handler: createPaymentHandler(cart, checkoutData, formFields, user, orderId, setError, setShowConfirmationModal, setOrderId, routerInstance),
+        prefill: {
+          name: customerData.name,
+          email: customerData.email,
+          contact: customerData.phone,
+        },
+        theme: { 
+          color: "#3399cc" 
+        },
+        modal: {
+          ondismiss: () => {
             setLoading(false);
           }
-        },
-        prefill: {
-          name: payload.name,
-          email: payload.email,
-          contact: payload.phone,
-        },
-        theme: { color: "#3399cc" },
+        }
       };
+  
       const rzp = new window.Razorpay(options);
       rzp.open();
-      setLoading(false);
+  
     } catch (error) {
-      setError(error.message || 'Payment failed. Please try again.');
+      console.error('Payment error:', error);
+      setError(error.message || 'Payment processing failed. Please try again.');
       setLoading(false);
     }
-
-  }
+  };
+  
+  // Separate handler function for better organization
+  const createPaymentHandler = (cart, checkoutData, formFields, user, orderId, setError, setShowConfirmationModal, setOrderId, routerInstance) => {
+    return async (response) => {
+      try {
+        // 1. Verify payment with backend
+        const verificationResponse = await fetch("/api/razorpay", {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_signature: response.razorpay_signature,
+            cart,
+            checkoutData,
+            formFields,
+            user,
+            agree: true
+          })
+        });
+  
+        if (!verificationResponse.ok) {
+          const errorData = await verificationResponse.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Payment verification failed');
+        }
+  
+        const verificationData = await verificationResponse.json();
+        
+        if (!verificationData.success) {
+          throw new Error(verificationData.error || 'Payment verification failed');
+        }
+  
+        // 2. Handle successful payment
+        setError(null);
+        setShowConfirmationModal(true);
+        setOrderId(orderId);
+  
+        // 3. Clear cart and local storage
+        const isBuyNow = typeof window !== "undefined" && 
+          new URLSearchParams(window.location.search).get('mode') === 'buy-now';
+  
+        if (isBuyNow) {
+          localStorage.removeItem("buyNowItem");
+        } else {
+          localStorage.removeItem("checkoutCart");
+          localStorage.removeItem("cart");
+        }
+  
+        // 4. Show order overview instead of redirecting
+        setShowOverview(true);
+  
+      } catch (error) {
+        console.error('Payment verification error:', error);
+        setError(error.message || 'Payment verification failed');
+      }
+    };
+  };
   useEffect(() => {
     // Detect buy-now mode from URL
     let isBuyNow = false;
@@ -1077,15 +804,37 @@ const CheckOut = () => {
 
       return {
         ...item,
-        quantity: item.qty || 1,
+        // Core product info
+        id: productId,
         productId: productId,
         _id: productId,
         variantId: variantId,
-        price: item.price || 0,
         name: item.name || 'Product',
-        image: item.image,
-        weight: item.weight,
-        shipping: item.shipping,
+        qty: item.qty || 1,
+        price: item.price || 0,
+        originalPrice: item.originalPrice || item.price || 0,
+
+        // Product details
+        image: item.image || { url: '', key: '' },
+        color: item.color || '',
+        size: item.size || '',
+        productCode: item.productCode || '',
+        weight: item.weight || 0,
+        totalQuantity: item.totalQuantity || 0,
+
+        // Tax and pricing
+        cgst: item.cgst || 0,
+        sgst: item.sgst || 0,
+        discountAmount: item.discountAmount || 0,
+        discountPercent: item.discountPercent || 0,
+
+        // Coupon info
+        couponApplied: item.couponApplied || false,
+        couponCode: item.couponCode || '',
+
+        // Additional fields
+        shipping: item.shipping || {},
+        quantity: item.qty || 1 // Keep for backward compatibility
       };
     });
 
@@ -1383,32 +1132,130 @@ const CheckOut = () => {
       let orderId = checkoutData?.orderId;
       let transactionId = checkoutData?.transactionId;
 
+      // Check for buy now product in localStorage
+      const buyNowProductRaw = typeof window !== 'undefined' ? localStorage.getItem('buyNowProduct') : null;
+      const isBuyNow = buyNowProductRaw !== null;
+      
+      // Get products based on mode (buy now or regular cart)
+      let productsToProcess = [];
+      
+      if (isBuyNow) {
+        // Parse buy now product and add to products array
+        const buyNowProduct = JSON.parse(buyNowProductRaw);
+        if (buyNowProduct) {
+          productsToProcess = [{
+            ...buyNowProduct,
+            // Ensure required fields
+            qty: Number(buyNowProduct.qty) || 1,
+            price: Number(buyNowProduct.price) || 0,
+            originalPrice: Number(buyNowProduct.originalPrice) || Number(buyNowProduct.price) || 0,
+            color: buyNowProduct.color || '',
+            size: buyNowProduct.size || '',
+            weight: Number(buyNowProduct.weight) || 0,
+            cgst: Number(buyNowProduct.cgst) || 0,
+            sgst: Number(buyNowProduct.sgst) || 0,
+            // Handle image URL
+            image: typeof buyNowProduct.image === 'string' 
+              ? buyNowProduct.image 
+              : buyNowProduct.image?.url || ''
+          }];
+        }
+      } else {
+        // Use regular cart items
+        productsToProcess = [...contextCart];
+      }
+
       if (confirmedPaymentMethod === 'cod') {
         // Always generate unique orderId for COD using shared generator
         orderId = generateOrderId();
         transactionId = orderId; // For COD, transactionId is same as orderId
         setPaymentMethod('cod');
-        const orderPayload = buildOrderPayload({
-          cart: contextCart,
-          checkoutData,
-          ...formFields,
-          payment: 'cod',
+        // Prepare products with proper image URL handling
+        const preparedProducts = productsToProcess.map(item => ({
+          ...item,
+          // Ensure image is a string URL
+          image: typeof item.image === 'string'
+            ? item.image
+            : item.image?.url || '',
+          // Ensure required fields have defaults
+          qty: item.qty || 1,
+          price: item.price || 0,
+          color: item.color || '',
+          size: item.size || ''
+        }));
+
+        // Calculate shipping cost - use the most reliable source
+        const shippingCost = Number(
+          checkoutData?.shippingCost || 
+          checkoutData?.shipping || 
+          checkoutData?.finalShipping || 
+          0
+        );
+
+        // Prepare complete order data
+        const orderData = {
+          ...buildOrderPayload({
+            cart: preparedProducts,
+            checkoutData: {
+              ...checkoutData,
+              // Ensure these fields exist with proper fallbacks
+              cartTotal: checkoutData?.cartTotal || 0,
+              subTotal: checkoutData?.subTotal || 0,
+              totalDiscount: checkoutData?.totalDiscount || 0,
+              totalTax: checkoutData?.totalTax || checkoutData?.taxTotal || 0,
+              // Use the calculated shipping cost
+              shippingCost: shippingCost,
+            },
+            ...formFields,
+            payment: 'cod',
+            paymentMethod: 'cod',
+            paymentMethodValue: 'cod',
+            transactionId,
+            orderId,
+            agree: true,
+            statusValue: 'Pending'
+          }),
+          // Include additional required fields
+          items: preparedProducts.map(item => ({
+            ...item,
+            productId: item._id || item.productId,
+            variantId: item.variantId || 0,
+            quantity: item.qty || 1,
+            price: item.price || 0,
+            total: (item.price || 0) * (item.qty || 1),
+            // Include additional product details
+            originalPrice: item.originalPrice || item.price || 0,
+            color: item.color || '',
+            size: item.size || '',
+            weight: item.weight || 0,
+            cgst: item.cgst || 0,
+            sgst: item.sgst || 0,
+            discountAmount: item.discountAmount || 0,
+            discountPercent: item.discountPercent || 0
+          })),
+          // Ensure these fields are included
+          status: 'Pending',
+          paymentStatus: 'Pending',
           paymentMethod: 'cod',
-          paymentMethodValue: 'cod',
-          transactionId,
-          orderId,
-          agree,
-        });
+          isBuyNow: isBuyNow,
+          datePurchased: new Date().toISOString()
+        };
+        // console.log('Sending order data:', JSON.stringify(orderData, null, 2));
         const res = await fetch('/api/orders', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(orderPayload)
+          body: JSON.stringify(orderData)
         });
         const data = await res.json();
         if (!data.orderId) {
           setError('Order creation failed.');
           setLoading(false);
           return;
+        }
+        
+        // Clear buy now product from localStorage if this was a buy now order
+        if (isBuyNow && typeof window !== 'undefined') {
+          localStorage.removeItem('buyNowProduct');
         }
         // Optionally send confirmation email here
         try {
@@ -1503,7 +1350,7 @@ const CheckOut = () => {
             });
           }
         }
-          setLoading(false);
+        setLoading(false);
         return;
       }
       // For online, always go through Razorpay handler
@@ -1514,15 +1361,43 @@ const CheckOut = () => {
           email,
           phone
         };
+        
+        // Use the prepared products array that includes buy now product if in buy now mode
+        const paymentProducts = productsToProcess.map(item => ({
+          ...item,
+          // Ensure all required fields are included
+          _id: item._id || item.productId,
+          productId: item._id || item.productId,
+          name: item.name || 'Product',
+          price: Number(item.price) || 0,
+          qty: Number(item.qty) || 1,
+          image: typeof item.image === 'string' ? item.image : item.image?.url || '',
+          color: item.color || '',
+          size: item.size || '',
+          weight: Number(item.weight) || 0,
+          cgst: Number(item.cgst) || 0,
+          sgst: Number(item.sgst) || 0,
+          originalPrice: Number(item.originalPrice) || Number(item.price) || 0
+        }));
+        
         await handleOnlinePaymentWithOrder(
           checkoutData?.cartTotal,
-          contextCart,
+          paymentProducts, // Use the prepared products array
           customer,
           setLoading,
           setError,
           router,
-          { ...checkoutData, orderId: generateOrderId(), transactionId: generateTransactionId() }, // pass IDs
-          { ...formFields, paymentMethod: 'online' },
+          { 
+            ...checkoutData, 
+            orderId: generateOrderId(), 
+            transactionId: generateTransactionId(),
+            isBuyNow // Pass buy now flag to the payment handler
+          },
+          { 
+            ...formFields, 
+            paymentMethod: 'online',
+            isBuyNow // Include in form fields as well
+          },
           session?.user
         );
         return;
@@ -1533,7 +1408,8 @@ const CheckOut = () => {
       setLoading(false);
     }
   }
-  if (showOverview) {
+  // Show order overview after successful payment or when navigating back
+  if (showOverview || showConfirmationModal) {
     return (
       <CheckOutOverview
         checkoutData={{

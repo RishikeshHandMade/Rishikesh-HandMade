@@ -13,17 +13,33 @@ const StatusHistorySchema = new Schema({
 
 const OrderSchema = new Schema({
     // Cart and products
-    products: [
-        {
-            productId: { type: Schema.Types.ObjectId, ref: "Product" },
-            name: { type: String },
-            qty: { type: Number },
-            price: { type: Number },
-            image: { type: String, },
-            color: { type: String },
-            size: { type: String }
-        }
-    ],
+    products: [{
+        // Core product info
+        _id: { type: Schema.Types.ObjectId, ref: "Product" },
+        productId: { type: Schema.Types.ObjectId, ref: "Product" },
+        id: { type: String },
+        name: { type: String, required: true },
+        qty: { type: Number, required: true},
+        price: { type: Number, required: true, min: 0 },
+        originalPrice: { type: Number, required: true, min: 0 },
+        afterDiscount: { type: Number, required: true, min: 0 },
+        
+        // Product details
+        image: { type: String, required: true },
+        color: { type: String, default: '' },
+        size: { type: String, default: '' },
+        productCode: { type: String, default: '' },
+        weight: { type: Number, default: 0 },
+        totalQuantity: { type: Number, default: 0 },
+        
+        // Tax and pricing
+        cgst: { type: Number, default: 0 },
+        sgst: { type: Number, default: 0 },
+        discountAmount: { type: Number, default: 0 },
+        discountPercent: { type: Number, default: 0 },
+        couponApplied: { type: Boolean, default: false },
+        couponCode: { type: String, default: '' }
+    }],
     // Checkout summary fields
     cartTotal: { type: Number },
     subTotal: { type: Number },

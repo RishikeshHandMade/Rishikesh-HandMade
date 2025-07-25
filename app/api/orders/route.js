@@ -14,18 +14,62 @@ export async function POST(req) {
       delete body.transactionId;
     }
 
-    // Normalize products array to always include all fields and ensure image is a string
+    // Process and validate products array
     if (Array.isArray(body.products)) {
-      body.products = body.products.map(product => ({
-        ...product,
-        image: typeof product.image === 'string'
-          ? product.image
-          : (product.image && typeof product.image === 'object' && product.image
-              ? product.image
-              : ''),
-        _id: product.productId || product._id || product.id
-      }));
+      body.products = body.products.map(product => {
+        // Handle image - ensure it's a string URL
+        let imageUrl = '';
+        if (typeof product.image === 'string') {
+          imageUrl = product.image;
+        } else if (product.image?.url) {
+          imageUrl = product.image.url;
+        } else if (Array.isArray(product.images) && product.images[0]?.url) {
+          imageUrl = product.images[0].url;
+        }
+
+        // Calculate afterDiscount if not provided
+        const price = Number(product.price) || 0;
+        const discountAmount = Number(product.discountAmount) || 0;
+        const afterDiscount = product.afterDiscount !== undefined 
+          ? Number(product.afterDiscount) 
+          : Math.max(0, price - discountAmount);
+
+        return {
+          // Core product info
+          _id: product._id || product.productId || product.id,
+          productId: product.productId || product._id || product.id,
+          id: product.id || product._id?.toString(),
+          name: product.name || 'Unnamed Product',
+          qty: Math.max(1, Number(product.qty) || 1),
+          price: price,
+          originalPrice: Number(product.originalPrice) || price,
+          afterDiscount: afterDiscount,
+          
+          // Product details
+          image: imageUrl,
+          color: product.color || '',
+          size: product.size || '',
+          productCode: product.productCode || '',
+          weight: Number(product.weight) || 0,
+          totalQuantity: Number(product.totalQuantity) || 0,
+          
+          // Tax and pricing
+          cgst: Number(product.cgst) || 0,
+          sgst: Number(product.sgst) || 0,
+          discountAmount: discountAmount,
+          discountPercent: Number(product.discountPercent) || 0,
+          couponApplied: Boolean(product.couponApplied),
+          couponCode: product.couponCode || ''
+        };
+      });
     }
+
+    // Ensure order summary fields
+    body.cartTotal = Number(body.cartTotal) || 0;
+    body.subTotal = Number(body.subTotal) || 0;
+    body.totalDiscount = Number(body.totalDiscount) || 0;
+    body.totalTax = Number(body.taxTotal) || Number(body.totalTax) || 0;
+    body.shippingCost = Number(body.shippingCost) || 0;
 
     // ✅ Save the order
     body.agree = true; // Always set agree true for all new orders

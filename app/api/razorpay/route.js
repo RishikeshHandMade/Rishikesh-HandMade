@@ -5,63 +5,280 @@ import Order from "@/models/Order"; // Import your Order model
 import connectDB from "@/lib/connectDB";
 import User from "@/models/User";
 
-const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+// Validate Razorpay credentials
+if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+    console.error('Razorpay credentials are not properly configured');
+}
+
+let razorpay;
+try {
+    razorpay = new Razorpay({
+        key_id: process.env.RAZORPAY_KEY_ID,
+        key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+} catch (error) {
+    console.error('Failed to initialize Razorpay:', error.message);
+    throw new Error('Payment service initialization failed');
+}
+
+// Helper function to validate email format
+function isValidEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(String(email).toLowerCase());
+}
 
 // 📌 Create a Razorpay Order
 export async function POST(request) {
-    await connectDB();
     try {
-        const { amount, currency, receipt, products, customer } = await request.json();
+        // Connect to database first
+        await connectDB();
+        
+        // Parse and validate request body
+        let requestBody;
+        try {
+            requestBody = await request.json();
+        } catch (e) {
+            console.error('Failed to parse request body:', e);
+            return NextResponse.json(
+                { error: 'Invalid request body' },
+                { status: 400 }
+            );
+        }
 
-        // Create Razorpay order
-        const razorpayOrder = await razorpay.orders.create({
-            amount: amount * 100, // ₹1 = 100 paise
+        const { amount, currency = 'INR', receipt, products, customer } = requestBody;
+        
+        // Basic validation
+        const missingFields = [];
+        if (amount === undefined || amount === null) missingFields.push('amount');
+        if (!receipt) missingFields.push('receipt');
+        if (!products) missingFields.push('products');
+        if (!customer) missingFields.push('customer');
+        
+        if (missingFields.length > 0) {
+            const errorMsg = `Missing required fields: ${missingFields.join(', ')}`;
+            console.error('Validation error:', errorMsg);
+            return NextResponse.json(
+                { error: errorMsg },
+                { status: 400 }
+            );
+        }
+
+        // Validate products array
+        if (!Array.isArray(products) || products.length === 0) {
+            console.error('Validation error: Products array is empty');
+            return NextResponse.json(
+                { error: 'At least one product is required' },
+                { status: 400 }
+            );
+        }
+
+        // Validate customer data
+        if (!customer.email || !isValidEmail(customer.email)) {
+            console.error('Validation error: Invalid or missing customer email');
+            return NextResponse.json(
+                { error: 'A valid email address is required' },
+                { status: 400 }
+            );
+        }
+
+        // Log the incoming request for debugging
+        console.log('Creating Razorpay order with:', {
+            amount,
             currency,
             receipt,
+            productsCount: products.length,
+            customerEmail: customer.email
         });
-        // console.log('Razorpay order creation response:', razorpayOrder);
+
+        // Create Razorpay order
+        let razorpayOrder;
+        try {
+            console.log('Creating Razorpay order with amount:', Math.round(Number(amount) * 100));
+            razorpayOrder = await razorpay.orders.create({
+                amount: Math.round(Number(amount) * 100), // Convert to paise and ensure integer
+                currency: currency.toUpperCase(),
+                receipt: receipt.toString(),
+                notes: {
+                    source: 'Rishikesh HandMade',
+                    customer_email: customer.email
+                }
+            });
+            console.log('Razorpay order created successfully:', {
+                id: razorpayOrder.id,
+                amount: razorpayOrder.amount,
+                currency: razorpayOrder.currency,
+                status: razorpayOrder.status
+            });
+        } catch (razorpayError) {
+            console.error('Razorpay order creation failed:', {
+                error: razorpayError.message,
+                code: razorpayError.error?.code,
+                description: razorpayError.error?.description,
+                field: razorpayError.error?.field
+            });
+            return NextResponse.json(
+                { 
+                    error: 'Failed to create payment order',
+                    details: process.env.NODE_ENV === 'development' ? razorpayError.message : undefined
+                }, 
+                { status: 500 }
+            );
+        }
 
         if (!razorpayOrder || !razorpayOrder.id) {
-            // console.error('Razorpay order creation failed or missing order id:', razorpayOrder);
-            return NextResponse.json({ error: 'Failed to create Razorpay order', details: razorpayOrder }, { status: 500 });
+            console.error('Razorpay order creation failed - no order ID returned:', razorpayOrder);
+            return NextResponse.json(
+                { error: 'Failed to create payment order - no order ID received' },
+                { status: 500 }
+            );
         }
 
         // Save the order in the database
-        // Use frontend-provided orderId and transactionId if present
         let dbOrder;
         try {
-            let userEmail = customer?.email;
-            dbOrder = await Order.create({
-                products: products.map(item => ({
-                    productId: item.productId || item._id,
-                    name: item.name,
-                    price: item.price,
-                    qty: item.qty || item.quantity || 1,
-                    image: item.image,
-                    color: item.color || '',
-                    size: item.size || ''
-                })),
-                customerName: customer?.name,
+            console.log('Preparing to save order to database with:', {
+                productsCount: products.length,
                 customerEmail: customer?.email,
-                customerPhone: customer?.phone,
-                address: customer?.address,
-                amount,
-                currency,
-                receipt,
-                razorpayOrderId: razorpayOrder.id,
-                orderId: razorpayOrder.id,
-                status: "Pending",
-                payment: "online",
-                paymentMethod: "razorpay",
-                agree: true, // Always set agree true for online orders
-                email: userEmail // Always set email for online orders, prefer session user
+                amount: amount,
+                receipt: receipt,
+                razorpayOrderId: razorpayOrder.id
             });
+
+            // First validate all products
+            const validatedProducts = products.map((item, index) => {
+                const productId = item.productId || item._id;
+                if (!productId) {
+                    throw new Error(`Product at index ${index} is missing an ID`);
+                }
+                
+                const price = Number(item.price) || 0;
+                const qty = Number(item.qty || item.quantity || 1);
+                
+                if (isNaN(price) || price < 0) {
+                    throw new Error(`Invalid price for product ${productId}: ${item.price}`);
+                }
+                if (isNaN(qty) || qty < 1) {
+                    throw new Error(`Invalid quantity for product ${productId}: ${item.qty}`);
+                }
+                
+                return {
+                    _id: productId,
+                    productId: productId,
+                    id: productId.toString(),
+                    name: String(item.name || 'Unnamed Product').substring(0, 100),
+                    price: price,
+                    originalPrice: Number(item.originalPrice) || price,
+                    afterDiscount: Number(item.afterDiscount) || price,
+                    qty: qty,
+                    image: String(item.image || '/default-product.png').substring(0, 500),
+                    color: String(item.color || '').substring(0, 50),
+                    size: String(item.size || '').substring(0, 20),
+                    productCode: String(item.productCode || '').substring(0, 50),
+                    weight: Math.max(0, Number(item.weight) || 0),
+                    totalQuantity: Math.max(0, Number(item.totalQuantity) || 0),
+                    cgst: Math.max(0, Number(item.cgst) || 0),
+                    sgst: Math.max(0, Number(item.sgst) || 0),
+                    discountAmount: Math.max(0, Number(item.discountAmount) || 0),
+                    discountPercent: Math.min(100, Math.max(0, Number(item.discountPercent) || 0)),
+                    couponApplied: Boolean(item.couponApplied),
+                    couponCode: String(item.couponCode || '').substring(0, 20)
+                };
+            });
+
+            // Prepare order data with validation
+            const orderData = {
+                products: validatedProducts,
+                // Checkout summary fields
+                cartTotal: Math.max(0, Number(amount) || 0),
+                subTotal: Math.max(0, Number(amount) || 0),
+                totalDiscount: Math.max(0, Number(amount) - validatedProducts.reduce((sum, p) => sum + (p.price * p.qty), 0)),
+                totalTax: 0, // Will be calculated based on CGST/SGST
+                shippingCost: 0,
+                // Billing/shipping info
+                firstName: String(customer?.name?.split(' ')[0] || 'Guest').substring(0, 50),
+                lastName: String(customer?.name?.split(' ').slice(1).join(' ') || 'User').substring(0, 50),
+                email: customer?.email || '',
+                phone: String(customer?.phone || '').substring(0, 20),
+                altPhone: String(customer?.altPhone || '').substring(0, 20),
+                street: String(customer?.street || '').substring(0, 200),
+                city: String(customer?.city || '').substring(0, 50),
+                state: String(customer?.state || '').substring(0, 50),
+                pincode: String(customer?.pincode || '').substring(0, 20),
+                address: String(customer?.address || '').substring(0, 500),
+                // Payment/order info
+                orderId: `order_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+                razorpayOrderId: razorpayOrder.id,
+                transactionId: `txn_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+                payment: 'online',
+                status: 'Pending',
+                paymentMethod: 'razorpay',
+                agree: true,
+                datePurchased: new Date(),
+                // Calculate total tax from products
+                totalTax: validatedProducts.reduce((sum, p) => sum + (p.cgst || 0) + (p.sgst || 0), 0),
+                // Checkout summary fields
+                cartTotal: Number(amount) || 0,
+                subTotal: Number(amount) || 0,
+                totalDiscount: 0,
+                totalTax: 0,
+                shippingCost: 0,
+                // Billing/shipping info
+                firstName: customer?.name?.split(' ')[0] || 'Guest',
+                lastName: customer?.name?.split(' ').slice(1).join(' ') || 'User',
+                email: customer?.email || '',
+                phone: customer?.phone || '',
+                altPhone: customer?.altPhone || '',
+                street: customer?.street || '',
+                city: customer?.city || '',
+                state: customer?.state || '',
+                pincode: customer?.pincode || '',
+                address: customer?.address || '',
+                // Payment/order info
+                orderId: `order_${Date.now()}`,
+                razorpayOrderId: razorpayOrder.id,
+                transactionId: `txn_${Date.now()}`,
+                payment: 'online',
+                status: 'Pending',
+                paymentMethod: 'razorpay',
+                agree: true,
+                datePurchased: new Date()
+            };
+
+            // Validate required fields
+            if (!orderData.email) {
+                throw new Error('Customer email is required');
+            }
+            if (!orderData.products || orderData.products.length === 0) {
+                throw new Error('At least one product is required');
+            }
+
+            console.log('Attempting to save order with data:', {
+                ...orderData,
+                products: orderData.products.map(p => ({
+                    productId: p.productId,
+                    name: p.name,
+                    qty: p.qty,
+                    price: p.price
+                }))
+            });
+
+            // Save to database
+            dbOrder = await Order.create(orderData);
+            console.log('Order saved successfully with ID:', dbOrder._id);
+
         } catch (dbErr) {
-            // console.error("Failed to save order in DB:", dbErr);
-            return NextResponse.json({ error: "Failed to save order in DB" }, { status: 500 });
+            console.error('Database save error details:', {
+                message: dbErr.message,
+                stack: dbErr.stack,
+                code: dbErr.code,
+                name: dbErr.name,
+                keyPattern: dbErr.keyPattern,
+                keyValue: dbErr.keyValue
+            });
+            return NextResponse.json({ 
+                error: 'Failed to save order in DB',
+                details: process.env.NODE_ENV === 'development' ? dbErr.message : undefined
+            }, { status: 500 });
         }
 
         // Respond with both Razorpay order ID and DB order ID
@@ -85,7 +302,7 @@ export async function PUT(request) {
     await connectDB();
 
     try {
-        console.log('Starting payment verification...');
+        // console.log('Starting payment verification...');
         const body = await request.json();
         const { razorpay_payment_id, razorpay_order_id, razorpay_signature, cart, checkoutData, formFields, user } = body;
         
@@ -111,13 +328,18 @@ export async function PUT(request) {
         }
 
         // Step 2: Find and update the order
-        // console.log('Looking up order with orderId:', razorpay_order_id);
-        const order = await Order.findOne({ orderId: razorpay_order_id });
+        console.log('Looking up order with orderId:', razorpay_order_id);
+        const order = await Order.findOne({ 
+            $or: [
+                { orderId: razorpay_order_id },
+                { razorpayOrderId: razorpay_order_id }
+            ]
+        });
         
         if (!order) {
-            console.error('Order not found for orderId:', razorpay_order_id);
+            console.error('Order not found for orderId/razorpayOrderId:', razorpay_order_id);
             return NextResponse.json(
-                { success: false, error: "Order not found" },
+                { success: false, error: "Order not found. Please contact support with order ID: " + razorpay_order_id },
                 { status: 404 }
             );
         }
@@ -141,14 +363,39 @@ export async function PUT(request) {
                         imageUrl = item.image.url || '';
                     }
                     
+                    // Calculate pricing fields with proper fallbacks
+                    const price = Number(item.price) || 0;
+                    const originalPrice = Number(item.originalPrice) || price;
+                    const discountAmount = Number(item.discountAmount) || (originalPrice - price);
+                    const afterDiscount = price;
+                    
+                    // Calculate discount percentage if not provided
+                    let discountPercent = Number(item.discountPercent) || 0;
+                    if (!discountPercent && originalPrice > 0) {
+                        discountPercent = Math.round((discountAmount / originalPrice) * 100);
+                    }
+                    
                     return {
-                        productId: item.productId || item._id,
-                        name: item.name,
-                        price: item.price,
+                        _id: item._id || item.productId || item.id,
+                        productId: item.productId || item._id || item.id,
+                        id: item.id || item._id?.toString(),
+                        name: item.name || 'Unnamed Product',
+                        price: price,
+                        originalPrice: originalPrice,
+                        afterDiscount: afterDiscount,
                         qty: item.qty || item.quantity || 1,
-                        image: imageUrl, // Now we're sure this is a string
+                        image: imageUrl,
                         color: item.color || '',
-                        size: item.size || ''
+                        size: item.size || '',
+                        productCode: item.productCode || '',
+                        weight: Number(item.weight) || 0,
+                        totalQuantity: Number(item.totalQuantity) || 0,
+                        cgst: Number(item.cgst) || 0,
+                        sgst: Number(item.sgst) || 0,
+                        discountAmount: discountAmount,
+                        discountPercent: discountPercent,
+                        couponApplied: Boolean(item.couponApplied),
+                        couponCode: item.couponCode || ''
                     };
                 });
                 // console.log('Products updated successfully');
@@ -161,31 +408,65 @@ export async function PUT(request) {
         // Update checkout summary if available
         if (checkoutData) {
             console.log('Updating checkout summary');
-            order.cartTotal = checkoutData.cartTotal;
-            order.subTotal = checkoutData.subTotal;
-            order.totalDiscount = checkoutData.totalDiscount;
-            order.totalTax = checkoutData.totalTax;
-            order.shippingCost = checkoutData.shippingCost;
-            order.promoCode = checkoutData.promoCode;
-            order.promoDiscount = checkoutData.promoDiscount;
+            // Use taxTotal if available, otherwise use totalTax
+            const taxTotal = Number(checkoutData.taxTotal) || Number(checkoutData.totalTax) || 0;
+            // Use finalShipping if available, otherwise use shippingCost or shipping
+            const shippingCost = Number(checkoutData.finalShipping) || 
+                               Number(checkoutData.shippingCost) || 
+                               Number(checkoutData.shipping) || 0;
+            
+            order.cartTotal = Number(checkoutData.cartTotal) || 0;
+            order.subTotal = Number(checkoutData.subTotal) || 0;
+            order.totalDiscount = Number(checkoutData.totalDiscount) || 0;
+            order.totalTax = taxTotal;
+            order.shippingCost = shippingCost;
+            order.promoCode = checkoutData.promoCode || '';
+            order.promoDiscount = Number(checkoutData.promoDiscount) || 0;
+            
+            console.log('Checkout summary updated:', {
+                cartTotal: order.cartTotal,
+                subTotal: order.subTotal,
+                totalDiscount: order.totalDiscount,
+                totalTax: order.totalTax,
+                shippingCost: order.shippingCost
+            });
         }
         
         // Update customer details if form fields are provided
         if (formFields) {
             console.log('Updating customer details');
-            order.firstName = formFields.firstName || formFields.fullName || order.firstName;
-            order.lastName = formFields.lastName || order.lastName;
-            order.email = formFields.email || order.email;
-            order.phone = formFields.mobile || formFields.phone || order.phone;
-            order.altPhone = formFields.altPhone || order.altPhone;
-            order.street = formFields.street || order.street;
-            order.city = formFields.city || order.city;
-            order.district = formFields.district || order.district;
-            order.state = formFields.state || order.state;
-            order.pincode = formFields.pincode || order.pincode;
+            const firstName = formFields.firstName || formFields.fullName?.split(' ')[0] || order.firstName || '';
+            const lastName = formFields.lastName || formFields.fullName?.split(' ').slice(1).join(' ') || order.lastName || '';
+            const street = formFields.street || order.street || '';
+            const city = formFields.city || order.city || '';
+            const district = formFields.district || order.district || '';
+            const state = formFields.state || order.state || '';
+            const pincode = formFields.pincode || order.pincode || '';
+            
+            // Update fields
+            order.firstName = firstName;
+            order.lastName = lastName;
+            order.email = formFields.email || order.email || '';
+            order.phone = formFields.mobile || formFields.phone || order.phone || '';
+            order.altPhone = formFields.altPhone || order.altPhone || '';
+            order.street = street;
+            order.city = city;
+            order.district = district;
+            order.state = state;
+            order.pincode = pincode;
+            
+            // Build address string ensuring district is included
             order.address = formFields.address || 
-                [formFields.street, formFields.city, formFields.district, formFields.state, formFields.pincode]
-                    .filter(Boolean).join(', ');
+                [street, city, district, state, pincode]
+                    .filter(Boolean)
+                    .join(', ');
+                    
+            console.log('Customer details updated:', {
+                name: `${firstName} ${lastName}`.trim(),
+                email: order.email,
+                phone: order.phone,
+                address: order.address
+            });
         }
         
         // Update user ID if available
