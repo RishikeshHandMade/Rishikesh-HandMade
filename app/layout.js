@@ -10,34 +10,33 @@ import GoogleTranslate from "@/components/GoogleTranslate";
 
 
 export const metadata = {
-  metadataBase: new URL("https://rishikeshhandmade.com/"),
+  metadataBase: new URL("https://adventureaxis.com/"),
   title: {
-    default: "Rishikesh Handmade - Jute Fiber, Bhimal Fiber, Natural Fiber, Handicraft Product",
-    template: "%s | Rishikesh Handmade",
+    default: "Adventure Axis is an complete outdoor shop.",
+    template: "%s | Adventure Axis",
   },
   description:
-    "Rishikesh Handmade:It showcases eco-friendly, handcrafted items like wooden carvings, paintings, jewelry, and home decor made by skilled local artisans. By supporting this platform, you help preserve age-old crafts and empower local communitiess. For more info call +91 7351009107, Info@rishikeshhandmade.com rishikeshhandmade@gmail.com Our website is your gateway to the heart of Rishikesh, offering rich and soulful handmade creations crafted by local artisans.",
+    "Adventure Axis is an complete outdoor shop.Adventure Sports Equipment Store 👉 Water Sports Equipment 👉 Safety & Rescue Equipment 👉 Clothing & Footwear 👉 Camping & Outdoor 👉 Expedition GearRaft-Inflatables👉 Apparel, Dry Bag-Boxes, Life Jackets, Frame-Oars, Helmets, Raft Repair – Accessosries, Pumps, Gloves, Dry Wear, Kayaks-Accessories, Paddles, Base Layer, Fleece, Insulation, Leg Wear Safety-Rescue 👉 Rescue Devices, Retractable fall arresters, Ropes & Cords, Carabiner, Traction, Rope Tools, Harness, Harnesses accessories, Pulleys, Rope fall arresters, Protective Visors, Helmets Tactical Eye Wear 👉 Brand Footwear 👉 Clothing 👉 Camping & Outdoor Regd. Or Branch Office: Badrinath Road, Tapovan, Laxmanjhula, Uttarakhand Text : 0766-928-0002, 989-7468-886​ Email:info@adventureaxis.in Accounts@adventureaxis.in Sales@adventureaxis.in",
   keywords:
-    "rishikeshhandmade, rishikesh, handmade, website, rishikesh handmade, india, India",
+    "Adventure Sports Equipment Store, Safety & Rescue Equipment, Clothing & Footwear, Camping & Outdoor, Expedition GearRaft-Inflatables, india, India",
   icons: { apple: "/apple-touch-icon.png" },
   manifest: "/site.webmanifest",
   openGraph: {
-    title: "Rishikesh Handmade - Jute Fiber, Bhimal Fiber, Natural Fiber, Handicraft Product",
+    title: "Adventure Axis is an complete outdoor shop.",
     description:
-      "Embark on a transformative voyage with Rishikesh Handmade, offering enriching spiritual journeys across India.",
+      "Adventure Axis is an complete outdoor shop.",
     images: ["/logo.png"],
-    url: "https://rishikeshhandmade.com/",
-    site_name: "Rishikesh Handmade",
+    url: "https://adventureaxis.com/",
+    site_name: "Adventure Axis",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Rishikesh Handmade - Jute Fiber, Bhimal Fiber, Natural Fiber, Handicraft Product",
-    description:
-      "Embark on a transformative voyage with Rishikesh Handmade, offering enriching spiritual journeys across India.",
+    title: "Adventure Axis is an complete outdoor shop.",
+    description:"Adventure Axis is an complete outdoor shop.Adventure Sports Equipment Store 👉 Water Sports Equipment 👉 Safety & Rescue Equipment 👉 Clothing & Footwear 👉 Camping & Outdoor 👉 Expedition GearRaft-Inflatables👉 Apparel, Dry Bag-Boxes, Life Jackets, Frame-Oars, Helmets, Raft Repair – Accessosries, Pumps, Gloves, Dry Wear, Kayaks-Accessories, Paddles, Base Layer, Fleece, Insulation, Leg Wear Safety-Rescue 👉 Rescue Devices, Retractable fall arresters, Ropes & Cords, Carabiner, Traction, Rope Tools",
     images: ["/logo.png"],
   },
   other: {
-    "author": "Rishikesh Handmade",
+    "author": "Adventure Axis",
     "robots": "index, follow",
     "viewport": "width=device-width, initial-scale=1",
   },
@@ -55,7 +54,7 @@ export default function RootLayout({ children }) {
         {isPaid ? (
           <CartProvider>
             <NextTopLoader color="#006eff" height={3} showSpinner={false} zIndex={1600} />
-            <Toaster position="top-center" reverseOrder={false} toastOptions={{ duration: 3000, style: { fontFamily: "var(--font-GildaDisplay)" } }} />
+            <Toaster position="top-center" reverseOrder={false} toastOptions={{ duration: 2500, style: { fontFamily: "var(--font-GildaDisplay)" } }} />
             <SessionWrapper>
               {/* <CartSyncOnLogin /> */}
               <SearchProvider>

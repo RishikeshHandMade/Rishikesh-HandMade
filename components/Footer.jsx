@@ -81,19 +81,31 @@ const Footer = () => {
 
                 <div className="flex flex-col gap-1">
                     <h1 className="font-semibold text-xl flex items-center gap-2"> More Inquiry</h1>
-                    <Link href={'tel:+917351009107'} className="gap-2 my-2 block rounded-full py-1 font-barlow text-black flex items-center">
+                    <Link href={'tel:+9107669280002'} className="gap-2 my-2 block rounded-full py-1 font-barlow text-black flex items-center">
                         <Phone size={20} className="text-blue-600" />
-                        +91 7351009107
+                        +91 0766-928-0002,
                     </Link>
-                    <Link href={'mailto:support@rishikeshhandmade.com'} className="gap-2 my-2 block rounded-full font-barlow text-black flex items-center">
+                    <Link href={'tel:+919897468886'} className="gap-2 my-2 block rounded-full py-1 font-barlow text-black flex items-center">
+                        <Phone size={20} className="text-blue-600" />
+                        +91 9897468886,
+                    </Link>
+                    <Link href={'mailto:info@adventureaxis.in'} className="gap-2 my-2 block rounded-full font-barlow text-black flex items-center">
                         <Send className="text-blue-600" size={20} />
-                        support@rishikeshhandmade.com
+                        info@adventureaxis.in
+                    </Link>
+                    <Link href={'mailto:Accounts@adventureaxis.in'} className="gap-2 my-2 block rounded-full font-barlow text-black flex items-center">
+                        <Send className="text-blue-600" size={20} />
+                        Accounts@adventureaxis.in
+                    </Link>
+                    <Link href={'mailto:Sales@adventureaxis.in'} className="gap-2 my-2 block rounded-full font-barlow text-black flex items-center">
+                        <Send className="text-blue-600" size={20} />
+                        Sales@adventureaxis.in
                     </Link>
                     <p className="gap-2 my-2 font-barlow text-black mb-5 flex items-center">
                         <MapPin className="text-blue-600" size={20} />
-                        Upper Road Dhalwala (Rishikesh)
+                        Regd. Or Branch Office: Badrinath Road,
                         <br />
-                        Tehri Garhwal,Uttarakhand 249201
+                        Tapovan, Laxmanjhula, Uttarakhand
                     </p>
                 </div>
             </div>
@@ -120,19 +132,31 @@ const Footer = () => {
             </div>
             <div className="md:hidden flex flex-col gap-1 p-5">
                 <h1 className="font-semibold text-xl flex items-center gap-2"> More Inquiry</h1>
-                <Link href={'tel:+917351009107'} className="my-2 text-sm block rounded-full py-1 font-barlow text-black flex items-center gap-2">
+                <Link href={'tel:+9107669280002'} className="my-2 text-sm block rounded-full py-1 font-barlow text-black flex items-center gap-2">
                     <Phone size={20} className="text-blue-600" />
-                    +91 7351009107
+                    +91 07669280002
                 </Link>
-                <Link href={'mailto:support@rishikeshhandmade.com'} className="my-2 text-sm block rounded-full font-barlow text-black flex items-center gap-2">
+                <Link href={'tel:+919897468886'} className="my-2 text-sm block rounded-full py-1 font-barlow text-black flex items-center gap-2">
+                    <Phone size={20} className="text-blue-600" />
+                    +91 9897468886
+                </Link>
+                <Link href={'mailto:support@adventureaxis.in'} className="my-2 text-sm block rounded-full font-barlow text-black flex items-center gap-2">
                     <Send className="text-blue-600" size={20} />
-                    support@rishikeshhandmade.com
+                    support@adventureaxis.in
+                </Link>
+                <Link href={'mailto:Accounts@adventureaxis.in'} className="my-2 text-sm block rounded-full font-barlow text-black flex items-center gap-2">
+                    <Send className="text-blue-600" size={20} />
+                    Accounts@adventureaxis.in
+                </Link>
+                <Link href={'mailto:Sales@adventureaxis.in'} className="my-2 text-sm block rounded-full font-barlow text-black flex items-center gap-2">
+                    <Send className="text-blue-600" size={20} />
+                    Sales@adventureaxis.in
                 </Link>
                 <p className="my-2 text-sm font-barlow text-black mb-5 flex items-center gap-2">
                     <MapPin className="text-blue-600" size={20} />
-                    Upper Road Dhalwala (Rishikesh)
+                    Regd. Or Branch Office: Badrinath Road,
                     <br />
-                    Tehri Garhwal,Uttarakhand 249201
+                    Tapovan, Laxmanjhula, Uttarakhand
                 </p>
             </div>
 
@@ -153,7 +177,7 @@ const Footer = () => {
                 <CardContent className="flex flex-col lg:flex-row items-start justify-between">
                     <div className="text-justify">
                         <Image src="/logo.png" width={200} height={100} alt="footer" />
-                        <p className="text-black text-sm lg:w-[40vw] xl:w-[35vw] font-barlow mt-6">Rishikesh Handmade Craft is a platform that celebrates the traditional art and culture of Rishikesh. It showcases eco-friendly, handcrafted items like wooden carvings, paintings, jewelry, and home decor made by skilled local artisans. By supporting this platform, you help preserve age-old crafts and empower local communitiess.</p>
+                        <p className="text-black text-sm lg:w-[40vw] xl:w-[35vw] font-barlow mt-6">Adventure Axis offers a comprehensive range of adventure sports equipment under one roof. Our categories include Water Sports Equipment such as rafts, kayaks, dry bags, paddles, life jackets, helmets, and repair kits. In Safety & Rescue, we provide harnesses, carabiners, ropes, pulleys, fall arresters, rescue devices, and helmets. Our Clothing & Footwear range features tactical eyewear, base layers, fleece, insulated wear, and high-performance outdoor footwear. We also specialize in Camping & Outdoor gear and Expedition Equipment, ensuring you're fully equipped for any terrain or challenge.</p>
                         <p className="text-black text-sm lg:w-[40vw] xl:w-[35vw] font-barlow mt-6">Our website is your gateway to the heart of Rishikesh, offering rich and soulful handmade creations crafted by local artisans.</p>
                     </div>
                     <div className="font-barlow mt-10 lg:mt-0">
@@ -192,7 +216,7 @@ const Footer = () => {
             </Card>
             <div className="flex flex-col lg:flex-row items-center justify-center max-w-[25rem] md:max-w-[60rem] xl:max-w-6xl mx-auto font-barlow">
                 <p className="text-black font-bold text-center my-4">
-                    &copy; <CurrentYear /> <Link href={'/'} className="font-bold text-black">Rishikesh Handmade</Link>. All rights reserved
+                    &copy; <CurrentYear /> <Link href={'/'} className="font-bold text-black">Adventure Axis</Link>. All rights reserved
                 </p>
             </div>
         </footer >

@@ -29,6 +29,7 @@ const staticMenuItems = [
                 subCatPackage: [
                     { title: "Privacy Policy", url: "/privacy-policy", active: true },
                     { title: "Refund & Cancellation", url: "/refund-cancellation", active: true },
+                    { title: "Return Policy", url: "/return-policy", active: true },
                     { title: "Shipping Policy", url: "/shipping-policy", active: true },
                     { title: "Terms & Conditions", url: "/terms-condition", active: true }
                 ],
