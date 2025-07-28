@@ -279,7 +279,7 @@ const Header = () => {
       </div>
       <div className="lg:flex hidden items-center z-50 justify-center md:justify-between py-2 md:px-4 ">
         <Link href={"/"}>
-          <img className="w-44 drop-shadow-xl" src="/logo.png" alt="Rishikesh Handmade" />
+          <img className="w-48 object-contain drop-shadow-xl" src="/HeaderLogo.png" alt="Rishikesh Handmade" />
         </Link>
 
         <div className="relative flex items-center">
@@ -297,7 +297,7 @@ const Header = () => {
           <MenuBar menuItems={menuItems} />
         </div>
         <Link href={"/"}>
-          <img className="w-[100px] drop-shadow-xl" src="/logo.png" alt="Rishikesh Handmade" />
+          <img className="w-[150px] object-contain drop-shadow-xl" src="/HeaderLogo.png" alt="Rishikesh Handmade" />
         </Link>
 
         <div className="flex items-center gap-3">
@@ -329,7 +329,7 @@ const Header = () => {
           </button>
 
           <Cart open={isCartOpen} onClose={() => setIsCartOpen(false)} initialTab={initialCartTab} />
-          <Truck />
+          {/* <Truck /> */}
 
           <div className="relative">
             {status === "loading" ? (
