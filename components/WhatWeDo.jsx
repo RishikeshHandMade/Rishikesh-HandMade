@@ -45,14 +45,14 @@ const WhatWeDo = () => {
         </div>
       </div>
       <div className="md:hidden py-10 flex flex-col items-center justify-center">
-            <h1 className="text-xl font-semibold text-center text-black mb-2 drop-shadow-lg">The Impact of What We Do How <br /> We Make a Difference</h1>
-            <div className="w-96 rounded-lg overflow-hidden shadow-lg px-2">
-              <Image src="/pic7.jpg" alt="Intro" width={300} height={300} className="object-cover w-full h-full" />
-            </div>
-          </div>
+        <h1 className="text-xl font-semibold text-center text-black mb-2 drop-shadow-lg">The Impact of What We Do How <br /> We Make a Difference</h1>
+        <div className="w-96 rounded-lg overflow-hidden shadow-lg px-2">
+          <Image src="/pic7.jpg" alt="Intro" width={300} height={300} className="object-cover w-full h-full" />
+        </div>
+      </div>
 
       {/* Main Content */}
-      <section className="content-inner about-style3 md:py-16 py-5">
+      <section className="md:p-10">
         <div className="container mx-auto px-4">
           <div className="flex flex-col lg:flex-row gap-10">
             {/* Left Side */}
@@ -112,8 +112,8 @@ const WhatWeDo = () => {
               </div>
             </div>
             {/* Right Side - keep width fixed and separated */}
-            <div className="lg:w-5/12 w-full flex items-center justify-center">
-              <div className="w-[100%] min-w-[260px] h-[95%] rounded-xl overflow-hidden shadow-lg bg-white flex items-center justify-center">
+            <div className="lg:w-5/12 w-full flex items-center justify-center sticky top-20 self-start p-10 md:p-0">
+            <div className="w-full max-w-md rounded-xl overflow-hidden bg-white shadow-lg">
                 <Image src="/Rishikesh.jpg" alt="Rishikesh" width={400} height={500} className="object-cover w-full h-full" />
               </div>
             </div>

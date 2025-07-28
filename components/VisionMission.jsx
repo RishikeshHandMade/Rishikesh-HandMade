@@ -6,6 +6,7 @@ const VisionMission = () => {
   return (
     <section className="w-full bg-[#fcf7f1] min-h-screen">
       <div className="w-full">
+        {/* Banner */}
         <div className="relative w-full h-[100px] md:h-[250px] flex items-center justify-center bg-[#fcf7f1] overlay-black-light">
           <Image
             src="/bg1.jpg"
@@ -17,9 +18,9 @@ const VisionMission = () => {
           />
           <div className="relative z-10 text-center text-white">
             <h1 className="text-4xl md:text-5xl font-bold mb-2 drop-shadow-lg">Our Vision & Mission</h1>
-            </div>
+          </div>
         </div>
-        <div className="w-full px-2 container mx-auto flex gap-10 items-center mt-10">
+        <div className="w-full container mx-auto flex gap-5 md:gap-10 items-center mt-10 px-5 md:px-20">
           {/* Left: Intro & Image */}
           <div className="w-full flex flex-col items-start">
             <h2 className="text-xl md:text-4xl font-bold mb-6 text-gray-800 text-start lg:text-start">“Rooted in Nature, Crafted by Tradition.”</h2>
@@ -30,7 +31,7 @@ const VisionMission = () => {
           </div>
 
         </div> {/* Right: Vision & Mission */}
-        <div className="container mx-auto w-full flex flex-col md:flex-row gap-8 px-2">
+        <div className="container mx-auto w-full flex flex-col md:flex-row gap-8 px-5 md:px-20">
           <div className="w-full md:w-2/3 flex justify-center mb-6 ">
             <Image src="/Vision.jpg" alt="Vision" width={300} height={300} className="rounded-xl shadow-lg object-cover w-fit h-auto " />
           </div>
@@ -58,8 +59,8 @@ const VisionMission = () => {
 
         </div>
       </div>
-   {/* Get In Touch Section */}
-   <section className="w-full bg-black py-5 text-white flex flex-col md:flex-row items-center justify-between  md:px-24 gap-6 ">
+      {/* Get In Touch Section */}
+      <section className="w-full bg-black py-5 text-white flex flex-col md:flex-row items-center justify-between  md:px-24 gap-6 ">
         <div className="md:mb-6 md:mb-0 md:px-3">
           <h3 className="text-xl md:text-3xl font-bold gap-2 text-center md:text-start">Questions?
             <br className="md:hidden" />

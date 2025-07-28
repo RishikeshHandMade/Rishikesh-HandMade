@@ -1097,7 +1097,7 @@ export default function ProductDetailView({ product }) {
                 <img
                   src={product.artisan?.profileImage?.url || "/placeholder.jpeg"}
                   alt={product.artisan?.artisanName}
-                  className="w-full h-42 md:h-56 object-cover"
+                  className="w-full h-42 md:h-52 object-cover"
                 />
                 {/* Card body */}
                 <div className="bg-white p-6">
@@ -1107,7 +1107,7 @@ export default function ProductDetailView({ product }) {
                     <span className="font-semibold">Artisan Number:{product.artisan?.artisanNumber || ""}</span> | SHG Group:{product.artisan?.shgName || ""}
                   </div>
                   <div className="mb-2">{product.artisan?.yearsOfExperience || "0"} Year’s Of Experience</div>
-                  <div className="text-gray-600 text-sm mb-4">
+                  <div className="text-gray-600 text-sm mb-4 h-44 overflow-y-auto">
                     {product.artisan?.artisanStories?.shortDescription || "No Description"}
                   </div>
                   <button

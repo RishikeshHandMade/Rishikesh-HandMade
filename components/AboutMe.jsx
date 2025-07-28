@@ -25,14 +25,7 @@ const accordionData = [
     content: `Whether you’re shopping from India or abroad, our platform brings the soul of Rishikesh to your doorstep with a seamless online shopping experience and reliable worldwide shipping.\n\nAt Rishikesh Handmade Craft, we envision a world where conscious consumerism supports tradition, where handmade replaces mass-produced, and where every purchase carries purpose. When you choose us, you don’t just buy a product — you become a part of a larger story: one of culture, compassion, and community.\n\nThank you for supporting our mission to preserve heritage and empower artisans, one handmade piece at a time.`
   }
 ];
-const teamMembers = [
-  { name: "John Doe", role: "CEO & Founder" },
-  { name: "Ivan Mathews", role: "iOS Developer" },
-  { name: "Macauley Herring", role: "Customer Success" },
-  { name: "Alya Levine", role: "CTO" },
-  { name: "Rose Hernandez", role: "Backend Developer" },
-  { name: "Elen Benitez", role: "Designer" },
-];
+
 const AboutMe = () => {
   const [openIndex, setOpenIndex] = useState(0);
   const [teamMembers, setTeamMembers] = useState([]);
@@ -70,8 +63,8 @@ const AboutMe = () => {
       </div>
 
       {/* Main Content */}
-      <section className="content-inner py-16 overflow-hidden">
-        <div className="container mx-auto px-4">
+      <section className="content-inner md:p-10 p-4 overflow-hidden">
+      <div className="container mx-auto md:px-20 px-5">
           <div className="flex flex-col lg:flex-row gap-10 items-stretch">
             {/* Left: Text and Accordion */}
             <div className="lg:w-1/2 flex flex-col justify-center overflow-y-auto">
@@ -163,8 +156,8 @@ const AboutMe = () => {
         <Link href="/contact" className="btn bg-white text-black font-bold px-8 py-3 rounded-lg shadow transition">Get In Touch</Link>
       </section>
 
-      <section className="content-inner py-16">
-        <div className="container mx-auto px-4">
+      <section className="content-inner md:p-10 p-4 overflow-hidden">
+      <div className="container mx-auto md:px-20 px-5">
           <div className="flex flex-col lg:flex-row gap-8 mb-10 items-center">
             {/* Left: Heading and Paragraph */}
             <div className="w-full lg:w-[57%]">

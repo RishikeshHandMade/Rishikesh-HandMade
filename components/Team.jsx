@@ -35,25 +35,15 @@ const Team = () => {
         />
         <div className="relative z-10 text-center text-white">
           <h1 className="text-4xl md:text-5xl font-bold mb-2 drop-shadow-lg">Team of Experts</h1>
-          {/* <nav aria-label="breadcrumb" className="flex justify-center">
-            <ul className="flex gap-2 text-lg">
-              <li>
-                <Link href="/" className="hover:underline">Home</Link>
-              </li>
-              <li>/</li>
-              <li className="text-amber-300">Our Team</li>
-            </ul>
-          </nav> */}
         </div>
       </div>
 
-      {/* Main Content */}
-      <section className="content-inner py-10 md:py-16">
+      <section className="content-inner md:p-20 px-5 py-2">
         <div className="container mx-auto px-4">
           <div className="flex flex-col lg:flex-row gap-8 mb-10 items-start">
             {/* Left: Heading and Paragraph */}
             <div className="w-full lg:w-[57%]">
-              <h2 className="text-xl md:text-5xl font-semibold mb-4 text-gray-800 leading-tight">Behind Rishikesh Handmade Craft is a dedicated team of experienced professionals and industry veterans who share a deep passion for traditional Indian craftsmanship.</h2>
+              <h2 className="text-xl md:text-4xl font-semibold mb-4 text-gray-800 leading-tight">Behind Rishikesh Handmade Craft is a dedicated team of experienced professionals and industry veterans who share a deep passion for traditional Indian craftsmanship.</h2>
               <p className="text-md md:text-xl text-gray-700 mb-4">
                 Our core team includes expert artisans, designers, curators, and community leaders — many of whom have over 20 years of hands-on experience in the handicraft and cottage industry.
               </p>
