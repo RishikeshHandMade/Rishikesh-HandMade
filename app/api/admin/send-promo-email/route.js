@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import User from "@/models/User";
+import Newsletter from "@/models/NewsLetter";
 import axios from "axios";
 import connectDB from "@/lib/connectDB";
 import { authOptions } from "../../auth/[...nextauth]/route";
 import { getServerSession } from "next-auth";
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(req) {
   try {
@@ -21,14 +24,25 @@ export async function POST(req) {
 
     await connectDB();
 
-    // Get only selected recipients' emails from the database
+    // First check in User collection
     const users = await User.find({ email: { $in: recipients } }, "email");
+    
+    // Then check in Newsletter collection for any remaining emails
+    const newsletterEmails = await Newsletter.find({ email: { $in: recipients } }, "email");
 
-    if (users.length === 0) {
+    // Combine both results
+    const allEmails = [
+      ...users.map(user => user.email),
+      ...newsletterEmails.map(item => item.email)
+    ];
+
+    if (allEmails.length === 0) {
       return NextResponse.json({ success: false, message: "No matching subscribers found." }, { status: 404 });
     }
 
-    const emailRecipients = users.map(user => ({ email: user.email }));
+    // Remove duplicates and format for Brevo
+    const uniqueEmails = [...new Set(allEmails)];
+    const emailRecipients = uniqueEmails.map(email => ({ email }))
 
     const emailData = {
       sender: { name: "Rishikesh HandMade", email: "rishikeshhandmade@gmail.com" },
