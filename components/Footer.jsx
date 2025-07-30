@@ -66,7 +66,7 @@ const Footer = () => {
                             {page.title}
                         </Link>
                     ))}
-                    <Link href={'/contact'} className="block text-black font-barlow ">Contact</Link>
+                    <Link href={'/contact'} className="block text-black font-barlow ">Contact Us</Link>
                 </div>
 
                 <div className="flex flex-col gap-2 px-6">
@@ -81,26 +81,35 @@ const Footer = () => {
 
                 <div className="flex flex-col gap-1">
                     <h1 className="font-semibold text-xl flex items-center gap-2"> More Inquiry</h1>
-                    <Link href={'tel:+9107669280002'} className="gap-2 my-2 block rounded-full py-1 font-barlow text-black flex items-center">
-                        <Phone size={20} className="text-blue-600" />
-                        +91 0766-928-0002,
-                    </Link>
-                    <Link href={'tel:+919897468886'} className="gap-2 my-2 block rounded-full py-1 font-barlow text-black flex items-center">
-                        <Phone size={20} className="text-blue-600" />
-                        +91 9897468886,
-                    </Link>
-                    <Link href={'mailto:info@adventureaxis.in'} className="gap-2 my-2 block rounded-full font-barlow text-black flex items-center">
-                        <Send className="text-blue-600" size={20} />
-                        info@adventureaxis.in
-                    </Link>
-                    <Link href={'mailto:Accounts@adventureaxis.in'} className="gap-2 my-2 block rounded-full font-barlow text-black flex items-center">
-                        <Send className="text-blue-600" size={20} />
-                        Accounts@adventureaxis.in
-                    </Link>
-                    <Link href={'mailto:Sales@adventureaxis.in'} className="gap-2 my-2 block rounded-full font-barlow text-black flex items-center">
-                        <Send className="text-blue-600" size={20} />
-                        Sales@adventureaxis.in
-                    </Link>
+                    <div className="flex items-center gap-2" >
+                        <Link href={'tel:+9107669280002'} className="my-2 text-sm block rounded-full py-1 font-barlow text-black flex items-center gap-2">
+                            <Phone size={20} className="text-blue-600" />
+                            +91 07669280002
+                        </Link>
+                        <Link href={'tel:+919897468886'} className="my-2 text-sm block rounded-full py-1 font-barlow text-black flex items-center gap-2">
+                            +91 9897468886
+                        </Link>
+                    </div>
+                    <div className="flex gap-2">
+                        <div className="flex items-start pt-1">
+
+                            <Send className="text-blue-600" size={20} />
+                        </div>
+                        <div className="flex items-start gap-2 flex-col pt-1">
+
+                            <Link href={'mailto:info@adventureaxis.in'} className="gap-2 block rounded-full font-barlow text-black flex items-center">
+                                info@adventureaxis.in
+                            </Link>
+                            <Link href={'mailto:Accounts@adventureaxis.in'} className="gap-2 block rounded-full font-barlow text-black flex items-center">
+
+                                Accounts@adventureaxis.in
+                            </Link>
+                            <Link href={'mailto:Sales@adventureaxis.in'} className="gap-2 block rounded-full font-barlow text-black flex items-center">
+
+                                Sales@adventureaxis.in
+                            </Link>
+                        </div>
+                    </div>
                     <p className="gap-2 my-2 font-barlow text-black mb-5 flex items-center">
                         <MapPin className="text-blue-600" size={20} />
                         Regd. Or Branch Office: Badrinath Road,
@@ -117,7 +126,7 @@ const Footer = () => {
                             {page.title}
                         </Link>
                     ))}
-                    <Link href={'/contact'} className="text-sm block text-black font-barlow ">Contact</Link>
+                    <Link href={'/contact'} className="text-sm block text-black font-barlow ">Contact Us</Link>
                 </div>
 
                 <div className="flex flex-col gap-2 px-2">
@@ -132,26 +141,35 @@ const Footer = () => {
             </div>
             <div className="md:hidden flex flex-col gap-1 p-5">
                 <h1 className="font-semibold text-xl flex items-center gap-2"> More Inquiry</h1>
-                <Link href={'tel:+9107669280002'} className="my-2 text-sm block rounded-full py-1 font-barlow text-black flex items-center gap-2">
-                    <Phone size={20} className="text-blue-600" />
-                    +91 07669280002
-                </Link>
-                <Link href={'tel:+919897468886'} className="my-2 text-sm block rounded-full py-1 font-barlow text-black flex items-center gap-2">
-                    <Phone size={20} className="text-blue-600" />
-                    +91 9897468886
-                </Link>
-                <Link href={'mailto:support@adventureaxis.in'} className="my-2 text-sm block rounded-full font-barlow text-black flex items-center gap-2">
-                    <Send className="text-blue-600" size={20} />
-                    support@adventureaxis.in
-                </Link>
-                <Link href={'mailto:Accounts@adventureaxis.in'} className="my-2 text-sm block rounded-full font-barlow text-black flex items-center gap-2">
-                    <Send className="text-blue-600" size={20} />
-                    Accounts@adventureaxis.in
-                </Link>
-                <Link href={'mailto:Sales@adventureaxis.in'} className="my-2 text-sm block rounded-full font-barlow text-black flex items-center gap-2">
-                    <Send className="text-blue-600" size={20} />
-                    Sales@adventureaxis.in
-                </Link>
+                <div className="flex items-center gap-2" >
+                    <Link href={'tel:+9107669280002'} className="my-2 text-sm block rounded-full py-1 font-barlow text-black flex items-center gap-2">
+                        <Phone size={20} className="text-blue-600" />
+                        +91 07669280002
+                    </Link>
+                    <Link href={'tel:+919897468886'} className="my-2 text-sm block rounded-full py-1 font-barlow text-black flex items-center gap-2">
+                        +91 9897468886
+                    </Link>
+                </div>
+                <div className="flex gap-2">
+                    <div className="flex items-start pt-1">
+
+                        <Send className="text-blue-600" size={20} />
+                    </div>
+                    <div className="flex items-start gap-2 flex-col pt-1">
+
+                        <Link href={'mailto:info@adventureaxis.in'} className="gap-2 block rounded-full font-barlow text-black flex items-center">
+                            info@adventureaxis.in
+                        </Link>
+                        <Link href={'mailto:Accounts@adventureaxis.in'} className="gap-2 block rounded-full font-barlow text-black flex items-center">
+
+                            Accounts@adventureaxis.in
+                        </Link>
+                        <Link href={'mailto:Sales@adventureaxis.in'} className="gap-2 block rounded-full font-barlow text-black flex items-center">
+
+                            Sales@adventureaxis.in
+                        </Link>
+                    </div>
+                </div>
                 <p className="my-2 text-sm font-barlow text-black mb-5 flex items-center gap-2">
                     <MapPin className="text-blue-600" size={20} />
                     Regd. Or Branch Office: Badrinath Road,

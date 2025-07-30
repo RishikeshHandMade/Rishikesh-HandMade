@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import connectDB from "@/lib/connectDB";
 import PromotinalBanner from "@/models/PromotinalBanner";
 import { deleteFileFromCloudinary } from "@/utils/cloudinary";
-connectDB();
+
 
 export async function GET() {
+    await connectDB();
     try {
         const banners = await PromotinalBanner.find().sort({ order: 1 });
         return NextResponse.json(banners, { status: 200 });
@@ -14,14 +15,15 @@ export async function GET() {
 }
 
 export async function POST(req) {
+    await connectDB();
     try {
-        const { title, coupon, couponAmount, couponPercent, buttonLink, image, order } = await req.json();
+        const { buttonLink, image, order } = await req.json();
 
         // Find the highest order number
         const lastBanner = await PromotinalBanner.findOne().sort({ order: -1 });
         const nextOrder = lastBanner ? lastBanner.order + 1 : 1; // Auto-increment order
 
-        const newBanner = new PromotinalBanner({ title, coupon, couponAmount, couponPercent, buttonLink, order: nextOrder, image });
+        const newBanner = new PromotinalBanner({ buttonLink, order: nextOrder, image });
         await newBanner.save();
         return NextResponse.json(newBanner, { status: 201 });
     } catch (error) {
@@ -30,8 +32,9 @@ export async function POST(req) {
 }
 
 export async function PATCH(req) {
+    await connectDB();
     try {
-        const { id, title, coupon, couponAmount, couponPercent, buttonLink, image, order } = await req.json();
+        const { id,buttonLink, image, order } = await req.json();
         const updatedBanner = await PromotinalBanner.findByIdAndUpdate(id, { title, coupon, couponAmount, couponPercent, buttonLink, order, image }, { new: true });
         return NextResponse.json(updatedBanner, { status: 200 });
     } catch (error) {
@@ -40,6 +43,7 @@ export async function PATCH(req) {
 }
 
 export async function DELETE(req) {
+    await connectDB();
     try {
         const { id } = await req.json();
 
