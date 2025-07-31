@@ -5,7 +5,7 @@ export default function Loading() {
       <div className="relative flex items-center justify-center w-42 md:w-48 h-42 md:h-48">
         <span className="absolute inset-0 rounded-full border-4 border-dotted border-blue-500 animate-spin-slow" style={{ borderWidth: '8px' }}></span>
         <Image
-          src="/logo.png"
+          src="/loader.jpg"
           alt="Loading..."
           width={192}  // 48 * 4 for higher quality
           height={192}

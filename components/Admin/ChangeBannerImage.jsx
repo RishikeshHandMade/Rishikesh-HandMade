@@ -225,7 +225,7 @@ const ChangeBannerImage = () => {
 
                 <div>
                     <Label>Button Link</Label>
-                    <Input name="buttonLink" placeholder="Enter add to cart link" type="url" value={formData.buttonLink} onChange={handleInputChange} />
+                    <Input name="buttonLink" placeholder="Enter Image URL Link" type="url" value={formData.buttonLink} onChange={handleInputChange} />
                 </div>
                 <div>
                     <Label>Order</Label>
@@ -261,7 +261,6 @@ const ChangeBannerImage = () => {
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>Button Link</TableHead>
                         <TableHead>Order</TableHead>
                         <TableHead>Image</TableHead>
                         <TableHead>Actions</TableHead>
@@ -271,8 +270,7 @@ const ChangeBannerImage = () => {
                     {banners.length > 0 ? (
                         banners.map((banner) => (
                             <TableRow key={banner._id}>
-                                <TableCell>{banner.buttonLink}</TableCell>
-                                <TableCell>{banner.order}</TableCell>
+                                <TableCell className="px-5">{banner.order}</TableCell>
                                 <TableCell className="flex flex-row gap-4 items-center justify-start">
                                     {banner.frontImg?.url ? (
                                         <Image src={banner.frontImg.url} alt="Front" width={100} height={50} className="rounded-lg mb-1" />
