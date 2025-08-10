@@ -22,8 +22,31 @@ export default function QuickViewProductCard({ product, onClose }) {
 
   const [carouselApi, setCarouselApi] = React.useState(null);
   const [activeImageIdx, setActiveImageIdx] = useState(0);
+  const [variantImages, setVariantImages] = useState(['/placeholder.jpeg']);
 
-  // Prepare images array for gallery, using mainImage and subImages
+  // Get images from the selected variant or first available variant
+  const getVariantImages = (variant) => {
+    if (!variant) return ['/placeholder.jpeg'];
+
+    const images = [];
+
+    // Add profile image if exists
+    if (variant.profileImage?.url) {
+      images.push(variant.profileImage.url);
+    }
+
+    // Add all valid sub-images 
+    if (Array.isArray(variant.subImages)) {
+      variant.subImages.forEach(img => {
+        if (img?.url && typeof img.url === 'string' && img.url.trim() !== '') {
+          images.push(img.url);
+        }
+      });
+    }
+
+    return images.length > 0 ? images : ['/placeholder.jpeg'];
+  };
+
   // Sync carousel index with activeImageIdx and thumbnail highlight
   React.useEffect(() => {
     if (!carouselApi) return;
@@ -32,17 +55,22 @@ export default function QuickViewProductCard({ product, onClose }) {
       setActiveImageIdx(idx);
     };
     carouselApi.on('select', onSelect);
-    // Set initial
     setActiveImageIdx(carouselApi.selectedScrollSnap());
     return () => carouselApi.off('select', onSelect);
   }, [carouselApi]);
-  const images = [
-    product?.gallery?.mainImage?.url || "/placeholder.png",
-    ...(Array.isArray(product?.gallery?.subImages) ? product.gallery.subImages.map(img => img.url) : [])
-  ];
+
+  const images = variantImages;
   // Extract variants
   const variants = Array.isArray(product?.quantity?.variants) ? product.quantity.variants : [];
   // console.log(product?.quantity?.variants);
+
+  // Set initial variant images when variants are loaded
+  React.useEffect(() => {
+    if (variants.length > 0 && !selectedVariant) {
+      const images = getVariantImages(variants[0]);
+      setVariantImages(images);
+    }
+  }, [variants]);
 
   // Get all unique sizes and colors from variants
   const availableSizes = [...new Set(variants.map(v => v.size))];
@@ -56,6 +84,38 @@ export default function QuickViewProductCard({ product, onClose }) {
       (selectedColor ? v.color === selectedColor : true)
     );
   });
+
+  // Update variant images when selected variant changes
+  React.useEffect(() => {
+    if (selectedVariant) {
+      const images = getVariantImages(selectedVariant);
+      setVariantImages(images);
+
+      // Reset carousel to first image when variant changes
+      if (carouselApi) {
+        carouselApi.scrollTo(0);
+      }
+    }
+  }, [selectedVariant, carouselApi]);
+  // Handle coupon and price calculation
+  const coupon = product.coupon || product.coupons?.coupon;
+  const basePrice = selectedVariant ? selectedVariant.price : 0;
+  let discountedPrice = basePrice;
+  let hasDiscount = false;
+  let couponText = '';
+  // Calculate total price based on quantity
+  const totalPrice = hasDiscount ? (discountedPrice * quantity) : (basePrice * quantity);
+  const totalOriginalPrice = basePrice * quantity;
+
+  if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+    discountedPrice = basePrice - (basePrice * coupon.percent) / 100;
+    hasDiscount = true;
+    couponText = `${coupon.couponCode || ''} (${coupon.percent}% OFF)`;
+  } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+    discountedPrice = basePrice - coupon.amount;
+    hasDiscount = true;
+    couponText = `${coupon.couponCode || ''} (₹${coupon.amount} OFF)`;
+  }
   // console.log(selectedVariant?.price);
 
   // Set default selection on mount or when variants change
@@ -141,13 +201,13 @@ export default function QuickViewProductCard({ product, onClose }) {
         {/* <span className="bg-black text-white text-xs font-bold px-3 py-1 rounded-full w-max mb-2">SALE 20% OFF</span> */}
         {/* Title & Rating */}
         <div className="flex items-center gap-4 justify-start">
-        <h2 className="text-xl md:text-2xl font-bold mb-1">
-          {/* Defensive: if title is object, stringify for debug */}
-          {typeof product?.title === 'object' ? JSON.stringify(product.title) : (product?.title || "N/A")}
-        </h2>
-        <h2 className="text-md font-medium px-2 rounded bg-gray-200">
-          #{product?.code}
-        </h2>
+          <h2 className="text-xl md:text-2xl font-bold mb-1">
+            {/* Defensive: if title is object, stringify for debug */}
+            {typeof product?.title === 'object' ? JSON.stringify(product.title) : (product?.title || "N/A")}
+          </h2>
+          <h2 className="text-md font-medium px-2 rounded bg-gray-200">
+            #{product?.code}
+          </h2>
         </div>
         <div className="flex items-center gap-2 mb-2">
           <span className="text-yellow-500 text-lg">★</span>
@@ -222,7 +282,7 @@ export default function QuickViewProductCard({ product, onClose }) {
                   <div className="flex justify-between items-center w-full gap-2">
                     <span>{size}</span>
                     <div className="h-4 w-px bg-gray-300" />
-                    <span className="text-gray-600 text-md">{weight}g</span>
+                    <span className="text-gray-600 text-md"> {weight ? (Number(weight) / 1000).toFixed(3) : '0.00'} kg</span>
                   </div>
                 </button>
               );
@@ -261,32 +321,29 @@ export default function QuickViewProductCard({ product, onClose }) {
           </div>
         </div>
         {/* Price & Quantity */}
-        <div className="flex flex-row items-end justify-start gap-8 mb-5">
+        <div className="flex items-center gap-2">
+          {couponText && (
+            <span className="text-sm bg-green-100 text-green-800 px-2 py-1 rounded">
+              {couponText}
+            </span>
+          )}
+        </div>
+        <div className="flex flex-row items-end justify-start gap-10 mb-5">
           {/* Price section */}
           <div className="flex flex-col items-start">
             <span className="font-bold text-md md:text-lg text-black mb-1">Price</span>
             <div className="flex items-baseline gap-3">
-              {(() => {
-                const coupon = product.coupon || product.coupons?.coupon;
-                const originalPrice = product?.quantity?.variants[0].price;
-                let discountedPrice = originalPrice;
-                let couponApplied = false;
-                if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
-                  discountedPrice = originalPrice - (originalPrice * coupon.percent) / 100;
-                  couponApplied = true;
-                } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
-                  discountedPrice = originalPrice - coupon.amount;
-                  couponApplied = true;
-                }
-                return (
-                  <>
-                    <span className="text-2xl font-extrabold text-black">₹{formatNumeric(Math.round(discountedPrice))}</span>
-                    {couponApplied && (
-                      <span className="text-gray-400 line-through text-xl ml-1">₹{formatNumeric(originalPrice)}</span>
-                    )}
-                  </>
-                );
-              })()}
+              {hasDiscount ? (
+                <div className="flex flex-col items-start">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-xl">₹{formatNumeric(totalPrice)}</span>
+                    <span className="text-gray-500 line-through">₹{formatNumeric(totalOriginalPrice)}</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-start">
+                  <span className="font-bold text-xl">₹{formatNumeric(totalPrice)}</span>                </div>
+              )}
             </div>
           </div>
           {/* Quantity section */}
@@ -296,6 +353,7 @@ export default function QuickViewProductCard({ product, onClose }) {
               <button
                 className="w-10 h-10 rounded-full bg-black text-white text-2xl flex items-center justify-center transition hover:bg-gray-800"
                 onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                disabled={quantity <= 1}
               >-</button>
               <span className="w-10 h-10 rounded-full border-2 border-black flex items-center justify-center text-lg font-semibold">
                 {quantity}
@@ -303,10 +361,12 @@ export default function QuickViewProductCard({ product, onClose }) {
               <button
                 className="w-10 h-10 rounded-full bg-black text-white text-2xl flex items-center justify-center transition hover:bg-gray-800"
                 onClick={() => setQuantity(q => q + 1)}
+                disabled={!selectedVariant || quantity >= (selectedVariant.qty || 0)}
               >+</button>
             </div>
           </div>
         </div>
+
         {/* Buttons */}
         <div className="flex gap-2 mb-4 w-full">
           <button
@@ -402,7 +462,9 @@ export default function QuickViewProductCard({ product, onClose }) {
         {/* Info Rows */}
         <div className="text-sm mb-1">
           <div className="flex flex-row items-start flex-wrap gap-2 mt-1 max-h-28 overflow-y-auto">
-            <span className="font-semibold text-base flex-shrink-0 mr-2 mt-1">Category:</span>
+            {product.categoryTag?.tags && (
+              <span className="font-semibold text-base flex-shrink-0 mr-2 mt-1">Category:</span>
+            )}
             {Array.isArray(product.categoryTag?.tags) && product.categoryTag.tags.length > 0 ? (
               product.categoryTag.tags.map((tag, index) => (
                 <span
@@ -414,9 +476,7 @@ export default function QuickViewProductCard({ product, onClose }) {
                 </span>
               ))
             ) : (
-              <span className="bg-gray-200 text-black font-semibold px-4 py-2 rounded-full text-sm shadow-sm border border-gray-300 whitespace-nowrap">
-                {"No Category"}
-              </span>
+              null
             )}
           </div>
         </div>
