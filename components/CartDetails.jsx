@@ -463,7 +463,7 @@ const CartDetails = () => {
                             <span className="font-semibold">After Discount:</span> ₹{getAfterDiscount(item)}
                           </div>
                           <div>
-                            <span className="font-semibold">Weight:</span> {item.weight ?? 0}g
+                            <span className="font-semibold">Weight:</span> {item.weight ?? 0}kg
                           </div>
                           <div>
                             <span className="font-semibold">CGST:</span> ₹{(item.price * item.cgst / 100).toFixed(2)}
