@@ -6,7 +6,7 @@ const PrivacyPolicy = () => {
       <div className="border border-black p-4 rounded-xl shadow-sm">
         <h2 className="text-3xl font-bold mb-6">Our Privacy Policy</h2>
         <p className="mb-4">
-          <span className="font-semibold"> www.adventureaxis.in (Website)</span> (we”, “our”, “us”) Privacy Policy aims at safe-guarding the confidentiality
+          <span className="font-semibold">  www.rishikeshhandmade.com  (Website)</span> (we”, “our”, “us”) Privacy Policy aims at safe-guarding the confidentiality
           of our customers and site visitors (“you”, “your”, “yours”). We hereby declare that your details will not be
           disclosed to any third party unless it is required to provide a service to you. Please go through the below
           mentioned Privacy Policy points carefully. By accessing our website, you acknowledge reading and
@@ -28,7 +28,7 @@ const PrivacyPolicy = () => {
             <strong>2. Communication &amp; Marketing :-</strong>
             <p className="text-justify mt-1">
 
-              If you become a registered member of www.adventureaxis.in (Website), you will be able to receive
+              If you become a registered member of  www.rishikeshhandmade.com  (Website), you will be able to receive
               promotional emails regarding latest offers and discounts from us. You may also receive such
               communication if you have made a purchase as a guest user.
               <br />
@@ -85,7 +85,7 @@ const PrivacyPolicy = () => {
               </p>
             </div>
             <div>
-              <p className="text-justify" style={{ textAlign: 'justify' }}><b>9. Introduction to www.adventureaxis.in (Website)  :- </b>
+              <p className="text-justify" style={{ textAlign: 'justify' }}><b>9. Introduction to  www.rishikeshhandmade.com  (Website)  :- </b>
                 Adventure Axis is a premier outdoor gear store
                 based in Tapovan, Rishikesh, on the Badrinath Highway. As an authorized dealer for top global brands
                 like NRS, Camp, Wiley X, and Lafuma, we specialize in high-quality equipment for water sports, camping,
@@ -107,32 +107,32 @@ const PrivacyPolicy = () => {
                 layers, fleece, insulated wear, and high-performance outdoor footwear. We also specialize in Camping &
                 Outdoor gear and Expedition Equipment, ensuring you’re fully equipped for any terrain or challenge.
                 <br />
-                www.adventureaxis.in (Website) is an Internet based content and e-commerce portal, a company
+                 www.rishikeshhandmade.com  (Website) is an Internet based content and e-commerce portal, a company
                 incorporated under the laws of India. Use of the Website is offered to you conditioned on acceptance
                 without modification of all the terms, conditions and notices contained in these Terms, as may be posted
-                on the Website from time to time. www.adventureaxis.in (Website) at its sole discretion reserves the right
+                on the Website from time to time.  www.rishikeshhandmade.com  (Website) at its sole discretion reserves the right
                 not to accept a User from registering on the Website without assigning any reason thereof. provides a
                 number of Internet-based services through the Web Site (all such services, collectively, the "service").
                 The products can be purchased through the website through various methods of payments offered. The
                 purchase of products shall be additionally governed by specific policies of sale, like cancellation policy,
                 return policy, etc. and all of which are incorporated here by reference. In addition, these terms and
-                policies may be further supplemented by www.adventureaxis.in (Website) product specific conditions,
+                policies may be further supplemented by  www.rishikeshhandmade.com  (Website) product specific conditions,
                 which may be displayed on the webpage of that product.  <br /> <br />
-                “www.adventureaxis.in (Website) ” is a registered trade mark..<br />
-                PAN Number :- AAKCA0262D <br />
-                GST Registration Number :-  05AAKCA0262D1Z8  <br />
+                “ www.rishikeshhandmade.com  (Website) ” is a registered trade mark..<br />
+                
                 Working Hours : 9:30 - 18:30 pm  <br />
-                Adventure Axis Equipments (Pvt.) Ltd.
+                Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.
                 <br />
-                Address: 162, Badrinath Road (Opp. Divine Lakshmi Ganga Hotel)
+                Corporate & Store Address: Upper Road Dhalwala (Rishikesh)
                 <br />
-                Tapovan Luxman Jhoola, RISHIKESH-249 192 (UK)
+                Tehri Garhwal, Uttarakhand 249137
                 <br />
-                Ph.: +91-135-2442822 | Mo.: 7669280002, 9897468886
+                 Mo : +91 9411571947, +91 7351009107
                 <br />
-                E-mail : <a href="mailto:info@adventureaxis.in">info@adventureaxis.in</a> / <a href="mailto:nitin.rksh@gmail.com">nitin.rksh@gmail.com</a>
+                E-mail : <a href="mailto:rishikeshhandmade@gmail.com">rishikeshhandmade@gmail.com</a> / <a href="mailto:Support@rishikeshhandmade.com">Support@rishikeshhandmade.com</a> 
+
                 <br />
-                Visit us at : <a href="https://www.adventureaxis.in">www.adventureaxis.in</a>
+                Visit us at : <a href="https://www.rishikeshhandmade.com/"> www.rishikeshhandmade.com </a>
               </p>
             </div>
           </div>
