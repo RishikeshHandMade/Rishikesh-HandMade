@@ -35,7 +35,7 @@ const ArtisanDashboard = () => {
   const artisanId = params?.id;
   // State for artisan and all section data
   const [artisan, setArtisan] = useState(null);
-  console.log(artisan)
+  // console.log(artisan)
   const [loading, setLoading] = useState(true);
   const [promotions, setPromotions] = useState([]);
   const [blogs, setBlogs] = useState([]);

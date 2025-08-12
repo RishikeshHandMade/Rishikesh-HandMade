@@ -11,29 +11,16 @@ const AboutUsSection = () => {
     const [loading, setLoading] = useState(true);
     const [isLoading, setIsLoading] = useState(true);
 
-    const dummyPackages = [
-        {
-            _id: "1",
-            link: "#",
-            image: { url: "https://dummyimage.com/1280x720/000/fff" },
-            headerText: "Spiritual Retreat",
-            title: "Himalayan Pilgrimage",
-            subTitle: "Find peace in the mountains",
-            location: "Uttarakhand, India",
-            footertext: "A journey to rejuvenate your soul",
-        },
-    ];
-
     useEffect(() => {
         const fetchPackages = async () => {
             try {
                 const response = await fetch('/api/featured-packages');
                 const data = await response.json();
                 // console.log(data);
-                setFeaturedPackages(data?.length ? data : dummyPackages); // Use dummy data if API returns empty
+                setFeaturedPackages(data); // Use dummy data if API returns empty
             } catch (error) {
                 // console.error('Error fetching data:', error);
-                setFeaturedPackages(dummyPackages); // Use dummy data on error
+                setFeaturedPackages([]); // Use dummy data on error
             } finally {
                 setIsLoading(false);
                 setLoading(false);

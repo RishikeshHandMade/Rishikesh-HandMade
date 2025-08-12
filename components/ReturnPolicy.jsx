@@ -4,7 +4,7 @@ const ReturnPolicy = () => {
   return (
     <section className="bg-[#fffaf3] py-10 px-4 md:px-12 w-full mx-auto rounded-lg shadow-sm">
       <div className="border border-black p-4 md:p-8 rounded-xl shadow-sm">
-        <h2 className="text-xl md:text-2xl font-bold mb-6 text-center">Return Policy & Procedure</h2>
+        <h2 className="text-xl md:text-2xl font-bold mb-6 text-start">Return Policy & Procedure</h2>
         
         <div className="space-y-6">
           <div>

@@ -98,8 +98,8 @@ const ContactUs = () => {
     };
     return (
         <div className="bg-[#fdf7f2] min-h-screen w-full flex flex-col items-center justify-start pt-5">
-        <div className="container mx-auto px-5 md:px-10">
-            <div className="flex flex-col lg:flex-row gap-8 w-full justify-center mt-10 md:px-20 px-5">
+            <div className="container mx-auto px-5 md:px-10">
+                <div className="flex flex-col lg:flex-row gap-8 w-full justify-center mt-10 md:px-20 px-5">
                     {/* Contact Info */}
                     <div className="lg:w-1/2 w-full flex flex-col justify-center text-black">
                         <h2 className="text-2xl md:text-5xl font-bold mb-4">DISCOVER US</h2>
@@ -113,7 +113,7 @@ const ContactUs = () => {
                             <ul className="mb-2">
                                 <li className='flex flex-row gap-2'>
                                     <a href="tel:+917351009107" className="hover:underline text-xl">+91 7351009107</a>
-                                       <a href="tel:+919411571947" className="hover:underline text-xl">+91 9411571947</a>
+                                    <a href="tel:+919411571947" className="hover:underline text-xl">+91 9411571947</a>
                                 </li>
                             </ul>
                         </div>
@@ -210,8 +210,11 @@ const ContactUs = () => {
             </div>
             {/* Google Maps */}
             <div className="w-full mt-10 flex justify-center">
-                <div className="w-full h-[200px md:h-[400px]  overflow-hidden ">
-                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d11107137.95929637!2d69.62010410061136!3d33.70195544287474!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x45ba13fe538cbec1%3A0xc0e4978d8b7433ca!2sRishikesh%20Handmade!5e0!3m2!1sen!2sin!4v1754994501980!5m2!1sen!2sin" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                <div className="w-full h-[200px] md:h-[400px] overflow-hidden ">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d11107137.95929637!2d69.62010410061136!3d33.70195544287474!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x45ba13fe538cbec1%3A0xc0e4978d8b7433ca!2sRishikesh%20Handmade!5e0!3m2!1sen!2sin!4v1754994501980!5m2!1sen!2sin" width="100%"
+                        height="100%"
+                        style={{ border: 0 }} allowFullScreen="" loading="lazy"
+                        title="Rishikesh HandMade Location" referrerPolicy="no-referrer-when-downgrade"></iframe>
                 </div>
             </div>
         </div>

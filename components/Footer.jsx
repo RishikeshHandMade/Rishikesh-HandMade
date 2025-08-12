@@ -54,42 +54,42 @@ const Footer = () => {
 
     return (
         <footer className={`print:hidden ${pathName.includes('admin') && 'hidden'}
-         ${pathName.includes('artisan') && 'block'} ${pathName.includes('product') && 'block'} ${pathName.includes('customEnquiry') && 'hidden'} ${pathName.includes('checkout') && 'hidden'}  ${pathName.includes('category') && 'block'} bg-[url('/footerBanner.jpg')] bg-cover bg-center bg-no-repeat py-4 text-black`}>
+         ${pathName.includes('artisan') && 'block'} ${pathName.includes('product') && 'block'} ${pathName.includes('customEnquiry') && 'hidden'} ${pathName.includes('checkout') && 'hidden'}  ${pathName.includes('category') && 'block'} bg-black text-white py-4`}>
             {/* <div className="w-full flex justify-center pb-8">
                 <div className="h-[3px] bg-black w-full mx-auto px-4" />
             </div> */}
-            <div className="hidden md:flex flex-wrap lg:justify-between px-10 justify-start md:gap-20 lg:gap-0 gap-12 max-w-[22rem] md:maxw-[45rem] lg:max-w-[60rem] xl:max-w-6xl mx-auto">
+            {/* <div className="hidden md:flex flex-wrap lg:justify-between px-10 justify-start md:gap-20 lg:gap-0 gap-12 max-w-[22rem] md:maxw-[45rem] lg:max-w-[60rem] xl:max-w-6xl mx-auto">
                 <div className="flex flex-col gap-2 px-5">
                     <h1 className="font-semibold text-xl my-4">Main Menu</h1>
                     {pages.filter(page => !page?.link?.includes('policy')).map(page => (
-                        <Link key={page._id} href={page.url} className="block text-black font-barlow ">
+                        <Link key={page._id} href={page.url} className="block text-white font-barlow ">
                             {page.title}
                         </Link>
                     ))}
-                    <Link href={'/contact'} className="block text-black font-barlow ">Contact Us</Link>
+                    <Link href={'/contact'} className="block text-white font-barlow ">Contact Us</Link>
                 </div>
 
                 <div className="flex flex-col gap-2 px-6">
                     <h1 className="font-semibold text-xl my-4">Our Policy</h1>
                     {pages.filter(page => page?.link?.includes('policy')).map(page => (
-                        <Link key={page._id} href={page.url} className="block text-black font-barlow">
+                        <Link key={page._id} href={page.url} className="block text-white font-barlow">
                             {page.title}
                         </Link>
                     ))}
-                    <Link href={'/faq'} className="block text-black font-barlow ">FAQ</Link>
+                    <Link href={'/faq'} className="block text-white font-barlow ">FAQ</Link>
                 </div>
 
                 <div className="flex flex-col gap-1">
                     <h1 className="font-semibold text-xl flex items-center gap-2"> More Inquiry</h1>
-                    <Link href={'tel:+917351009107'} className="my-2 block rounded-full py-1 font-barlow text-black flex items-center gap-2">
+                    <Link href={'tel:+917351009107'} className="my-2 block rounded-full py-1 font-barlow text-white flex items-center gap-2">
                         <Phone size={20} className="text-blue-600" />
                         +91 7351009107
                     </Link>
-                    <Link href={'mailto:support@rishikeshhandmade.com'} className="my-2 block rounded-full font-barlow text-black flex items-center gap-2">
+                    <Link href={'mailto:support@rishikeshhandmade.com'} className="my-2 block rounded-full font-barlow text-white flex items-center gap-2">
                         <Send className="text-blue-600 " size={20} />
                         support@rishikeshhandmade.com
                     </Link>
-                    <p className="my-2 font-barlow text-black mb-5 flex items-center gap-2">
+                    <p className="my-2 font-barlow text-white mb-5 flex items-center gap-2">
                         <MapPin className="text-blue-600" size={20} />
                         Upper Road Dhalwala (Rishikesh)
                         <br />
@@ -134,6 +134,138 @@ const Footer = () => {
                     <br />
                     Tehri Garhwal,Uttarakhand 249201
                 </p>
+            </div> */}
+            <div className="hidden md:flex flex-wrap lg:justify-between px-10 justify-start md:gap-20 lg:gap-0 gap-12 max-w-[22rem] md:maxw-[45rem] lg:max-w-[60rem] xl:max-w-6xl mx-auto">
+                <div className="flex flex-col gap-2 px-5">
+                    <h1 className="font-semibold text-xl my-4">Main Menu</h1>
+                    <Link href={'/'} className="block text-white font-barlow ">Home</Link>
+                    {pages.filter(page => !page?.link?.includes('policy')).map(page => (
+                        <Link key={page._id} href={page.url} className="block text-white font-barlow ">
+                            {page.title}
+                        </Link>
+                    ))}
+                    <Link href={'/contact'} className="block text-white font-barlow ">Contact</Link>
+                </div>
+
+                <div className="flex flex-col gap-2 px-6">
+                    <h1 className="font-semibold text-xl my-4">Our Policy</h1>
+                    {pages.filter(page => page?.link?.includes('policy')).map(page => (
+                        <Link key={page._id} href={page.url} className="block text-white font-barlow">
+                            {page.title}
+                        </Link>
+                    ))}
+                    <Link href={'/faq'} className="block text-white font-barlow ">FAQ</Link>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                    <h1 className="font-semibold text-xl flex items-center gap-2"> More Inquiry</h1>
+                    <div className="flex items-start gap-2">
+                        <Link href={'tel:+919411571947'} className="my-2 text-sm block rounded-full py-1 font-barlow text-white flex items-center gap-2">
+                            <Phone size={20} className="text-blue-600" />
+                            +91 9411571947
+                        </Link>
+                        <Link href={'tel:+917351009107'} className="my-2 text-sm block rounded-full py-1 font-barlow text-white flex items-center gap-2">
+                            +91 7351009107
+                        </Link>
+                    </div>
+                    <div className="flex items-start gap-2">
+                        <div className="py-2">
+                            <Send className="text-blue-600" size={20} />
+                        </div>
+                        <div className="flex items-start flex-col gap-1">
+                            <Link href={'mailto:support@rishikeshhandmade.com'} className="block rounded-full font-barlow text-white flex items-center gap-2">
+                                rishikeshhandmade@gmail.com
+                            </Link>
+                            <Link href={'mailto:Support@rishikeshhandmade.com'} className=" block rounded-full font-barlow text-white flex items-center gap-2">
+                                Support@rishikeshhandmade.com
+                            </Link>
+                            <Link href={'mailto:Info@rishikeshhandmade.com'} className="block rounded-full font-barlow text-white flex items-center gap-2">
+                                Info@rishikeshhandmade.com
+                            </Link>
+                            <Link href={'mailto:Sales@rishikeshhandmade.com'} className="block rounded-full font-barlow text-white flex items-center gap-2">
+                                Sales@rishikeshhandmade.com
+                            </Link>
+                        </div>
+                    </div>
+                    <div className="flex items-start flex-row gap-2 py-2">
+                    <div className="py-2">
+
+                        <MapPin className="text-blue-600" size={20} />
+                    </div>
+                    <div className="flex items-start flex-col gap-2">
+                        <p className="gap-2 font-barlow text-white flex items-start">
+                            <span className="font-semibold">Corporate
+                                <br />
+                                Address :
+                            </span> Upper Road Dhalwala (Rishikesh)
+                            <br />
+                            Tehri Garhwal,Uttarakhand 249137
+                        </p>
+                      
+                    </div>
+                </div>
+                </div>
+            </div>
+            <div className="md:hidden flex items-center gap-2 justify-start px-5">
+                <div className="flex flex-col gap-2 px-2">
+                    <h1 className="font-semibold text-xl my-4">Main Menu</h1>
+                    <Link href={'/'} className="block text-white font-barlow ">Home</Link>
+                    {pages.filter(page => !page?.link?.includes('policy')).map(page => (
+                        <Link key={page._id} href={page.url} className="text-sm block text-white font-barlow ">
+                            {page.title}
+                        </Link>
+                    ))}
+                    <Link href={'/contact'} className="text-sm block text-white font-barlow ">Contact</Link>
+                </div>
+
+                <div className="flex flex-col gap-2 px-2">
+                    <h1 className="font-semibold text-xl my-4">Our Policy</h1>
+                    {pages.filter(page => page?.link?.includes('policy')).map(page => (
+                        <Link key={page._id} href={page.url} className="text-sm block text-white font-barlow">
+                            {page.title}
+                        </Link>
+                    ))}
+                    <Link href={'/faq'} className="text-sm block text-white font-barlow ">FAQ</Link>
+                </div>
+            </div>
+            <div className="md:hidden flex flex-col gap-1 p-5">
+                <h1 className="font-semibold text-xl flex items-center gap-2"> More Inquiry</h1>
+                <div className="flex items-start gap-2">
+                    <Link href={'tel:+919411571947'} className="my-2 text-sm block rounded-full py-1 font-barlow text-white flex items-center gap-2">
+                        <Phone size={20} className="text-blue-600" />
+                        +91 9411571947
+                    </Link>
+                    <Link href={'tel:+917351009107'} className="my-2 text-sm block rounded-full py-1 font-barlow text-white flex items-center gap-2">
+                        +91 7351009107
+                    </Link>
+                </div>
+                <div className="flex items-start gap-2">
+                    <div className="py-2">
+                        <Send className="text-blue-600" size={20} />
+                    </div>
+                    <div className="flex items-start flex-col gap-1">
+                        <Link href={'mailto:support@rishikeshhandmade.com'} className="block rounded-full font-barlow text-white flex items-center gap-2">
+                            rishikeshhandmade@gmail.com
+                        </Link>
+                        <Link href={'mailto:Support@rishikeshhandmade.com'} className=" block rounded-full font-barlow text-white flex items-center gap-2">
+                            Support@rishikeshhandmade.com
+                        </Link>
+                        <Link href={'mailto:Info@rishikeshhandmade.com'} className="block rounded-full font-barlow text-white flex items-center gap-2">
+                            Info@rishikeshhandmade.com
+                        </Link>
+                        <Link href={'mailto:Sales@rishikeshhandmade.com'} className="block rounded-full font-barlow text-white flex items-center gap-2">
+                            Sales@rishikeshhandmade.com
+                        </Link>
+                    </div>
+                </div>
+                <p className="my-2 text-sm font-barlow text-white mb-5 flex items-center gap-2">
+                    <MapPin className="text-blue-600" size={20} />
+                    Corporate & Store Address:
+
+                    <br />
+                    Upper Road Dhalwala (Rishikesh)
+                    Tehri Garhwal,Uttarakhand 249137
+                </p>
             </div>
 
             {/* Accordance Section */}
@@ -142,8 +274,97 @@ const Footer = () => {
                     <Accordion type="single" collapsible className="bg-[#fff] rounded-md  mb-8">
                         <AccordionItem value="item-1">
                             <AccordionTrigger className="text-black px-6 py-4 text-base ">IMPORTANT NOTICE</AccordionTrigger>
-                            <AccordionContent className="text-gray-900 px-6 pb-6 pt-1 text-sm">
-                                All our handicraft products are handcrafted by skilled artisans, which means each item is unique and may have slight variations in color, texture, or finish. These differences are a mark of authenticity and not defects. We ensure quality checks before dispatch, but due to the delicate nature of handmade goods, please handle them with care. Product images may slightly differ from actual items due to lighting or screen settings. Kindly review our return, shipping, and customization policies before placing an order. For any queries or special requests, feel free to contact our support team.</AccordionContent>
+                            <AccordionContent className="text-gray-900 px-6 pb-6 pt-1 text-sm space-y-3">
+                                <p>
+                                    <strong>Purchasing Policy</strong><br />
+                                    At Rishikesh Handmade Craft, we strive to offer a seamless and secure shopping experience. Our purchasing policy outlines everything you need to know when placing an order with us.
+                                </p>
+
+                                <ul className="list-disc list-inside space-y-2">
+                                    <li>
+                                        <strong>1. Product Availability</strong><br />
+                                        We aim to keep our inventory up-to-date. However, due to demand, some items may go out of stock. In such cases:
+                                        <ul className="list-disc list-inside ml-4">
+                                            <li>You will be notified promptly.</li>
+                                            <li>We may offer an alternative or initiate a full refund as per your preference.</li>
+                                        </ul>
+                                    </li>
+
+                                    <li>
+                                        <strong>2. Order Placement</strong>
+                                        <ul className="list-disc list-inside ml-4">
+                                            <li>Select your items and proceed to checkout.</li>
+                                            <li>Provide accurate billing and shipping details.</li>
+                                            <li>Complete payment through our secure gateway.</li>
+                                        </ul>
+                                        <p className="ml-4">Note: Orders with incomplete or incorrect information may be delayed or canceled.</p>
+                                    </li>
+
+                                    <li>
+                                        <strong>3. Payment Methods</strong>
+                                        <ul className="list-disc list-inside ml-4">
+                                            <li>Credit/Debit Cards (Visa, MasterCard, etc.)</li>
+                                            <li>UPI / Wallets / Net Banking (for India)</li>
+                                            <li>PayPal / Razorpay / Stripe (International Orders)</li>
+                                        </ul>
+                                        <p className="ml-4">All transactions are encrypted and 100% secure.</p>
+                                    </li>
+
+                                    <li>
+                                        <strong>4. Order Confirmation</strong>
+                                        <ul className="list-disc list-inside ml-4">
+                                            <li>You will receive an email confirmation with your order number and details.</li>
+                                            <li>A separate email will be sent once the order is dispatched, along with tracking info.</li>
+                                        </ul>
+                                    </li>
+
+                                    <li>
+                                        <strong>5. Pricing & Taxes</strong>
+                                        <ul className="list-disc list-inside ml-4">
+                                            <li>All prices are listed in [INR/USD] and include applicable taxes unless otherwise stated.</li>
+                                            <li>Shipping charges, if any, will be calculated at checkout based on location and package size.</li>
+                                            <li>Promotional discounts cannot be combined unless explicitly stated.</li>
+                                        </ul>
+                                    </li>
+
+                                    <li>
+                                        <strong>6. Cancellations</strong>
+                                        <ul className="list-disc list-inside ml-4">
+                                            <li>You may cancel your order within 12 hours of placing it or before shipment.</li>
+                                            <li>Once dispatched, orders cannot be canceled. Please refer to our Return Policy instead.</li>
+                                        </ul>
+                                    </li>
+
+                                    <li>
+                                        <strong>7. Fraud Prevention</strong>
+                                        <ul className="list-disc list-inside ml-4">
+                                            <li>We may verify orders manually for high-value purchases.</li>
+                                            <li>We reserve the right to cancel orders suspected of fraudulent activity, with or without notice.</li>
+                                        </ul>
+                                    </li>
+
+                                    <li>
+                                        <strong>8. Bulk or Custom Orders</strong><br />
+                                        We welcome bulk purchases or custom requests<br />
+                                        Contact our team at support@rishikeshhandmade.com for quotations and lead times.
+                                    </li>
+
+                                    <li>
+                                        <strong>9. Customer Support</strong>
+                                        <ul className="list-disc list-inside ml-4">
+                                            <li>📧 Email: support@rishikeshhandmade.com</li>
+                                            <li>☎ Call/WhatsApp: +91 07669280002</li>
+                                            <li>🕒 Hours: Monday to Saturday, 10:00 AM – 6:00 PM IST</li>
+                                        </ul>
+                                    </li>
+
+                                    <li>
+                                        <strong>10. Acceptance of Policy</strong><br />
+                                        By placing an order on our website, you agree to the terms outlined in this Purchasing Policy.
+                                    </li>
+                                </ul>
+                            </AccordionContent>
+
                         </AccordionItem>
                     </Accordion>
                 </div>

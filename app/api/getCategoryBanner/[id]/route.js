@@ -38,7 +38,7 @@ export const GET = async (req, { params }) => {
             // console.log('After population:', submenu.products);
         }
 
-        console.log('API returning submenu:', submenu);
+        // console.log('API returning submenu:', submenu);
         return NextResponse.json(submenu);
     } catch (error) {
         return NextResponse.json({ message: error.message }, { status: 500 });

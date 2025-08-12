@@ -398,7 +398,7 @@ const EnquiryOrder = () => {
                       })
                     };
 
-                    console.log('Sending update data:', updateData);
+                    // console.log('Sending update data:', updateData);
 
                     const res = await fetch(`/api/orders/${statusUpdateOrder._id}`, {
                       method: 'PUT',
