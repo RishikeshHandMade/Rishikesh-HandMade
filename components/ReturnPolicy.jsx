@@ -26,7 +26,8 @@ const ReturnPolicy = () => {
               <div>
                 <h4 className="font-semibold">Initiate Return Request:</h4>
                 <p className="mt-2">
-                  The guest must contact our customer service desk or email us at <a href="mailto:info@adventureaxis.in" className="text-blue-600 hover:underline">info@adventureaxis.in</a> or call <a href="tel:+911352442822" className="text-blue-600 hover:underline">+91-135-2442822</a> / <a href="tel:917669280002" className="text-blue-600 hover:underline">7669280002</a>, <a href="tel:919897468886" className="text-blue-600 hover:underline">9897468886</a> with the following details:
+                  The guest must contact our customer service desk or email us at <a href="mailto:support@rishikeshhandmade.com" className="text-blue-600 hover:underline">support@rishikeshhandmade.com</a> or call <a href="tel:+919411571947" className="text-blue-600 hover:underline">+91 9411571947</a> / <a href="tel:+91 7351009107" className="text-blue-600 hover:underline">+91 7351009107
+</a>, <a href="tel:919897468886" className="text-blue-600 hover:underline">9897468886</a> with the following details:
                 </p>
                 <ul className="list-disc ml-6 mt-2 space-y-1">
                   <li>Order number</li>
@@ -128,16 +129,22 @@ const ReturnPolicy = () => {
           </div>
 
           <div className="border-t border-gray-300 pt-6 text-sm text-gray-600">
-            <p className="font-semibold">"www.adventureaxis.in" is a registered trade mark.</p>
-            <p>PAN Number: AAKCA0262D</p>
-            <p>GST Registration Number: 05AAKCA0262D1Z8</p>
-            <p>Working Hours: 9:30 - 18:30 pm</p>
-            <p className="font-semibold mt-2">Adventure Axis Equipments (Pvt.) Ltd.</p>
-            <p>Address: 162, Badrinath Road (Opp. Divine Lakshmi Ganga Hotel)</p>
-            <p>Tapovan Luxman Jhoola, RISHIKESH-249 192 (UK)</p>
-            <p>Ph.: +91-135-2442822 | Mo.: 7669280002, 9897468886</p>
-            <p>E-mail: <a href="mailto:info@adventureaxis.in" className="text-blue-600 hover:underline">info@adventureaxis.in</a> / <a href="mailto:nitin.rksh@gmail.com" className="text-blue-600 hover:underline">nitin.rksh@gmail.com</a></p>
-            <p>Visit us at: <a href="https://www.adventureaxis.in" className="text-blue-600 hover:underline">www.adventureaxis.in</a></p>
+            <p className="text-justify" style={{ textAlign: 'justify' }}>"www.adventureaxis.in" is a registered trade mark.<br />
+                
+                Working Hours : 9:30 - 18:30 pm  <br />
+                Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.
+                <br />
+                Corporate & Store Address: Upper Road Dhalwala (Rishikesh)
+                <br />
+                Tehri Garhwal, Uttarakhand 249137
+                <br />
+                 Mo : +91 9411571947, +91 7351009107
+                <br />
+                E-mail : <a href="mailto:rishikeshhandmade@gmail.com">rishikeshhandmade@gmail.com</a> / <a href="mailto:Support@rishikeshhandmade.com">Support@rishikeshhandmade.com</a> 
+
+                <br />
+                Visit us at : <a href="https://www.rishikeshhandmade.com/"> www.rishikeshhandmade.com </a>
+              </p>
           </div>
         </div>
       </div>
