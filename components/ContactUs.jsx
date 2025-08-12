@@ -113,7 +113,7 @@ const ContactUs = () => {
                             <ul className="mb-2">
                                 <li className='flex flex-row gap-2'>
                                     <a href="tel:+917351009107" className="hover:underline text-xl">+91 7351009107</a>
-                              
+                                       <a href="tel:+919411571947" className="hover:underline text-xl">+91 9411571947</a>
                                 </li>
                             </ul>
                         </div>
