@@ -129,7 +129,7 @@ const ReturnPolicy = () => {
           </div>
 
           <div className="border-t border-gray-300 pt-6 text-sm text-gray-600">
-            <p className="text-justify" style={{ textAlign: 'justify' }}>"www.adventureaxis.in" is a registered trade mark.<br />
+            <p className="text-justify" style={{ textAlign: 'justify' }}>"www.rishikeshhandmade.com" is a registered trade mark.<br />
                 
                 Working Hours : 9:30 - 18:30 pm  <br />
                 Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.

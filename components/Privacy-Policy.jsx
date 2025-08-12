@@ -81,58 +81,23 @@ const PrivacyPolicy = () => {
             <div>
               <p className="text-justify" style={{ textAlign: 'justify' }}><b>8. Changes to Privacy Policy :- </b>
                 We may change this Privacy Policy at any time. The revised Privacy Policy is effective immediately when posted on the Website. Hence, it is the responsibility of each user to review the website and the Privacy Policy periodically to learn of any revisions to this Privacy Policy.
-                For any queries or support, you may get in touch with our customer support team or mail us at <a href="mailto:info@adventureaxis.in"><strong><u> info@adventureaxis.in </u></strong> </a>.
+                For any queries or support, you may get in touch with our customer support team or mail us at <a href="mailto:info@rishikeshhandmade.com"><strong><u> info@rishikeshhandmade.com </u></strong> </a>.
               </p>
             </div>
             <div>
-              <p className="text-justify" style={{ textAlign: 'justify' }}><b>9. Introduction to  www.rishikeshhandmade.com  (Website)  :- </b>
-                Adventure Axis is a premier outdoor gear store
-                based in Tapovan, Rishikesh, on the Badrinath Highway. As an authorized dealer for top global brands
-                like NRS, Camp, Wiley X, and Lafuma, we specialize in high-quality equipment for water sports, camping,
-                trekking, high-altitude expeditions, and safety needs.
-                <br />
-
-                With over 25 years of industry experience, we are a trusted supplier to leading adventure companies
-                across India, supporting activities such as rafting, bungee jumping, camping, and mountaineering. Our
-                commitment to innovation and service excellence earned us the Great Place to Work® Certification in
-                2025.
-                <br />
-                We don’t just provide equipment — we deliver complete outdoor solutions, backed by expert leadership
-                and a vision to elevate the adventure gear industry.
-                <br />
-                Adventure Axis offers a comprehensive range of adventure sports equipment under one roof. Our
-                categories include Water Sports Equipment such as rafts, kayaks, dry bags, paddles, life jackets,
-                helmets, and repair kits. In Safety & Rescue, we provide harnesses, carabiners, ropes, pulleys, fall
-                arresters, rescue devices, and helmets. Our Clothing & Footwear range features tactical eyewear, base
-                layers, fleece, insulated wear, and high-performance outdoor footwear. We also specialize in Camping &
-                Outdoor gear and Expedition Equipment, ensuring you’re fully equipped for any terrain or challenge.
-                <br />
-                 www.rishikeshhandmade.com  (Website) is an Internet based content and e-commerce portal, a company
-                incorporated under the laws of India. Use of the Website is offered to you conditioned on acceptance
-                without modification of all the terms, conditions and notices contained in these Terms, as may be posted
-                on the Website from time to time.  www.rishikeshhandmade.com  (Website) at its sole discretion reserves the right
-                not to accept a User from registering on the Website without assigning any reason thereof. provides a
-                number of Internet-based services through the Web Site (all such services, collectively, the "service").
-                The products can be purchased through the website through various methods of payments offered. The
-                purchase of products shall be additionally governed by specific policies of sale, like cancellation policy,
-                return policy, etc. and all of which are incorporated here by reference. In addition, these terms and
-                policies may be further supplemented by  www.rishikeshhandmade.com  (Website) product specific conditions,
-                which may be displayed on the webpage of that product.  <br /> <br />
-                “ www.rishikeshhandmade.com  (Website) ” is a registered trade mark..<br />
-                
-                Working Hours : 9:30 - 18:30 pm  <br />
-                Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.
-                <br />
-                Corporate & Store Address: Upper Road Dhalwala (Rishikesh)
-                <br />
-                Tehri Garhwal, Uttarakhand 249137
-                <br />
-                 Mo : +91 9411571947, +91 7351009107
-                <br />
-                E-mail : <a href="mailto:rishikeshhandmade@gmail.com">rishikeshhandmade@gmail.com</a> / <a href="mailto:Support@rishikeshhandmade.com">Support@rishikeshhandmade.com</a> 
-
-                <br />
-                Visit us at : <a href="https://www.rishikeshhandmade.com/"> www.rishikeshhandmade.com </a>
+              <p className="text-justify" style={{ textAlign: 'justify' }}><b>9. Introduction to www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.)  :- </b>
+                established in 2025, is a pioneer in research &amp; development and is focused on natural Handicraft products. Rishikesh Handmade Craft is a platform that celebrates the traditional art and culture of Rishikesh. It showcases eco-friendly, handcrafted items like wooden carvings, paintings, jewelry, and home decor made by skilled local artisans. By supporting this platform, you help preserve age-old crafts and empower local communitiess. Our website is your gateway to the heart of Rishikesh, offering rich and soulful handmade creations crafted by local artisans.<br /><br />
+                Our team is highly talented with many years of valuable experience, and our innovative approach has given rise to creating unique products in concept and design. We provide effective products that can find on our collection brings together timeless handicrafts handcrafted by local artisans of Rishikesh. Every item is a reflection of our rich cultural heritage, made with love, care, and generations of tradition. From eco-friendly décor and handwoven textiles to sacred spiritual items and unique wooden carvings, each piece tells a story of craftsmanship and connection. <br /><br />
+                www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.)  has constantly been striving to offer effective solutions to day-to-day challenges in Handicraft Industry. Extensive market research and state-of-the-art R&amp;D are the tools we employ to bring out innovative and effective solutions for these challenges. We offer the products for domestic, as well as for International market. We have manufacturing facilities also, our manufacturing unit is located in Rishikesh, Uttarakhand, India. Our manufacturing facility uses the most advanced technology to produce the products. We have all the advanced facilities for manufacturing, testing, and packing the products.<br /><br />
+                www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.)  is an Internet based content and e-commerce portal, a company incorporated under the laws of India. Use of the Website is offered to you conditioned on acceptance without modification of all the terms, conditions and notices contained in these Terms, as may be posted on the Website from time to time. www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.)  at its sole discretion reserves the right not to accept a User from registering on the Website without assigning any reason thereof. provides a number of Internet-based services through the Web Site (all such services, collectively, the "service"). The products can be purchased through the website through various methods of payments offered. The purchase of products shall be additionally governed by specific policies of sale, like cancellation policy, return policy, etc. and all of which are incorporated here by reference. In addition, these terms and policies may be further supplemented by www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.)  product specific conditions, which may be displayed on the webpage of that product.<br /> <br />
+                “www.rishikeshhandmade.com (E Commerce Website Of Rishikesh Natural Fiber Handicrafts Producer Company Pvt. Ltd.) ” is a registered trade mark.<br />
+                PAN Number :-  <br />
+                GST Registration Number :-  05AAKCR5588H1ZW  <br />
+                Phone Number :          +91 7351009107 <br />
+                Working Hours :           9:30 - 18:30 pm<br />
+                Email Id:                         info@rishikeshhandmade.com<br />
+                Address:                     Upper Road Dhalwala (Rishikesh)
+                Tehri Garhwal, Uttrakhand 249201
               </p>
             </div>
           </div>

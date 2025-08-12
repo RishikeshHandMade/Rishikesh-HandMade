@@ -13,7 +13,7 @@ const ShippingPolicy = () => {
             <strong>1. Delivery charge varies with each Seller :-</strong>
             <p className="text-justify mt-1">
               Sellers incur relatively higher shipping costs on low value items. In such cases, charging a nominal delivery charge helps them offset logistics costs. Please check your order summary to understand the delivery charges for individual products.<br />
-              For Products listed as  www.rishikeshhandmade.com  (E Commerce Website Of Adventure Axis), a Rs 200 charge for delivery per item may be applied if the order value is less than Rs 1,000=00 to 2,000=00. While, orders of Rs 10,000=00 or above are delivered free based on delivery partner's fee.
+              For Products listed as  www.rishikeshhandmade.com  (E Commerce Website), a Rs 200 charge for delivery per item may be applied if the order value is less than Rs 1,000=00 to 2,000=00. While, orders of Rs 10,000=00 or above are delivered free based on delivery partner's fee.
             </p>
           </div>
           <div>
