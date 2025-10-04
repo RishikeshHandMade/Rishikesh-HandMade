@@ -7,7 +7,7 @@ const CategoryAds = ({ categoryAdList }) => {
     categoryAdList.length > 0 ? (
       <>
         {categoryAdList.map((ad, idx) => (
-          <div key={ad._id || idx} className="hidden md:flex w-full max-w-xl rounded-2xl overflow-hidden shadow mb-4 flex flex-col items-center">
+          <div key={ad._id || idx} className="hidden md:flex w-full max-w-xl rounded-2xl overflow-hidden shadow mb-4 flex-col items-center">
             {ad.image && ad.buttonLink ? (
               <a href={ad.buttonLink} target="_blank" rel="noopener noreferrer">
                 <Image

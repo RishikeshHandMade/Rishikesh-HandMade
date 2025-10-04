@@ -147,7 +147,7 @@ const AboutMe = () => {
 
       {/* Get In Touch Section */}
       <section className="w-full bg-black py-5 text-white flex flex-col md:flex-row items-center justify-between  md:px-24 gap-6 ">
-        <div className="md:mb-6 md:mb-0 md:px-3">
+        <div className="md:mb-0 md:px-3">
           <h3 className="text-xl md:text-3xl font-bold gap-2 text-center md:text-start">Questions?
             <br className="md:hidden" />
             <span className="text-sm md:text-lg font-normal px-2">Our experts will help find the gear that’s right for you</span>
@@ -192,7 +192,7 @@ const AboutMe = () => {
           </div>
 
           {/* Team Grid (remaining team members) */}
-          <div className="hidden md:flex grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-8 mb-10">
+          <div className="hidden md:flex grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-8 mb-10">
             {loading ? (
               <div>Loading...</div>
             ) : teamMembers.length > 2 ? (

@@ -232,12 +232,12 @@ const ApplyCoupon = ({ productData, productId }) => {
                       </div>
                     </td>
                     <td className="border p-2 text-center">
-                      <button className="mr-2 text-blue-600 bg-blue-600 hover:bg-blue-700 text-white border rounded-2 px-2 py-1 rounded font-semibold" title="Edit" onClick={() => {
+                      <button className="mr-2  bg-blue-600 hover:bg-blue-700 text-white border rounded-2 px-2 py-1 rounded font-semibold" title="Edit" onClick={() => {
                         setEditProductId(row.productId);
                       }}>Edit</button>
                       <Dialog open={deleteDialog.open && deleteDialog.productId === row.productId} onOpenChange={open => setDeleteDialog({ open, productId: open ? row.productId : null })}>
                         <DialogTrigger asChild>
-                          <button className="text-red-600 bg-red-600 hover:bg-red-700 text-white border rounded-2 px-2 py-1 rounded font-semibold" title="Delete" onClick={() => setDeleteDialog({ open: true, productId: row.productId })}>Delete</button>
+                          <button className="bg-red-600 hover:bg-red-700 text-white border rounded-2 px-2 py-1 rounded font-semibold" title="Delete" onClick={() => setDeleteDialog({ open: true, productId: row.productId })}>Delete</button>
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>

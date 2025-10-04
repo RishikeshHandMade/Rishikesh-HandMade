@@ -56,7 +56,7 @@ const RandomTourPackageSection = () => {
       price: Math.round(discountedPrice),
       size: item?.quantity?.variants[0].size,
       weight: item?.quantity?.variants[0].weight,
-      color:item?.quantity?.variants[0].color,
+      color: item?.quantity?.variants[0].color,
       originalPrice: price,
       qty: 1,
       couponApplied,
@@ -135,9 +135,29 @@ const RandomTourPackageSection = () => {
       setIsLoading(false);
     }
   };
+  const [consultancyBanner, setConsultancyBanner] = useState([])
+  // console.log(promotinalBanner)
+  const fetchPromotinalBanner = async () => {
+    try {
+      const res = await fetch("/api/addConsultancyBanner");
+      const data = await res.json();
+      // console.log("Consultancy Banner API response:", data);
+      if (data && data.length > 0) {
+        setConsultancyBanner(data);
+      } else {
+        setConsultancyBanner([]);
+      }
+    } catch (error) {
+      // console.error("Error fetching products:", error);
+      setConsultancyBanner([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
 
   useEffect(() => {
+    fetchPromotinalBanner();
     fetchArtisan();
     fetchProducts();
   }, []);
@@ -239,7 +259,7 @@ const RandomTourPackageSection = () => {
                                   price: Math.round(discountedPrice),
                                   size: item?.quantity?.variants[0].size,
                                   weight: item?.quantity?.variants[0].weight,
-                                  color:item?.quantity?.variants[0].color,
+                                  color: item?.quantity?.variants[0].color,
                                   originalPrice: price,
                                   qty: 1,
                                   couponApplied,
@@ -292,7 +312,7 @@ const RandomTourPackageSection = () => {
                         {/* Quick View Button - Slide Up from Bottom on Hover (image only) */}
                         <div className="absolute left-0 right-0 bottom-0 flex items-center justify-center translate-y-10 opacity-0 group-hover/image:translate-y-0 group-hover/image:opacity-100 transition-all duration-300 py-4 ">
                           <Button
-                            className="bg-black text-white hover:bg-gray-800 transition-colors duration-300 uppercase text-sm font-bold px-8 py-3 rounded-full shadow-lg border border-2 border-white"
+                            className="bg-black text-white hover:bg-gray-800 transition-colors duration-300 uppercase text-sm font-bold px-8 py-3 rounded-full shadow-lg  border-2 border-white"
                             onClick={() => setQuickViewProduct(item.product ? item.product : item) // Ensure we always pass the actual product object, not a wrapper
                             }
                           >
@@ -477,7 +497,7 @@ const RandomTourPackageSection = () => {
                     {artisan.slice(2).map((item, idx) => {
                       const card = {
                         id: item._id || idx,
-                        slug:item.slug,
+                        slug: item.slug,
                         name: `${item.title ? item.title + " " : ""}${item.firstName || ''} ${item.lastName || ''}`.trim() || "Unknown Artisan",
                         date: item.createdAt ? new Date(item.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase() : "N/A",
                         image: item.profileImage?.url || item.image || "/bg-custom-1.jpg",
@@ -699,13 +719,81 @@ const RandomTourPackageSection = () => {
                     })}
                   </CarouselContent>
                   <div className="flex items-center gap-3 mt-4 justify-center">
-                  <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 p-5" />
-                  <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 p-5" />
+                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 p-5" />
+                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 p-5" />
                   </div>
                 </Carousel>
               </div>
             )}
           </div>
+        </div>
+
+        <div className="w-full px-2 md:py-10">
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-2 uppercase">Our Consultancy Services</h2>
+          <p className="text-gray-600 text-center py-4 mx-auto md:w-[50%]">Our consultancy service is dedicated to providing expert guidance, practical solutions, and personalized strategies to help clients achieve their goals with confidence. We focus on delivering value-driven results through professionalism, innovation, and trusted support</p>
+          <Carousel className="w-full px-5 md:px-20 mx-auto">
+            <CarouselContent>
+              {consultancyBanner.map((item, idx) => (
+                <CarouselItem key={item._id || idx} className="w-full md:basis-1/2">
+
+                  <div className="flex flex-col gap-5 md:flex-row md:h-[400px] h-[700px] rounded-xl overflow-hidden group px-2">
+                    {/* Image Section */}
+                    <div className="w-full h-full overflow-hidden border rounded-md border-gray-300">
+                      <div className="relative w-full h-full">
+                        <Image
+                          src={item?.image?.url || "/placeholder.jpeg"}
+                          alt={item?.title || "Consultancy Service"}
+                          fill
+                          className="object-cover transition-transform duration-500 group-hover:scale-110"
+                          priority={idx === 0}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Content Section */}
+                    <div className="w-full bg-[#FAF2F2] p-6 flex flex-col justify-center rounded-md border border-gray-300">
+                      <div>
+                        <div className="flex items-center">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <svg
+                              key={star}
+                              className={`w-7 h-7 ${star <= (item.rating || 0) ? 'text-orange-400' : 'text-gray-300'}`}
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                          ))}
+                          <span className="ml-2 text-sm text-gray-600">{item.rating || 0}/5</span>
+                        </div>
+                        <h3 className="text-2xl md:text-xl font-bold text-gray-900 my-3 line-clamp-2">
+                          {item.title || 'Title Come Here'}
+                        </h3>
+                        <p className="text-gray-600 max-h-60 overflow-hidden">
+                          {item.shortDescription || 'Short Description'}
+                        </p>
+                      </div>
+                      <div className="mt-4">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            window.open(item.buttonLink, '_blank', 'noopener,noreferrer');
+                          }}
+                          className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors flex items-center gap-2 mx-auto md:mx-0 w-full justify-center"
+                        >
+                          Explore Now <ArrowRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselNext className="!right-2 !top-1/2 !-translate-y-1/2 z-10 bg-white/80 hover:bg-white w-10 h-10 rounded-full shadow-md" />
+            <CarouselPrevious className="!left-2 !top-1/2 !-translate-y-1/2 z-10 bg-white/80 hover:bg-white w-10 h-10 rounded-full shadow-md" />
+          </Carousel>
         </div>
 
 
@@ -715,7 +803,7 @@ const RandomTourPackageSection = () => {
             <div className="bg-white rounded-2xl shadow-xl mx-auto md:max-w-4xl w-full relative overflow-y-auto max-h-[90vh]" onClick={e => e.stopPropagation()}>
               {/* Close Button */}
               <button
-                className="absolute top-4 right-4 text-2xl font-bold text-gray-500 z-50 rounded-full w-8 h-8 border border-black bg-black text-white flex items-center justify-center hover:bg-gray-100 hover:text-black focus:outline-none"
+                className="absolute top-4 right-4 text-2xl font-bold z-50 rounded-full w-8 h-8 border border-black bg-black text-white flex items-center justify-center hover:bg-gray-100 hover:text-black focus:outline-none"
                 onClick={() => setQuickViewProduct(null)}
                 aria-label="Close quick view"
               >

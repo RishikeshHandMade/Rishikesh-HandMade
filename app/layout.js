@@ -58,7 +58,7 @@ export default function RootLayout({ children }) {
             <SessionWrapper>
               <SearchProvider>
                 <Header />
-                <GoogleTranslate />
+                {/* <GoogleTranslate /> */}
                 <main>
                   <OverlayButton />
                   {children}

@@ -187,6 +187,11 @@ const MenuBar = (props) => {
             {/* Desktop Navigation */}
             <NavigationMenu.Root className="hidden lg:flex relative justify-center" >
                 <NavigationMenu.List className="flex space-x-4">
+                <Link
+                        href="/"
+                        className="flex items-center px-4 py-2 text-sm font-semibold hover:bg-blue-400 data-[state=open]:bg-blue-300 data-[state=open]:text-black rounded-md">
+                        Home
+                    </Link>
                     {menuItems.map((item, index) => (
                         <NavigationMenu.Item key={index} className="relative flex justify-center">
                             <NavigationMenu.Trigger className="flex items-center px-4 py-2 text-sm font-semibold  data-[state=open]:text-black rounded-md">
@@ -225,13 +230,9 @@ const MenuBar = (props) => {
                             </AnimatePresence>
                         </NavigationMenu.Item>
                     ))}
-                    <Link
-                        href="/"
-                        className="flex items-center px-4 py-2 text-sm font-semibold hover:bg-blue-400 data-[state=open]:bg-blue-300 data-[state=open]:text-black rounded-md">
-                        Home
-                    </Link>
+     
                     {allMenuItems.length > 0 && allMenuItems.map((cat, index) => (
-                        <NavigationMenu.Item key={index} className="relative flex justify-center">
+                        <NavigationMenu.Item key={index} className="relative flex justify-end">
                             <>
                                 <NavigationMenu.Trigger className="flex items-center px-4 py-2 text-sm font-semibold hover:bg-blue-500 data-[state=open]:bg-blue-500 data-[state=open]:text-black rounded-md">
                                     {cat.catTitle} <ArrowDown className="ml-2" size={12} />

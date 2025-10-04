@@ -58,7 +58,7 @@ const WhatWeDo = () => {
             {/* Left Side */}
             <div className="lg:w-7/12 w-full">
               <div className="md:p-8 mb-8">
-                <h4 className="text-xl md:text-2xl md:text-3xl font-bold mb-4 text-amber-700">Bringing you soulful, sustainable art — one handmade piece at a time.</h4>
+                <h4 className="text-xl md:text-3xl font-bold mb-4 text-amber-700">Bringing you soulful, sustainable art — one handmade piece at a time.</h4>
                 <p className="text-sm md:text-base text-gray-700 mb-4">
                   At Rishikesh Handmade Craft, we don’t just sell handmade products — we offer a piece of nature, culture, and community. While many marketplaces source mass-produced or factory-replicated goods, we stay firmly committed to authentic, eco-conscious craftsmanship, with a strong specialization in natural fiber products. <br /><br />
                   Our collections are made using locally sourced, biodegradable materials such as jute, hemp, cotton, bamboo, and banana fiber — all chosen for their minimal environmental impact and natural beauty. These fibers are not only sustainable but also deeply embedded in India’s artisanal traditions, making each product a harmonious blend of heritage and environmental responsibility.<br /><br />
@@ -122,7 +122,7 @@ const WhatWeDo = () => {
       </section>
       {/* Get in Touch Section */}
       <section className="w-full bg-black py-5 text-white flex flex-col md:flex-row items-center justify-between  md:px-24 gap-6 ">
-        <div className="md:mb-6 md:mb-0 md:px-3">
+        <div className="md:mb-0 md:px-3">
           <h3 className="text-xl md:text-3xl font-bold gap-2 text-center md:text-start">Questions?
             <br className="md:hidden" />
             <span className="text-sm md:text-lg font-normal px-2">Our experts will help find the gear that’s right for you</span>

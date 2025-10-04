@@ -160,11 +160,11 @@ const Footer = () => {
                 <div className="flex flex-col gap-1">
                     <h1 className="font-semibold text-xl flex items-center gap-2"> More Inquiry</h1>
                     <div className="flex items-start gap-2">
-                        <Link href={'tel:+919411571947'} className="my-2 text-sm block rounded-full py-1 font-barlow text-white flex items-center gap-2">
+                        <Link href={'tel:+919411571947'} className="my-2 text-sm rounded-full py-1 font-barlow text-white flex items-center gap-2">
                             <Phone size={20} className="text-blue-600" />
                             +91 9411571947
                         </Link>
-                        <Link href={'tel:+917351009107'} className="my-2 text-sm block rounded-full py-1 font-barlow text-white flex items-center gap-2">
+                        <Link href={'tel:+917351009107'} className="my-2 text-sm rounded-full py-1 font-barlow text-white flex items-center gap-2">
                             +91 7351009107
                         </Link>
                     </div>
@@ -173,16 +173,16 @@ const Footer = () => {
                             <Send className="text-blue-600" size={20} />
                         </div>
                         <div className="flex items-start flex-col gap-1">
-                            <Link href={'mailto:support@rishikeshhandmade.com'} className="block rounded-full font-barlow text-white flex items-center gap-2">
+                            <Link href={'mailto:support@rishikeshhandmade.com'} className="rounded-full font-barlow text-white flex items-center gap-2">
                                 rishikeshhandmade@gmail.com
                             </Link>
-                            <Link href={'mailto:Support@rishikeshhandmade.com'} className=" block rounded-full font-barlow text-white flex items-center gap-2">
+                            <Link href={'mailto:Support@rishikeshhandmade.com'} className=" rounded-full font-barlow text-white flex items-center gap-2">
                                 Support@rishikeshhandmade.com
                             </Link>
-                            <Link href={'mailto:Info@rishikeshhandmade.com'} className="block rounded-full font-barlow text-white flex items-center gap-2">
+                            <Link href={'mailto:Info@rishikeshhandmade.com'} className="rounded-full font-barlow text-white flex items-center gap-2">
                                 Info@rishikeshhandmade.com
                             </Link>
-                            <Link href={'mailto:Sales@rishikeshhandmade.com'} className="block rounded-full font-barlow text-white flex items-center gap-2">
+                            <Link href={'mailto:Sales@rishikeshhandmade.com'} className="rounded-full font-barlow text-white flex items-center gap-2">
                                 Sales@rishikeshhandmade.com
                             </Link>
                         </div>
@@ -231,11 +231,11 @@ const Footer = () => {
             <div className="md:hidden flex flex-col gap-1 p-5">
                 <h1 className="font-semibold text-xl flex items-center gap-2"> More Inquiry</h1>
                 <div className="flex items-start gap-2">
-                    <Link href={'tel:+919411571947'} className="my-2 text-sm block rounded-full py-1 font-barlow text-white flex items-center gap-2">
+                    <Link href={'tel:+919411571947'} className="my-2 text-sm rounded-full py-1 font-barlow text-white flex items-center gap-2">
                         <Phone size={20} className="text-blue-600" />
                         +91 9411571947
                     </Link>
-                    <Link href={'tel:+917351009107'} className="my-2 text-sm block rounded-full py-1 font-barlow text-white flex items-center gap-2">
+                    <Link href={'tel:+917351009107'} className="my-2 text-sm rounded-full py-1 font-barlow text-white flex items-center gap-2">
                         +91 7351009107
                     </Link>
                 </div>
@@ -244,16 +244,16 @@ const Footer = () => {
                         <Send className="text-blue-600" size={20} />
                     </div>
                     <div className="flex items-start flex-col gap-1">
-                        <Link href={'mailto:support@rishikeshhandmade.com'} className="block rounded-full font-barlow text-white flex items-center gap-2">
+                        <Link href={'mailto:support@rishikeshhandmade.com'} className="rounded-full font-barlow text-white flex items-center gap-2">
                             rishikeshhandmade@gmail.com
                         </Link>
-                        <Link href={'mailto:Support@rishikeshhandmade.com'} className=" block rounded-full font-barlow text-white flex items-center gap-2">
+                        <Link href={'mailto:Support@rishikeshhandmade.com'} className=" rounded-full font-barlow text-white flex items-center gap-2">
                             Support@rishikeshhandmade.com
                         </Link>
-                        <Link href={'mailto:Info@rishikeshhandmade.com'} className="block rounded-full font-barlow text-white flex items-center gap-2">
+                        <Link href={'mailto:Info@rishikeshhandmade.com'} className="rounded-full font-barlow text-white flex items-center gap-2">
                             Info@rishikeshhandmade.com
                         </Link>
-                        <Link href={'mailto:Sales@rishikeshhandmade.com'} className="block rounded-full font-barlow text-white flex items-center gap-2">
+                        <Link href={'mailto:Sales@rishikeshhandmade.com'} className="rounded-full font-barlow text-white flex items-center gap-2">
                             Sales@rishikeshhandmade.com
                         </Link>
                     </div>
@@ -353,7 +353,9 @@ const Footer = () => {
                                         <strong>9. Customer Support</strong>
                                         <ul className="list-disc list-inside ml-4">
                                             <li>📧 Email: support@rishikeshhandmade.com</li>
-                                            <li>☎ Call/WhatsApp: +91 07669280002</li>
+                                            <li>☎ Call/WhatsApp:                                          +91 9411571947,
+                                            +91 7351009107
+                                            </li>
                                             <li>🕒 Hours: Monday to Saturday, 10:00 AM – 6:00 PM IST</li>
                                         </ul>
                                     </li>
@@ -412,9 +414,10 @@ const Footer = () => {
                     </div>
                 </CardFooter>
             </Card>
-            <div className="flex flex-col lg:flex-row items-center justify-center max-w-[25rem] md:max-w-[60rem] xl:max-w-6xl mx-auto font-barlow">
-                <p className="text-black font-bold text-center my-4">
-                    &copy; <CurrentYear /> <Link href={'/'} className="font-bold text-black">Rishikesh Handmade</Link>. All rights reserved
+            <div className="max-w-[25rem] md:max-w-[60rem] xl:max-w-7xl mx-auto font-barlow">
+                <p className="text-white text-center">Buy Handicraft and Handloom Items Online | Home and Living Products for Sale | Buy Handloom and Handicraft Items | Handmade Home Décor and Utility for Sale | Buy Home Decor Items Online | Handloom Cushions Online | Buy Handmade Bhimal And Jute Accessories |  Handmade Handicraft Accessories for Sale | Handmade Floor Coverings Jute Bhimal Foot Door Mat Online Sale | Handmade Religious Items for Sale Online | Buy Handmade Jute Bhimal Woolen Footwear | Buy Handmade Jute Slippers  Footwear | Handcrafted Lighting Items Online | Handmade Office Stationery Jute File Folder  Items for Sale | Buy Handmade Jute Bags for Shopping |</p>
+                <p className="text-white font-bold text-center my-4">
+                    &copy; <CurrentYear /> <Link href={'/'} className="font-bold text-white">Rishikesh Handmade</Link>. All rights reserved
                 </p>
             </div>
         </footer >

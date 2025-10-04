@@ -259,19 +259,6 @@ const Header = () => {
                   <span className="text-xs font-medium mt-1">Track Order</span>
                 </Link>
               </div>
-
-              {/* Language Selector */}
-              <div className="group relative">
-                <div 
-                  className="flex flex-col items-center p-2 rounded-lg hover:bg-neutral-100 transition-colors cursor-pointer"
-                  aria-label="Language"
-                >
-                  <div className="flex flex-col items-start justify-start">
-                    <LanguageSelector size={20} />
-                    <span className="text-sm font-medium">Language</span>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>

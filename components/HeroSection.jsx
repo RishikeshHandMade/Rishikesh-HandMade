@@ -171,7 +171,7 @@ const HeroSection = () => {
                   <img
                     src={banner.frontImg?.url || "/placeholder.jpeg"}
                     alt={banner.title ? `${banner.title} Front` : "Banner Image"}
-                    className="object-cover w-full h-[50vh] rounded-lg shadow-lg z-0"
+                    className="object-contain w-full rounded-lg shadow-lg z-0"
                   />
                 </div>
                 </Link>
