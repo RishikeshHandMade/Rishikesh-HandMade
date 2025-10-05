@@ -5,9 +5,9 @@ import Product from '@/models/Product';
 export async function POST(req) {
   await connectDB();
   try {
-    const { productId, videoUrl, videoDescription } = await req.json();
-    if (!productId || !videoUrl) {
-      return Response.json({ error: 'Missing productId or videoUrl' }, { status: 400 });
+    const { productId, videoName, videoUrl, videoDescription } = await req.json();
+    if (!productId || !videoUrl || !videoName) {
+      return Response.json({ error: 'Missing productId or videoUrl or videoName' }, { status: 400 });
     }
     let videoDoc = await Video.findOne({ product: productId });
     if (videoDoc) {
@@ -15,10 +15,10 @@ export async function POST(req) {
       if (videoDoc.videos.length >= 10) {
         return Response.json({ error: 'Max 10 videos allowed.' }, { status: 400 });
       }
-      videoDoc.videos.push({ url: videoUrl, description: videoDescription || '' });
+      videoDoc.videos.push({ name: videoName, url: videoUrl, description: videoDescription || '' });
       await videoDoc.save();
     } else {
-      videoDoc = await Video.create({ product: productId, videos: [{ url: videoUrl, description: videoDescription || '' }] });
+      videoDoc = await Video.create({ product: productId, videos: [{ name: videoName, url: videoUrl, description: videoDescription || '' }] });
     }
     // Always link videoDoc to Product
     await Product.findByIdAndUpdate(productId, { video: videoDoc._id });
@@ -48,17 +48,45 @@ export async function GET(req) {
 export async function PATCH(req) {
   await connectDB();
   try {
-    const { productId, videos } = await req.json();
+    const { productId, videos, updatedVideo } = await req.json();
     if (!productId || !Array.isArray(videos)) {
       return Response.json({ error: 'Missing productId or videos' }, { status: 400 });
     }
-    const videoDoc = await Video.findOneAndUpdate(
-      { product: productId },
-      { videos },
-      { new: true }
+
+    // Find the video document
+    let videoDoc = await Video.findOne({ product: productId });
+    
+    if (!videoDoc) {
+      // If no document exists, create a new one
+      videoDoc = await Video.create({
+        product: productId,
+        videos: videos.map(v => ({
+          name: v.name || 'Untitled Video',
+          url: v.url,
+          description: v.description || ''
+        }))
+      });
+    } else {
+      // Update existing videos
+      videoDoc.videos = videos.map(video => ({
+        name: video.name || 'Untitled Video',
+        url: video.url,
+        description: video.description || ''
+      }));
+      
+      await videoDoc.save();
+    }
+    
+    // Ensure the video document is linked to the product
+    await Product.findByIdAndUpdate(
+      productId, 
+      { video: videoDoc._id }, 
+      { upsert: true }
     );
-    return Response.json({ video: videoDoc });
+    
+    return Response.json({ success: true, video: videoDoc });
   } catch (err) {
+    console.error('Error updating videos:', err);
     return Response.json({ error: err.message }, { status: 500 });
   }
 }
@@ -67,7 +95,7 @@ export async function PATCH(req) {
 export async function DELETE(req) {
   await connectDB();
   try {
-    const { productId, videoUrl, videoDescription } = await req.json();
+    const { productId, videoUrl } = await req.json();
     if (!productId || !videoUrl) {
       return Response.json({ error: 'Missing productId or videoUrl' }, { status: 400 });
     }

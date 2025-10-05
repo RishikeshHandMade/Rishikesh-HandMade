@@ -15,6 +15,7 @@ import Link from '@tiptap/extension-link'
 import { Color } from '@tiptap/extension-color'
 import ListItem from '@tiptap/extension-list-item'
 import { Extension } from '@tiptap/core'
+import Image from '@tiptap/extension-image'
 import {
   Bold,
   Italic,
@@ -57,6 +58,33 @@ const FontSize = Extension.create({
 })
 const ProductDescription = ({ productData, productId }) => {
   const [overview, setOverview] = useState("");
+  const [imageUploading, setImageUploading] = useState(false);
+  const imageInputRef = React.useRef(null);
+
+
+  const handleImageUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    setImageUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/cloudinary', {
+        method: 'POST',
+        body: formData
+      });
+      if (!res.ok) throw new Error('Image upload failed');
+      const result = await res.json();
+      addImage(result.url);
+      toast.success('Image uploaded successfully');
+    } catch (err) {
+      toast.error('Image upload failed');
+      console.error(err);
+    } finally {
+      setImageUploading(false);
+      if (file && imageInputRef.current) imageInputRef.current.value = '';
+    }
+  };
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -69,22 +97,30 @@ const ProductDescription = ({ productData, productId }) => {
       Color,
       ListItem,
       FontSize,
+      Image,
     ],
-    content: overview,
     editorProps: {
       attributes: {
-        class: 'min-h-[200px] border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#00b67a]'
+        class: 'min-h-[200px] border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#00b67a]',
+        spellcheck: 'true'
       }
     },
-    onUpdate: ({ editor }) => {
-      // Only update state, don't save to backend
-      setOverview(editor.getHTML())
-    }
+    autofocus: true,
+    editable: true,
+    injectCSS: true
   });
+  // Function to get current editor content
+  const getCurrentContent = () => {
+    if (editor) {
+      return editor.getHTML();
+    }
+    return overview;
+  };
 
   // Save handler for form submission
   const saveDescription = async () => {
-    if (!productId || !overview) {
+    const content = getCurrentContent();
+    if (!productId || !content) {
       toast.error('Please provide an overview and valid product.');
       return;
     }
@@ -95,7 +131,7 @@ const ProductDescription = ({ productData, productId }) => {
         const res = await fetch('/api/productDescription', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productId: editId, overview })
+          body: JSON.stringify({ productId: editId, overview: content })
         });
         const data = await res.json();
         if (!res.ok || data.error) {
@@ -112,7 +148,7 @@ const ProductDescription = ({ productData, productId }) => {
         const res = await fetch('/api/productDescription', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productId, overview })
+          body: JSON.stringify({ productId, overview: content })
         });
         const data = await res.json();
         if (!res.ok || data.error) {
@@ -135,12 +171,45 @@ const ProductDescription = ({ productData, productId }) => {
     saveDescription();
   };
 
-  // Update editor content when overview state changes
+  // Initialize editor content when component mounts or product changes
   useEffect(() => {
-    if (editor) {
-      editor.commands.setContent(overview, false);
+    if (editor && !editor.isDestroyed) {
+      if (overview !== editor.getHTML()) {
+        editor.commands.setContent(overview || '', false);
+      }
     }
-  }, [overview, editor]);
+    
+    return () => {
+      if (editor) {
+        editor.destroy();
+      }
+    };
+  }, [editor]);
+  const addImage = (url) => {
+    if (!editor) return;
+    editor.chain().focus().setImage({ src: url }).run();
+  };
+  const setLink = React.useCallback(() => {
+    if (!editor) return;
+    let previousUrl = editor.getAttributes('link').href;
+
+    // If the URL starts with /product/, remove it for editing
+    if (previousUrl && previousUrl.startsWith('/product/')) {
+      previousUrl = previousUrl.replace(/^\/product\//, '');
+    }
+
+    const url = window.prompt('Enter URL (without /product/ prefix):', previousUrl);
+    if (url === null) return;
+
+    if (url === '') {
+      editor.chain().focus().extendMarkRange('link').unsetLink().run();
+      return;
+    }
+
+    // Don't modify the URL here, let the server or display component handle the prefix
+    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+  }, [editor]);
+
   const [allDescriptions, setAllDescriptions] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -175,45 +244,6 @@ const ProductDescription = ({ productData, productId }) => {
   useEffect(() => {
     fetchProductDescription();
   }, [productId]);
-
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   if (!productId || !overview) {
-  //     toast.error('Please provide an overview and valid product.');
-  //     return;
-  //   }
-  //   setLoading(true);
-  //   try {
-  //     if (editMode && editId) {
-  //       // PATCH request for update
-  //       const res = await fetch('/api/productDescription', {
-  //         method: 'PATCH',
-  //         headers: { 'Content-Type': 'application/json' },
-  //         body: JSON.stringify({ productId: editId, overview })
-  //       });
-  //       const data = await res.json();
-  //       if (!res.ok || data.error) {
-  //         toast.error(data.error || 'Failed to update product info');
-  //       } else {
-  //         toast.success('Product info updated successfully!');
-  //         setOverview("");
-  //         setEditMode(false);
-  //         setEditId(null);
-  //         fetchProductDescription();
-  //       }
-  //     } else {
-  //       // POST request for create
-  //       const res = await fetch('/api/productDescription', {
-  //         method: 'POST',
-  //         headers: { 'Content-Type': 'application/json' },
-  //         body: JSON.stringify({ productId, overview })
-  //       });
-  //       const data = await res.json();
-  //       if (!res.ok || data.error) {
-  //         toast.error(data.error || 'Failed to save product info');
-  //       } else {
-  //         toast.success('Product info saved successfully!');
-  //         setOverview("");
   // View handler
   const handleView = (desc) => {
     setViewedDesc(desc);
@@ -265,6 +295,11 @@ const ProductDescription = ({ productData, productId }) => {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    if (editor) {
+      editor.commands.setContent(overview, false);
+    }
+  }, [overview, editor]);
 
   return (
     <div>
@@ -307,6 +342,32 @@ const ProductDescription = ({ productData, productId }) => {
                         >
                           <UnderlineIcon className="w-4 h-4" />
                         </button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={setLink}
+                          className={editor?.isActive('link') ? 'bg-gray-200' : ''}
+                        >
+                          <LinkIcon className="w-4 h-4" />
+                        </Button>
+                        <input
+                          type="file"
+                          ref={imageInputRef}
+                          onChange={handleImageUpload}
+                          accept="image/*"
+                          className="hidden"
+                          id="image-upload"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => document.getElementById('image-upload').click()}
+                          disabled={imageUploading}
+                        >
+                          {imageUploading ? 'Uploading...' : 'Image'}
+                        </Button>
                         <button type="button"
                           onClick={() => editor?.chain().focus().setParagraph().run()}
                           className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('paragraph') ? 'bg-gray-200' : ''}`}
@@ -462,7 +523,7 @@ const ProductDescription = ({ productData, productId }) => {
             </div>
             <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 h-32 overflow-y-auto">
               <div className="font-semibold text-gray-800">Description</div>
-              <div className='text-gray-700' dangerouslySetInnerHTML={{ __html: viewedDesc.overview }} />
+              <div className='ProseMirror text-gray-700' dangerouslySetInnerHTML={{ __html: viewedDesc.overview }} />
               {/* <div className="text-gray-600" >{viewedDesc.overview || 'N/A'}</div> */}
             </div>
             <div className="flex justify-end mt-4">

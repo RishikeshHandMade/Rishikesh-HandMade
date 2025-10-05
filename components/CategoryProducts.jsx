@@ -12,7 +12,7 @@ export default function CategoryProductsGrid({ visibleProducts }) {
 
   return (
     <>
-      <div className="flex items-center flex-wrap px-10 gap-10 m-4 py-8">
+      <div className="flex items-center flex-wrap md:px-10 gap-2 md:gap-10 md:m-4 m-1 md:py-8 py-2">
         {paginatedProducts.length === 0 ? (
           <div className="col-span-full text-center py-8">
             <h3 className="text-xl font-medium text-gray-600">No products found for this category</h3>
@@ -37,8 +37,8 @@ export default function CategoryProductsGrid({ visibleProducts }) {
 
       {totalPages > 1 && (
         <div className="w-full mt-8">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-md font-medium text-gray-800">
+          <div className="flex flex-col items-end justify-center gap-2 mb-4">
+            <span className="text-md text-center font-medium text-gray-800">
               Showing {startIdx + 1}-{endIdx} of {visibleProducts.length} Results
             </span>
             <div className="flex items-center gap-3">

@@ -262,7 +262,31 @@ export default function ProductDetailView({ product }) {
     fetchStates();
   }, []);
 
+  const unescapeHtml = (html) => {
+    if (!html || typeof html !== 'string') return '';
 
+    // First, unescape all HTML entities
+    const temp = document.createElement('div');
+    temp.innerHTML = html.replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/[“”]/g, '"')
+      .replace(/[‘’]/g, "'");
+
+    // Get the HTML content after unescaping
+    let processedHtml = temp.innerHTML;
+
+    // Fix product links and ensure all links have proper protocol
+    processedHtml = processedHtml
+      // Fix product links
+      .replace(/href="\/product\/([^"]+)"/g, 'href="$1"')
+      // Ensure links have http:// if they don't have any protocol
+      .replace(/href="(?!https?:\\\/\\\/|mailto:|tel:|#)([^"]+)"/g, 'href="https://$1"');
+
+    return processedHtml;
+  };
   return (
     <div className="flex flex-col md:flex-row gap-4">
       {/* LEFT: Product Images */}
@@ -294,7 +318,7 @@ export default function ProductDetailView({ product }) {
                           width: '100%',
                           height: '100%',
                           transition: 'transform 0.3s',
-                          
+
                         }}
                       />
                     </div>
@@ -377,19 +401,19 @@ export default function ProductDetailView({ product }) {
           }
           if (showFullDesc || words.length <= 20) {
             return (
-              <div className="text-gray-700 my-6 text-md max-w-lg">
-                <div dangerouslySetInnerHTML={{ __html: desc }} />
+              <div className="ProseMirror text-gray-700 text-md max-w-lg">
+                <div dangerouslySetInnerHTML={{ __html: unescapeHtml(desc) }} />
                 {words.length > 20 && (
                   <>
-                    {' '}<button className="text-blue-600 underline ml-2" onClick={() => setShowFullDesc(false)}>Close</button>
+                    <button className="text-blue-600 underline ml-2" onClick={() => setShowFullDesc(false)}>Close</button>
                   </>
                 )}
               </div>
             );
           }
           return (
-            <div className="text-gray-700 my-4 text-sm md:text-md max-w-lg">
-              <div dangerouslySetInnerHTML={{ __html: words.slice(0, 20).join(' ') + '...' }} />
+            <div className="ProseMirror text-gray-700 text-sm md:text-md max-w-lg ">
+              <div className="" dangerouslySetInnerHTML={{ __html: unescapeHtml(words.slice(0, 20).join(' ') + '...') }} />
               <button className="text-blue-600 underline" onClick={() => setShowFullDesc(true)}>Read more</button>
             </div>
           );
@@ -501,7 +525,7 @@ export default function ProductDetailView({ product }) {
                   <div className="flex justify-between items-center w-full gap-2">
                     <span>{size}</span>
                     <div className="h-4 w-px bg-gray-300" />
-                    <span className="text-gray-600 text-md"> {weight ? Number(weight).toLocaleString(): '0.00'} kg</span>
+                    <span className="text-gray-600 text-md"> {weight ? Number(weight).toLocaleString() : '0.00'} kg</span>
                   </div>
                 </button>
               );

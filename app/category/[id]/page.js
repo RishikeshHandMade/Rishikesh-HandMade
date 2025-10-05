@@ -89,14 +89,14 @@ const CategoryPage = async ({ params }) => {
         <h1 className="text-xl md:text-5xl font-extrabold drop-shadow">{categoryData.title}</h1>
       </div>
       
-        <div className="flex flex-col md:flex-row gap-6 w-full mt-4 px-5">
+        <div className="flex flex-col md:flex-row md:gap-6 w-full md:mt-4 md:px-5 p-1">
           {/* Left Image Section */}
-          <div className="flex flex-col w-72 max-w-xs flex-shrink-0 justify-start items-center">
+          <div className="hidden md:flex flex-col w-72 max-w-xs flex-shrink-0 justify-start items-center">
             {/* Category Advertisement Banner */}
             <CategoryAds categoryAdList={categoryAdList} />
           </div>
           {/* Middle Section: Category Cards + Package Cards */}
-          <div className="flex-1 min-w-0 gap-4">
+          <div className="flex-1 min-w-0 md:gap-6 gap-2">
             {/* Product Cards Row */}
             <div>
               <CategoryBanner

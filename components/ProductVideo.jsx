@@ -10,7 +10,31 @@ const getYouTubeId = (url) => {
 const ProductVideo = ({ product }) => {
   const videos = product?.video?.videos || [];
   if (!videos.length) return null;
+  const unescapeHtml = (html) => {
+    if (!html || typeof html !== 'string') return '';
 
+    // First, unescape all HTML entities
+    const temp = document.createElement('div');
+    temp.innerHTML = html.replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/[“”]/g, '"')
+        .replace(/[‘’]/g, "'");
+
+    // Get the HTML content after unescaping
+    let processedHtml = temp.innerHTML;
+
+    // Fix product links and ensure all links have proper protocol
+    processedHtml = processedHtml
+        // Fix product links
+        .replace(/href="\/product\/([^"]+)"/g, 'href="$1"')
+        // Ensure links have http:// if they don't have any protocol
+        .replace(/href="(?!https?:\\\/\\\/|mailto:|tel:|#)([^"]+)"/g, 'href="https://$1"');
+
+    return processedHtml;
+};
   return (
     <div className="w-full md:px-10 mx-auto py-10 bg-blue-100">
       {videos.map((video, idx) => {
@@ -40,8 +64,8 @@ const ProductVideo = ({ product }) => {
             </div>
             {/* Description */}
             <div className="w-full min-h-60 md:h-auto md:flex-1 min-w-0 bg-white border border-gray-200 p-6 flex flex-col items-start justify-center text-start rounded-2xl shadow-sm">
-              <h2 className="font-bold text-2xl mb-4">{video.title || "Product Video"}</h2>
-              <p className="mb-6 text-gray-700 text-base md:text-lg">{video.description || 'Discover more about this product. Get inspired and connect with us for more details!'}</p>
+              <h2 className="font-bold text-2xl mb-4">{video.name || "Product Video"}</h2>
+              <div dangerouslySetInnerHTML={{ __html: unescapeHtml(video.description) }} />
               <Link
               href="/contact"
                 className="bg-black text-white px-6 py-2 hover:bg-gray-800 transition-colors text-base font-semibold"

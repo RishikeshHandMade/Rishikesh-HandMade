@@ -16,6 +16,7 @@ import Link from '@tiptap/extension-link'
 import { Color } from '@tiptap/extension-color'
 import ListItem from '@tiptap/extension-list-item'
 import { Extension } from '@tiptap/core'
+import Image from '@tiptap/extension-image'
 import {
   Bold,
   Italic,
@@ -91,6 +92,35 @@ const productInfo = ({ productData, productId }) => {
   }, [productId]);
 
   const [title, setTitle] = useState("");
+  const [imageUploading, setImageUploading] = useState(false);
+  const imageInputRef = React.useRef(null);
+
+
+  const handleImageUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    setImageUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/cloudinary', {
+        method: 'POST',
+        body: formData
+      });
+      if (!res.ok) throw new Error('Image upload failed');
+      const result = await res.json();
+      addImage(result.url);
+      toast.success('Image uploaded successfully');
+    } catch (err) {
+      toast.error('Image upload failed');
+      console.error(err);
+    } finally {
+      setImageUploading(false);
+      if (file && imageInputRef.current) imageInputRef.current.value = '';
+    }
+  };
+
+
 
   const editor = useEditor({
     extensions: [
@@ -104,13 +134,19 @@ const productInfo = ({ productData, productId }) => {
       Color,
       ListItem,
       FontSize,
+      Image,
     ],
     content: description,
     editorProps: {
       attributes: {
-        class: 'min-h-[200px] border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#00b67a]'
+        class: 'min-h-[200px] border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#00b67a]',
+        spellcheck: 'true'
       }
-    }
+    },
+    autofocus: true,
+    editable: true,
+    injectCSS: true
+
   });
 
   // Function to get current editor content
@@ -119,6 +155,41 @@ const productInfo = ({ productData, productId }) => {
       return editor.getHTML();
     }
     return description;
+  };
+
+  const addImage = (url) => {
+    if (!editor) return;
+    editor.chain().focus().setImage({ src: url }).run();
+  };
+  const setLink = React.useCallback(() => {
+    if (!editor) return;
+    let previousUrl = editor.getAttributes('link').href;
+
+    // If the URL starts with /product/, remove it for editing
+    if (previousUrl && previousUrl.startsWith('/product/')) {
+      previousUrl = previousUrl.replace(/^\/product\//, '');
+    }
+
+    const url = window.prompt('Enter URL (without /product/ prefix):', previousUrl);
+    if (url === null) return;
+
+    if (url === '') {
+      editor.chain().focus().extendMarkRange('link').unsetLink().run();
+      return;
+    }
+
+    // Don't modify the URL here, let the server or display component handle the prefix
+    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+  }, [editor]);
+  // Function to reset the form
+  const resetForm = () => {
+    setTitle('');
+    setDescription('');
+    if (editor) {
+      editor.commands.clearContent();
+    }
+    setEditMode(false);
+    setEditIndex(null);
   };
 
   // Save handler for form submission
@@ -140,34 +211,39 @@ const productInfo = ({ productData, productId }) => {
         const res = await fetch('/api/productInfo', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productId, title, description: content, sectionId: sections[editIndex]?._id })
+          body: JSON.stringify({ productId, title, description: content, sectionIndex: editIndex })
         });
         const data = await res.json();
         if (!res.ok || data.error) {
           toast.error(data.error || 'Failed to update section');
         } else {
           toast.success('Section updated successfully!');
-          setEditMode(false);
-          setEditIndex(null);
+          resetForm();
           fetchSections();
         }
       } else {
-        // POST request for create
+        // POST to add section
         const res = await fetch('/api/productInfo', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productId, title, description: content })
+          body: JSON.stringify({
+            productId,
+            title: title.trim(),
+            description: content
+          })
         });
         const data = await res.json();
         if (!res.ok || data.error) {
-          toast.error(data.error || 'Failed to save section');
+          toast.error(data.error || 'Failed to add section');
         } else {
-          toast.success('Section saved successfully!');
+          toast.success('Section added successfully!');
+          resetForm();
           fetchSections();
         }
       }
     } catch (err) {
       toast.error('Error saving section.');
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -186,7 +262,7 @@ const productInfo = ({ productData, productId }) => {
       editor.commands.setContent(description, false);
     }
   }, [description, editor]);
- 
+
   const productTitle = productData?.title || "";
   const [loading, setLoading] = useState(false);
 
@@ -297,11 +373,6 @@ const productInfo = ({ productData, productId }) => {
       setLoading(false);
     }
   };
-
-
-
-
-
   return (
     <div>
       <form className="page-content" onSubmit={handleSubmit}>
@@ -339,12 +410,35 @@ const productInfo = ({ productData, productId }) => {
                           >
                             <Italic className="w-4 h-4" />
                           </button>
-                          <button type="button"
-                            onClick={() => editor?.chain().focus().toggleUnderline().run()}
-                            className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('underline') ? 'bg-gray-200' : ''}`}
-                          >
+                          <Button type="button" variant="ghost" size="sm" onClick={() => editor.chain().focus().toggleUnderline().run()} className={editor?.isActive('underline') ? 'bg-gray-200' : ''}>
                             <UnderlineIcon className="w-4 h-4" />
-                          </button>
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={setLink}
+                            className={editor?.isActive('link') ? 'bg-gray-200' : ''}
+                          >
+                            <LinkIcon className="w-4 h-4" />
+                          </Button>
+                          <input
+                            type="file"
+                            ref={imageInputRef}
+                            onChange={handleImageUpload}
+                            accept="image/*"
+                            className="hidden"
+                            id="image-upload"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => document.getElementById('image-upload').click()}
+                            disabled={imageUploading}
+                          >
+                            {imageUploading ? 'Uploading...' : 'Image'}
+                          </Button>
                           <button type="button"
                             onClick={() => editor?.chain().focus().setParagraph().run()}
                             className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('paragraph') ? 'bg-gray-200' : ''}`}
@@ -509,7 +603,7 @@ const productInfo = ({ productData, productId }) => {
               </div>
               <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">
                 <div className="font-semibold text-gray-800">Description</div>
-                <div dangerouslySetInnerHTML={{__html:viewedSection.description}} className="text-gray-600 h-44 overflow-y-auto"></div>
+                <div dangerouslySetInnerHTML={{ __html: viewedSection.description }} className="text-gray-600 h-44 overflow-y-auto"></div>
               </div>
             </div>
           )}
