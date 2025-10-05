@@ -102,178 +102,177 @@ const Header = () => {
           pathName.includes("customEnquiry")
           ? "hidden"
           : "block"
-          } bg-[#fcf7f1] text-black border-b font-barlow tracking-wider w-full z-50`}
+          } bg-[#fcf7f1] text-black border-b font-barlow tracking-wider w-full`}
       >
-      <div className="hidden md:block bg-orange-500 py-1">
-        <p className="text-md w-[90%] mx-auto">Crafted by Hand, Cherished by Heart</p>
-      </div>
-      <div className="md:flex hidden items-center justify-between gap-8 border-b py-1 border-gray-400 md:px-8 ">
-        <div className="flex flex-row justify-between w-full items-center px-8">
-          {/* Logo on the left */}
-          <div className="flex-shrink-0">
-            <Link href={"/"}>
-              <img className="w-48 object-contain drop-shadow-xl" src="/logo.png" alt="Rishikesh Handmade" />
-            </Link>
-          </div>
-
-          {/* Login/Cart section on the right */}
-          <div className="flex items-center gap-3">
-            <div className="relative" ref={profileMenuRef}>
-              {status === "loading" ? (
-                <Loader2 className="animate-spin text-blue-600" size={36} />
-              ) : isUser ? (
-                <>
-                  {/* Profile Picture Button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsProfileOpen(!isProfileOpen);
-                    }}
-                    className="focus:outline-none border-dashed border-4 border-blue-600 rounded-full"
-                  >
-                    <Image
-                      src={session.user.image || "/user.png"}
-                      alt="Profile"
-                      width={44}
-                      height={44}
-                      className="rounded-full cursor-pointer"
-                    />
-                  </button>
-
-                  {/* Dropdown Menu */}
-                  {isProfileOpen && (
-                    <div
-                      className="absolute top-14 right-0 mt-2 w-fit text-black bg-white shadow-lg rounded-lg border z-50"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <p className="px-4 pt-2 text-sm font-bold text-gray-700">{session.user.name}</p>
-                      <p className="px-4 pb-2 text-sm text-gray-700">{session.user.email}</p>
-                      <div className="h-px bg-gray-200" />
-                      <Link
-                        href="/dashboard?section=orders"
-                        className="flex items-center rounded-lg w-full text-left px-4 py-2 hover:bg-blue-100"
-                        onClick={() => setIsProfileOpen(false)}
-                      >
-                        <User2Icon size={20} className="mr-2" /> Dashboard
-                      </Link>
-                      <button
-                        className="flex items-center rounded-lg w-full text-red-600 text-left px-4 py-2 hover:bg-blue-100"
-                        onClick={() => signOut()}
-                      >
-                        <LogOutIcon size={20} className="mr-2" /> Sign Out
-                      </button>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="relative" ref={authDropdownRef}>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsAuthDropdownOpen(!isAuthDropdownOpen);
-                    }}
-                    className="flex flex-col items-center py-2"
-                  >
-                    <User className="ml-2" size={20} />
-                    <h2 className="text-xs font-semibold">Sign In / Login</h2>
-                  </button>
-                  <AnimatePresence>
-                    {isAuthDropdownOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute top-12 right-0 w-48 text-black bg-white shadow-lg rounded-lg border z-[9999]"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Link
-                          href="/sign-in"
-                          onClick={() => setIsAuthDropdownOpen(false)}
-                          className="block px-4 py-2 hover:bg-blue-100 text-sm"
-                        >
-                          Sign In
-                        </Link>
-                        <Link
-                          href="/sign-up"
-                          onClick={() => setIsAuthDropdownOpen(false)}
-                          className="block px-4 py-2 hover:bg-blue-100 text-sm border-t border-gray-100"
-                        >
-                          Create Account
-                        </Link>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              )}
-            </div>
-            {/* Wishlist Button */}
-            <div className="relative group">
-              <button
-                onClick={() => { setInitialCartTab('wishlist'); setIsCartOpen(true); }}
-                className="flex flex-col items-center p-2 rounded-lg hover:bg-neutral-100 transition-colors"
-                aria-label="Wishlist"
-              >
-                <div className="relative">
-                  <Heart size={20} />
-                  {wishlist.length > 0 && (
-                    <span className="absolute -top-3 -right-3 bg-pink-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
-                      {wishlist.length}
-                    </span>
-                  )}
-                </div>
-                <span className="text-xs font-medium mt-1">Wishlist</span>
-              </button>
-            </div>
-
-            {/* Cart Button */}
-            <div className="relative group">
-              <button
-                onClick={() => { setInitialCartTab('cart'); setIsCartOpen(true); }}
-                className="flex flex-col items-center p-2 rounded-lg hover:bg-neutral-100 transition-colors"
-                aria-label="Cart"
-              >
-                <div className="relative">
-                  <ShoppingCart size={20} />
-                  {cart.length > 0 && (
-                    <span className="absolute -top-3 -right-3 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
-                      {cart.length}
-                    </span>
-                  )}
-                </div>
-                <span className="text-xs font-medium mt-1">Cart</span>
-              </button>
-            </div>
-
-            {/* Track Order Button */}
-            <div className="group">
-              <Link
-                href="/dashboard?section=track"
-                className="flex flex-col items-center p-2 rounded-lg hover:bg-neutral-100 transition-colors"
-              >
-                <Truck size={20} />
-                <span className="text-xs font-medium mt-1">Track Order</span>
+        <div className="hidden md:block bg-orange-500 py-1">
+          <p className="text-md w-[90%] mx-auto">Crafted by Hand, Cherished by Heart</p>
+        </div>
+        <div className="md:flex hidden items-center justify-between gap-8 border-b py-1 border-gray-400 md:px-8 ">
+          <div className="flex flex-row justify-between w-full items-center px-8">
+            {/* Logo on the left */}
+            <div className="flex-shrink-0">
+              <Link href={"/"}>
+                <img className="w-48 object-contain drop-shadow-xl" src="/logo.png" alt="Rishikesh Handmade" />
               </Link>
             </div>
-          <SearchBar />
-          </div>
-        </div>
-      </div>
-      </header>
-  <div className="hidden md:block">
 
-      <div  className={`print:hidden ${pathName.includes("admin")
-          ? "hidden"
-          : "block"
-        } sticky top-0 z-50 w-full hidden`}>
-        <div className={`bg-white py-2 border-t border-gray-200 transition-all duration-300 ${showHeader ? "translate-y-0" : "-translate-y-full"}`}>
-          <div className="container mx-auto px-4">
-            <MenuBar menuItems={menuItems} />
+            {/* Login/Cart section on the right */}
+            <div className="flex items-center gap-3">
+              <div className="relative" ref={profileMenuRef}>
+                {status === "loading" ? (
+                  <Loader2 className="animate-spin text-blue-600" size={36} />
+                ) : isUser ? (
+                  <>
+                    {/* Profile Picture Button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsProfileOpen(!isProfileOpen);
+                      }}
+                      className="focus:outline-none border-dashed border-4 border-blue-600 rounded-full"
+                    >
+                      <Image
+                        src={session.user.image || "/user.png"}
+                        alt="Profile"
+                        width={44}
+                        height={44}
+                        className="rounded-full cursor-pointer"
+                      />
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {isProfileOpen && (
+                      <div
+                        className="absolute top-14 right-0 mt-2 w-fit text-black bg-white shadow-lg rounded-lg border z-50"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <p className="px-4 pt-2 text-sm font-bold text-gray-700">{session.user.name}</p>
+                        <p className="px-4 pb-2 text-sm text-gray-700">{session.user.email}</p>
+                        <div className="h-px bg-gray-200" />
+                        <Link
+                          href="/dashboard?section=orders"
+                          className="flex items-center rounded-lg w-full text-left px-4 py-2 hover:bg-blue-100"
+                          onClick={() => setIsProfileOpen(false)}
+                        >
+                          <User2Icon size={20} className="mr-2" /> Dashboard
+                        </Link>
+                        <button
+                          className="flex items-center rounded-lg w-full text-red-600 text-left px-4 py-2 hover:bg-blue-100"
+                          onClick={() => signOut()}
+                        >
+                          <LogOutIcon size={20} className="mr-2" /> Sign Out
+                        </button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="relative" ref={authDropdownRef}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsAuthDropdownOpen(!isAuthDropdownOpen);
+                      }}
+                      className="flex flex-col items-center py-2"
+                    >
+                      <User className="ml-2" size={20} />
+                      <h2 className="text-xs font-semibold">Sign In / Login</h2>
+                    </button>
+                    <AnimatePresence>
+                      {isAuthDropdownOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 10 }}
+                          transition={{ duration: 0.2 }}
+                          className="absolute top-12 right-0 w-48 text-black bg-white shadow-lg rounded-lg border z-[9999]"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Link
+                            href="/sign-in"
+                            onClick={() => setIsAuthDropdownOpen(false)}
+                            className="block px-4 py-2 hover:bg-blue-100 text-sm"
+                          >
+                            Sign In
+                          </Link>
+                          <Link
+                            href="/sign-up"
+                            onClick={() => setIsAuthDropdownOpen(false)}
+                            className="block px-4 py-2 hover:bg-blue-100 text-sm border-t border-gray-100"
+                          >
+                            Create Account
+                          </Link>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
+              </div>
+              {/* Wishlist Button */}
+              <div className="relative group">
+                <button
+                  onClick={() => { setInitialCartTab('wishlist'); setIsCartOpen(true); }}
+                  className="flex flex-col items-center p-2 rounded-lg hover:bg-neutral-100 transition-colors"
+                  aria-label="Wishlist"
+                >
+                  <div className="relative">
+                    <Heart size={20} />
+                    {wishlist.length > 0 && (
+                      <span className="absolute -top-3 -right-3 bg-pink-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
+                        {wishlist.length}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs font-medium mt-1">Wishlist</span>
+                </button>
+              </div>
+
+              {/* Cart Button */}
+              <div className="relative group">
+                <button
+                  onClick={() => { setInitialCartTab('cart'); setIsCartOpen(true); }}
+                  className="flex flex-col items-center p-2 rounded-lg hover:bg-neutral-100 transition-colors"
+                  aria-label="Cart"
+                >
+                  <div className="relative">
+                    <ShoppingCart size={20} />
+                    {cart.length > 0 && (
+                      <span className="absolute -top-3 -right-3 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
+                        {cart.length}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs font-medium mt-1">Cart</span>
+                </button>
+              </div>
+
+              {/* Track Order Button */}
+              <div className="group">
+                <Link
+                  href="/dashboard?section=track"
+                  className="flex flex-col items-center p-2 rounded-lg hover:bg-neutral-100 transition-colors"
+                >
+                  <Truck size={20} />
+                  <span className="text-xs font-medium mt-1">Track Order</span>
+                </Link>
+              </div>
+              <SearchBar />
+            </div>
           </div>
         </div>
+        </header>
+  {/* Show only on md and larger screens, and only if not in admin section */}
+<div className="hidden md:block sticky top-0 z-50">
+  {!pathName.includes("admin") && (
+    <div className="w-full print:hidden">
+      <div className={`bg-white py-2 border-b border-gray-200 transition-all duration-300 ${showHeader ? "translate-y-0" : "-translate-y-full"}`}>
+        <div className="container mx-auto px-4">
+          <MenuBar menuItems={menuItems} />
+        </div>
       </div>
-            </div>
-      
+    </div>
+  )}
+</div>
+
       <div className="lg:hidden flex items-center justify-between md:justify-between py-1 px-2">
         <div className="relative flex items-center">
           {/* <MenuBar menuItems={menuItems.filter(item => item.active)} /> */}

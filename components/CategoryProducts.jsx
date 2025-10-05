@@ -12,7 +12,7 @@ export default function CategoryProductsGrid({ visibleProducts }) {
 
   return (
     <>
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 my-4">
+      <div className="flex items-center flex-wrap px-10 gap-10 m-4 py-8">
         {paginatedProducts.length === 0 ? (
           <div className="col-span-full text-center py-8">
             <h3 className="text-xl font-medium text-gray-600">No products found for this category</h3>
@@ -46,14 +46,23 @@ export default function CategoryProductsGrid({ visibleProducts }) {
                 <button
                   key={i}
                   className={`border rounded-full w-12 h-12 flex items-center justify-center text-lg ${page === i + 1 ? 'bg-black text-white' : 'bg-transparent text-black'} transition`}
-                  onClick={() => setPage(i + 1)}
+                  onClick={() => {
+                    setPage(i + 1);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
                 >
                   {i + 1}
                 </button>
               ))}
               <button
                 className="border rounded-full px-4 h-12 flex items-center justify-center text-lg bg-transparent text-black transition"
-                onClick={() => setPage(page < totalPages ? page + 1 : page)}
+                onClick={() => {
+                  const nextPage = page < totalPages ? page + 1 : page;
+                  setPage(nextPage);
+                  if (nextPage !== page) {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }
+                }}
                 disabled={page === totalPages}
               >
                 NEXT

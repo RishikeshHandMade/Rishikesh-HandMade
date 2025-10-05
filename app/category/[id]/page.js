@@ -40,7 +40,7 @@ const getCategoryInfo = async (categoryData) => {
   return (
     {
       title: categoryData?.title || "Category Title",
-      bannerImage: categoryData?.banner?.url || `${process.env.NEXT_PUBLIC_BASE_URL}/categoryBanner.jpg`,
+      bannerImage: categoryData?.banner?.url || `${process.env.NEXT_PUBLIC_BASE_URL}/bg1.webp`,
     }
   )
 }
@@ -50,16 +50,16 @@ const CategoryPage = async ({ params }) => {
   // Fetch all menu items to get the main category name
   const menuRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/getAllMenuItems`);
   const menuItems = await menuRes.json();
-  
+
   // Find the main category that contains this subcategory
-  const mainCategory = menuItems.find(mainCat => 
+  const mainCategory = menuItems.find(mainCat =>
     mainCat.subMenu?.some(subCat => subCat.url === id)
   );
-  
+
   // Fetch category data
   const categoryRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/getCategoryBanner/${id}`);
   let categoryData = await categoryRes.json();
-  
+
   // Combine main category title with category data
   categoryData = {
     ...categoryData,
@@ -84,47 +84,51 @@ const CategoryPage = async ({ params }) => {
 
   return (
     <SidebarInset>
-      <div className="min-h-screen bg-[#fcf7f1]">
-        {/* Category Banner at the top */}
-        <CategoryBanner 
-        title={categoryData.title} 
-        bannerImage={categoryInfo.bannerImage} 
-        mainCategory={categoryData.mainCategoryTitle || categoryData.title} 
-      />
-
-        <div className="flex flex-col md:flex-row gap-6 w-full mt-4">
+      <div className="min-h-screen bg-white">
+      <div className="w-full bg-black text-white h-[100px] md:h-[200px] flex justify-center items-center">
+        <h1 className="text-xl md:text-5xl font-extrabold drop-shadow">{categoryData.title}</h1>
+      </div>
+      
+        <div className="flex flex-col md:flex-row gap-6 w-full mt-4 px-5">
           {/* Left Image Section */}
           <div className="flex flex-col w-72 max-w-xs flex-shrink-0 justify-start items-center">
             {/* Category Advertisement Banner */}
             <CategoryAds categoryAdList={categoryAdList} />
           </div>
-
           {/* Middle Section: Category Cards + Package Cards */}
-          <div className="flex-1 min-w-0 gap-4 px-2">
+          <div className="flex-1 min-w-0 gap-4">
+            {/* Product Cards Row */}
+            <div>
+              <CategoryBanner
+                // title={categoryData.title}
+                bannerImage={categoryInfo.bannerImage}
+                // mainCategory={categoryData.mainCategoryTitle || categoryData.title}
+              />
+            </div>
             {/* Category Cards Row */}
             <div>
-              <h2 className="text-2xl font-bold px-4 underline">Category</h2>
-              <Carousel className="w-full mx-auto my-4">
-                <CarouselContent className="w-full gap-5">
-                  {Array.isArray(allCategories) && allCategories.flatMap(cat =>
-                    Array.isArray(cat.subMenu) ? cat.subMenu.map((sub, idx) => (
-                      <CarouselItem key={`${cat._id || cat.title || idx}-${sub._id || sub.url || idx}`} className="basis-1/2 md:basis-1/6 lg:basis-1/6 min-w-0 snap-start">
-                        <CategoryCard category={{
-                          title: sub.title,
-                          profileImage: sub.profileImage,
-                          url: `/category/${sub.url}`
-                        }} />
-                      </CarouselItem>
-                    )) : []
-                  )}
-                </CarouselContent>
-                <CarouselNext className="!right-2 !top-1/2 !-translate-y-1/2 z-10 " />
-                <CarouselPrevious className="!left-1 !top-1/2 !-translate-y-1/2 z-10" />
-              </Carousel>
+              <CategoryProducts visibleProducts={visibleProducts} />
             </div>
+
             < div className="h-[1px] bg-gray-300"></div>
-            {/* Product Cards Row */}
-            <CategoryProducts visibleProducts={visibleProducts} />
+            <h2 className="text-2xl font-bold px-4 underline">Category</h2>
+            <Carousel className="w-full mx-auto my-4">
+              <CarouselContent className="w-full gap-5">
+                {Array.isArray(allCategories) && allCategories.flatMap(cat =>
+                  Array.isArray(cat.subMenu) ? cat.subMenu.map((sub, idx) => (
+                    <CarouselItem key={`${cat._id || cat.title || idx}-${sub._id || sub.url || idx}`} className="basis-1/2 md:basis-1/4 xl:basis-1/5 min-w-0 snap-start">
+                      <CategoryCard category={{
+                        title: sub.title,
+                        profileImage: sub.profileImage,
+                        url: `/category/${sub.url}`
+                      }} />
+                    </CarouselItem>
+                  )) : []
+                )}
+              </CarouselContent>
+              <CarouselNext className="!right-2 !top-1/2 !-translate-y-1/2 z-10 " />
+              <CarouselPrevious className="!left-1 !top-1/2 !-translate-y-1/2 z-10" />
+            </Carousel>
           </div>
         </div>
       </div>
