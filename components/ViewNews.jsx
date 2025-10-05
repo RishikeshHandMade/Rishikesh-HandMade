@@ -1,6 +1,36 @@
 // News modal for viewing news details. Usage: <ViewNews news={newsObj} onClose={fn} />
 export default function ViewNews({ news, onClose }) {
   if (!news) return null;
+  const unescapeHtml = (html) => {
+    if (!html || typeof html !== 'string') return '';
+
+    // First, unescape all HTML entities
+    const temp = document.createElement('div');
+    temp.innerHTML = html
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/[“”]/g, '"')
+        .replace(/[‘’]/g, "'");
+
+    // Get the processed HTML
+    let processedHtml = temp.innerHTML;
+
+    // Fix links to ensure they have proper protocol
+    processedHtml = processedHtml
+        // Fix product links
+        .replace(/href="\/product\/([^"]+)"/g, 'href="$1"')
+        // Ensure links have https:// if they don't have any protocol
+        .replace(/href="(?!https?:\/\/|mailto:|tel:|#)([^"]+)"/g, 'href="https://$1"')
+        // Fix smart quotes in HTML attributes
+        .replace(/href=(["'])(.*?)\1/g, (match, quote, url) => {
+            return `href="${url.replace(/["']/g, '')}"`;
+        });
+
+    return processedHtml;
+};
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="rounded-2xl bg-white shadow-2xl w-full max-w-lg h-[90vh] relative flex flex-col overflow-y-auto animate-fadeIn">
@@ -22,7 +52,10 @@ export default function ViewNews({ news, onClose }) {
         <div className="flex flex-col items-start px-6 py-4 flex-1 overflow-y-auto">
           <div className="font-bold text-2xl mb-2 text-gray-900">{news.title}</div>
           {news.date && <div className="text-sm border bg-yellow-200 rounded-xl px-2 text-gray-700 mb-2">{news.date}</div>}
-          <div className="text-base text-gray-800 mb-4 whitespace-pre-line">{news.description}</div>
+          <div
+            className="ProseMirror text-base text-gray-800 mb-4 whitespace-pre-line"
+            dangerouslySetInnerHTML={{ __html: unescapeHtml(news.description) || '' }}
+          />
         </div>
         <div className="flex justify-end pt-2 px-6 pb-4">
           <button onClick={onClose} className="bg-black text-white px-6 py-2 rounded-full hover:bg-gray-800 shadow">Close</button>

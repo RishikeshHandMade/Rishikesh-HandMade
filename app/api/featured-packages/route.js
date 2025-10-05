@@ -14,15 +14,6 @@ export const GET = async (req) => {
 export const POST = async (req) => {
     try {
         await connectDB();
-
-        const totalPackages = await FeaturedPackageCard.countDocuments();
-        if (totalPackages >= 12) {
-            return new Response(JSON.stringify({ message: "Maximum limit of 12 featured packages reached" }), {
-                status: 400,
-                headers: { "Content-Type": "application/json" },
-            });
-        }
-
         const body = await req.json();
 
         const { title, image, link } = body;

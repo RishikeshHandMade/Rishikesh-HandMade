@@ -69,9 +69,9 @@ const PopUpBanner = () => {
               <span className="font-normal text-center">– Now on Special Offer!</span>
             </div>
             <div className="text-gray-700 text-sm md:text-xl md:mb-8 mb-4 max-w-md">
-              Discover the beauty of tradition and craftsmanship with our exclusive offer on handcrafted products! Each piece tells a story—made with care, passion, and skill by local artisans.
+            Each piece tells a story—made with care, passion, and skill by local artisans.    
             </div>
-            <a
+            <a  
               href={banner.buttonLink || '#'}
               target="_blank"
               rel="noopener noreferrer"

@@ -71,14 +71,14 @@ const Team = () => {
           </div>
 
           {/* Team Grid (remaining team members) */}
-          <div className="hidden md:flex grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-8 mb-10">
+          <div className="hidden md:flex grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 flex-wrap gap-8 mb-10">
             {loading ? (
               <div>Loading...</div>
             ) : teamMembers.length > 2 ? (
               teamMembers.slice(2).map((member, idx) => (
                 <div key={member._id || idx} className="flex flex-col items-center">
                   <div className="w-72 h-72 rounded-2xl overflow-hidden shadow-lg bg-[#d6f0fa] flex items-center justify-center">
-                    <Image src={member.image?.url || "/placeholder.jpeg"} alt={member.title} width={224} height={224} className="object-cover w-full h-full" />
+                    <Image src={member.image?.url || "/placeholder.jpeg"} alt={member.title} width={224} height={224} className="object-cover w-full h-full hover:scale-105 transition-all duration-300" />
                   </div>
                   <div className="mt-3 text-center">
                     <div className="font-bold text-lg">{member.title}</div>

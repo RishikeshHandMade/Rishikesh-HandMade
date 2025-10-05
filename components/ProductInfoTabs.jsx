@@ -539,6 +539,31 @@ export default function ProductInfoTabs({ product }) {
         tabs.push(reviewsTab);
     }
     const [activeTab, setActiveTab] = useState(0);
+    const unescapeHtml = (html) => {
+        if (!html || typeof html !== 'string') return '';
+
+        // First, unescape all HTML entities
+        const temp = document.createElement('div');
+        temp.innerHTML = html.replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&amp;/g, '&')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'")
+            .replace(/[“”]/g, '"')
+            .replace(/[‘’]/g, "'");
+
+        // Get the HTML content after unescaping
+        let processedHtml = temp.innerHTML;
+
+        // Fix product links and ensure all links have proper protocol
+        processedHtml = processedHtml
+            // Fix product links
+            .replace(/href="\/product\/([^"]+)"/g, 'href="$1"')
+            // Ensure links have http:// if they don't have any protocol
+            .replace(/href="(?!https?:\\\/\\\/|mailto:|tel:|#)([^"]+)"/g, 'href="https://$1"');
+
+        return processedHtml;
+    };
     return (
         <div className="w-full mt-10">
             <div className="border-b grid grid-cols-2 sm:flex flex-wrap justify-center gap-2 sm:gap-4">
@@ -555,12 +580,12 @@ export default function ProductInfoTabs({ product }) {
                     </button>
                 ))}
             </div>
-            <div className="py-4 px-6 text-md text-gray-700 min-h-[64px] w-full md:w-[80%] mx-auto text-start">
+            <div className="ProseMirror py-4 px-6 text-md text-gray-700 min-h-[64px] w-full md:w-[80%] mx-auto text-start">
                 {tabs[activeTab]
                     ? (activeTab < tabs.length - 1
-                        ? <div dangerouslySetInnerHTML={{ __html: tabs[activeTab].content }} />
+                        ? <div dangerouslySetInnerHTML={{ __html: unescapeHtml(tabs[activeTab].content) }} />
                         : tabs[activeTab].content)
-                    : <span>No information available.</span>
+                    : null
                 }
             </div>
         </div>

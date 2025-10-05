@@ -43,7 +43,7 @@ const InstaBlog = () => {
     // Normalize reviews to a standard format
     function normalizeReview(review) {
         // console.log('Raw review data:', review);
-      
+
         let imageUrl = '';
         if (review.thumb?.url) {
             imageUrl = review.thumb.url.startsWith('http') ? review.thumb.url : `https:${review.thumb.url}`;
@@ -233,11 +233,40 @@ const InstaBlog = () => {
     // Determine card width based on number of posts
     const cardBasis =
         allPosts.length <= 3 ? `basis-1/${allPosts.length}` : "md:basis-1/5";
-
+        const unescapeHtml = (html) => {
+            if (!html || typeof html !== 'string') return '';
+        
+            // First, unescape all HTML entities
+            const temp = document.createElement('div');
+            temp.innerHTML = html
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/&amp;/g, '&')
+                .replace(/&quot;/g, '"')
+                .replace(/&#39;/g, "'")
+                .replace(/[“”]/g, '"')
+                .replace(/[‘’]/g, "'");
+        
+            // Get the processed HTML
+            let processedHtml = temp.innerHTML;
+        
+            // Fix links to ensure they have proper protocol
+            processedHtml = processedHtml
+                // Fix product links
+                .replace(/href="\/product\/([^"]+)"/g, 'href="$1"')
+                // Ensure links have https:// if they don't have any protocol
+                .replace(/href="(?!https?:\/\/|mailto:|tel:|#)([^"]+)"/g, 'href="https://$1"')
+                // Fix smart quotes in HTML attributes
+                .replace(/href=(["'])(.*?)\1/g, (match, quote, url) => {
+                    return `href="${url.replace(/["']/g, '')}"`;
+                });
+        
+            return processedHtml;
+        };
     return (
         <div className='bg-[#fcf7f1] w-full overflow-hidden max-w-screen overflow-x-hidden'>
             {/*Blogs /  News & Announcement Section */}
-            {!isBlogsLoading && !news && blogs.length > 0 && (
+
             <div className="w-full flex flex-col items-center md:py-20 py-10 bg-[#ededed]">
                 <div className="w-full flex flex-col md:flex-row gap-8 min-h-[350px]">
                     <div className="flex flex-col md:flex-row w-full gap-8 px-2">
@@ -276,7 +305,7 @@ const InstaBlog = () => {
                                                 }
                                                 return (
                                                     <CarouselItem key={blog._id || idx} className="w-full">
-                                                        <div className="flex flex-col md:flex-row bg-x[#FFF3C9] rounded-xl min-h-[220px] w-full overflow-hidden">
+                                                        <div className="flex flex-col md:flex-row bg-[#FFF3C9] rounded-xl min-h-[220px] w-full overflow-hidden">
                                                             {/* Image/Video section */}
                                                             <div className="w-full h-40 md:w-2/5 md:h-auto flex items-center justify-center rounded-t-xl md:rounded-l-xl md:rounded-t-none overflow-hidden">
                                                                 {isYoutube ? (
@@ -304,8 +333,16 @@ const InstaBlog = () => {
                                                             {/* Content section */}
                                                             <div className="flex flex-col justify-between p-2 md:p-4 flex-1 rounded-b-xl md:rounded-r-xl md:rounded-b-none">
                                                                 <div>
-                                                                    <div className="font-bold text-base md:text-xl text-black mb-2 leading-snug">{blog.title || 'No title available.'}</div>
-                                                                    <div className="text-gray-800 text-sm md:text-base mb-1 md:mb-2 line-clamp-3 min-h-[48px] overflow-y-auto">{blog.shortDescription || blog.shortDesc || 'No description available.'}</div>
+                                                                    <div
+                                                                        className="font-bold text-base md:text-xl text-black mb-2 leading-snug"
+                                                                        dangerouslySetInnerHTML={{ __html: blog.title || 'No title available.' }}
+                                                                    />
+                                                                    <div
+                                                                        className="text-gray-800 text-sm md:text-base mb-1 md:mb-2 line-clamp-3 min-h-[48px] overflow-y-auto"
+                                                                        dangerouslySetInnerHTML={{
+                                                                            __html: (blog.shortDescription || blog.shortDesc || 'No description available.')
+                                                                        }}
+                                                                    />
                                                                 </div>
                                                                 <div className="flex items-center mt-auto">
                                                                     <Link
@@ -323,8 +360,12 @@ const InstaBlog = () => {
                                             })}
                                         </CarouselContent>
                                         <div className="hidden md:flex items-center gap-2 mt-2 md:mt-0 justify-center md:justify-end">
-                                            <CarouselPrevious className="bg-black text-white py-2 font-bold rounded hover:bg-gray-800 transition-colors text-base md:text-lg" />
-                                            <CarouselNext className="bg-black text-white py-2 font-bold rounded hover:bg-gray-800 transition-colors text-base md:text-lg" />
+                                            <CarouselPrevious className="bg-black text-white py-2 px-3 font-bold rounded hover:bg-gray-800 transition-colors text-base md:text-lg" />
+                                            <CarouselNext className="bg-black text-white py-2 px-3 font-bold rounded hover:bg-gray-800 transition-colors text-base md:text-lg" />
+                                        </div>
+                                        <div className='md:hidden'>
+                                            <CarouselNext className="!right-2 !top-1/2 !-translate-y-1/2 z-10 " />
+                                            <CarouselPrevious className="!left-1 !top-1/2 !-translate-y-1/2 z-10" />
                                         </div>
                                     </Carousel>
                                 </div>
@@ -351,10 +392,14 @@ const InstaBlog = () => {
                                                     <div className="font-bold text-lg md:text-xl mb-1">{news[0].title || 'News'}</div>
                                                     <div className="text-gray-700 mb-1">
                                                         {(() => {
-                                                            const desc = news[0].description ?? "";
-                                                            const words = desc.trim().split(/\s+/);
-                                                            return words.slice(0, 24).join(" ") + (words.length > 24 ? " ..." : "");
-                                                        })()} &nbsp;
+                                                            if (!news[0]?.description) return null;
+                                                            const desc = news[0].description;
+                                                            return (
+                                                                <span dangerouslySetInnerHTML={{
+                                                                    __html: unescapeHtml(desc)
+                                                                }} />
+                                                            );
+                                                        })()}&nbsp;
                                                         <button
                                                             onClick={() => setQuickViewNews(news[0])}
                                                             className="inline-block text-purple-700 hover:underline font-bold mt-1"
@@ -378,11 +423,15 @@ const InstaBlog = () => {
                                                                 className={`rounded-xl border font-barlow px-4 py-3 ${colorClasses[colorIdx]} shadow-md`}
                                                             >
                                                                 <div className="font-bold text-base md:text-lg mb-1">{item.title || 'News'}</div>
-                                                                <div className="text-gray-700 mb-2">
+                                                                <div className="ProseMirror text-gray-700 mb-2">
                                                                     {(() => {
-                                                                        const desc = item.description ?? "";
-                                                                        const words = desc.trim().split(/\s+/);
-                                                                        return words.slice(0, 30).join(" ") + (words.length > 30 ? " ..." : "");
+                                                                        if (!news[0]?.description) return null;
+                                                                        const desc = news[0].description;
+                                                                        return (
+                                                                            <span dangerouslySetInnerHTML={{
+                                                                                __html: unescapeHtml(desc)
+                                                                            }} />
+                                                                        );
                                                                     })()}&nbsp;
                                                                     <button
                                                                         onClick={() => setQuickViewNews(item)}
@@ -411,10 +460,10 @@ const InstaBlog = () => {
                     </div>
                 </div>
             </div>
-            )}
+
 
             {/* Instagram-like Image Carousel using Carousel classes */}
-            {!isInstaLoading && !isFbLoading && allPosts.length > 0 && (
+            {allPosts.length > 0 && (
                 <div className="w-full flex flex-col items-center md:py-12 py-10 px-4">
                     <h2 className="text-center font-bold text-xl md:text-3xl lg:text-4xl uppercase">
                         Don’t just watch the trends — live them!
@@ -471,8 +520,8 @@ const InstaBlog = () => {
                 </div>
             )}
 
-              {/* Reviews Section */}
-              <div className="w-full mx-auto md:min-h-[650px] min-h-[450px] flex items-center justify-end relative">
+            {/* Reviews Section */}
+            <div className="w-full mx-auto md:min-h-[650px] min-h-[450px] flex items-center justify-end relative">
                 {/* Background Image */}
                 <div className="hidden md:flex absolute inset-0 w-full h-full z-0">
                     <img

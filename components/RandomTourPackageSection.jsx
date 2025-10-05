@@ -729,8 +729,8 @@ const RandomTourPackageSection = () => {
         </div>
 
         <div className="w-full px-2 md:py-10">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-2 uppercase">Our Consultancy Services</h2>
-          <p className="text-gray-600 text-center py-4 mx-auto md:w-[50%]">Our consultancy service is dedicated to providing expert guidance, practical solutions, and personalized strategies to help clients achieve their goals with confidence. We focus on delivering value-driven results through professionalism, innovation, and trusted support</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-2 uppercase">A true reflection of authenticity and tradition.</h2>
+          <p className="text-gray-600 text-center py-4 mx-auto md:w-[50%]"> We deliver a true reflection of authenticity and tradition. Our unwavering commitment to time-honored methods ensures a superior, distinct character that mass production will never replicate.</p>
           <Carousel className="w-full px-5 md:px-20 mx-auto">
             <CarouselContent>
               {consultancyBanner.map((item, idx) => (

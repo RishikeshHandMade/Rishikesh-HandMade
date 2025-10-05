@@ -5,7 +5,11 @@ const ProductSchema = new mongoose.Schema({
   code: { type: String, required: true },
   slug: { type: String, required: true },
   category: { type: mongoose.Schema.Types.ObjectId, ref: 'MenuBar' }, // or ref: 'SubMenu' if you have such a model
-  artisan: { type: mongoose.Schema.Types.ObjectId, ref: 'Artisan' },
+  artisan: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Artisan',
+    default: null 
+  },
   isDirect: { type: Boolean, default: false },
   active: { type: Boolean, default: true },
   size: { type: mongoose.Schema.Types.ObjectId, ref: 'Size' },

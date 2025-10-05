@@ -110,27 +110,27 @@ const HeroSection = () => {
   }
 
   return (
-    <section className="bg-[#fcf7f1] relative xl:h-screen h-full w-full p-2 overflow-hidden z-0 group">
-      <div className="hidden xl:block w-full h-screen ">
+    <section className="bg-[#fcf7f1] relative xl:h-full h-full w-full overflow-hidden z-0 group">
+      <div className="hidden xl:block w-full h-[430px]">
         <div className="hidden xl:block w-full h-full">
           <Carousel
-            className="h-full w-full"
+            className="h-[430px] w-full"
             plugins={[plugin.current]}
             onMouseLeave={plugin.current.reset}
             setApi={setDesktopApi}
           >
             <CarouselContent className="h-full">
               {banners.map((item, index) => (
-                <CarouselItem key={index} className="h-[100vh] md:h-full">
+                <CarouselItem key={index} className="h-[100vh] md:h-[430px]">
                   <Link href={item?.buttonLink || "#"} className="block h-full w-full">
-                  <div className="relative h-[100vh] w-full flex items-center justify-center">
+                  <div className="relative h-[100vh] md:h-[430px] w-full flex items-center justify-center">
                       <Image
                         src={item?.frontImg?.url || "/placeholder.jpeg"}
                         alt={item?.title || "Banner Image"}
                         fill
                         quality={100}
                         priority
-                        className="object-cover"
+                        className="object-contain"
                       />
                     </div>
                   </Link>
@@ -159,7 +159,7 @@ const HeroSection = () => {
         </div>
       </div>
 
-      <div className="block xl:hidden w-full h-full py-2 relative max-h-[100vh]">
+      <div className="block xl:hidden w-full h-full relative max-h-[100vh]">
         {/* Mobile Carousel: Only show first image, center content over image, add to cart above image */}
         <Carousel className="w-full max-w-md mx-auto" plugins={[plugin.current]} onMouseLeave={plugin.current.reset} setApi={setMobileApi} >
           <CarouselContent>
@@ -171,7 +171,7 @@ const HeroSection = () => {
                   <img
                     src={banner.frontImg?.url || "/placeholder.jpeg"}
                     alt={banner.title ? `${banner.title} Front` : "Banner Image"}
-                    className="object-contain w-full rounded-lg shadow-lg z-0"
+                    className="object-contain w-full shadow-lg z-0"
                   />
                 </div>
                 </Link>

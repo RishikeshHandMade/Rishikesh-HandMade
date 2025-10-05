@@ -35,7 +35,7 @@ export async function PATCH(req) {
     await connectDB();
     try {
         const { id,buttonLink, image, order } = await req.json();
-        const updatedBanner = await PromotinalBanner.findByIdAndUpdate(id, { title, coupon, couponAmount, couponPercent, buttonLink, order, image }, { new: true });
+        const updatedBanner = await PromotinalBanner.findByIdAndUpdate(id, { buttonLink, order, image }, { new: true });
         return NextResponse.json(updatedBanner, { status: 200 });
     } catch (error) {
         return NextResponse.json({ error: "Failed to update banner" }, { status: 500 });

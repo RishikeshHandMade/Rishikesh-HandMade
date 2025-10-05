@@ -77,7 +77,7 @@ const AboutUsSection = () => {
                 </p>
                 <hr className="h-[2px] w-full md:w-[50%] mx-auto bg-black"/>
 
-                <p className="text-gray-600 py-8 text-center font-barlow  w-full px-5 md:w-[50%] mx-auto">
+                <p className="text-gray-600 py-8 text-center font-barlow  w-full px-2 md:w-[50%] mx-auto">
                     Welcome to Rishikesh Handmade — your gateway to the soulful artistry of the Himalayan foothills. Rooted in the spiritual heart of India, our collection brings together timeless handicrafts handcrafted by local artisans of Rishikesh. Every item is a reflection of our rich cultural heritage, made with love, care, and generations of tradition. From eco-friendly décor and handwoven textiles to sacred spiritual items and unique wooden carvings, each piece tells a story of craftsmanship and connection. By supporting Rishikesh Handmade,
                     <br />
                      you’re not just buying a product — you’re preserving tradition, empowering local artisans, and bringing home a piece of authentic India.

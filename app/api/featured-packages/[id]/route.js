@@ -12,36 +12,81 @@ cloudinary.v2.config({
 export const PUT = async (req, { params }) => {
     try {
         await connectDB();
-        const { id } = params;
+        const { id } =await params;
         const { title, image, link } = await req.json();
+
+        if (!title || !link) {
+            return new Response(JSON.stringify({ error: 'Title and link are required' }), { 
+                status: 400,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
 
         let imageUrl = null;
         let imagePublicId = null;
 
-        // If image is a base64 string, upload to Cloudinary
-        if (image && image.startsWith('data:')) {
-            const uploadResponse = await cloudinary.v2.uploader.upload(image, {
-                folder: 'featured-packages',
+        try {
+            // Handle different image input formats
+            if (image) {
+                // If image is a string (base64 or URL)
+                if (typeof image === 'string') {
+                    if (image.startsWith('data:') || image.startsWith('blob:')) {
+                        // Upload base64 image to Cloudinary
+                        const uploadResponse = await cloudinary.v2.uploader.upload(image, {
+                            folder: 'featured-packages',
+                        });
+                        imageUrl = uploadResponse.secure_url;
+                        imagePublicId = uploadResponse.public_id;
+                    } else {
+                        // If it's already a URL, use it directly
+                        imageUrl = image;
+                    }
+                } 
+                // If image is an object with url property
+                else if (typeof image === 'object' && image !== null) {
+                    // Handle case where image is { url: string, key?: string }
+                    if (image.url) {
+                        imageUrl = image.url;
+                        imagePublicId = image.public_id || image.key || null;
+                    }
+                }
+            }
+        } catch (uploadError) {
+            console.error('Image upload error:', uploadError);
+            return new Response(JSON.stringify({ 
+                error: 'Failed to process image',
+                details: uploadError.message 
+            }), { 
+                status: 400,
+                headers: { 'Content-Type': 'application/json' }
             });
-            imageUrl = uploadResponse.secure_url;
-            imagePublicId = uploadResponse.public_id;
-        } else if (image && typeof image === 'object' && image.url && image.public_id) {
-            // If frontend already sent Cloudinary info
-            imageUrl = image.url;
-            imagePublicId = image.public_id;
         }
 
+        // Prepare update data
+        const updateData = { 
+            title, 
+            link,
+            ...(imageUrl && { image: { url: imageUrl, public_id: imagePublicId } })
+        };
+
+        // Update the package in the database
         const updatedPackage = await FeaturedPackageCard.findByIdAndUpdate(
             id,
-            { title, image: imageUrl ? { url: imageUrl, public_id: imagePublicId } : undefined, link },
-            { new: true }
+            updateData,
+            { new: true, runValidators: true }
         );
 
         if (!updatedPackage) {
-            return new Response("Featured package not found", { status: 404 });
+            return new Response(JSON.stringify({ error: 'Package not found' }), { 
+                status: 404,
+                headers: { 'Content-Type': 'application/json' }
+            });
         }
 
-        return new Response(JSON.stringify(updatedPackage), { status: 200 });
+        return new Response(JSON.stringify(updatedPackage), { 
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
+        });
     } catch (error) {
         return new Response("Failed to update featured package", { status: 500 });
     }

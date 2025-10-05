@@ -15,8 +15,11 @@ export async function POST(req) {
             title: body.title,
             slug: body.slug,
             code: body.code,
-            artisan: body.artisan
         };
+        // Only include artisan in the query if it's provided
+        if (body.artisan) {
+            productQuery.artisan = body.artisan;
+        }
         // Optionally, also check for subMenu/category if you want to scope uniqueness
         let existingProduct = await Product.findOne(productQuery);
         if (existingProduct) {
@@ -99,14 +102,35 @@ export async function PUT(req) {
         const updateFields = { ...body };
         delete updateFields._id;
         delete updateFields.code;
+        
+        // If artisan is being removed, set it to null
+        if ('artisan' in body && !body.artisan) {
+            updateFields.artisan = null;
+        }
+        
         // Update product
-        const updatedProduct = await Product.findOneAndUpdate(identifier, updateFields, { new: true });
-        // If artisan changed, update artisan references
-        if (body.artisan && oldArtisanId !== body.artisan) {
+        const updatedProduct = await Product.findOneAndUpdate(
+            identifier, 
+            updateFields, 
+            { new: true }
+        );
+        
+        // Handle artisan references if artisan was changed
+        if ('artisan' in body) {
+            // Remove from old artisan's products if there was an old artisan
             if (oldArtisanId) {
-                await Artisan.findByIdAndUpdate(oldArtisanId, { $pull: { products: existingProduct._id } });
+                await Artisan.findByIdAndUpdate(
+                    oldArtisanId, 
+                    { $pull: { products: existingProduct._id } }
+                );
             }
-            await Artisan.findByIdAndUpdate(body.artisan, { $addToSet: { products: existingProduct._id } });
+            // Add to new artisan's products if a new artisan is provided
+            if (body.artisan) {
+                await Artisan.findByIdAndUpdate(
+                    body.artisan, 
+                    { $addToSet: { products: existingProduct._id } }
+                );
+            }
         }
         return NextResponse.json({ message: 'Product updated successfully!', product: updatedProduct });
     } catch (error) {

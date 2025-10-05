@@ -200,8 +200,8 @@ const AddProduct = ({ id }) => {
         }
     };
     const onSubmit = async () => {
-        if (!title || !artisan) {
-            toast.error("All fields are required", { style: { borderRadius: "10px", border: "2px solid red" } });
+        if (!title) {
+            toast.error("Title is required", { style: { borderRadius: "10px", border: "2px solid red" } });
             return;
         }
 
@@ -211,7 +211,8 @@ const AddProduct = ({ id }) => {
                 title,
                 slug: slugify(title),
                 code: productCode,
-                artisan,
+                // Set artisan to null if it's an empty string, otherwise use the value
+                artisan: artisan || null,
                 order,
                 active: typeof active === 'boolean' ? active : true,
                 isDirect: !subMenuId,
