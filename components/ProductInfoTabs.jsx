@@ -255,6 +255,31 @@ export default function ProductInfoTabs({ product }) {
             if (a.date && b.date) return new Date(b.date) - new Date(a.date);
             return (b._id || '').localeCompare(a._id || '');
         });
+        const unescapeHtml = (html) => {
+            if (!html || typeof html !== 'string') return '';
+    
+            // First, unescape all HTML entities
+            const temp = document.createElement('div');
+            temp.innerHTML = html.replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/&amp;/g, '&')
+                .replace(/&quot;/g, '"')
+                .replace(/&#39;/g, "'")
+                .replace(/[“”]/g, '"')
+                .replace(/[‘’]/g, "'");
+    
+            // Get the HTML content after unescaping
+            let processedHtml = temp.innerHTML;
+    
+            // Fix product links and ensure all links have proper protocol
+            processedHtml = processedHtml
+                // Fix product links
+                .replace(/href="\/product\/([^"]+)"/g, 'href="$1"')
+                // Ensure links have http:// if they don't have any protocol
+                .replace(/href="(?!https?:\\\/\\\/|mailto:|tel:|#)([^"]+)"/g, 'href="https://$1"');
+    
+            return processedHtml;
+        };
     const reviewsTab = {
         label: "Reviews",
         content: (
@@ -389,73 +414,7 @@ export default function ProductInfoTabs({ product }) {
                             Submit Review
                         </button>
                     </form>
-                )}
-                {/* {normalizedReviews.length === 0 ? (
-                    <div className="text-gray-500">No Reviews yet.</div>
-                ) : (
-                    <div className="space-y-6">
-                        {normalizedReviews.map((review, idx) => {
-                            const isExpanded = expandedReviews[idx];
-                            return (
-                                <div key={idx} className="bg-[#fafbfc] border border-[#e6e7e9] rounded-xl px-6 py-6 shadow-sm flex flex-col gap-2">
-                                    <div className="flex items-center gap-2 mb-2">
-                                    
-                                        <div className="flex items-center gap-1">
-                                            {[...Array(5)].map((_, i) => (
-                                                <span key={i} className={i < (review.rating || 0) ? 'text-[#00b67a] text-xl' : 'text-gray-300 text-xl'}>★</span>
-                                            ))}
-                                        </div>
-                                        <span className="ml-1 text-[#00b67a] font-bold text-xs flex items-center gap-1">
-                                            <svg className="inline-block" width="16" height="16" viewBox="0 0 24 24" fill="#00b67a"><circle cx="12" cy="12" r="12" /><path fill="#fff" d="M10.5 16.5l-4-4 1.41-1.41L10.5 13.67l5.59-5.59L17.5 9.5z" /></svg>
-                                            Verified
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-4">
-                                        <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
-                                            {review?.image?.url || review?.thumb?.url ? (
-                                                <img
-                                                    src={review.image?.url || review.thumb?.url}
-                                                    alt="Reviewer"
-                                                    className="h-full w-full rounded-full object-cover"
-                                                />
-                                            ) : (
-                                                <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                </svg>
-                                            )}
-                                        </div>
-
-                                        <span className="font-bold text-base">{review.createdBy || review.name || 'Anonymous'}</span>
-                                        <div className="flex items-center gap-2 text-gray-700 text-sm">
-
-                                            <span className="text-xs">{review.createdAt ? `${Math.round((Date.now() - new Date(review.createdAt)) / (1000 * 60 * 60 * 24))} days ago` : ''}</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="relative">
-                                        <span className="font-bold text-base">{review.title || 'Anonymous'}</span>
-                                        <div
-                                            className={`text-gray-900 transition-all duration-300 mb-2 ${isExpanded ? '' : 'max-h-[65px] overflow-hidden'}`}
-                                            style={!isExpanded ? { WebkitMaskImage: 'linear-gradient(180deg, #000 65%, transparent 100%)' } : {}}
-                                        >
-                                            {review.review}
-                                        </div>
-                                        {!isExpanded && review.review && review.review.length > 150 && (
-                                            <div className="absolute bottom-0 left-0 w-full flex justify-center bg-gradient-to-t from-[#fafbfc] to-transparent pt-6">
-                                                <button
-                                                    className="text-[#00b67a] font-semibold text-base px-2 py-1 focus:outline-none hover:underline"
-                                                    onClick={() => handleReadMore(idx)}
-                                                >
-                                                    Read more
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                )} */}
+                )}                
                 {normalizedReviews.length === 0 ? (
                     <div className="text-gray-500">No reviews yet.</div>
                 ) : (
@@ -501,10 +460,11 @@ export default function ProductInfoTabs({ product }) {
                                     <div className="relative">
                                         <span className="font-bold text-base">{review.title || 'Anonymous'}</span>
                                         <div
+                                            dangerouslySetInnerHTML={{ __html: unescapeHtml(review.description) }}
                                             className={`text-gray-900 transition-all duration-300 mb-2 ${isExpanded ? '' : 'max-h-[65px] overflow-hidden'}`}
                                             style={!isExpanded ? { WebkitMaskImage: 'linear-gradient(180deg, #000 65%, transparent 100%)' } : {}}
                                         >
-                                            {review.description}
+                                         
                                         </div>
                                         {!isExpanded && review.description && review.description.length > 150 && (
                                             <div className="absolute bottom-0 left-0 w-full flex justify-center bg-gradient-to-t from-[#fafbfc] to-transparent pt-6">
@@ -539,31 +499,7 @@ export default function ProductInfoTabs({ product }) {
         tabs.push(reviewsTab);
     }
     const [activeTab, setActiveTab] = useState(0);
-    const unescapeHtml = (html) => {
-        if (!html || typeof html !== 'string') return '';
 
-        // First, unescape all HTML entities
-        const temp = document.createElement('div');
-        temp.innerHTML = html.replace(/&lt;/g, '<')
-            .replace(/&gt;/g, '>')
-            .replace(/&amp;/g, '&')
-            .replace(/&quot;/g, '"')
-            .replace(/&#39;/g, "'")
-            .replace(/[“”]/g, '"')
-            .replace(/[‘’]/g, "'");
-
-        // Get the HTML content after unescaping
-        let processedHtml = temp.innerHTML;
-
-        // Fix product links and ensure all links have proper protocol
-        processedHtml = processedHtml
-            // Fix product links
-            .replace(/href="\/product\/([^"]+)"/g, 'href="$1"')
-            // Ensure links have http:// if they don't have any protocol
-            .replace(/href="(?!https?:\\\/\\\/|mailto:|tel:|#)([^"]+)"/g, 'href="https://$1"');
-
-        return processedHtml;
-    };
     if (!product?.info?.info.length) {
         return null;
     }
@@ -583,7 +519,7 @@ export default function ProductInfoTabs({ product }) {
                     </button>
                 ))}
             </div>
-            <div className="ProseMirror py-4 px-6 text-md text-gray-700 min-h-[64px] w-full md:w-[80%] mx-auto text-start">
+            <div className="ProseMirror1 py-4 px-6 text-md text-gray-700 min-h-[64px] w-full md:w-[80%] mx-auto text-start">
                 {tabs[activeTab]
                     ? (activeTab < tabs.length - 1
                         ? <div dangerouslySetInnerHTML={{ __html: unescapeHtml(tabs[activeTab].content) }} />

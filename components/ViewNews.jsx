@@ -53,7 +53,7 @@ export default function ViewNews({ news, onClose }) {
           <div className="font-bold text-2xl mb-2 text-gray-900">{news.title}</div>
           {news.date && <div className="text-sm border bg-yellow-200 rounded-xl px-2 text-gray-700 mb-2">{news.date}</div>}
           <div
-            className="ProseMirror text-base text-gray-800 mb-4 whitespace-pre-line"
+            className="ProseMirror1 text-base text-gray-800 mb-4 whitespace-pre-line"
             dangerouslySetInnerHTML={{ __html: unescapeHtml(news.description) || '' }}
           />
         </div>

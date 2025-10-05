@@ -74,7 +74,7 @@ export default function BlogQuickViewModal({ open, onClose, blog }) {
           <div className="font-bold text-xl md:text-3xl mb-4 text-gray-900">{blog.title}</div>
           {blog.shortText && <div className="text-xl text-gray-700 mb-2">{blog.shortText}</div>}
           {blog.shortDescription && <div className="text-base text-gray-800 mb-4">{blog.shortDescription}</div>}
-          {blog.longDescription && <div className="text-base text-gray-700 whitespace-pre-line mb-2 max-h-32 overflow-y-auto">{blog.longDescription}</div>}
+          {blog.longDescription && <div dangerouslySetInnerHTML={{ __html: blog.longDescription }} className="text-base text-gray-700 whitespace-pre-line mb-2 max-h-32 overflow-y-auto"></div>}
         </div>
         <div className="flex justify-end pt-2 px-6 pb-4">
           <button onClick={onClose} className="bg-black text-white px-6 py-2 rounded-full hover:bg-gray-800 shadow">Close</button>

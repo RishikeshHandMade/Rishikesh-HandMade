@@ -118,7 +118,7 @@ const VideoManagement = ({ productData, productId }) => {
     content: videoDescription,
     editorProps: {
       attributes: {
-        class: 'min-h-[200px] border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#00b67a]',
+        class: 'min-h-[300px] border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#00b67a]',
         spellcheck: 'true'
       }
     },

@@ -91,7 +91,7 @@ const CreatePrice = () => {
         <div className="text-red-500 text-center mb-4">{error}</div>
       )}
       <label className="font-bold text-lg col-span-1">Shipping Charges</label>
-      <div className="grid grid-cols-2 gap-4 items-start mb-4 w-full justify-center items-center">
+      <div className="grid grid-cols-2 gap-4 mb-4 w-full justify-center items-center">
         <div className="col-span-2 w-full">
           <div className="grid grid-cols-2 gap-2 mb-2">
             <div className="bg-blue-200 text-black font-bold text-lg text-center py-2 rounded">Weight Slab</div>

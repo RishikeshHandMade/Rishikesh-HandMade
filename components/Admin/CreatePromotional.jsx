@@ -8,11 +8,58 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'react-hot-toast';
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-import { Switch } from '@/components/ui/switch';
-// Placeholder for TiptapEditor, replace with your actual implementation
-const TiptapEditor = ({ value, onChange }) => (
-  <textarea className="w-full border rounded p-2" value={value} onChange={e => onChange(e.target.value)} placeholder="Review Description (Min 50 words)" />
-);
+import { useEditor, EditorContent } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
+import TextStyle from '@tiptap/extension-text-style'
+import { FontFamily } from '@tiptap/extension-font-family'
+import Typography from '@tiptap/extension-typography'
+import TextAlign from '@tiptap/extension-text-align'
+import Underline from '@tiptap/extension-underline'
+import Link from '@tiptap/extension-link'
+import { Color } from '@tiptap/extension-color'
+import ListItem from '@tiptap/extension-list-item'
+import { Extension } from '@tiptap/core'
+import Image from '@tiptap/extension-image'
+import {
+  Bold,
+  Italic,
+  Underline as UnderlineIcon,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Link as LinkIcon,
+  List,
+  ListOrdered,
+  Quote,
+  Undo,
+  Redo,
+  Strikethrough,
+  Code,
+  Heading1,
+  Heading2,
+  Heading3,
+  PilcrowSquare,
+} from 'lucide-react'
+
+// Create a FontSize extension
+const FontSize = Extension.create({
+  name: 'fontSize',
+  addOptions() {
+    return {
+      types: ['textStyle'],
+    }
+  },
+  addCommands() {
+    return {
+      setFontSize: (fontSize) => ({ commands }) => {
+        return commands.setFontStyle({ fontSize })
+      },
+      unsetFontSize: () => ({ commands }) => {
+        return commands.setFontStyle({ fontSize: undefined })
+      },
+    }
+  },
+})
 // Helper to format date as 'DD-MM-YYYY'
 function formatDateDDMMYYYY(date) {
   if (!date) return '';
@@ -68,30 +115,6 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
     }
   };
 
-  // Handler to remove uploaded image and delete from Cloudinary
-  const handleRemoveImageUpload = async () => {
-    if (imageObj && imageObj.key) {
-      toast.loading('Deleting image from Cloudinary...', { id: 'cloud-delete-promo' });
-      try {
-        const res = await fetch('/api/cloudinary', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ publicId: imageObj.key }),
-        });
-        const data = await res.json();
-        if (res.ok) {
-          toast.success('Image deleted from Cloudinary!', { id: 'cloud-delete-promo' });
-        } else {
-          toast.error('Cloudinary error: ' + (data.error || 'Failed to delete image'), { id: 'cloud-delete-promo' });
-        }
-      } catch (err) {
-        toast.error('Failed to delete image from Cloudinary (network or server error)', { id: 'cloud-delete-promo' });
-      }
-    }
-    setImageObj({ url: '', key: '' });
-    setImagePreview(null);
-  };
-
   // Modal state for view, edit, delete
   const [showViewModal, setShowViewModal] = useState(false);
 
@@ -102,12 +125,13 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
   // Inline update handler
   const handleUpdate = async (e) => {
     e.preventDefault();
+    const content = getCurrentContent();
     if (!selectedPromotion) return;
     try {
       const updatedPromotion = {
         ...selectedPromotion,
         title,
-        shortDescription,
+        shortDescription: content,
         createdBy,
         date: date ? new Date(date).getTime() : undefined,
         rating,
@@ -141,6 +165,9 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
     setSelectedArtisan(artisanId || '');
     setImageObj({ url: '', key: '' });
     setImagePreview(null);
+    if(editor){
+      editor.commands.setContent('');
+    }
     // Remove focus from any input to prevent validation errors
     setTimeout(() => {
       if (document.activeElement) document.activeElement.blur();
@@ -182,54 +209,140 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
   const [selectedArtisan, setSelectedArtisan] = useState(artisanId || '');
   const [reviews, setReviews] = useState([]); // Fetch reviews from API
   const [loadingReviews, setLoadingReviews] = useState(false);
-  // Dialog/modal states
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [reviewToDelete, setReviewToDelete] = useState(null);
-// console.log(reviews)
+  // console.log(reviews)
   // Fetch artisans and reviews
 
-    async function fetchArtisansAndPromotions() {
-      // If artisanDetails is present, use it directly
-      if (artisanDetails) {
-        setSelectedArtisan(artisanDetails._id);
-        // setCreatedBy(`${artisanDetails.firstName} ${artisanDetails.lastName}`);
-        // setTitle(artisanDetails.title || '');
-      } else {
-        try {
-          // Fetch artisans
-          const res = await fetch('/api/createArtisan');
-          const data = await res.json();
-          setArtisans(data);
-          // If artisanId is present, set selectedArtisan and prefill
-          if (artisanId) {
-            const found = data.find(a => a._id === artisanId);
-            if (found) {
-              setSelectedArtisan(found._id);
-              // setCreatedBy(`${found.firstName} ${found.lastName}`);
-              // setTitle(found.title || '');
-            }
-          }
-        } catch (err) {
-          toast.error('Failed to fetch artisans');
-        }
-      }
-      // Fetch reviews/promotions
+  async function fetchArtisansAndPromotions() {
+    // If artisanDetails is present, use it directly
+    if (artisanDetails) {
+      setSelectedArtisan(artisanDetails._id);
+      // setCreatedBy(`${artisanDetails.firstName} ${artisanDetails.lastName}`);
+      // setTitle(artisanDetails.title || '');
+    } else {
       try {
-        setLoadingReviews(true);
-        const res = await fetch((artisanDetails?._id || artisanId) ? `/api/promotion?artisanId=${artisanDetails?._id || artisanId}` : '/api/promotion');
+        // Fetch artisans
+        const res = await fetch('/api/createArtisan');
         const data = await res.json();
-        setReviews(data.promotions);
+        setArtisans(data);
+        // If artisanId is present, set selectedArtisan and prefill
+        if (artisanId) {
+          const found = data.find(a => a._id === artisanId);
+          if (found) {
+            setSelectedArtisan(found._id);
+            // setCreatedBy(`${found.firstName} ${found.lastName}`);
+            // setTitle(found.title || '');
+          }
+        }
       } catch (err) {
-        toast.error('Failed to fetch promotions');
-      } finally {
-        setLoadingReviews(false);
+        toast.error('Failed to fetch artisans');
       }
     }
-    useEffect(() => {
+    // Fetch reviews/promotions
+    try {
+      setLoadingReviews(true);
+      const res = await fetch((artisanDetails?._id || artisanId) ? `/api/promotion?artisanId=${artisanDetails?._id || artisanId}` : '/api/promotion');
+      const data = await res.json();
+      setReviews(data.promotions);
+    } catch (err) {
+      toast.error('Failed to fetch promotions');
+    } finally {
+      setLoadingReviews(false);
+    }
+  }
+  useEffect(() => {
     fetchArtisansAndPromotions();
   }, [artisanId, artisanDetails]);
+  const [imageeditorUploading, setImageeditorUploading] = useState(false);
+  const imageInputRef = React.useRef(null);
 
+
+  const handleImageUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    setImageeditorUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/cloudinary', {
+        method: 'POST',
+        body: formData
+      });
+      if (!res.ok) throw new Error('Image upload failed');
+      const result = await res.json();
+      addImage(result.url);
+      toast.success('Image uploaded successfully');
+    } catch (err) {
+      toast.error('Image upload failed');
+      console.error(err);
+    } finally {
+      setImageeditorUploading(false);
+      if (file && imageInputRef.current) imageInputRef.current.value = '';
+    }
+  };
+
+
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      TextStyle,
+      FontFamily,
+      Typography,
+      TextAlign,
+      Underline,
+      Link,
+      Color,
+      ListItem,
+      FontSize,
+      Image,
+    ],
+    content: shortDescription,
+    editorProps: {
+      attributes: {
+        class: 'min-h-[300px] border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#00b67a]',
+        spellcheck: 'true'
+      }
+    },
+    autofocus: true,
+    editable: true,
+    injectCSS: true
+
+  });
+
+  // Function to get current editor content
+  const getCurrentContent = () => {
+    if (editor) {
+      return editor.getHTML();
+    }
+    return shortDescription;
+  };
+
+  const addImage = (url) => {
+    if (!editor) return;
+    editor.chain().focus().setImage({ src: url }).run();
+  };
+  const setLink = React.useCallback(() => {
+    if (!editor) return;
+    let previousUrl = editor.getAttributes('link').href;
+
+    // If the URL starts with /product/, remove it for editing
+    if (previousUrl && previousUrl.startsWith('/product/')) {
+      previousUrl = previousUrl.replace(/^\/product\//, '');
+    }
+
+    const url = window.prompt('Enter URL (without /product/ prefix):', previousUrl);
+    if (url === null) return;
+
+    if (url === '') {
+      editor.chain().focus().extendMarkRange('link').unsetLink().run();
+      return;
+    }
+
+    // Don't modify the URL here, let the server or display component handle the prefix
+    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+  }, [editor]);
   const handleSubmit = async (e) => {
+    const content = getCurrentContent();
     e.preventDefault();
     if (!selectedArtisan) {
       toast.error('Please select an artisan');
@@ -238,7 +351,7 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
     try {
       const payload = {
         title,
-        shortDescription,
+        shortDescription: content,
         rating,
         createdBy,
         date: date ? new Date(date).getTime() : undefined,
@@ -261,6 +374,9 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
         setDate('');
         setImageObj({ url: '', key: '' });
         setImagePreview(null);
+        if(editor){
+          editor.commands.setContent('');
+        }
         // Refresh reviews
         const promoRes = await fetch(selectedArtisan ? `/api/promotion?artisanId=${selectedArtisan}` : '/api/promotion');
         const promos = await promoRes.json();
@@ -272,11 +388,30 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
       toast.error('Error saving promotion');
     }
   };
+  const unescapeHtml = (html) => {
+    if (!html || typeof html !== 'string') return '';
 
-  const handleDelete = async () => {
-    // Delete review logic
-    setShowDeleteDialog(false);
-    toast.success('Promotion deleted (demo)!');
+    // First, unescape all HTML entities
+    const temp = document.createElement('div');
+    temp.innerHTML = html.replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/[“”]/g, '"')
+      .replace(/[‘’]/g, "'");
+
+    // Get the HTML content after unescaping
+    let processedHtml = temp.innerHTML;
+
+    // Fix product links and ensure all links have proper protocol
+    processedHtml = processedHtml
+      // Fix product links
+      .replace(/href="\/product\/([^"]+)"/g, 'href="$1"')
+      // Ensure links have http:// if they don't have any protocol
+      .replace(/href="(?!https?:\\\/\\\/|mailto:|tel:|#)([^"]+)"/g, 'href="https://$1"');
+
+    return processedHtml;
   };
 
   return (
@@ -338,14 +473,136 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
         </div>
         <div className="mb-4">
           <label className="block font-semibold mb-1"> Description</label>
-          <TiptapEditor value={shortDescription} onChange={value => {
-            const wordCount = value.trim().split(/\s+/).filter(Boolean).length;
-            if (wordCount > 100) {
-              toast.error('Word limit exceeded! Maximum 100 words allowed.');
-              return;
-            }
-            setShortDescription(value);
-          }} />
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2">
+              <button type="button"
+                onClick={() => editor?.chain().focus().toggleBold().run()}
+                className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('bold') ? 'bg-gray-200' : ''}`}
+              >
+                <Bold className="w-4 h-4" />
+              </button>
+              <button type="button"
+                onClick={() => editor?.chain().focus().toggleItalic().run()}
+                className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('italic') ? 'bg-gray-200' : ''}`}
+              >
+                <Italic className="w-4 h-4" />
+              </button>
+              <Button type="button" variant="ghost" size="sm" onClick={() => editor.chain().focus().toggleUnderline().run()} className={editor?.isActive('underline') ? 'bg-gray-200' : ''}>
+                <UnderlineIcon className="w-4 h-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={setLink}
+                className={editor?.isActive('link') ? 'bg-gray-200' : ''}
+              >
+                <LinkIcon className="w-4 h-4" />
+              </Button>
+              <input
+                type="file"
+                ref={imageInputRef}
+                onChange={handleImageUpload}
+                accept="image/*"
+                className="hidden"
+                id="image-upload"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => document.getElementById('image-upload').click()}
+                disabled={imageeditorUploading}
+              >
+                {imageeditorUploading ? 'Uploading...' : 'Image'}
+              </Button>
+              <button type="button"
+                onClick={() => editor?.chain().focus().setParagraph().run()}
+                className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('paragraph') ? 'bg-gray-200' : ''}`}
+              >
+                <PilcrowSquare className="w-4 h-4" />
+              </button>
+              <button type="button"
+                onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
+                className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('heading', { level: 1 }) ? 'bg-gray-200' : ''}`}
+              >
+                <Heading1 className="w-4 h-4" />
+              </button>
+              <button type="button"
+                onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
+                className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('heading', { level: 2 }) ? 'bg-gray-200' : ''}`}
+              >
+                <Heading2 className="w-4 h-4" />
+              </button>
+              <button type="button"
+                onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
+                className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('heading', { level: 3 }) ? 'bg-gray-200' : ''}`}
+              >
+                <Heading3 className="w-4 h-4" />
+              </button>
+              <button type="button"
+                onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('bulletList') ? 'bg-gray-200' : ''}`}
+              >
+                <List className="w-4 h-4" />
+              </button>
+              <button type="button"
+                onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('orderedList') ? 'bg-gray-200' : ''}`}
+              >
+                <ListOrdered className="w-4 h-4" />
+              </button>
+              <button type="button"
+                onClick={() => editor?.chain().focus().toggleBlockquote().run()}
+                className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('blockquote') ? 'bg-gray-200' : ''}`}
+              >
+                <Quote className="w-4 h-4" />
+              </button>
+              <button type="button"
+                onClick={() => editor?.chain().focus().toggleCodeBlock().run()}
+                className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('codeBlock') ? 'bg-gray-200' : ''}`}
+              >
+                <Code className="w-4 h-4" />
+              </button>
+              <button type="button"
+                onClick={() => editor?.chain().focus().toggleStrike().run()}
+                className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('strike') ? 'bg-gray-200' : ''}`}
+              >
+                <Strikethrough className="w-4 h-4" />
+              </button>
+              <button type="button"
+                onClick={() => editor?.chain().focus().undo().run()}
+                className="p-2 rounded-lg hover:bg-gray-100"
+              >
+                <Undo className="w-4 h-4" />
+              </button>
+              <button type="button"
+                onClick={() => editor?.chain().focus().redo().run()}
+                className="p-2 rounded-lg hover:bg-gray-100"
+              >
+                <Redo className="w-4 h-4" />
+              </button>
+              <button type="button"
+                onClick={() => editor?.chain().focus().setTextAlign('left').run()}
+                className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('textAlign', 'left') ? 'bg-gray-200' : ''}`}
+              >
+                <AlignLeft className="w-4 h-4" />
+              </button>
+              <button type="button"
+                onClick={() => editor?.chain().focus().setTextAlign('center').run()}
+                className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('textAlign', 'center') ? 'bg-gray-200' : ''}`}
+              >
+                <AlignCenter className="w-4 h-4" />
+              </button>
+              <button type="button"
+                onClick={() => editor?.chain().focus().setTextAlign('right').run()}
+                className={`p-2 rounded-lg hover:bg-gray-100 ${editor?.isActive('textAlign', 'right') ? 'bg-gray-200' : ''}`}
+              >
+                <AlignRight className="w-4 h-4" />
+              </button>
+            </div>
+            <EditorContent editor={editor} />
+          </div>
         </div>
         {/* Image Upload Section (Certificate style) */}
         <div className="mb-4">
@@ -390,8 +647,8 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
         <div className="flex justify-center gap-4 mt-6">
           {isEditing ? (
             <>
-              <Button type="button" onClick={handleCancelEdit} variant="secondary">Cancel</Button>
               <Button type="submit" variant="default">Update</Button>
+              <Button type="button" onClick={handleCancelEdit} variant="secondary">Cancel</Button>
             </>
           ) : (
             <Button type="submit">Create</Button>
@@ -440,6 +697,10 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
                         setDate(dateToInputValue(review.date));
                         setRating(review.rating || 0);
                         setSelectedArtisan(review.artisan || '');
+                        if (editor) {
+                          editor.commands.setContent(review.shortDescription, false);
+                          setShortDescription(review.shortDescription);
+                        }
                         if (review.image && typeof review.image === 'object') {
                           setImageObj({ url: review.image.url || '', key: review.image.key || '' });
                           setImagePreview(review.image.url || null);
@@ -496,9 +757,9 @@ const CreatePromotional = ({ artisanId, artisanDetails = null }) => {
                     <div className="text-gray-600">{formatDateDDMMYYYY(selectedPromotion.date)}</div>
                   </div>
                 </div>
-                <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 max-h-28 overflow-y-auto">
+                <div className="ProseMirror1 bg-white p-3 rounded border border-gray-200 shadow-md mb-2 max-h-28 overflow-y-auto">
                   <div className="font-semibold text-gray-800">Short Description</div>
-                  <div className="text-gray-600">{selectedPromotion.shortDescription}</div>
+                  <div dangerouslySetInnerHTML={{ __html: unescapeHtml(selectedPromotion.shortDescription) }} className="text-gray-600"></div>
                 </div>
                 {(selectedPromotion.image?.url || selectedPromotion.image?.key) && (
                   <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2">

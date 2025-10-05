@@ -101,7 +101,7 @@ const ProductDescription = ({ productData, productId }) => {
     ],
     editorProps: {
       attributes: {
-        class: 'min-h-[200px] border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#00b67a]',
+        class: 'min-h-[300px] border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#00b67a]',
         spellcheck: 'true'
       }
     },
@@ -523,7 +523,7 @@ const ProductDescription = ({ productData, productId }) => {
             </div>
             <div className="bg-white p-3 rounded border border-gray-200 shadow-md mb-2 h-32 overflow-y-auto">
               <div className="font-semibold text-gray-800">Description</div>
-              <div className='ProseMirror text-gray-700' dangerouslySetInnerHTML={{ __html: viewedDesc.overview }} />
+              <div className='ProseMirror1 text-gray-700' dangerouslySetInnerHTML={{ __html: viewedDesc.overview }} />
               {/* <div className="text-gray-600" >{viewedDesc.overview || 'N/A'}</div> */}
             </div>
             <div className="flex justify-end mt-4">

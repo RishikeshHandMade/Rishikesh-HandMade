@@ -423,7 +423,7 @@ const InstaBlog = () => {
                                                                 className={`rounded-xl border font-barlow px-4 py-3 ${colorClasses[colorIdx]} shadow-md`}
                                                             >
                                                                 <div className="font-bold text-base md:text-lg mb-1">{item.title || 'News'}</div>
-                                                                <div className="ProseMirror text-gray-700 mb-2">
+                                                                <div className="ProseMirror1 text-gray-700 mb-2">
                                                                     {(() => {
                                                                         if (!news[0]?.description) return null;
                                                                         const desc = news[0].description;

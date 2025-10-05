@@ -294,7 +294,31 @@ const ArtisanDetails = ({ artisan }) => {
       if (a.date && b.date) return new Date(b.date) - new Date(a.date);
       return (b._id || '').localeCompare(a._id || '');
     });
+  const unescapeHtml = (html) => {
+    if (!html || typeof html !== 'string') return '';
 
+    // First, unescape all HTML entities
+    const temp = document.createElement('div');
+    temp.innerHTML = html.replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/[“”]/g, '"')
+      .replace(/[‘’]/g, "'");
+
+    // Get the HTML content after unescaping
+    let processedHtml = temp.innerHTML;
+
+    // Fix product links and ensure all links have proper protocol
+    processedHtml = processedHtml
+      // Fix product links
+      .replace(/href="\/product\/([^"]+)"/g, 'href="$1"')
+      // Ensure links have http:// if they don't have any protocol
+      .replace(/href="(?!https?:\\\/\\\/|mailto:|tel:|#)([^"]+)"/g, 'href="https://$1"');
+
+    return processedHtml;
+  };
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-amber-50 to-white flex flex-col items-center px-2 md:px-0">
       {/* Top section: Image left, details right */}
@@ -787,7 +811,7 @@ const ArtisanDetails = ({ artisan }) => {
               />
             </div>
             {/* Right: Detail Description */}
-            <div className="w-1/2 flex flex-col h-full justify-between w-full">
+            <div className="md:w-1/2 flex flex-col h-full justify-between w-full">
               <div>
                 <h3 className="text-xl md:text-2xl font-bold mb-2 underline">Detail Description</h3>
                 <div className="text-md font-sans mb-5">
@@ -797,12 +821,15 @@ const ArtisanDetails = ({ artisan }) => {
                     </>
                   )}
                 </div>
-                <div className="text-md font-sans mb-8 h-80 text-justify overflow-y-auto">
-                  {isExpanded ? fullText : getPreview(fullText)}
-
+                <div className="text-md font-sans mb-8 h-80 text-justify overflow-y-auto ProseMirror1">
+                  {isExpanded ? (
+                    <div dangerouslySetInnerHTML={{ __html: unescapeHtml(fullText) }} />
+                  ) : (
+                    <div dangerouslySetInnerHTML={{ __html: unescapeHtml(getPreview(fullText)) }} />
+                  )}
                   {fullText.split(" ").length > wordLimit && (
                     <button
-                      className="text-blue-600 font-semibold ml-2"
+                      className="text-blue-600 font-semibold ml-2 mt-2 inline-block"
                       onClick={() => setIsExpanded(!isExpanded)}
                     >
                       {isExpanded ? "Show less" : "Read more"}
@@ -1093,7 +1120,7 @@ const ArtisanDetails = ({ artisan }) => {
                             <div className="text-xs font-semibold bg-black text-white inline-block px-3 py-1 rounded mb-2">{blogDate}</div>
                           )}
                           <div className="font-bold text-lg md:text-xl text-black mb-2 leading-snug">{blog.title || 'No title available.'}</div>
-                          <div className="text-gray-800 text-base mb-4 line-clamp-3 min-h-[48px]">{blog.shortDescription || 'No description available.'}</div>
+                          <div dangerouslySetInnerHTML={{ __html: unescapeHtml(blog.shortDescription) }} className="ProseMirror1 text-gray-800 text-base mb-4 line-clamp-3 min-h-[48px]"></div>
                         </div>
                         <div className="flex items-center mt-auto">
                           <button
@@ -1479,7 +1506,7 @@ const ArtisanDetails = ({ artisan }) => {
                                     transitionDelay: `${i * 60}ms`
                                   }}
                                 >
-                                {s.icon}
+                                  {s.icon}
                                 </a>
                               ))}
                             </div>
@@ -1512,7 +1539,7 @@ const ArtisanDetails = ({ artisan }) => {
           </div>
 
           {/* Review Card Overlay */}
-          <div className="hidden md:flex flex flex-col justify-start w-full items-end ">
+          <div className="hidden md:flex flex-col justify-start w-full items-end ">
             <div className="button px-10 mb-2">
               <Button className="bg-white text-black hover:bg-black hover:text-white transition-colors duration-300" onClick={() => setShowReviewModal(true)}>Write Reviews</Button>
             </div>
@@ -1530,8 +1557,8 @@ const ArtisanDetails = ({ artisan }) => {
                       <div className="text-md md:text-2xl text-gray-800 font-bold leading-relaxed my-4 flex-wrap text-left">
                         {review.title || 'No review text.'}
                       </div>
-                      <div className="text-md md:text-md text-gray-800 font-medium leading-relaxed mb-2 text-left">
-                        {review.description || 'No review text.'}
+                      <div dangerouslySetInnerHTML={{ __html: unescapeHtml(review.description) }} className="ProseMirror text-md md:text-md text-gray-800 font-medium leading-relaxed mb-2 text-left">
+
                       </div>
 
                       {/* Bottom row: avatar, name, subtitle */}
@@ -1623,8 +1650,8 @@ const ArtisanDetails = ({ artisan }) => {
               </CarouselContent>
 
               <div className="flex items-center gap-3">
-              <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 p-5 " />
-              <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 p-5" />
+                <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 p-5 " />
+                <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 p-5" />
               </div>
             </Carousel>
           </div>

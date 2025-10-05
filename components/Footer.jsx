@@ -55,86 +55,6 @@ const Footer = () => {
     return (
         <footer className={`print:hidden ${pathName.includes('admin') && 'hidden'}
          ${pathName.includes('artisan') && 'block'} ${pathName.includes('product') && 'block'} ${pathName.includes('customEnquiry') && 'hidden'} ${pathName.includes('checkout') && 'hidden'}  ${pathName.includes('category') && 'block'} bg-black text-white py-4`}>
-            {/* <div className="w-full flex justify-center pb-8">
-                <div className="h-[3px] bg-black w-full mx-auto px-4" />
-            </div> */}
-            {/* <div className="hidden md:flex flex-wrap lg:justify-between px-10 justify-start md:gap-20 lg:gap-0 gap-12 max-w-[22rem] md:maxw-[45rem] lg:max-w-[60rem] xl:max-w-6xl mx-auto">
-                <div className="flex flex-col gap-2 px-5">
-                    <h1 className="font-semibold text-xl my-4">Main Menu</h1>
-                    {pages.filter(page => !page?.link?.includes('policy')).map(page => (
-                        <Link key={page._id} href={page.url} className="block text-white font-barlow ">
-                            {page.title}
-                        </Link>
-                    ))}
-                    <Link href={'/contact'} className="block text-white font-barlow ">Contact Us</Link>
-                </div>
-
-                <div className="flex flex-col gap-2 px-6">
-                    <h1 className="font-semibold text-xl my-4">Our Policy</h1>
-                    {pages.filter(page => page?.link?.includes('policy')).map(page => (
-                        <Link key={page._id} href={page.url} className="block text-white font-barlow">
-                            {page.title}
-                        </Link>
-                    ))}
-                    <Link href={'/faq'} className="block text-white font-barlow ">FAQ</Link>
-                </div>
-
-                <div className="flex flex-col gap-1">
-                    <h1 className="font-semibold text-xl flex items-center gap-2"> More Inquiry</h1>
-                    <Link href={'tel:+917351009107'} className="my-2 block rounded-full py-1 font-barlow text-white flex items-center gap-2">
-                        <Phone size={20} className="text-blue-600" />
-                        +91 7351009107
-                    </Link>
-                    <Link href={'mailto:support@rishikeshhandmade.com'} className="my-2 block rounded-full font-barlow text-white flex items-center gap-2">
-                        <Send className="text-blue-600 " size={20} />
-                        support@rishikeshhandmade.com
-                    </Link>
-                    <p className="my-2 font-barlow text-white mb-5 flex items-center gap-2">
-                        <MapPin className="text-blue-600" size={20} />
-                        Upper Road Dhalwala (Rishikesh)
-                        <br />
-                        Tehri Garhwal,Uttarakhand 249201
-                    </p>
-                </div>
-            </div>
-            <div className="md:hidden flex items-center gap-2 lg:justify-between justify-start px-5">
-                <div className="flex flex-col gap-2 px-2">
-                    <h1 className="font-semibold text-xl my-4">Main Menu</h1>
-                    {pages.filter(page => !page?.link?.includes('policy')).map(page => (
-                        <Link key={page._id} href={page.url} className="text-sm block text-black font-barlow ">
-                            {page.title}
-                        </Link>
-                    ))}
-                    <Link href={'/contact'} className="text-sm block text-black font-barlow ">Contact Us</Link>
-                </div>
-
-                <div className="flex flex-col gap-2 px-2">
-                    <h1 className="font-semibold text-xl my-4">Our Policy</h1>
-                    {pages.filter(page => page?.link?.includes('policy')).map(page => (
-                        <Link key={page._id} href={page.url} className="text-sm block text-black font-barlow">
-                            {page.title}
-                        </Link>
-                    ))}
-                    <Link href={'/faq'} className="text-sm block text-black font-barlow ">FAQ</Link>
-                </div>
-            </div>
-            <div className="md:hidden flex flex-col p-5">
-                <h1 className="font-semibold text-xl flex items-center gap-2"> More Inquiry</h1>
-                <Link href={'tel:+917351009107'} className="my-2 block rounded-full py-1 font-barlow text-black flex items-center gap-2">
-                    <Phone size={20} className="text-blue-600" />
-                    +91 7351009107
-                </Link>
-                <Link href={'mailto:support@rishikeshhandmade.com'} className="my-2 block rounded-full font-barlow text-black flex items-center gap-2">
-                    <Send className="text-blue-600" size={20} />
-                    support@rishikeshhandmade.com
-                </Link>
-                <p className="my-2 font-barlow text-black mb-5 flex items-center gap-2">
-                    <MapPin className="text-blue-600" size={20} />
-                    Upper Road Dhalwala (Rishikesh)
-                    <br />
-                    Tehri Garhwal,Uttarakhand 249201
-                </p>
-            </div> */}
             <div className="hidden md:flex flex-wrap lg:justify-between px-10 justify-start md:gap-20 lg:gap-0 gap-12 max-w-[22rem] md:maxw-[45rem] lg:max-w-[60rem] xl:max-w-6xl mx-auto">
                 <div className="flex flex-col gap-2 px-5">
                     <h1 className="font-semibold text-xl my-4">Main Menu</h1>
@@ -415,7 +335,7 @@ const Footer = () => {
                 </CardFooter>
             </Card>
             <div className="max-w-[25rem] md:max-w-[60rem] xl:max-w-7xl mx-auto font-barlow">
-                <p className="text-white text-center">Buy Handicraft and Handloom Items Online | Home and Living Products for Sale | Buy Handloom and Handicraft Items | Handmade Home Décor and Utility for Sale | Buy Home Decor Items Online | Handloom Cushions Online | Buy Handmade Bhimal And Jute Accessories |  Handmade Handicraft Accessories for Sale | Handmade Floor Coverings Jute Bhimal Foot Door Mat Online Sale | Handmade Religious Items for Sale Online | Buy Handmade Jute Bhimal Woolen Footwear | Buy Handmade Jute Slippers  Footwear | Handcrafted Lighting Items Online | Handmade Office Stationery Jute File Folder  Items for Sale | Buy Handmade Jute Bags for Shopping |</p>
+                <p className="text-white text-center text-sm">Buy Handicraft and Handloom Items Online | Home and Living Products for Sale | Buy Handloom and Handicraft Items | Handmade Home Décor and Utility for Sale | Buy Home Decor Items Online | Handloom Cushions Online | Buy Handmade Bhimal And Jute Accessories |  Handmade Handicraft Accessories for Sale | Handmade Floor Coverings Jute Bhimal Foot Door Mat Online Sale | Handmade Religious Items for Sale Online | Buy Handmade Jute Bhimal Woolen Footwear | Buy Handmade Jute Slippers  Footwear | Handcrafted Lighting Items Online | Handmade Office Stationery Jute File Folder  Items for Sale | Buy Handmade Jute Bags for Shopping |</p>
                 <p className="text-white font-bold text-center my-4">
                     &copy; <CurrentYear /> <Link href={'/'} className="font-bold text-white">Rishikesh Handmade</Link>. All rights reserved
                 </p>

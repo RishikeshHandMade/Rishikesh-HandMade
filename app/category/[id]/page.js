@@ -89,7 +89,7 @@ const CategoryPage = async ({ params }) => {
         <h1 className="text-xl md:text-5xl font-extrabold drop-shadow">{categoryData.title}</h1>
       </div>
       
-        <div className="flex flex-col md:flex-row md:gap-6 w-full md:mt-4 md:px-5 p-1">
+        <div className="flex flex-col md:flex-row md:gap-6 w-full md:mt-4 md:px-2">
           {/* Left Image Section */}
           <div className="hidden md:flex flex-col w-72 max-w-xs flex-shrink-0 justify-start items-center">
             {/* Category Advertisement Banner */}

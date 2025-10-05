@@ -210,9 +210,9 @@
 }
 
 /* Tiptap editor styles */
-.ProseMirror {
-  min-height: 300px;
-  padding: 1rem;
+.ProseMirror1 {
+  min-height: 100px;
+  padding: 0.5rem;
   overflow-y: auto;
   word-break: break-word;
   white-space: pre-wrap;

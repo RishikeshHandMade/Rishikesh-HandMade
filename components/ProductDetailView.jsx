@@ -401,7 +401,7 @@ export default function ProductDetailView({ product }) {
           }
           if (showFullDesc || words.length <= 20) {
             return (
-              <div className="ProseMirror text-gray-700 text-md max-w-lg">
+              <div className="ProseMirror1 text-gray-700 text-md max-w-lg">
                 <div dangerouslySetInnerHTML={{ __html: unescapeHtml(desc) }} />
                 {words.length > 20 && (
                   <>
@@ -412,7 +412,7 @@ export default function ProductDetailView({ product }) {
             );
           }
           return (
-            <div className="ProseMirror text-gray-700 text-sm md:text-md max-w-lg ">
+            <div className="ProseMirror1 text-gray-700 text-sm md:text-md max-w-lg ">
               <div className="" dangerouslySetInnerHTML={{ __html: unescapeHtml(words.slice(0, 20).join(' ') + '...') }} />
               <button className="text-blue-600 underline" onClick={() => setShowFullDesc(true)}>Read more</button>
             </div>
