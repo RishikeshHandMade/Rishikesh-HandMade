@@ -87,13 +87,13 @@ const HeroSection = () => {
 
   if (isLoading) {
     return (
-      <section className="relative xl:h-screen w-full overflow-hidden z-[160]">
+      <section className="relative h-[100px] md:h-[430px] w-full overflow-hidden z-[160]">
         <Carousel className="h-full w-full" plugins={[plugin.current]} onMouseLeave={plugin.current.reset}>
           <CarouselContent className="h-full">
             {[...Array(4)].map((_, index) => (
-              <CarouselItem key={index} className="h-[100vh] md:h-full">
+              <CarouselItem key={index} className="h-[100px] md:h-[430px]">
                 <div className="relative h-full w-full">
-                  <Skeleton className="h-[100vh] w-full" />
+                  <Skeleton className="h-[100px] md:h-full w-full" />
                   <div className="absolute translate-y-1/2 top-1/3 translate-x-1/2 right-1/2 z-20 w-full">
                     <Skeleton className="h-6 w-3/4 mx-auto" />
                   </div>
@@ -139,12 +139,12 @@ const HeroSection = () => {
             </CarouselContent>
 
             {/* Navigation Arrows */}
-            <CarouselPrevious className="left-4 md:left-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <CarouselNext className="right-4 md:right-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <CarouselPrevious className="left-4 md:left-16 opacity-0 group-hover:opacity-100 transition-opacity duration-300 border rounded p-5" />
+            <CarouselNext className="right-4 md:right-16 opacity-0 group-hover:opacity-100 transition-opacity duration-300 border rounded p-5" />
           </Carousel>
 
           {/* Custom Pagination Dots */}
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex gap-2">
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 flex gap-2">
             {banners.map((_, index) => (
               <button
                 key={index}
@@ -159,9 +159,9 @@ const HeroSection = () => {
         </div>
       </div>
 
-      <div className="block xl:hidden w-full h-full relative max-h-[100vh]">
+      <div className="block xl:hidden w-full relative max-h-[100vh]">
         {/* Mobile Carousel: Only show first image, center content over image, add to cart above image */}
-        <Carousel className="w-full max-w-md mx-auto" plugins={[plugin.current]} onMouseLeave={plugin.current.reset} setApi={setMobileApi} >
+        <Carousel className="w-full max-w-md mx-auto " plugins={[plugin.current]} onMouseLeave={plugin.current.reset} setApi={setMobileApi} >
           <CarouselContent>
             {banners.map((banner, index) => (
               <CarouselItem key={index} className="flex flex-col items-center justify-center relative">
@@ -171,7 +171,7 @@ const HeroSection = () => {
                   <img
                     src={banner.frontImg?.url || "/placeholder.jpeg"}
                     alt={banner.title ? `${banner.title} Front` : "Banner Image"}
-                    className="object-contain w-full shadow-lg z-0"
+                    className="object-contain w-full h-full shadow-lg z-0"
                   />
                 </div>
                 </Link>
