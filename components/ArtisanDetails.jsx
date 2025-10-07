@@ -324,11 +324,11 @@ const ArtisanDetails = ({ artisan }) => {
       {/* Top section: Image left, details right */}
       <div className="relative w-full overflow-visible mb-10">
         {/* Banner Background Image */}
-        <div className="inset-0 h-[100px] md:h-[300px] w-full object-cover object-center brightness-100 z-0 overflow-hidden object-cover">
+        <div className="inset-0 h-[100px] md:h-[300px] w-full object-center brightness-100 z-0 overflow-hidden object-cover">
           <img src={artisan.artisanBanner?.image?.url || artisan.artisanBanner?.image || "/placeholder.jpeg"} className="w-full h-full object-cover brightness-100 " alt="Office" />
         </div>
         {/* Overlay Content */}
-        <div className="relative bg-[#ededed] w-full px-2 md:w-full justify-center mx-auto flex flex-col md:flex-row md:items-start items-center pt-0 px-0 pb-8">
+        <div className="relative bg-[#ededed] w-full md:w-full justify-center mx-auto flex flex-col md:flex-row md:items-start items-center pt-0 px-0 pb-8">
           {/* Profile Image: Overlapping Banner */}
           <div className="hidden md:flex absoute flex-shrink-0 -mt-32 ml-12 mr-10">
             <div className="bg-white rounded-lg shadow-xl border-4 border-white overflow-hidden w-72 md:h-[350px] flex items-center justify-center">
@@ -979,7 +979,7 @@ const ArtisanDetails = ({ artisan }) => {
                         {/* Quick View Button - Slide Up from Bottom on Hover (image only) */}
                         <div className="absolute left-0 right-0 bottom-0 flex items-center justify-center translate-y-10 opacity-0 group-hover/image:translate-y-0 group-hover/image:opacity-100 transition-all duration-300 py-4 ">
                           <Button
-                            className="bg-black text-white hover:bg-gray-800 transition-colors duration-300 uppercase text-sm font-bold px-8 py-3 rounded-full shadow-lg border border-2 border-white"
+                            className="bg-black text-white hover:bg-gray-800 transition-colors duration-300 uppercase text-sm font-bold px-8 py-3 rounded-full shadow-lg border-2 border-white"
                             onClick={() => setQuickViewProduct(item.product ? item.product : item)}
                           >
                             QUICK VIEW
@@ -1663,7 +1663,7 @@ const ArtisanDetails = ({ artisan }) => {
           <div className="bg-white rounded-2xl shadow-xl mx-auto md:max-w-4xl w-full relative overflow-y-auto max-h-[90vh]" onClick={e => e.stopPropagation()}>
             {/* Close Button */}
             <button
-              className="absolute top-4 right-4 text-2xl font-bold text-gray-500 z-50 rounded-full w-8 h-8 border border-black bg-black text-white flex items-center justify-center hover:bg-gray-100 hover:text-black focus:outline-none"
+              className="absolute top-4 right-4 text-2xl font-bold z-50 rounded-full w-8 h-8 border border-black bg-black text-white flex items-center justify-center hover:bg-gray-100 hover:text-black focus:outline-none"
               onClick={() => setQuickViewProduct(null)}
               aria-label="Close quick view"
             >

@@ -169,7 +169,7 @@ const HeroSection = () => {
                 <div className="relative w-full flex flex-col items-center">
                   {/* Front Image only for mobile */}
                   <img
-                    src={banner.frontImg?.url || "/placeholder.jpeg"}
+                    src={banner.mobileImg?.url || "/bg1.jpg"}
                     alt={banner.title ? `${banner.title} Front` : "Banner Image"}
                     className="object-contain w-full h-full shadow-lg z-0"
                   />

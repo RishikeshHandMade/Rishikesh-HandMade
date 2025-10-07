@@ -2,101 +2,187 @@ import ProductTagLine from '../../../models/ProductTagLine';
 import connectDB from "@/lib/connectDB";
 import Product from '@/models/Product';
 
-// GET: Return all unique tags if allTags=1, else normal behavior
+// GET: Return product highlights or all unique highlights if allTags=1
 export async function GET(req) {
   await connectDB();
   const url = new URL(req.url, 'http://localhost');
+  
+  // Return all unique highlights
   if (url.searchParams.get('allTags') === '1') {
-    // Return all unique tags
-    const allTagsDocs = await ProductTagLine.find({}, 'tags');
-    const tagsSet = new Set();
-    allTagsDocs.forEach(doc => {
-      if (Array.isArray(doc.tags)) {
-        doc.tags.forEach(tag => tagsSet.add(tag));
+    const allHighlightsDocs = await ProductTagLine.find({}, 'highlights');
+    const highlightsSet = new Set();
+    allHighlightsDocs.forEach(doc => {
+      if (Array.isArray(doc.highlights)) {
+        doc.highlights.forEach(highlight => highlight && highlightsSet.add(highlight));
       }
     });
-    return Response.json({ tags: Array.from(tagsSet) });
+    return Response.json({ highlights: Array.from(highlightsSet) });
   }
+
+  // Get highlights for a specific product
   const product = url.searchParams.get('product');
   if (product) {
     try {
       const entry = await ProductTagLine.findOne({ product });
+      // If no entry exists, return empty highlights array
+      if (!entry) {
+        return Response.json({ 
+          success: true, 
+          data: { 
+            product, 
+            highlights: []
+          } 
+        });
+      }
       return Response.json({ success: true, data: entry });
     } catch (error) {
       return Response.json({ error: error.message }, { status: 500 });
     }
   }
-  return Response.json({ error: 'Missing required query parameter: allTags=1 or product=ID' }, { status: 400 });
+  
+  return Response.json({ 
+    error: 'Missing required query parameter: allTags=1 or product=ID' 
+  }, { status: 400 });
 }
-
-// POST: Create or update tags for a product
+// POST: Create or update highlights for a product
 export async function POST(req) {
   await connectDB();
   try {
-    const { product, tagLine } = await req.json();
-    if (!product || typeof tagLine !== 'string' || !tagLine.trim()) {
-      return Response.json({ error: 'Product and tagLine are required.' }, { status: 400 });
+    const { product, highlights } = await req.json();
+    
+    // Validate input
+    if (!product) {
+      return Response.json({ error: 'Product ID is required.' }, { status: 400 });
     }
-    // Check if a ProductTagLine already exists for this product
-    let created = await ProductTagLine.findOneAndUpdate(
+    
+    // Validate highlights
+    if (!Array.isArray(highlights) || highlights.length === 0) {
+      return Response.json({ 
+        error: 'At least one highlight is required.' 
+      }, { status: 400 });
+    }
+
+    // Clean and validate highlights
+    const cleanHighlights = highlights
+      .map(h => typeof h === 'string' ? h.trim() : '')
+      .filter(h => h.length > 0);
+
+    if (cleanHighlights.length === 0) {
+      return Response.json({ 
+        error: 'At least one valid highlight is required.' 
+      }, { status: 400 });
+    }
+
+    // Update or create the document
+    const options = { 
+      new: true, 
+      upsert: true,
+      setDefaultsOnInsert: true
+    };
+
+    const result = await ProductTagLine.findOneAndUpdate(
       { product },
-      { $set: { tagLine } },
-      { new: true, upsert: true }
+      { $set: { highlights: cleanHighlights } },
+      options
     );
-    // Push the ProductTagLine _id to the product's ProductTagLine field
-    if (created && created._id) {
-      await Product.findByIdAndUpdate(product, { $set: { productTagLine: created._id } });
+
+    // Update the product reference
+    if (result?._id) {
+      await Product.findByIdAndUpdate(
+        product, 
+        { $set: { productTagLine: result._id } }
+      );
     }
-    return Response.json({ success: true, data: created });
+
+    return Response.json({ 
+      success: true, 
+      data: result 
+    });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('Error saving highlights:', error);
+    return Response.json({ 
+      error: error.message || 'Failed to save highlights' 
+    }, { status: 500 });
   }
 }
 
-// PATCH: Update tags for a product (only if exists)
+// PATCH: Update highlights for a product (only if exists)
 export async function PATCH(req) {
   await connectDB();
   try {
-    const { product, tagLine } = await req.json();
-    if (!product || typeof tagLine !== 'string' || !tagLine.trim()) {
-      return Response.json({ error: 'Product and tagLine are required.' }, { status: 400 });
+    const { product, highlights } = await req.json();
+    
+    if (!product) {
+      return Response.json({ error: 'Product ID is required.' }, { status: 400 });
     }
+
+    // Check if the document exists first
+    const existing = await ProductTagLine.findOne({ product });
+    if (!existing) {
+      return Response.json({ 
+        error: 'No highlights found for this product. Use POST to create.' 
+      }, { status: 404 });
+    }
+
+    // Validate highlights
+    if (!Array.isArray(highlights) || highlights.length === 0) {
+      return Response.json({ 
+        error: 'At least one highlight is required.' 
+      }, { status: 400 });
+    }
+
+    // Clean and validate highlights
+    const cleanHighlights = highlights
+      .map(h => typeof h === 'string' ? h.trim() : '')
+      .filter(h => h.length > 0);
+
+    if (cleanHighlights.length === 0) {
+      return Response.json({ 
+        error: 'At least one valid highlight is required.' 
+      }, { status: 400 });
+    }
+
     const updated = await ProductTagLine.findOneAndUpdate(
       { product },
-      { $set: { tagLine } },
+      { $set: { highlights: cleanHighlights } },
       { new: true }
     );
-    if (updated) {
-      await Product.findByIdAndUpdate(
-        updated.product, // ensure we use the updated ProductTagLine's product field
-        { productTagLine: updated._id }
-      );
-    }
-    if (!updated) {
-      return Response.json({ error: 'CategoryTag entry not found for this product.' }, { status: 404 });
-    }
-    return Response.json({ success: true, data: updated });
+
+    return Response.json({ 
+      success: true, 
+      data: updated 
+    });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('Error updating highlights:', error);
+    return Response.json({ 
+      error: error.message || 'Failed to update highlights' 
+    }, { status: 500 });
   }
 }
 
-
-
-// DELETE: Remove a tag from a product
-// DELETE: Delete a category tag by product or _id
+// DELETE: Delete highlights for a product
 export async function DELETE(req) {
   await connectDB();
   try {
     const url = new URL(req.url, 'http://localhost');
     const product = url.searchParams.get('product');
     const id = url.searchParams.get('id');
+    
     let result;
+    let deletedProductId;
+    
     if (product) {
-      result = await ProductTagLine.deleteOne({ product });
-      await Product.findByIdAndUpdate(product, { $unset: { productTagLine: "" } });
+      const doc = await ProductTagLine.findOne({ product });
+      if (doc) {
+        deletedProductId = doc.product;
+        result = await ProductTagLine.deleteOne({ product });
+      }
     } else if (id) {
-      result = await ProductTagLine.deleteOne({ _id: id });
+      const doc = await ProductTagLine.findById(id);
+      if (doc) {
+        deletedProductId = doc.product;
+        result = await ProductTagLine.deleteOne({ _id: id });
+      }
     } else {
       return Response.json({ error: "Product or id required." }, { status: 400 });
     }

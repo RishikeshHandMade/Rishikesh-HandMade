@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { Heart, Share2, Ruler, Mail, Star, MapPin, InfoIcon, X, Loader2 } from "lucide-react"
+import { Heart, Share2, Ruler, Mail, Star, MapPin, InfoIcon, X, Loader2, CheckCircle } from "lucide-react"
 import { useCart } from "../context/CartContext";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -14,13 +14,14 @@ import {
 } from "@/components/ui/carousel";
 import {
   Dialog,
-  DialogContent,
   DialogTitle,
+  DialogContent,
   DialogFooter,
   DialogClose,
 } from "./ui/dialog";
 import VisuallyHidden from '@/components/VisuallyHidden';
 import Autoplay from "embla-carousel-autoplay";
+
 export default function ProductDetailView({ product }) {
   // console.log(product);
   // --- Ask An Expert Modal State ---
@@ -35,6 +36,12 @@ export default function ProductDetailView({ product }) {
     question: '',
     contactMethod: 'Phone',
   });
+  const data = product.productTagLine.highlights;
+  // console.log(data)
+  const [highlights, setHighlights] = useState(data);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
   const handleExpertInputChange = (e) => {
     const { name, value, type } = e.target;
     setExpertForm((prev) => ({
@@ -78,10 +85,10 @@ export default function ProductDetailView({ product }) {
 
 
   const router = useRouter();
-  const [showShareBox, setShowShareBox] = React.useState(false);
-  const [productUrl, setProductUrl] = React.useState("");
+  const [showShareBox, setShowShareBox] = useState(false);
+  const [productUrl, setProductUrl] = useState("");
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (typeof window !== "undefined" && product && product.slug) {
       setProductUrl(window.location.origin + "/product/" + product.slug);
     } else if (product && product.slug) {
@@ -90,7 +97,7 @@ export default function ProductDetailView({ product }) {
   }, [product]);
 
   // Close share box when clicking outside
-  React.useEffect(() => {
+  useEffect(() => {
     if (!showShareBox) return;
     function handleClick(e) {
       const pop = document.getElementById("share-popover");
@@ -338,7 +345,7 @@ export default function ProductDetailView({ product }) {
                 {allImages.map((img, idx) => (
                   <CarouselItem key={idx} className="flex justify-center basis-1/5 max-w-[20%] min-w-0">
                     <button
-                      className={`rounded-lg border-2 ${activeImageIdx === idx ? 'border-black' : 'border-gray-200'} focus:outline-none focus:ring-2 focus:ring-black`}
+                      className={`rounded-lg border-1 m-1 ${activeImageIdx === idx ? 'border-black' : 'border-gray-200'} focus:outline-none focus:ring-2 focus:ring-black`}
                       onClick={() => carouselApi && carouselApi.scrollTo(idx)}
                       style={{ minWidth: 64, minHeight: 64 }}
                     >
@@ -363,6 +370,22 @@ export default function ProductDetailView({ product }) {
           </div>
         )}
 
+          {highlights.length > 0 && (
+        <div className="mt-4 w-full p-4 rounded-lg">
+          <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+            <InfoIcon className="w-5 h-5" /> Product Highlights
+          </h3>
+            <ul className="space-y-2 mt-2">
+              {highlights.map((highlight, index) => (
+                <li key={index} className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-md text-gray-700 text-wrap">{highlight}</span>
+                </li>
+              ))}
+            </ul>
+        </div>
+
+          )}
       </div>
       {/* CENTER: Product Details/Description/Selectors */}
       <div className="w-full lg:w-1/3 max-w-xl mx-auto flex flex-col">
@@ -397,7 +420,7 @@ export default function ProductDetailView({ product }) {
         {(() => {
 
           if (desc === "No Description") {
-            return <p className="text-gray-700 mb-4 max-w-lg">No Description</p>;
+            return <p className="text-gray-700 text-md mb-4 max-w-lg">No Description</p>;
           }
           if (showFullDesc || words.length <= 20) {
             return (
@@ -412,8 +435,8 @@ export default function ProductDetailView({ product }) {
             );
           }
           return (
-            <div className="ProseMirror1 text-gray-700 text-sm md:text-md max-w-lg ">
-              <div className="" dangerouslySetInnerHTML={{ __html: unescapeHtml(words.slice(0, 20).join(' ') + '...') }} />
+            <div className="ProseMirror1 text-gray-700 text-md md:text-md max-w-lg ">
+              <div className="" dangerouslySetInnerHTML={{ __html: unescapeHtml(words.slice(0, 25).join(' ') + '...') }} />
               <button className="text-blue-600 underline" onClick={() => setShowFullDesc(true)}>Read more</button>
             </div>
           );

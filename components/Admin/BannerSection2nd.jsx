@@ -8,27 +8,29 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '.
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Image from "next/image";
 import toast from "react-hot-toast";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 import { PencilIcon, Trash2Icon } from "lucide-react";
-// import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useRef } from "react";
 import { UploadIcon } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
-const ChangeBannerImage = () => {
-    const fileInputRef = useRef(null);
+const BannerSection2nd = () => {
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [bannerToDelete, setBannerToDelete] = useState(null);
     const [banners, setBanners] = useState([]);
     const [editBanner, setEditBanner] = useState(null);
     const [formData, setFormData] = useState({
         buttonLink: "",
-        frontImg: { url: "", key: "" },
-        mobileImg: { url: "", key: "" },
+        image: { url: "", key: "" },
         order: 1,
     });
+
     // Fetch banners and determine the next order number
     useEffect(() => {
         const fetchBanners = async () => {
             try {
-                const response = await fetch("/api/addBanner");
+                const response = await fetch("/api/bannerSection2nd");
                 const data = await response.json();
                 setBanners(data);
 
@@ -48,13 +50,12 @@ const ChangeBannerImage = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    // Separate uploading states for each image
-    const [uploadingFront, setUploadingFront] = useState(false);
-
+    // Cloudinary-style image upload (like AddGallery.jsx)
+    const [uploading, setUploading] = useState(false);
     const handleImageChange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        setUploadingFront(true);
+        setUploading(true);
         const formDataUpload = new FormData();
         formDataUpload.append('file', file);
         try {
@@ -64,57 +65,29 @@ const ChangeBannerImage = () => {
             });
             const data = await res.json();
             if (res.ok && data.url) {
-                setFormData(prev => ({ ...prev, frontImg: { url: data.url, key: data.key || '' } }));
-                toast.success('Front image uploaded!');
+                setFormData(prev => ({ ...prev, image: { url: data.url, key: data.key || '' } }));
+                toast.success('Image uploaded!');
             } else {
                 toast.error('Cloudinary upload failed: ' + (data.error || 'Unknown error'));
             }
         } catch (err) {
             toast.error('Cloudinary upload error: ' + err.message);
         }
-        setUploadingFront(false);
-    };
-    // Separate uploading states for each image
-    const [uploadingMobileImg, setUploadingMobileImg] = useState(false);
-
-    const handleMobileImageChange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        setUploadingMobileImg(true);
-        const formDataUpload = new FormData();
-        formDataUpload.append('file', file);
-        try {
-            const res = await fetch('/api/cloudinary', {
-                method: 'POST',
-                body: formDataUpload
-            });
-            const data = await res.json();
-            if (res.ok && data.url) {
-                setFormData(prev => ({ ...prev, mobileImg:{url:data.url,key:data.url|| ''} }));
-                toast.success('Mobile Banner Image Uploaded!');
-            } else {
-                toast.error('Cloudinary upload failed: ' + (data.error || 'Unknown error'));
-            }
-        } catch (err) {
-            toast.error('Cloudinary upload error: ' + err.message);
-        }
-        setUploadingMobileImg(false);
+        setUploading(false);
     };
 
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!formData.frontImg?.url || !formData.frontImg?.key) return toast.error("Please upload a front image");
-        if (!formData.mobileImg?.url || !formData.mobileImg?.key) return toast.error("Please upload a mobile image");
+        if (!formData.image.url || !formData.image.key) return toast.error("Please upload an image");
         try {
-            const method = editBanner ? "PATCH" : "POST";
-            // Find the selected coupon object
+            const method = editBanner ? "PATCH" : "POST";          
             // Compose payload with coupon details
             const payload = {
                 ...formData,
                 id: editBanner,
             };
-            const response = await fetch("/api/addBanner", {
+            const response = await fetch("/api/bannerSection2nd", {
                 method,
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
@@ -127,17 +100,16 @@ const ChangeBannerImage = () => {
                 setEditBanner(null);
 
                 // Refresh banner list
-                const updatedBanners = await fetch("/api/addBanner").then((res) => res.json());
+                const updatedBanners = await fetch("/api/bannerSection2nd").then((res) => res.json());
                 setBanners(updatedBanners);
 
                 // Reset form
                 setFormData({
                     buttonLink: "",
                     order: updatedBanners.length + 1,
-                    frontImg: { url: "", key: "" },
-                    mobileImg: { url: "", key: "" },
-
+                    image: { url: "", key: "" },
                 });
+
             } else {
                 toast.error(data.error);
             }
@@ -148,17 +120,17 @@ const ChangeBannerImage = () => {
 
     const handleEdit = (banner) => {
         setEditBanner(banner._id);
+        // console.log(banner)
         setFormData({
             buttonLink: banner.buttonLink,
             order: banner.order,
-            frontImg: banner.frontImg || { url: "", key: "" },
-            mobileImg: banner.mobileImg || { url: "", key: "" },
+            image: banner.image,
         });
     };
 
     const handleDelete = async (id) => {
         try {
-            const response = await fetch("/api/addBanner", {
+            const response = await fetch("/api/bannerSection2nd", {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ id }),
@@ -172,7 +144,7 @@ const ChangeBannerImage = () => {
                 setBanners((prev) => prev.filter((banner) => banner._id !== id));
 
                 // Update order numbers
-                const updatedBanners = await fetch("/api/addBanner").then((res) => res.json());
+                const updatedBanners = await fetch("/api/bannerSection2nd").then((res) => res.json());
                 setBanners(updatedBanners);
             } else {
                 toast.error(data.error);
@@ -182,14 +154,27 @@ const ChangeBannerImage = () => {
         }
     };
 
+    const confirmDelete = async () => {
+        if (bannerToDelete) {
+            await handleDelete(bannerToDelete);
+            setBannerToDelete(null);
+            setShowDeleteModal(false);
+        }
+    };
+
+    const cancelDelete = () => {
+        setShowDeleteModal(false);
+        setBannerToDelete(null);
+    };
+
     // Remove image from formData only
     const handleDeleteImage = () => {
-        setFormData(prev => ({ ...prev, frontImg: { url: '', key: '' } }));
+        setFormData(prev => ({ ...prev, image: { url: '', key: '' } }));
     };
-    const handleDeleteMobileImage = () => {
-        setFormData(prev => ({ ...prev, mobileImg: { url: '', key: '' } }));
-    };
-    const fileInputBackRef = useRef(null);
+
+
+    // Ref for file input
+    const fileInputRef = useRef(null);
 
     return (
         <div className="max-w-5xl mx-auto py-10 w-full">
@@ -197,7 +182,7 @@ const ChangeBannerImage = () => {
             <form onSubmit={handleSubmit} className="bg-white shadow-lg rounded-lg p-6 space-y-4">
                 {/* Banner Image Upload */}
                 <div className="mb-4">
-                    <Label className="block mb-2 font-bold">Laptop Banner Image</Label>
+                    <Label className="block mb-2 font-bold">Banner Image</Label>
                     <input
                         type="file"
                         accept="image/*"
@@ -212,15 +197,15 @@ const ChangeBannerImage = () => {
                         className="mb-2 flex items-center gap-2 bg-blue-500 text-white"
                         onClick={() => fileInputRef.current && fileInputRef.current.click()}
                     >
-                        <span>Select Laptop Banner Image</span>
+                        <span>Select Banner Image</span>
                         <UploadIcon className="w-4 h-4" />
                     </Button>
-                    {uploadingFront && <div className="text-blue-600 font-semibold">Uploading...</div>}
-                    {formData.frontImg.url && (
+                    {uploading && <div className="text-blue-600 font-semibold">Uploading...</div>}
+                    {formData.image.url && (
                         <div className="relative w-48 h-28 border rounded overflow-hidden mb-2">
                             <Image
-                                src={formData.frontImg.url}
-                                alt="Banner Preview"
+                                src={formData.image.url}
+                                alt="Promotinal Image Preview"
                                 fill
                                 className="object-cover"
                             />
@@ -230,60 +215,21 @@ const ChangeBannerImage = () => {
                                 className="absolute top-1 right-1 bg-white bg-opacity-80 rounded-full p-1 hover:bg-red-200"
                                 title="Remove image"
                             >
-                                <Trash2Icon className="w-4 h-4 text-red-600" />
-                            </button>
-                        </div>
-                    )}
-                </div>
-                <div className="mb-4">
-                    <Label className="block mb-2 font-bold">Mobile Banner Image</Label>
-                    <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleMobileImageChange}
-                        ref={fileInputBackRef}
-                        className="hidden"
-                        id="banner-image-input"
-                    />
-                    <Button
-                        type="button"
-                        variant="outline"
-                        className="mb-2 flex items-center gap-2 bg-blue-500 text-white"
-                        onClick={() => fileInputBackRef.current && fileInputBackRef.current.click()}
-                    >
-                        <span>Select Mobile Banner Image</span>
-                        <UploadIcon className="w-4 h-4" />
-                    </Button>
-                    {uploadingMobileImg && <div className="text-blue-600 font-semibold">Uploading...</div>}
-                    {formData.mobileImg.url && (
-                        <div className="relative w-48 h-28 border rounded overflow-hidden mb-2">
-                            <Image
-                                src={formData.mobileImg.url}
-                                alt="Banner Preview"
-                                fill
-                                className="object-cover"
-                            />
-                            <button
-                                type="button"
-                                onClick={handleDeleteMobileImage}
-                                className="absolute top-1 right-1 bg-white bg-opacity-80 rounded-full p-1 hover:bg-red-200"
-                                title="Remove image"
-                            >
-                                <Trash2Icon className="w-4 h-4 text-red-600" />
+                                <Trash2Icon className="w-5 h-5 text-red-600" />
                             </button>
                         </div>
                     )}
                 </div>
                 <div>
                     <Label>Button Link</Label>
-                    <Input name="buttonLink" placeholder="Enter Image URL Link" type="url" value={formData.buttonLink} onChange={handleInputChange} />
+                    <Input name="buttonLink" placeholder="Enter button link" type="url" value={formData.buttonLink} onChange={handleInputChange} />
                 </div>
                 <div>
                     <Label>Order</Label>
                     <Input name="order" placeholder="Enter order" type="number" value={formData.order} readOnly className="bg-gray-100 cursor-not-allowed" />
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                     <Button type="submit" className="bg-blue-600 hover:bg-blue-500">
                         {editBanner ? "Update Banner" : "Add Banner"}
                     </Button>
@@ -291,14 +237,15 @@ const ChangeBannerImage = () => {
                         <Button
                             type="button"
                             variant="outline"
-                            className="border-red-500 text-red-600 hover:bg-red-50"
+                            className="bg-gray-300 hover:bg-gray-200 text-black"
                             onClick={() => {
                                 setEditBanner(null);
                                 setFormData({
+                                    title: "",
+                                    coupon: "",
                                     buttonLink: "",
-                                    order: banners.length + 1,
-                                    frontImg: { url: "", key: "" },
-
+                                    order: banners.length > 0 ? Math.max(...banners.map(b => b.order)) + 1 : 1,
+                                    image: { url: "", key: "" },
                                 });
                             }}
                         >
@@ -308,14 +255,13 @@ const ChangeBannerImage = () => {
                 </div>
             </form>
 
-            <h2 className="text-2xl font-bold mt-10 mb-4">Existing Banners</h2>
+            <h2 className="text-2xl font-bold mt-10 mb-4">Existing Banner</h2>
             <Table>
                 <TableHeader>
                     <TableRow>
                         <TableHead>Order</TableHead>
-                        <TableHead>Laptop Image</TableHead>
-                        <TableHead>Mobile Image</TableHead>
                         <TableHead>Button Link</TableHead>
+                        <TableHead>Image</TableHead>
                         <TableHead>Actions</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -323,25 +269,7 @@ const ChangeBannerImage = () => {
                     {banners.length > 0 ? (
                         banners.map((banner) => (
                             <TableRow key={banner._id}>
-                                <TableCell className="px-5">{banner.order}</TableCell>
-                                <TableCell className="flex gap-4 items-center justify-start h-24">
-                                    {banner.frontImg?.url ? (
-                                        <Image src={banner.frontImg.url} alt="Front" width={100} height={100} className="rounded-lg mb-1 w-60 object-contain" />
-                                    ) : null}
-
-                                    {!banner.frontImg?.url && (
-                                        <span className="text-gray-400">No image</span>
-                                    )}
-                                </TableCell>
-                                <TableCell className="">
-                                    {banner.mobileImg?.url ? (
-                                        <Image src={banner.mobileImg.url} alt="Front" width={100} height={100} className="rounded-lg mb-1 w-60 object-contain" />
-                                    ) : null}
-
-                                    {!banner.mobileImg?.url && (
-                                        <span className="text-gray-400">No image</span>
-                                    )}
-                                </TableCell>
+                                <TableCell>{banner.order}</TableCell>
                                 <TableCell>
                                     <TooltipProvider>
                                         <Tooltip>
@@ -355,8 +283,11 @@ const ChangeBannerImage = () => {
                                     </TooltipProvider>
                                 </TableCell>
                                 <TableCell>
+                                    <Image src={banner.image.url} alt="Banner Image" width={100} height={50} className="rounded-xl" />
+                                </TableCell>
+                                <TableCell>
                                     <Button variant="outline" size="icon" onClick={() => handleEdit(banner)} className="mr-2 "><PencilIcon /></Button>
-                                    <Button size="icon" onClick={() => handleDelete(banner._id)} variant="destructive"><Trash2Icon /></Button>
+                                    <Button size="icon" onClick={() => { setShowDeleteModal(true); setBannerToDelete(banner._id); }} variant="destructive"><Trash2Icon /></Button>
                                 </TableCell>
                             </TableRow>
                         ))
@@ -367,8 +298,21 @@ const ChangeBannerImage = () => {
                     )}
                 </TableBody>
             </Table>
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Delete Banner</DialogTitle>
+                    </DialogHeader>
+                    <p>Are you sure you want to delete this banner?</p>
+                    <DialogFooter>
+                        <Button variant="secondary" onClick={cancelDelete}>Cancel</Button>
+                        <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };
 
-export default ChangeBannerImage;
+export default BannerSection2nd

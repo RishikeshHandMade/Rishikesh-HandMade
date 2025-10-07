@@ -266,7 +266,7 @@ const InstaBlog = () => {
     return (
         <div className='bg-[#fcf7f1] w-full overflow-hidden max-w-screen overflow-x-hidden'>
             {/*Blogs /  News & Announcement Section */}
-            {blogs.length > 0|| news.length > 0 && (
+            {blogs.length > 0 || news.length > 0 && (
 
 
                 <div className="w-full flex flex-col items-center md:py-20 py-10 bg-[#ededed]">

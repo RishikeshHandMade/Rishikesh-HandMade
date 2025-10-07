@@ -85,11 +85,11 @@ const CategoryPage = async ({ params }) => {
   return (
     <SidebarInset>
       <div className="min-h-screen bg-white">
-      <div className="w-full bg-black text-white h-[100px] md:h-[200px] flex justify-center items-center">
+      <div className="w-full bg-[url('/categoryBack.jpg')] bg-no-repeat bg-contain bg-center text-white h-[200px] md:h-[300px] flex justify-center items-center">
         <h1 className="text-xl md:text-5xl font-extrabold drop-shadow">{categoryData.title}</h1>
       </div>
       
-        <div className="flex flex-col md:flex-row md:gap-6 w-full md:mt-4 md:px-2">
+        <div className="flex flex-col md:flex-row md:gap-6 w-full md:mt-2 md:px-2">
           {/* Left Image Section */}
           <div className="hidden md:flex flex-col w-72 max-w-xs flex-shrink-0 justify-start items-center">
             {/* Category Advertisement Banner */}

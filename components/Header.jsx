@@ -1,6 +1,7 @@
 "use client"
 import { usePathname } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import TopAdvertisementMarquee from "./TopAdvertisementMarquee";
 import { ChevronDown, LogOutIcon, Mail, Phone, Truck, User2Icon } from "lucide-react"
 import Link from "next/link"
 import MenuBar from "./MenuBar"
@@ -18,8 +19,8 @@ import * as NavigationMenu from "@radix-ui/react-navigation-menu";
 import { motion, AnimatePresence } from "framer-motion";
 import clsx from "clsx";
 const Header = () => {
-  const authDropdownRef = React.useRef(null);
-  const profileMenuRef = React.useRef(null);
+  const authDropdownRef = useRef(null);
+  const profileMenuRef = useRef(null);
   const pathName = usePathname();
   const [isMounted, setIsMounted] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -104,9 +105,7 @@ const Header = () => {
           : "block"
           } bg-[#fcf7f1] text-black border-b font-barlow tracking-wider w-full`}
       >
-        <div className="hidden md:block bg-orange-500 py-1">
-          <p className="text-md w-[90%] mx-auto">Crafted by Hand, Cherished by Heart</p>
-        </div>
+        <TopAdvertisementMarquee />
         <div className="md:flex hidden items-center justify-between gap-8 border-b py-1 border-gray-400 md:px-8 ">
           <div className="flex flex-row justify-between w-full items-center px-8">
             {/* Logo on the left */}

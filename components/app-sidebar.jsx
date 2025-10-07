@@ -92,6 +92,11 @@ const data = {
     },
     { divider: true },
     {
+      name: "Top Advertisment Banner",
+      url: "/admin/top_advertisment_banner",
+      icon: Image
+    },
+    {
       name: "Promotional Banner",
       url: "/admin/promotional_banner",
       icon: Image
@@ -114,6 +119,21 @@ const data = {
     {
       name:"Consultancy Banner",
       url:"/admin/consultancy_banner",
+      icon:Image
+    },
+    {
+      name:"Banner Section 1st",
+      url:"/admin/banner_section_1st",
+      icon:Image
+    },
+    {
+      name:"Banner Section 2nd",
+      url:"/admin/banner_section_2nd",
+      icon:Image
+    },
+    {
+      name:"Banner Section 3rd",
+      url:"/admin/banner_section_3rd",
       icon:Image
     },
 

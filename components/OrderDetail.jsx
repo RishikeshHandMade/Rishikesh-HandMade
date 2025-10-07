@@ -310,16 +310,14 @@ const OrderDetail = ({ order, onBack }) => {
                     <h3 className="font-semibold text-lg">{product.name}</h3>
                     <p className="text-gray-700"><span className="font-medium">Price :</span> ₹{product.price}</p>
                     <p className="text-gray-700"><span className="font-medium">Size :</span> {product.size || "N/A"}</p>
-                    <p className="text-gray-700 flex items-center gap-2"> Color :
-                      <p className="text-gray-700 flex items-center gap-2">
-                        Color :
-                        <span
-                          className="inline-block w-6 h-6 border-2 border-black rounded-full"
-                          style={{ backgroundColor: product.color || '#ccc' }}
-                          title={product.color || 'N/A'}
-                        ></span>
-                      </p>
-                    </p>
+                    <div className="text-gray-700 flex items-center gap-2">
+                      <span className="font-medium">Color :</span>
+                      <span
+                        className="inline-block w-6 h-6 border-2 border-black rounded-full"
+                        style={{ backgroundColor: product.color || '#ccc' }}
+                        title={product.color || 'N/A'}
+                      ></span>
+                    </div>
                     <p className="text-gray-700"> Quantity :<span className="font-medium"> {product.qty}</span></p>
                   </div>
                 </div>
@@ -333,9 +331,6 @@ const OrderDetail = ({ order, onBack }) => {
                         }`}>{orderData.status}</span></p>
                       {orderData.transactionId && (
                         <p className="truncate"><span className="text-gray-600">Transaction ID:</span> {orderData.transactionId}</p>
-                      )}
-                      {orderData.razorpayOrderId && (
-                        <p className="truncate"><span className="text-gray-600">Razorpay Order ID:</span> {orderData.razorpayOrderId}</p>
                       )}
                     </div>
                   </div>
