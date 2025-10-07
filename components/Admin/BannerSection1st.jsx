@@ -23,6 +23,7 @@ const BannerSection1st = () => {
     const [formData, setFormData] = useState({
         buttonLink: "",
         image: { url: "", key: "" },
+        mobileImage: { url: "", key: "" },
         order: 1,
     });
 
@@ -76,12 +77,36 @@ const BannerSection1st = () => {
         setUploading(false);
     };
 
+    const handleMobileImageChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        setUploading(true);
+        const formDataUpload = new FormData();
+        formDataUpload.append('file', file);
+        try {
+            const res = await fetch('/api/cloudinary', {
+                method: 'POST',
+                body: formDataUpload
+            });
+            const data = await res.json();
+            if (res.ok && data.url) {
+                setFormData(prev => ({ ...prev, mobileImage: { url: data.url, key: data.key || '' } }));
+                toast.success('Image uploaded!');
+            } else {
+                toast.error('Cloudinary upload failed: ' + (data.error || 'Unknown error'));
+            }
+        } catch (err) {
+            toast.error('Cloudinary upload error: ' + err.message);
+        }
+        setUploading(false);
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!formData.image.url || !formData.image.key) return toast.error("Please upload an image");
+        if (!formData.mobileImage.url || !formData.mobileImage.key) return toast.error("Please upload a mobile image");
         try {
-            const method = editBanner ? "PATCH" : "POST";          
+            const method = editBanner ? "PATCH" : "POST";
             // Compose payload with coupon details
             const payload = {
                 ...formData,
@@ -108,6 +133,7 @@ const BannerSection1st = () => {
                     buttonLink: "",
                     order: updatedBanners.length + 1,
                     image: { url: "", key: "" },
+                    mobileImage: { url: "", key: "" },
                 });
 
             } else {
@@ -125,6 +151,7 @@ const BannerSection1st = () => {
             buttonLink: banner.buttonLink,
             order: banner.order,
             image: banner.image,
+            mobileImage: banner.mobileImage,
         });
     };
 
@@ -172,9 +199,14 @@ const BannerSection1st = () => {
         setFormData(prev => ({ ...prev, image: { url: '', key: '' } }));
     };
 
+    const handleDeleteMobileImage = () => {
+        setFormData(prev => ({ ...prev, mobileImage: { url: '', key: '' } }));
+    };
+
 
     // Ref for file input
     const fileInputRef = useRef(null);
+    const mobileFileInputRef = useRef(null);
 
     return (
         <div className="max-w-5xl mx-auto py-10 w-full">
@@ -182,7 +214,7 @@ const BannerSection1st = () => {
             <form onSubmit={handleSubmit} className="bg-white shadow-lg rounded-lg p-6 space-y-4">
                 {/* Banner Image Upload */}
                 <div className="mb-4">
-                    <Label className="block mb-2 font-bold">Upload Image</Label>
+                    <Label className="block mb-2 font-bold">Upload Laptop Image</Label>
                     <input
                         type="file"
                         accept="image/*"
@@ -201,10 +233,10 @@ const BannerSection1st = () => {
                         <UploadIcon className="w-4 h-4" />
                     </Button>
                     {uploading && <div className="text-blue-600 font-semibold">Uploading...</div>}
-                    {formData.image.url && (
+                    {formData.image?.url && (
                         <div className="relative w-48 h-28 border rounded overflow-hidden mb-2">
                             <Image
-                                src={formData.image.url}
+                                src={formData.image?.url}
                                 alt="Promotinal Image Preview"
                                 fill
                                 className="object-cover"
@@ -212,6 +244,45 @@ const BannerSection1st = () => {
                             <button
                                 type="button"
                                 onClick={handleDeleteImage}
+                                className="absolute top-1 right-1 bg-white bg-opacity-80 rounded-full p-1 hover:bg-red-200"
+                                title="Remove image"
+                            >
+                                <Trash2Icon className="w-5 h-5 text-red-600" />
+                            </button>
+                        </div>
+                    )}
+                </div>
+                <div className="mb-4">
+                    <Label className="block mb-2 font-bold">Upload Mobile Image</Label>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleMobileImageChange}
+                        ref={mobileFileInputRef}
+                        className="hidden"
+                        id="banner-image-input"
+                    />
+                    <Button
+                        type="button"
+                        variant="outline"
+                        className="mb-2 flex items-center gap-2 bg-blue-500 text-white"
+                        onClick={() => mobileFileInputRef.current && mobileFileInputRef.current.click()}
+                    >
+                        <span>Select Mobile Image</span>
+                        <UploadIcon className="w-4 h-4" />
+                    </Button>
+                    {uploading && <div className="text-blue-600 font-semibold">Uploading...</div>}
+                    {formData.mobileImage?.url && (
+                        <div className="relative w-48 h-28 border rounded overflow-hidden mb-2">
+                            <Image
+                                src={formData.mobileImage?.url || ""}
+                                alt="Promotinal Image Preview"
+                                fill
+                                className="object-cover"
+                            />
+                            <button
+                                type="button"
+                                onClick={handleDeleteMobileImage}
                                 className="absolute top-1 right-1 bg-white bg-opacity-80 rounded-full p-1 hover:bg-red-200"
                                 title="Remove image"
                             >
@@ -246,6 +317,7 @@ const BannerSection1st = () => {
                                     buttonLink: "",
                                     order: banners.length > 0 ? Math.max(...banners.map(b => b.order)) + 1 : 1,
                                     image: { url: "", key: "" },
+                                    mobileImage: { url: "", key: "" },
                                 });
                             }}
                         >
@@ -262,6 +334,7 @@ const BannerSection1st = () => {
                         <TableHead>Order</TableHead>
                         <TableHead>Button Link</TableHead>
                         <TableHead>Image</TableHead>
+                        <TableHead>Mobile Image</TableHead>
                         <TableHead>Actions</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -283,7 +356,10 @@ const BannerSection1st = () => {
                                     </TooltipProvider>
                                 </TableCell>
                                 <TableCell>
-                                    <Image src={banner.image.url} alt="Banner Image" width={100} height={50} className="rounded-xl" />
+                                    <Image src={banner.image.url} alt="Banner Image" width={100} height={50} className="rounded-xl h-24 w-52 object-cover" />
+                                </TableCell>
+                                <TableCell>
+                                    <Image src={banner.mobileImage?.url||""} alt="Mobile Image" width={100} height={50} className="rounded-xl h-24 w-52 object-contain" />
                                 </TableCell>
                                 <TableCell>
                                     <Button variant="outline" size="icon" onClick={() => handleEdit(banner)} className="mr-2 "><PencilIcon /></Button>

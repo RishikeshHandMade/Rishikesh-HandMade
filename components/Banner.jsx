@@ -133,7 +133,7 @@ const Banner = () => {
                     </Carousel>
                 </div>
             )}
-            <section className="relative w-full md:px-2 overflow-hidden max-w-screen overflow-x-hidden">
+            <section className="relative w-full overflow-hidden max-w-screen overflow-x-hidden">
                 {loading1 ? (
                     // Skeleton loader
                     <div className="w-full">
@@ -151,7 +151,7 @@ const Banner = () => {
                     bannerSection2nd.map((item, idx) => (
                         <div className="w-full" key={item._id}>
                             <div className="grid grid-cols-1 gap-5 md:gap-4">
-                                <div className="flex flex-col h-[150px] md:h-[450px] overflow-hidden relative group">
+                                <div className="hidden md:flex flex-col md:h-[450px] overflow-hidden relative group">
                                     <Link
                                         href={item.buttonLink}
                                         target="_blank"
@@ -160,6 +160,20 @@ const Banner = () => {
                                     >
                                     <img
                                         src={item.image?.url}
+                                        alt={item.title}
+                                        className="absolute inset-0 w-full h-full object-contain object-center transition-transform duration-300 group-hover:scale-105"
+                                    />
+                                    </Link>
+                                </div>
+                                <div className="md:hidden flex flex-col h-[450px] overflow-hidden relative group">
+                                    <Link
+                                        href={item.buttonLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="absolute inset-0 flex items-center justify-center group-hover:opacity-100 transition-opacity duration-300"
+                                    >
+                                    <img
+                                        src={item.mobileImage?.url}
                                         alt={item.title}
                                         className="absolute inset-0 w-full h-full object-contain object-center transition-transform duration-300 group-hover:scale-105"
                                     />

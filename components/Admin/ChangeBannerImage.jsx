@@ -333,7 +333,7 @@ const ChangeBannerImage = () => {
                                         <span className="text-gray-400">No image</span>
                                     )}
                                 </TableCell>
-                                <TableCell className="">
+                                <TableCell className="h-24 w-24">
                                     {banner.mobileImg?.url ? (
                                         <Image src={banner.mobileImg.url} alt="Front" width={100} height={100} className="rounded-lg mb-1 w-60 object-contain" />
                                     ) : null}

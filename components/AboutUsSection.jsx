@@ -131,18 +131,32 @@ const AboutUsSection = () => {
                     bannerSection1st.map((item, idx) => (
                         <div className="w-full" key={item._id}>
                             <div className="grid grid-cols-1 gap-4 md:gap-5">
-                                <div className="flex flex-col h-[150px] md:h-[450px] overflow-hidden relative group">
+                                <div className="hidden md:flex flex-col h-[450px] overflow-hidden relative group">
                                     <Link
                                         href={item.buttonLink}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="absolute inset-0 flex items-center justify-center group-hover:opacity-100 transition-opacity duration-300"
                                     >
-                                    <img
-                                        src={item.image?.url}
-                                        alt={item.title}
-                                        className="absolute inset-0 w-full h-full md:object-contain object-contain object-center transition-transform duration-300 group-hover:scale-105"
-                                    />
+                                        <img
+                                            src={item.image?.url}
+                                            alt={item.title}
+                                            className="absolute inset-0 w-full h-full md:object-contain object-contain object-center transition-transform duration-300 group-hover:scale-105"
+                                        />
+                                    </Link>
+                                </div>
+                                <div className="md:hidden flex flex-col h-[450px] overflow-hidden relative group">
+                                    <Link
+                                        href={item.buttonLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="absolute inset-0 flex items-center justify-center group-hover:opacity-100 transition-opacity duration-300"
+                                    >
+                                        <img
+                                            src={item.mobileImage?.url}
+                                            alt={item.title}
+                                            className="absolute inset-0 w-full h-full md:object-contain object-contain object-center transition-transform duration-300 group-hover:scale-105"
+                                        />
                                     </Link>
                                 </div>
                             </div>

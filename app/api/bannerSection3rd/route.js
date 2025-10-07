@@ -17,13 +17,13 @@ export async function GET() {
 export async function POST(req) {
     await connectDB();
     try {
-        const { buttonLink, image, order } = await req.json();
+        const { buttonLink, image, mobileImage, order } = await req.json();
 
         // Find the highest order number
         const lastBanner = await BannerSection3rd.findOne().sort({ order: -1 });
         const nextOrder = lastBanner ? lastBanner.order + 1 : 1; // Auto-increment order
 
-        const newBanner = new BannerSection3rd({ buttonLink, order: nextOrder, image });
+        const newBanner = new BannerSection3rd({ buttonLink, order: nextOrder, image, mobileImage });
         await newBanner.save();
         return NextResponse.json(newBanner, { status: 201 });
     } catch (error) {
@@ -34,8 +34,8 @@ export async function POST(req) {
 export async function PATCH(req) {
     await connectDB();
     try {
-        const { id,buttonLink, image, order } = await req.json();
-        const updatedBanner = await BannerSection3rd.findByIdAndUpdate(id, { buttonLink, order, image }, { new: true });
+        const { id,buttonLink, image, mobileImage, order } = await req.json();
+        const updatedBanner = await BannerSection3rd.findByIdAndUpdate(id, { buttonLink, order, image, mobileImage }, { new: true });
         return NextResponse.json(updatedBanner, { status: 200 });
     } catch (error) {
         return NextResponse.json({ error: "Failed to update banner" }, { status: 500 });
@@ -57,7 +57,9 @@ export async function DELETE(req) {
         if (banner.image?.key) {
             await deleteFileFromCloudinary(banner.image.key);
         }
-
+        if (banner.mobileImage?.key) {
+            await deleteFileFromCloudinary(banner.mobileImage.key);
+        }
         // Delete banner from database
         await BannerSection3rd.findByIdAndDelete(id);
 

@@ -99,7 +99,7 @@ const RandomTourPackageSection = () => {
       }
     } catch (error) {
       setArtisan([]);
-    } 
+    }
   };
   // Fetch Prouducts
   const fetchProducts = async () => {
@@ -116,7 +116,7 @@ const RandomTourPackageSection = () => {
     } catch (error) {
       // console.error("Error fetching products:", error);
       setProducts([]);
-    } 
+    }
   };
   const [consultancyBanner, setConsultancyBanner] = useState([])
   // console.log(promotinalBanner)
@@ -133,7 +133,7 @@ const RandomTourPackageSection = () => {
     } catch (error) {
       // console.error("Error fetching products:", error);
       setConsultancyBanner([]);
-    } 
+    }
   };
   const fetchBannerSection3rd = async () => {
     try {
@@ -355,7 +355,57 @@ const RandomTourPackageSection = () => {
             </Carousel>
           </div>
 
-
+          <section className="relative w-full overflow-hidden max-w-screen overflow-x-hidden">
+            {loading1 ? (
+              // Skeleton loader
+              <div className="w-full">
+                <div className="grid grid-cols-1 gap-5 md:gap-4">
+                  {[...Array(2)].map((_, idx) => (
+                    <div
+                      key={idx}
+                      className="h-[220px] md:h-[400px] rounded-2xl overflow-hidden bg-gray-200 animate-pulse"
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              // Actual content
+              bannerSection3rd.map((item, idx) => (
+                <div className="w-full" key={item._id}>
+                    <div className="grid grid-cols-1 gap-5 md:gap-4">
+                        <div className="hidden md:flex flex-col md:h-[450px] overflow-hidden relative group">
+                            <Link
+                                href={item.buttonLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="absolute inset-0 flex items-center justify-center group-hover:opacity-100 transition-opacity duration-300"
+                            >
+                            <img
+                                src={item.image?.url}
+                                alt={item.title}
+                                className="absolute inset-0 w-full h-full object-contain object-center transition-transform duration-300 group-hover:scale-105"
+                            />
+                            </Link>
+                        </div>
+                        <div className="md:hidden flex flex-col h-[450px] overflow-hidden relative group">
+                            <Link
+                                href={item.buttonLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="absolute inset-0 flex items-center justify-center group-hover:opacity-100 transition-opacity duration-300"
+                            >
+                            <img
+                                src={item.mobileImage?.url}
+                                alt={item.title}
+                                className="absolute inset-0 w-full h-full object-contain object-center transition-transform duration-300 group-hover:scale-105"
+                            />
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            ))
+            )}
+          </section>
           {/* Artisan Carousel Section */}
           <div className="w-full py-10 md:py-20">
             {/* Desktop: Grid/List */}
@@ -805,43 +855,7 @@ const RandomTourPackageSection = () => {
 
         </div>
       </section>
-      <section className="relative w-full overflow-hidden max-w-screen overflow-x-hidden">
-        {loading1 ? (
-          // Skeleton loader
-          <div className="w-full">
-            <div className="grid grid-cols-1 gap-5 md:gap-4">
-              {[...Array(2)].map((_, idx) => (
-                <div
-                  key={idx}
-                  className="h-[220px] md:h-[400px] rounded-2xl overflow-hidden bg-gray-200 animate-pulse"
-                />
-              ))}
-            </div>
-          </div>
-        ) : (
-          // Actual content
-          bannerSection3rd.map((item, idx) => (
-            <div className="w-full" key={item._id}>
-              <div className="grid grid-cols-1 gap-5 md:gap-4">
-                <div className="flex flex-col h-[150px] md:h-[450px] overflow-hidden relative group">
-                  <Link
-                    href={item.buttonLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="absolute inset-0 flex items-center justify-center group-hover:opacity-100 transition-opacity duration-300"
-                  >
-                  <img
-                    src={item.image?.url}
-                    alt={item.title}
-                    className="absolute inset-0 w-full h-full object-contain object-center transition-transform duration-300 group-hover:scale-105"
-                  />
-                  </Link>
-                </div>
-              </div>
-            </div>
-          ))
-        )}
-      </section>
+
     </>
   );
 }
