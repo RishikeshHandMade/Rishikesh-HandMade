@@ -4,21 +4,30 @@ import React, { useEffect, useState } from 'react';
 
 const PopUpBanner = () => {
   const [banner, setBanner] = useState(null);
-  const [open, setOpen] = useState(false); // Initially closed
+  const [open, setOpen] = useState(false);
   const [showAnim, setShowAnim] = useState(false);
+  const [bannerClosed, setBannerClosed] = useState(true); // Start as true to prevent flash of content
 
   useEffect(() => {
-    fetch('/api/popupBanner')
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          setBanner(data[0]);
-        }
-      });
+    // Check if this is a fresh page load (not a back/forward navigation)
+    const navigationEntries = performance.getEntriesByType('navigation');
+    const isPageLoad = navigationEntries.length > 0 && navigationEntries[0].type === 'reload';
+    
+    // Only show on fresh page load or first visit
+    if (isPageLoad || performance.navigation.type === 0) {
+      fetch('/api/popupBanner')
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data) && data.length > 0) {
+            setBanner(data[0]);
+            setBannerClosed(false);
+          }
+        });
+    }
   }, []);
 
   useEffect(() => {
-    if (banner) {
+    if (banner && !bannerClosed) {
       // Delay popup open by 2 seconds
       const timer = setTimeout(() => {
         setOpen(true);
@@ -27,14 +36,15 @@ const PopUpBanner = () => {
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [banner]);
+  }, [banner, bannerClosed]);
 
   const handleClose = () => {
     setShowAnim(false);
+    setBannerClosed(true);
     setTimeout(() => setOpen(false), 200); // Wait for animation out
   };
 
-  if (!banner || !open) return null;
+  if (!banner || !open || bannerClosed) return null;
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 transition-opacity duration-300">

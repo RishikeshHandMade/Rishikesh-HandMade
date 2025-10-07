@@ -1191,7 +1191,7 @@ export default function ProductDetailView({ product }) {
           </div>
         </div>
       </div >
-      <div className="w-full p-2 md:px-10 border-2 border-black">
+      <div className="w-full p-2 md:px-10 border">
         {highlights.length > 0 && (
           <div className="mt-4 w-full p-4 rounded-lg">
             <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
@@ -1204,7 +1204,7 @@ export default function ProductDetailView({ product }) {
                   <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                   <span className="text-md text-gray-700 text-wrap">{highlight}</span>
                   </div>
-                  <hr className="bg-gray-300 h-[2px] w-full"/>
+                  <hr className="bg-gray-300 h-[px] w-full"/>
                 </li>
               ))}
               {highlights.length > 3 && (

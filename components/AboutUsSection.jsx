@@ -113,7 +113,7 @@ const AboutUsSection = () => {
                     </div>
                 </div>
             </section>
-            <section className="relative w-full overflow-hidden max-w-screen overflow-x-hidden md:py-5 py-5">
+            <section className="bg-[#ededed] relative w-full overflow-hidden max-w-screen overflow-x-hidden">
                 {loading1 ? (
                     // Skeleton loader
                     <div className="w-full">
@@ -131,7 +131,7 @@ const AboutUsSection = () => {
                     bannerSection1st.map((item, idx) => (
                         <div className="w-full" key={item._id}>
                             <div className="grid grid-cols-1 gap-4 md:gap-5">
-                                <div className="flex flex-col h-[150px] md:h-[500px] overflow-hidden relative group">
+                                <div className="flex flex-col h-[150px] md:h-[450px] overflow-hidden relative group">
                                     <Link
                                         href={item.buttonLink}
                                         target="_blank"
