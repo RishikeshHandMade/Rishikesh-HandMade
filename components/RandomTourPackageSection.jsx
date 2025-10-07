@@ -805,7 +805,7 @@ const RandomTourPackageSection = () => {
 
         </div>
       </section>
-      <section className="relative w-full md:px-2 overflow-hidden max-w-screen overflow-x-hidden md:py-10 py-5">
+      <section className="relative w-full md:px-2 px-2 overflow-hidden max-w-screen overflow-x-hidden md:py-10 py-5">
         {loading1 ? (
           // Skeleton loader
           <div className="w-full">
@@ -823,7 +823,7 @@ const RandomTourPackageSection = () => {
           bannerSection3rd.map((item, idx) => (
             <div className="w-full" key={item._id}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-4">
-                <div className="flex flex-col h-[220px] md:h-[400px] overflow-hidden relative group">
+                <div className="flex flex-col h-[250px] md:h-[400px] overflow-hidden relative group">
                   <img
                     src={item.image?.url}
                     alt={item.title}

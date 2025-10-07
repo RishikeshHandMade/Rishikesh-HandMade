@@ -113,7 +113,7 @@ const AboutUsSection = () => {
                     </div>
                 </div>
             </section>
-            <section className="relative w-full md:px-2 overflow-hidden max-w-screen overflow-x-hidden md:py-10 py-5">
+            <section className="relative w-full overflow-hidden max-w-screen overflow-x-hidden md:py-5 py-5">
                 {loading1 ? (
                     // Skeleton loader
                     <div className="w-full">
@@ -130,22 +130,19 @@ const AboutUsSection = () => {
                     // Actual content
                     bannerSection1st.map((item, idx) => (
                         <div className="w-full" key={item._id}>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-4">
-                                <div className="flex flex-col h-[220px] md:h-[400px] overflow-hidden relative group">
+                            <div className="grid grid-cols-1 gap-4 md:gap-5">
+                                <div className="flex flex-col h-[150px] md:h-[500px] overflow-hidden relative group">
+                                    <Link
+                                        href={item.buttonLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="absolute inset-0 flex items-center justify-center group-hover:opacity-100 transition-opacity duration-300"
+                                    >
                                     <img
                                         src={item.image?.url}
                                         alt={item.title}
                                         className="absolute inset-0 w-full h-full md:object-contain object-contain object-center transition-transform duration-300 group-hover:scale-105"
                                     />
-                                    <Link
-                                        href={item.buttonLink}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                    >
-                                        <span className="bg-white text-black font-medium px-4 py-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                                            View Product
-                                        </span>
                                     </Link>
                                 </div>
                             </div>

@@ -76,7 +76,6 @@ const InstaBlog = () => {
         if (a.date && b.date) return new Date(b.date) - new Date(a.date);
         return (b._id || '').localeCompare(a._id || '');
     });
-
     const fetchBlogs = async () => {
         try {
             const res = await fetch("/api/blogs");
@@ -553,8 +552,7 @@ const InstaBlog = () => {
                                             <div className="text-md md:text-2xl text-gray-800 font-bold leading-relaxed text-left mb-2">
                                                 {review?.title || 'No review text.'}
                                             </div>
-                                            <div className="text-sm md:text-md text-gray-800 font-medium leading-relaxed text-left">
-                                                {review?.shortDescription || 'No review text.'}
+                                            <div dangerouslySetInnerHTML={{__html:review?.shortDescription}} className="ProseMirror1 text-sm md:text-md text-gray-800 font-medium leading-relaxed text-left">
                                             </div>
                                         </div>
                                         {/* Bottom row: avatar, name, subtitle, nav buttons */}
@@ -630,8 +628,7 @@ const InstaBlog = () => {
                                         <div className="text-md text-gray-800 font-bold leading-relaxed mt-4 text-left">
                                             {review?.title || 'No review text.'}
                                         </div>
-                                        <div className="text-sm text-gray-800 font-medium leading-relaxed my-2 text-left">
-                                            {review?.shortDescription || 'No review text.'}
+                                        <div dangerouslySetInnerHTML={{__html:review?.shortDescription}} className="ProseMirror1 text-sm text-gray-800 font-medium leading-relaxed my-2 text-left">
                                         </div>
                                         {/* Bottom row: avatar, name, subtitle, nav buttons */}
                                         <div className="flex items-center justify-between w-full mt-auto">
@@ -641,7 +638,7 @@ const InstaBlog = () => {
                                                     <img
                                                         src={review?.image || "/placeholder.jpeg"}
                                                         alt={review?.createdBy || 'Anonymous'}
-                                                        className="w-14 h-14 rounded-full object-top border-4 border-white shadow object-cover"
+                                                        className="w-14 h-14 rounded-full border-4 border-white shadow object-cover"
                                                         onError={(e) => {
                                                             // console.log('Image failed to load:', e.target.src);
                                                             e.target.src = '/placeholder.jpeg';

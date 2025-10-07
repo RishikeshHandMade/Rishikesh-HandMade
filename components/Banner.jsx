@@ -91,15 +91,15 @@ const Banner = () => {
                             <div key={idx} className="flex flex-col h-[220px] md:h-[400px] overflow-hidden relative group">
                                 <img src={item.image?.url} alt={item.title} className="absolute inset-0 w-full h-full md:object-contain object-contain objec         t-center transition-transform duration-300 group-hover:scale-105" />
                                 <Link
-                                        href={item.buttonLink}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                    >
-                                        <span className="bg-white text-black font-medium px-4 py-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                                            View More
-                                        </span>
-                                    </Link>
+                                    href={item.buttonLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                >
+                                    <span className="bg-white text-black font-medium px-4 py-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                                        View More
+                                    </span>
+                                </Link>
                             </div>
                         ))}
                     </div>
@@ -114,7 +114,7 @@ const Banner = () => {
                         <CarouselContent>
                             {featuredOffer.map((item, idx) => (
                                 <CarouselItem key={idx} className="md:basis-1/3 lg:basis-1/4">
-                                    <div className="flex flex-col h-[350px] p-0 overflow-hidden relative group">
+                                    <div className="flex flex-col h-[400px] md:h-[350px] p-0 overflow-hidden relative group">
                                         <img src={item.image?.url} alt={item.title} className="absolute inset-0 w-full h-full object-contain object-center transition-transform duration-300 group-hover:scale-105" />
                                         <Link
                                             href={item.buttonLink}
@@ -136,7 +136,7 @@ const Banner = () => {
                     </Carousel>
                 </div>
             )}
-            <section className="relative w-full md:px-2 overflow-hidden max-w-screen overflow-x-hidden md:py-10 py-5">
+            <section className="relative w-full md:px-2 overflow-hidden max-w-screen overflow-x-hidden md:py-5 py-5">
                 {loading1 ? (
                     // Skeleton loader
                     <div className="w-full">
@@ -149,26 +149,23 @@ const Banner = () => {
                             ))}
                         </div>
                     </div>
-                ) : (
+                ) : ( 
                     // Actual content
                     bannerSection2nd.map((item, idx) => (
                         <div className="w-full" key={item._id}>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-4">
-                                <div className="flex flex-col h-[220px] md:h-[400px] overflow-hidden relative group">
+                            <div className="grid grid-cols-1 gap-5 md:gap-4">
+                                <div className="flex flex-col h-[150px] md:h-[500px] overflow-hidden relative group">
+                                    <Link
+                                        href={item.buttonLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="absolute inset-0 flex items-center justify-center group-hover:opacity-100 transition-opacity duration-300"
+                                    >
                                     <img
                                         src={item.image?.url}
                                         alt={item.title}
                                         className="absolute inset-0 w-full h-full object-contain object-center transition-transform duration-300 group-hover:scale-105"
                                     />
-                                    <Link
-                                        href={item.buttonLink}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                    >
-                                        <span className="bg-white text-black font-medium px-4 py-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                                            View Product
-                                        </span>
                                     </Link>
                                 </div>
                             </div>

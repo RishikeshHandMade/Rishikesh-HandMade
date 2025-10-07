@@ -199,7 +199,7 @@ const SizeManagement = ({ productData, productId }) => {
         res = await fetch('/api/productSize', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...sizeData, _id: editId }),
+          body: JSON.stringify({ ...sizeData, id: editId }),
         });
       } else {
         // POST new
