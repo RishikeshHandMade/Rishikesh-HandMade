@@ -48,7 +48,7 @@ const StockManagementPage = () => {
       const data = await response.json();
       if (response.ok) {
         setProducts(data.products || data); // Handle both paginated and non-paginated responses
-        
+
         // If the response includes pagination data
         if (data.pagination) {
           setPagination({
@@ -141,7 +141,7 @@ const StockManagementPage = () => {
     try {
       setSaving(true);
       const updates = [];
-      
+
       // Prepare all updates
       for (const [productId, variants] of Object.entries(pendingChanges)) {
         for (const [index, qty] of Object.entries(variants)) {
@@ -167,10 +167,10 @@ const StockManagementPage = () => {
 
       // Clear pending changes
       setPendingChanges({});
-      
+
       // Refresh the product list
       await fetchProducts();
-      
+
       toast.success('All changes saved successfully');
     } catch (error) {
       // console.error('Error saving changes:', error);
@@ -182,7 +182,7 @@ const StockManagementPage = () => {
   // Add this function inside your StockManagement component, after the state declarations
   const updateVariantQty = async (productId, variantIndex, newQty) => {
     // console.log('Updating variant quantity:', { productId, variantIndex, newQty });
-    
+
     if (newQty < 0) {
       throw new Error('Quantity cannot be negative');
     }
@@ -199,7 +199,7 @@ const StockManagementPage = () => {
       });
 
       const data = await response.json();
-      
+
       if (!response.ok) {
         // console.error('API Error:', data);
         throw new Error(data.error || 'Failed to update quantity');
@@ -224,7 +224,7 @@ const StockManagementPage = () => {
   // In your table, add a save button in the header:
   const renderTableHeader = () => {
     const hasChanges = Object.keys(pendingChanges).length > 0;
-    
+
     return (
       <div className="flex justify-end items-center m-2">
         <button
@@ -244,7 +244,7 @@ const StockManagementPage = () => {
     // Get the pending quantity if it exists, otherwise use the variant's quantity
     const pendingQty = pendingChanges[product._id]?.[0];
     const displayQty = pendingQty !== undefined ? pendingQty : (variant.qty || 0);
-    
+
     const [localQty, setLocalQty] = useState(displayQty);
 
     // Update local quantity when product prop changes or pending changes update
@@ -300,7 +300,7 @@ const StockManagementPage = () => {
       // Get the pending quantity if it exists, otherwise use the variant's quantity
       const pendingQty = pendingChanges[product._id]?.[variantIndex];
       const displayQty = pendingQty !== undefined ? pendingQty : (variant?.qty || 0);
-      
+
       const [localQty, setLocalQty] = useState(displayQty);
 
       // Update localQty when the display quantity changes
@@ -417,9 +417,9 @@ const StockManagementPage = () => {
                           {variant.price?.toLocaleString('en-IN') || '0'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <VariantQuantityControl 
-                            variant={variant} 
-                            variantIndex={index} 
+                          <VariantQuantityControl
+                            variant={variant}
+                            variantIndex={index}
                             pendingChanges={pendingChanges}
                             saving={saving}
                           />
@@ -537,7 +537,7 @@ const StockManagementPage = () => {
                         {product.code}
                       </td>
                       <td className="px-8 py-4 whitespace-nowrap text-sm text-gray-500">
-                      ₹{product.quantity?.variants?.[0].price || 0}
+                        ₹{product.quantity?.variants?.[0].price || 0}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
                         <div className="flex items-center">
@@ -547,12 +547,12 @@ const StockManagementPage = () => {
                           )}
                         </div>
                       </td>
-                      <td className="p-3 text-center">{
-                        product.artisan?.name ||
-                        ((product.artisan?.title) + (product.artisan?.firstName || "") + (product.artisan?.lastName ? " " + product.artisan.lastName : "")) ||
-                        product.artisan?.name ||
-                        '-'
-                      }</td>
+                      <td className="p-3 text-center">
+                        {product.artisan
+                          ? `${product.artisan.title || ''} ${product.artisan.firstName || ''} ${product.artisan.lastName || ''}`.trim()
+                          : 'N/A'
+                        }
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center space-x-2">
                           <Button

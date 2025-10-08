@@ -154,10 +154,10 @@ const CheckOut = () => {
   const [confirmedPaymentMethod, setConfirmedPaymentMethod] = useState(null);
   // Load cart data from localStorage and handle authentication state
   const [shipping, setShipping] = useState('free');
-  const isBuyNow = typeof window !== "undefined" && 
+  const isBuyNow = typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get('mode') === 'buy-now';
   const sendOrderConfirmationEmail = async (orderData, products, paymentMethod) => {
- 
+
     try {
       const {
         firstName = '',
@@ -451,7 +451,7 @@ const CheckOut = () => {
         name: "Rishikesh Handmade",
         description: "Order Payment",
         order_id: razorpayOrderId,
-        handler: createPaymentHandler(cart, checkoutData, formFields, user, orderId, setError, setShowConfirmationModal, setOrderId, routerInstance, formFields, customerData,isBuyNow), // Pass customer data for email
+        handler: createPaymentHandler(cart, checkoutData, formFields, user, orderId, setError, setShowConfirmationModal, setOrderId, routerInstance, formFields, customerData, isBuyNow), // Pass customer data for email
         prefill: {
           name: customerData.name,
           email: customerData.email,
@@ -507,6 +507,21 @@ const CheckOut = () => {
 
         if (verificationData.success) {
           toast.success('Order placed successfully! Invoice sent to your email.');
+          if (buyNowMode) {
+            localStorage.removeItem('buyNowProduct');
+          }
+          else {
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem("cart");
+              localStorage.removeItem("checkoutCart");
+              localStorage.removeItem("checkoutData");
+              Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('cart_')) {
+                  localStorage.removeItem(key);
+                }
+              });
+            }
+          }
         } else {
           throw new Error(verificationData.error || 'Payment verification failed');
         }
@@ -543,8 +558,8 @@ const CheckOut = () => {
             cartTotal: checkoutData?.cartTotal || 0,
 
           },
-          (isBuyNow && checkoutData?.cart) 
-          ? checkoutData.cart.map(item => ({
+          (isBuyNow && checkoutData?.cart)
+            ? checkoutData.cart.map(item => ({
               ...item,
               image: typeof item.image === 'string' ? item.image : item.image?.url || '',
               name: item.name || 'Product',
@@ -552,7 +567,7 @@ const CheckOut = () => {
               price: item.price || 0,
               size: item.size || ''
             }))
-          : cart.map(item => ({
+            : cart.map(item => ({
               ...item,
               image: typeof item.image === 'string' ? item.image : item.image?.url || '',
               name: item.name || 'Product',
@@ -560,8 +575,8 @@ const CheckOut = () => {
               price: item.price || 0,
               size: item.size || ''
             })),
-        'online'
-      );
+          'online'
+        );
 
         if (emailSent) {
           toast.success('Order confirmation email sent!');
@@ -572,12 +587,7 @@ const CheckOut = () => {
         setError(null);
         setShowConfirmationModal(true);
         setOrderId(orderId);
-        if (isBuyNow) {
-          localStorage.removeItem("buyNowItem");
-        } else {
-          localStorage.removeItem("checkoutCart");
-          localStorage.removeItem("cart");
-        }
+        
         // 4. Show order overview instead of redirecting
         setShowOverview(true);
 
@@ -1171,24 +1181,24 @@ const CheckOut = () => {
       const isBuyNow = typeof window !== "undefined" &&
         new URLSearchParams(window.location.search).get('mode') === 'buy-now';
 
+      if (isBuyNow) {
+        localStorage.removeItem("buyNowProduct");
+      }
       try {
-        if (isBuyNow) {
-          // Only clear buy-now specific data
-          localStorage.removeItem("buyNowItem");
-          // Clear cart context but keep the actual cart items
-          if (setCart) setCart(contextCart.filter(item => !item.isBuyNow));
-        } else {
-          // For regular cart checkout, clear everything
-          localStorage.removeItem("cart");
-          localStorage.removeItem("checkoutCart");
-          localStorage.removeItem("checkoutData");
-          Object.keys(localStorage).forEach(key => {
-            if (key.startsWith('cart_')) {
-              localStorage.removeItem(key);
-            }
-          });
-          // Clear cart context
-          if (setCart) setCart([]);
+        if (buyNowMode) {
+          localStorage.removeItem('buyNowProduct');
+        }
+        else {
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem("cart");
+            localStorage.removeItem("checkoutCart");
+            localStorage.removeItem("checkoutData");
+            Object.keys(localStorage).forEach(key => {
+              if (key.startsWith('cart_')) {
+                localStorage.removeItem(key);
+              }
+            });
+          }
         }
       } catch (e) {
         // console.warn('Could not clear localStorage after order:', e);
@@ -1551,8 +1561,8 @@ const CheckOut = () => {
               altPhone: formFields.altPhone || ''
             },
             // Pass cart items as second parameter
-            (isBuyNow && checkoutData?.cart) 
-            ? checkoutData.cart.map(item => ({
+            (isBuyNow && checkoutData?.cart)
+              ? checkoutData.cart.map(item => ({
                 ...item,
                 image: typeof item.image === 'string' ? item.image : item.image?.url || '',
                 name: item.name || 'Product',
@@ -1560,7 +1570,7 @@ const CheckOut = () => {
                 price: item.price || 0,
                 size: item.size || ''
               }))
-            : checkoutData?.cart.map(item => ({
+              : checkoutData?.cart.map(item => ({
                 ...item,
                 image: typeof item.image === 'string' ? item.image : item.image?.url || '',
                 name: item.name || 'Product',
@@ -1568,8 +1578,8 @@ const CheckOut = () => {
                 price: item.price || 0,
                 size: item.size || ''
               })),
-          'cod'
-        );
+            'cod'
+          );
 
           if (emailSent) {
             toast.success('Order confirmation email sent!');
@@ -2121,7 +2131,7 @@ const CheckOut = () => {
                   setFormErrors(prev => ({ ...prev, agree: '' }));
                 }
               }}
-              className={`accent-pink-600 w-4 h-4 mt-1 ${formErrors.agree ? 'ring-2 ring-red-500' : ''}`}
+              className={`accent-pink-600 w-4 h-4 ${formErrors.agree ? 'ring-2 ring-red-500' : ''}`}
             />
             <label htmlFor="terms" className="text-xs text-gray-600 ml-2">
               I have read and agree to the website terms and conditions
@@ -2182,7 +2192,6 @@ const CheckOut = () => {
               }
               return;
             }
-
             if (!payment) {
               setFormErrors(prev => ({ ...prev, payment: 'Please select a payment method' }));
               return;

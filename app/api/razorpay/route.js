@@ -91,7 +91,7 @@ export async function POST(request) {
             );
         }
 
-       
+
 
         // Create Razorpay order
         let razorpayOrder;
@@ -106,9 +106,9 @@ export async function POST(request) {
                     customer_email: customer.email
                 }
             });
-      
+
         } catch (razorpayError) {
-           
+
             return NextResponse.json(
                 {
                     error: 'Failed to create payment order',
@@ -237,13 +237,13 @@ export async function POST(request) {
                 throw new Error('At least one product is required');
             }
 
-         
+
 
             // Save to database
             dbOrder = await Order.create(orderData);
 
         } catch (dbErr) {
-            
+
             return NextResponse.json({
                 error: 'Failed to save order in DB',
                 details: process.env.NODE_ENV === 'development' ? dbErr.message : undefined
@@ -286,7 +286,7 @@ export async function PUT(request) {
         // console.log('Signature verification completed');
 
         if (generatedSignature !== razorpay_signature) {
-          
+
             return NextResponse.json(
                 { success: false, error: "Invalid payment signature" },
                 { status: 400 }
@@ -294,7 +294,7 @@ export async function PUT(request) {
         }
 
         // Step 2: Find and update the order
-     
+
         const order = await Order.findOne({
             $or: [
                 { orderId: razorpay_order_id },
@@ -389,7 +389,7 @@ export async function PUT(request) {
             order.promoCode = checkoutData.promoCode || '';
             order.promoDiscount = Number(checkoutData.promoDiscount) || 0;
 
-            
+
         }
 
         // Update customer details if form fields are provided
@@ -421,7 +421,7 @@ export async function PUT(request) {
                     .filter(Boolean)
                     .join(', ');
 
-          
+
         }
 
         // Update user ID if available
@@ -432,9 +432,9 @@ export async function PUT(request) {
 
         try {
             await order.save();
-     
+
         } catch (orderSaveError) {
-      
+
             return NextResponse.json(
                 { success: false, error: "Failed to update order" },
                 { status: 500 }
@@ -467,35 +467,94 @@ export async function PUT(request) {
         } // else leave as-is if already present
         order.agree = true; // Always set agree true for online orders (on update)
         await order.save();
+        // ✅ Update quantities using the updateQuantities endpoint
 
-        // Update quantities after successful payment
-        try {
-            const products = cart || order.products || [];
-            const itemsToUpdate = products.map(item => ({
-                productId: item.productId || item._id,
-                variantId: item.variantId || 0, // Default to 0 if no variantId
-                quantity: item.quantity || 1
-            })).filter(item => item.productId && item.quantity > 0);
+        // Replace the products/items extraction with:
+        const products = Array.isArray(cart) ? cart :
+            (Array.isArray(checkoutData?.cart) ? checkoutData.cart :
+                (Array.isArray(order.products) ? order.products : []));
 
-            if (itemsToUpdate.length > 0) {
-                const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+        const itemsToUpdate = [];
+
+        // Process products
+        for (const product of products) {
+            try {
+                const productId = product.productId || product._id || product.id;
+                if (!productId) {
+                    console.warn('Skipping product with no ID:', JSON.stringify(product, null, 2));
+                    continue;
+                }
+
+                const qty = Number(product.qty || product.quantity || 1);
+                const size = product.size || null;
+
+                // Handle variants if they exist
+                if (product.quantity?.variants?.length > 0) {
+                    let variantIndex = 0;
+                    if (product.variantId !== undefined) {
+                        variantIndex = product.quantity.variants.findIndex(
+                            v => v._id === product.variantId || v.size === product.size
+                        );
+                        if (variantIndex === -1) variantIndex = 0;
+                    }
+                    // If size is specified, find the variant
+                    else if (size) {
+                        variantIndex = product.quantity.variants.findIndex(
+                            v => v.size === size
+                        );
+                        if (variantIndex === -1) variantIndex = 0;
+                    }
+
+                    itemsToUpdate.push({
+                        productId,
+                        variantId: variantIndex,
+                        quantity: qty,
+                        size: size,
+                        price: product.price,
+                        discount: product.discount,
+                        total: product.total,
+                        image: product.image?.url || product.image || ''
+                    });
+                }
+                // No variants
+                else {
+                    itemsToUpdate.push({
+                        productId,
+                        variantId: 0,
+                        quantity: qty,
+                        size: size,
+                        price: product.price,
+                        discount: product.discount,
+                        total: product.total,
+                        image: product.image?.url || product.image || ''
+                    });
+                }
+            } catch (error) {
+                console.error('Error processing product:', error, 'Product:', JSON.stringify(product, null, 2));
+            }
+        }
+
+        // Now update quantities if we have items
+        if (itemsToUpdate.length > 0) {
+            try {
+                const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
                 const response = await fetch(`${baseUrl}/api/product/updateQuantities`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ items: itemsToUpdate })
                 });
 
                 if (!response.ok) {
-         
+                    const errorData = await response.json().catch(() => ({}));
+                    console.error('Failed to update quantities:', {
+                        status: response.status,
+                        error: errorData
+                    });
                 }
+            } catch (error) {
+                console.error('Error in quantity update process:', error);
             }
-        } catch (error) {
-
-            // Don't fail the payment flow if quantity update fails
         }
-
         // Return user-facing orderId and payment details
         return NextResponse.json({
             success: true,
