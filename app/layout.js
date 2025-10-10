@@ -10,9 +10,9 @@ import GoogleTranslate from "@/components/GoogleTranslate";
 
 
 export const metadata = {
-  metadataBase: new URL("https://rishikeshhandmade.com/"),
+  metadataBase: new URL("https://rishikeshhandmade.com"),
   title: {
-    default: "Rishikesh Handmade - Jute Fiber, Bhimal Fiber, Natural Fiber, Handicraft Product",
+    default: "Rishikesh Handmade - Jute Fiber, Bhimal Fiber, Natural Fiber, Handicraft Product",
     template: "%s | Rishikesh Handmade",
   },
   description:
@@ -24,16 +24,16 @@ export const metadata = {
   openGraph: {
     title: "Rishikesh Handmade - Jute Fiber, Bhimal Fiber, Natural Fiber, Handicraft Product",
     description:
-      "Embark on a transformative voyage with Rishikesh Handmade, offering enriching spiritual journeys across India.",
+      "Rishikesh Handmade Craft is a platform that celebrates the traditional art and culture of Rishikesh. It showcases eco-friendly, handcrafted items like wooden carvings, paintings, jewelry, and home decor made by skilled local artisans. By supporting this platform, you help preserve age-old crafts and empower local communities.",
     images: ["/logo.png"],
-    url: "https://rishikeshhandmade.com/",
+    url: "https://rishikeshhandmade.com",
     site_name: "Rishikesh Handmade",
   },
   twitter: {
     card: "summary_large_image",
     title: "Rishikesh Handmade - Jute Fiber, Bhimal Fiber, Natural Fiber, Handicraft Product",
     description:
-      "Embark on a transformative voyage with Rishikesh Handmade, offering enriching spiritual journeys across India.",
+      "Our website is your gateway to the heart of Rishikesh, offering rich and soulful handmade creations crafted by local artisans.",
     images: ["/logo.png"],
   },
   other: {

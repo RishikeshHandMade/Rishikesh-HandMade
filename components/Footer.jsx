@@ -108,22 +108,22 @@ const Footer = () => {
                         </div>
                     </div>
                     <div className="flex items-start flex-row gap-2 py-2">
-                    <div className="py-2">
+                        <div className="py-2">
 
-                        <MapPin className="text-blue-600" size={20} />
-                    </div>
-                    <div className="flex items-start flex-col gap-2">
-                        <p className="gap-2 font-barlow text-white flex items-start">
-                            <span className="font-semibold">Corporate
+                            <MapPin className="text-blue-600" size={20} />
+                        </div>
+                        <div className="flex items-start flex-col gap-2">
+                            <p className="gap-2 font-barlow text-white flex items-start">
+                                <span className="font-semibold">Corporate
+                                    <br />
+                                    Address :
+                                </span> Upper Road Dhalwala (Rishikesh)
                                 <br />
-                                Address :
-                            </span> Upper Road Dhalwala (Rishikesh)
-                            <br />
-                            Tehri Garhwal,Uttarakhand 249137
-                        </p>
-                      
+                                Tehri Garhwal,Uttarakhand 249137
+                            </p>
+
+                        </div>
                     </div>
-                </div>
                 </div>
             </div>
             <div className="md:hidden flex items-center gap-2 justify-start px-5">
@@ -274,7 +274,7 @@ const Footer = () => {
                                         <ul className="list-disc list-inside ml-4">
                                             <li>📧 Email: support@rishikeshhandmade.com</li>
                                             <li>☎ Call/WhatsApp:                                          +91 9411571947,
-                                            +91 7351009107
+                                                +91 7351009107
                                             </li>
                                             <li>🕒 Hours: Monday to Saturday, 10:00 AM – 6:00 PM IST</li>
                                         </ul>
