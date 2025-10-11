@@ -3,23 +3,17 @@ import React, { useState } from "react";
 import PackageCard from "@/components/Category/package-card"
 
 export default function CategoryProductsGrid({ visibleProducts }) {
-  const [page, setPage] = useState(1);
-  const productsPerPage = 12;
-  const totalPages = Math.ceil(visibleProducts.length / productsPerPage);
-  const startIdx = (page - 1) * productsPerPage;
-  const endIdx = Math.min(page * productsPerPage, visibleProducts.length);
-  const paginatedProducts = visibleProducts.slice(startIdx, endIdx);
 
   return (
     <>
       <div className="flex items-center flex-wrap md:px-10 gap-2 md:gap-10 md:m-4 m-1 md:py-8 py-2">
-        {paginatedProducts.length === 0 ? (
+        {visibleProducts.length === 0 ? (
           <div className="col-span-full text-center py-8">
             <h3 className="text-xl font-medium text-gray-600">No products found for this category</h3>
             <p className="mt-2 text-gray-500">Please try another category</p>
           </div>
         ) : (
-          paginatedProducts.map((item, index) => (
+          visibleProducts.map((item, index) => (
             <PackageCard
               key={index}
               pkg={{
@@ -36,42 +30,7 @@ export default function CategoryProductsGrid({ visibleProducts }) {
         )}
       </div>
 
-      {totalPages > 1 && (
-        <div className="w-full mt-8">
-          <div className="flex flex-col items-end justify-center gap-2 mb-4">
-            <span className="text-md text-center font-medium text-gray-800">
-              Showing {startIdx + 1}-{endIdx} of {visibleProducts.length} Results
-            </span>
-            <div className="flex items-center gap-3">
-              {[...Array(totalPages)].map((_, i) => (
-                <button
-                  key={i}
-                  className={`border rounded-full w-12 h-12 flex items-center justify-center text-lg ${page === i + 1 ? 'bg-black text-white' : 'bg-transparent text-black'} transition`}
-                  onClick={() => {
-                    setPage(i + 1);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                >
-                  {i + 1}
-                </button>
-              ))}
-              <button
-                className="border rounded-full px-4 h-12 flex items-center justify-center text-lg bg-transparent text-black transition"
-                onClick={() => {
-                  const nextPage = page < totalPages ? page + 1 : page;
-                  setPage(nextPage);
-                  if (nextPage !== page) {
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }
-                }}
-                disabled={page === totalPages}
-              >
-                NEXT
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+  
     </>
   );
 }
