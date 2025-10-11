@@ -33,6 +33,9 @@ export const GET = async (req, { params }) => {
                 .populate({ path: 'gallery' })
                 .populate('quantity')
                 .populate('coupons')
+                .populate('description')
+                .populate('reviews')
+                
                 .lean();
             submenu.products = productDocs;
             // console.log('After population:', submenu.products);

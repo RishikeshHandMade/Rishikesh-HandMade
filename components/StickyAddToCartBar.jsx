@@ -60,7 +60,7 @@ function StickyAddToCartBar({ product }) {
       className={`fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg transform transition-transform duration-300 ${showBar ? "translate-y-0" : "translate-y-full"
         }`}
     >
-      <div className="flex items-center justify-end md:justify-between px-4 py-4 max-w-6xl mx-auto">
+      <div className="flex items-center justify-center gap-2 md:justify-between md:py-4 py-2 max-w-6xl mx-auto">
         {/* Product Info */}
         {/* In the product info section */}
         <div className="hidden md:flex items-center gap-4">
@@ -116,7 +116,7 @@ function StickyAddToCartBar({ product }) {
         )}
 
         {/* Action Buttons */}
-        <div className="flex items-end justify-end gap-3">
+        <div className="flex items-center md:item-end justify-end gap-3">
           {/* Quantity Selector - Only show if variant is selected and in stock */}
           {selectedVariant?.qty > 0 && (
             <div className="flex items-center gap-1">

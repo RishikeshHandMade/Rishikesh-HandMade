@@ -29,6 +29,7 @@ export default function CategoryProductsGrid({ visibleProducts }) {
                 price: (item.quantity && Array.isArray(item.quantity.variants) && item.quantity.variants.length > 0 ? item.quantity.variants[0].price : 0),
                 originalPrice: item.quantity?.originalPrice,
                 coupon: item.coupon,
+                description: item.description,
               }}
             />
           ))

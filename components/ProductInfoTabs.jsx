@@ -255,31 +255,31 @@ export default function ProductInfoTabs({ product }) {
             if (a.date && b.date) return new Date(b.date) - new Date(a.date);
             return (b._id || '').localeCompare(a._id || '');
         });
-        const unescapeHtml = (html) => {
-            if (!html || typeof html !== 'string') return '';
-    
-            // First, unescape all HTML entities
-            const temp = document.createElement('div');
-            temp.innerHTML = html.replace(/&lt;/g, '<')
-                .replace(/&gt;/g, '>')
-                .replace(/&amp;/g, '&')
-                .replace(/&quot;/g, '"')
-                .replace(/&#39;/g, "'")
-                .replace(/[“”]/g, '"')
-                .replace(/[‘’]/g, "'");
-    
-            // Get the HTML content after unescaping
-            let processedHtml = temp.innerHTML;
-    
-            // Fix product links and ensure all links have proper protocol
-            processedHtml = processedHtml
-                // Fix product links
-                .replace(/href="\/product\/([^"]+)"/g, 'href="$1"')
-                // Ensure links have http:// if they don't have any protocol
-                .replace(/href="(?!https?:\\\/\\\/|mailto:|tel:|#)([^"]+)"/g, 'href="https://$1"');
-    
-            return processedHtml;
-        };
+    const unescapeHtml = (html) => {
+        if (!html || typeof html !== 'string') return '';
+
+        // First, unescape all HTML entities
+        const temp = document.createElement('div');
+        temp.innerHTML = html.replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&amp;/g, '&')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'")
+            .replace(/[“”]/g, '"')
+            .replace(/[‘’]/g, "'");
+
+        // Get the HTML content after unescaping
+        let processedHtml = temp.innerHTML;
+
+        // Fix product links and ensure all links have proper protocol
+        processedHtml = processedHtml
+            // Fix product links
+            .replace(/href="\/product\/([^"]+)"/g, 'href="$1"')
+            // Ensure links have http:// if they don't have any protocol
+            .replace(/href="(?!https?:\\\/\\\/|mailto:|tel:|#)([^"]+)"/g, 'href="https://$1"');
+
+        return processedHtml;
+    };
     const reviewsTab = {
         label: "Reviews",
         content: (
@@ -414,7 +414,7 @@ export default function ProductInfoTabs({ product }) {
                             Submit Review
                         </button>
                     </form>
-                )}                
+                )}
                 {normalizedReviews.length === 0 ? (
                     <div className="text-gray-500">No reviews yet.</div>
                 ) : (
@@ -464,7 +464,7 @@ export default function ProductInfoTabs({ product }) {
                                             className={`text-gray-900 transition-all duration-300 mb-2 ${isExpanded ? '' : 'max-h-[65px] overflow-hidden'}`}
                                             style={!isExpanded ? { WebkitMaskImage: 'linear-gradient(180deg, #000 65%, transparent 100%)' } : {}}
                                         >
-                                         
+
                                         </div>
                                         {!isExpanded && review.description && review.description.length > 150 && (
                                             <div className="absolute bottom-0 left-0 w-full flex justify-center bg-gradient-to-t from-[#fafbfc] to-transparent pt-6">
@@ -509,7 +509,7 @@ export default function ProductInfoTabs({ product }) {
                 {tabs.map((tab, idx) => (
                     <button
                         key={tab.label}
-                        className={`w-full sm:w-auto py-2 sm:py-3 px-2 sm:px-4 text-base sm:text-lg font-semibold focus:outline-none transition relative whitespace-nowrap ${activeTab === idx
+                        className={`w-full sm:w-auto text-wrap py-2 sm:py-3 px-2 sm:px-4 text-base sm:text-lg font-semibold focus:outline-none transition relative whitespace-nowrap ${activeTab === idx
                             ? "text-black border-b-2 border-black"
                             : "text-gray-900"
                             }`}
