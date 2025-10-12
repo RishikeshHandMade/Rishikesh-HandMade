@@ -355,7 +355,7 @@ const RandomTourPackageSection = () => {
             </Carousel>
           </div>
 
-          <section className="relative w-full overflow-hidden max-w-screen overflow-x-hidden">
+          <section className="relative w-full">
             {loading1 ? (
               // Skeleton loader
               <div className="w-full">
@@ -372,8 +372,8 @@ const RandomTourPackageSection = () => {
               // Actual content
               bannerSection3rd.map((item, idx) => (
                 <div className="w-full" key={item._id}>
-                    <div className="grid grid-cols-1 gap-5 md:gap-4">
-                        <div className="hidden md:flex flex-col md:h-[450px] overflow-hidden relative group">
+                    <div className="grid grid-cols-1 gap-5 md:gap-4 overflow-hidden">
+                        <div className="hidden md:flex flex-col md:h-[430px] overflow-hidden relative group">
                             <Link
                                 href={item.buttonLink}
                                 target="_blank"

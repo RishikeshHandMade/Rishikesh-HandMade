@@ -28,7 +28,7 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, ha
   }, [quickViewProduct]);
 
   return (
-    <div className="flex flex-col w-48 md:w-80 rounded-3xl mb-2 group cursor-pointer">
+    <div className="flex flex-col w-80 rounded-3xl group cursor-pointer">
       {/* Image Section */}
       <div className="relative w-full md:h-92 rounded-3xl overflow-hidden flex items-center justify-center group/image border border-gray-300">
         {/* GET 10% OFF Tag */}
@@ -75,10 +75,10 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, ha
         </div>
       </div>
       {/* Name and Price Section */}
-      <div className="flex flex-col items-start justify-between px-2 pt-4 pb-2 mt-0">
+      <div className="flex flex-col items-start justify-between px-2 py-4 mt-0">
         <Link
           href={`/product/${pkg.slug}`}
-          className="font-bold hover:underline text-sm md:text-[18px] text-black leading-tight break-words whitespace-normal truncate cursor-pointer"
+          className="font-bold hover:underline text-[18px] text-black leading-tight break-words whitespace-normal truncate cursor-pointer"
         >
           {pkg?.title}
         </Link>
@@ -102,13 +102,13 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, ha
           if (hasDiscount && discountedPrice < originalPrice) {
             return (
               <span>
-                <span className="font-semibold text-md md:text-[18px] text-black px-2">₹{formatNumber(Math.round(discountedPrice))}</span>
-                <del className="text-black font-semibold text-sm md:text-[18px] mr-2">₹{formatNumber(originalPrice)}</del>
+                <span className="font-semibold text-[18px] text-black px-2">₹{formatNumber(Math.round(discountedPrice))}</span>
+                <del className="text-black font-semibold text-[18px] mr-2">₹{formatNumber(originalPrice)}</del>
               </span>
             );
           } else {
             return (
-              <span className="font-semibold text-sm md:text-[18px] text-black">₹{formatNumber(price)}</span>
+              <span className="font-semibold text-[18px] text-black">₹{formatNumber(price)}</span>
             );
           }
         })()}

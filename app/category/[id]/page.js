@@ -85,7 +85,7 @@ const CategoryPage = async ({ params }) => {
   return (
     <SidebarInset>
       <div className="min-h-screen bg-white">
-      <div className="w-full bg-[url('/categoryBack.jpg')] bg-no-repeat bg-contain bg-center text-white h-[200px] md:h-[300px] flex justify-center items-center">
+      <div className="w-full bg-[url('/categoryBack.jpg')] bg-no-repeat bg-contain bg-center text-white h-[80px] md:h-[300px] flex justify-center items-center">
         <h1 className="text-xl md:text-5xl font-extrabold drop-shadow">{categoryData.title}</h1>
       </div>
       
