@@ -77,14 +77,14 @@ const Footer = () => {
                     <Link href={'/faq'} className="block text-white font-barlow ">FAQ</Link>
                 </div>
 
-                <div className="flex flex-col gap-1">
-                    <h1 className="font-semibold text-xl flex items-center gap-2"> More Inquiry</h1>
+                <div className="flex flex-col gap-2 px-6">
+                    <h1 className="font-semibold text-xl my-4 flex items-center gap-2"> More Inquiry</h1>
                     <div className="flex items-start gap-2">
-                        <Link href={'tel:+919411571947'} className="my-2 text-sm rounded-full py-1 font-barlow text-white flex items-center gap-2">
+                        <Link href={'tel:+919411571947'} className=" text-sm rounded-full font-barlow text-white flex items-center gap-2">
                             <Phone size={20} className="text-blue-600" />
                             +91 9411571947
                         </Link>
-                        <Link href={'tel:+917351009107'} className="my-2 text-sm rounded-full py-1 font-barlow text-white flex items-center gap-2">
+                        <Link href={'tel:+917351009107'} className=" text-sm rounded-full font-barlow text-white flex items-center gap-2">
                             +91 7351009107
                         </Link>
                     </div>
@@ -291,16 +291,13 @@ const Footer = () => {
                     </Accordion>
                 </div>
             </div>
-            <div className="w-full flex justify-center px-2 md:h-52">
-                <img src="/LaptopThanks.jpg" className="hidden md:block w-full h-full object-contain" alt="" />
-                <img src="/MobileThanks.jpg" className="md:hidden w-full h-full object-contain" alt="" />
-            </div>
-
             <Card className="my-2 px-2 py-8 max-w-xl lg:max-w-4xl xl:max-w-7xl mx-auto">
                 <CardContent className="flex flex-col lg:flex-row items-start justify-between">
                     <div className="text-justify">
-                        <Image src="/NewLogo.png" width={200} height={100} alt="footer" className="w-80 object-contain h-32"/>
-                        <p className="text-black text-sm lg:w-[40vw] xl:w-[35vw] font-barlow mt-6">Rishikesh Handmade Craft is a platform that celebrates the traditional art and culture of Rishikesh. It showcases eco-friendly, handcrafted items like wooden carvings, paintings, jewelry, and home decor made by skilled local artisans. By supporting this platform, you help preserve age-old crafts and empower local communities.</p>
+                        <Image src="/NewLogo.png" width={200} height={100} alt="footer" className="w-[20vw] object-contain h-32" />
+                        <p className="text-black text-sm lg:w-[40vw] xl:w-[35vw] font-barlow mt-6">Special Thanks
+                            <br />
+                            We express our heartfelt gratitude to the Development Commissioner (Handicrafts), Ministry of Textiles for sponsoring and supporting our website. We sincerely thank them for giving us this opportunity to promote the talented local artisans of Rishikesh, Uttarakhand. Their support plays a crucial role in uplifting and sustaining the handicraft industry.</p>
                         <p className="text-black text-sm lg:w-[40vw] xl:w-[35vw] font-barlow mt-6">Our website is your gateway to the heart of Rishikesh, offering rich and soulful handmade creations crafted by local artisans.</p>
 
                     </div>

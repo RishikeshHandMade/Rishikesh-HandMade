@@ -82,36 +82,46 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, ha
         >
           {pkg?.title}
         </Link>
-        {(() => {
-          const price = pkg.price || 0;
-          const originalPrice = pkg.originalPrice || price;
-          const coupon = pkg.coupon || pkg.coupons?.coupon;
-          let discountedPrice = price;
-          let hasDiscount = false;
+        <div className="flex items-center gap-5 justify-between">
 
-          if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
-            discountedPrice = price - (price * coupon.percent) / 100;
-            hasDiscount = true;
-          } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
-            discountedPrice = price - coupon.amount;
-            hasDiscount = true;
-          } else if (originalPrice > price) {
-            discountedPrice = price;
-            hasDiscount = true;
-          }
-          if (hasDiscount && discountedPrice < originalPrice) {
-            return (
-              <span>
-                <span className="font-semibold text-[18px] text-black px-2">₹{formatNumber(Math.round(discountedPrice))}</span>
-                <del className="text-black font-semibold text-[18px] mr-2">₹{formatNumber(originalPrice)}</del>
-              </span>
-            );
-          } else {
-            return (
-              <span className="font-semibold text-[18px] text-black">₹{formatNumber(price)}</span>
-            );
-          }
-        })()}
+
+          {(() => {
+            const price = pkg.price || 0;
+            const originalPrice = pkg.originalPrice || price;
+            const coupon = pkg.coupon || pkg.coupons?.coupon;
+            let discountedPrice = price;
+            let hasDiscount = false;
+
+            if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+              discountedPrice = price - (price * coupon.percent) / 100;
+              hasDiscount = true;
+            } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+              discountedPrice = price - coupon.amount;
+              hasDiscount = true;
+            } else if (originalPrice > price) {
+              discountedPrice = price;
+              hasDiscount = true;
+            }
+            if (hasDiscount && discountedPrice < originalPrice) {
+              return (
+                <span>
+                  <span className="font-semibold text-[18px] text-black px-2">₹{formatNumber(Math.round(discountedPrice))}</span>
+                  <del className="text-black font-semibold text-[18px] mr-2">₹{formatNumber(originalPrice)}</del>
+                </span>
+              );
+            } else {
+              return (
+                <span className="font-semibold text-[18px] text-black">₹{formatNumber(price)}</span>
+              );
+            }
+          })()}
+          <Link
+            href={`/product/${pkg.slug}`}
+            className="bg-black text-white hover:bg-gray-800 transition-colors duration-300 uppercase text-sm font-bold px-6 py-2 rounded-full shadow-lg  border-2 border-white text-nowrap"
+          >
+            View Details
+          </Link>
+        </div>
       </div>
       {/* Quick View Modal */}
       {quickViewProduct && (
