@@ -9,7 +9,7 @@ import Autoplay from "embla-carousel-autoplay";
 import toast from "react-hot-toast"
 export default function QuickViewProductCard({ product, onClose }) {
   // ...existing hooks
-  // console.log(product)
+  console.log(product)
   if (!product) return null;
   const { addToCart, addToWishlist, removeFromWishlist, wishlist } = useCart();
   const [quantity, setQuantity] = useState(1);
@@ -103,10 +103,8 @@ export default function QuickViewProductCard({ product, onClose }) {
   let discountedPrice = basePrice;
   let hasDiscount = false;
   let couponText = '';
-  // Calculate total price based on quantity
-  const totalPrice = hasDiscount ? (discountedPrice * quantity) : (basePrice * quantity);
-  const totalOriginalPrice = basePrice * quantity;
 
+  // Calculate discount first
   if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
     discountedPrice = basePrice - (basePrice * coupon.percent) / 100;
     hasDiscount = true;
@@ -116,6 +114,10 @@ export default function QuickViewProductCard({ product, onClose }) {
     hasDiscount = true;
     couponText = `${coupon.couponCode || ''} (₹${coupon.amount} OFF)`;
   }
+
+  // Then calculate totals
+  const totalPrice = hasDiscount ? (discountedPrice * quantity) : (basePrice * quantity);
+  const totalOriginalPrice = basePrice * quantity;
   // console.log(selectedVariant?.price);
 
   // Set default selection on mount or when variants change
@@ -161,7 +163,9 @@ export default function QuickViewProductCard({ product, onClose }) {
                     <Image
                       src={img}
                       alt={`Product image ${idx}`}
-                      layout="fill"
+                      height={500}
+                      width={500}
+                      priority={true}
                       objectFit="contain"
                       className="w-full h-full object-contain"
                     />
@@ -179,7 +183,7 @@ export default function QuickViewProductCard({ product, onClose }) {
               <button
                 key={idx}
                 className={`relative w-14 h-14 border rounded-lg overflow-hidden focus:outline-none bg-white/80 ${activeImageIdx === idx ? 'ring-2 ring-black' : ''}`}
-                onClick={() => {
+                onClick={() => {  
                   if (carouselApi && idx !== activeImageIdx) {
                     carouselApi.scrollTo(idx);
                   }
@@ -187,7 +191,7 @@ export default function QuickViewProductCard({ product, onClose }) {
                 aria-label={`Show image ${idx + 1}`}
                 style={{ boxShadow: activeImageIdx === idx ? '0 0 0 2px #000' : undefined }}
               >
-                <Image src={img} alt={`thumb-${idx}`} layout="fill" objectFit="cover" />
+                <Image src={img} alt={`thumb-${idx}`} height={500} width={500} priority={true} objectFit="cover" />
               </button>
             ))}
           </div>

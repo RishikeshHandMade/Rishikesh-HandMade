@@ -317,34 +317,43 @@ const RandomTourPackageSection = () => {
                           >
                             {item?.title}
                           </Link>
+                          <div className="flex items-center gap-4">
 
-                          {(() => {
-                            const price = item?.quantity?.variants[0].price;
-                            const coupon = item.coupon || item.coupons?.coupon;
-                            let discountedPrice = price;
-                            let hasDiscount = false;
+                            {(() => {
+                              const price = item?.quantity?.variants[0].price;
+                              const coupon = item.coupon || item.coupons?.coupon;
+                              let discountedPrice = price;
+                              let hasDiscount = false;
 
-                            if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
-                              discountedPrice = price - (price * coupon.percent) / 100;
-                              hasDiscount = true;
-                            } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
-                              discountedPrice = price - coupon.amount;
-                              hasDiscount = true;
-                            }
+                              if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+                                discountedPrice = price - (price * coupon.percent) / 100;
+                                hasDiscount = true;
+                              } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+                                discountedPrice = price - coupon.amount;
+                                hasDiscount = true;
+                              }
 
-                            if (hasDiscount && discountedPrice < price) {
-                              return (
-                                <span>
-                                  <del className="text-black font-bold text-md md:text-xl">₹{formatNumeric(price)}</del>
-                                  <span className="font-bold text-md md:text-xl text-black px-2">₹{formatNumeric(Math.round(discountedPrice))}</span>
-                                </span>
-                              );
-                            } else {
-                              return (
-                                <span className="font-bold text-lg md:text-xl text-black">₹{formatNumeric(price)}</span>
-                              );
-                            }
-                          })()}
+                              if (hasDiscount && discountedPrice < price) {
+                                return (
+                                  <span>
+                                    <del className="text-black font-bold text-md md:text-md">₹{formatNumeric(price)}</del>
+                                    <span className="font-bold text-md md:text-md text-black px-2">₹{formatNumeric(Math.round(discountedPrice))}</span>
+                                  </span>
+                                );
+                              } else {
+                                return (
+                                  <span className="font-bold text-md md:text-md text-black">₹{formatNumeric(price)}</span>
+                                );
+                              }
+                            })()}
+
+                            <Link
+                              href={`/product/${item.slug}`}
+                              className="bg-black text-white hover:bg-gray-800 transition-colors duration-300 uppercase text-sm font-bold px-6 py-2 rounded-full shadow-lg  border-2 border-white text-nowrap"
+                            >
+                              View Details
+                            </Link>
+                          </div>
                         </div>
                       </div>
                     </CarouselItem>
@@ -372,38 +381,38 @@ const RandomTourPackageSection = () => {
               // Actual content
               bannerSection3rd.map((item, idx) => (
                 <div className="w-full" key={item._id}>
-                    <div className="grid grid-cols-1 gap-5 md:gap-4 overflow-hidden">
-                        <div className="hidden md:flex flex-col md:h-[430px] overflow-hidden relative group">
-                            <Link
-                                href={item.buttonLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="absolute inset-0 flex items-center justify-center group-hover:opacity-100 transition-opacity duration-300"
-                            >
-                            <img
-                                src={item.image?.url}
-                                alt={item.title}
-                                className="absolute inset-0 w-full h-full object-contain object-center transition-transform duration-300 group-hover:scale-105"
-                            />
-                            </Link>
-                        </div>
-                        <div className="md:hidden flex flex-col h-[450px] overflow-hidden relative group">
-                            <Link
-                                href={item.buttonLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="absolute inset-0 flex items-center justify-center group-hover:opacity-100 transition-opacity duration-300"
-                            >
-                            <img
-                                src={item.mobileImage?.url}
-                                alt={item.title}
-                                className="absolute inset-0 w-full h-full object-contain object-center transition-transform duration-300 group-hover:scale-105"
-                            />
-                            </Link>
-                        </div>
+                  <div className="grid grid-cols-1 gap-5 md:gap-4 overflow-hidden">
+                    <div className="hidden md:flex flex-col md:h-[430px] overflow-hidden relative group">
+                      <Link
+                        href={item.buttonLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="absolute inset-0 flex items-center justify-center group-hover:opacity-100 transition-opacity duration-300"
+                      >
+                        <img
+                          src={item.image?.url}
+                          alt={item.title}
+                          className="absolute inset-0 w-full h-full object-contain object-center transition-transform duration-300 group-hover:scale-105"
+                        />
+                      </Link>
                     </div>
+                    <div className="md:hidden flex flex-col h-[450px] overflow-hidden relative group">
+                      <Link
+                        href={item.buttonLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="absolute inset-0 flex items-center justify-center group-hover:opacity-100 transition-opacity duration-300"
+                      >
+                        <img
+                          src={item.mobileImage?.url}
+                          alt={item.title}
+                          className="absolute inset-0 w-full h-full object-contain object-center transition-transform duration-300 group-hover:scale-105"
+                        />
+                      </Link>
+                    </div>
+                  </div>
                 </div>
-            ))
+              ))
             )}
           </section>
           {/* Artisan Carousel Section */}

@@ -106,12 +106,12 @@ const Header = () => {
           } bg-[#fcf7f1] text-black border-b font-barlow tracking-wider w-full`}
       >
         <TopAdvertisementMarquee />
-        <div className="md:flex hidden items-center justify-between gap-8 border-b py-1 border-gray-400 md:px-8 ">
+        <div className="md:flex hidden items-center justify-between gap-8 border-b border-gray-400 md:px-8 ">
           <div className="flex flex-row justify-between w-full items-center px-8">
             {/* Logo on the left */}
             <div className="flex-shrink-0">
               <Link href={"/"}>
-                <img className="w-48 object-contain drop-shadow-xl" src="/logo.png" alt="Rishikesh Handmade" />
+                <img className="w-80 h-24 object-contain" src="/NewLogo.png" alt="Rishikesh Handmade" />
               </Link>
             </div>
 
@@ -258,19 +258,19 @@ const Header = () => {
             </div>
           </div>
         </div>
-        </header>
-  {/* Show only on md and larger screens, and only if not in admin section */}
-<div className="hidden md:block sticky top-0 z-50">
-  {!pathName.includes("admin") && (
-    <div className="w-full print:hidden">
-      <div className={`bg-white py-2 border-b border-gray-200 transition-all duration-300 ${showHeader ? "translate-y-0" : "-translate-y-full"}`}>
-        <div className="container mx-auto px-4">
-          <MenuBar menuItems={menuItems} />
-        </div>
+      </header>
+      {/* Show only on md and larger screens, and only if not in admin section */}
+      <div className="hidden md:block sticky top-0 z-50">
+        {!pathName.includes("admin") && (
+          <div className="w-full print:hidden">
+            <div className={`bg-white py-2 border-b border-gray-200 transition-all duration-300 ${showHeader ? "translate-y-0" : "-translate-y-full"}`}>
+              <div className="container mx-auto px-4">
+                <MenuBar menuItems={menuItems} />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-    </div>
-  )}
-</div>
 
       <div className="lg:hidden flex items-center justify-between md:justify-between py-1 px-2">
         <div className="relative flex items-center">

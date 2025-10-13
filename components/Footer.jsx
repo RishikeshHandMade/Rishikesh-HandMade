@@ -189,9 +189,9 @@ const Footer = () => {
             </div>
 
             {/* Accordance Section */}
-            <div className="w-full flex justify-center my-4">
+            <div className="w-full flex justify-center my-5">
                 <div className="w-[85%]">
-                    <Accordion type="single" collapsible className="bg-[#fff] rounded-md  mb-8">
+                    <Accordion type="single" collapsible className="bg-[#fff] rounded-md">
                         <AccordionItem value="item-1">
                             <AccordionTrigger className="text-black px-6 py-4 text-base ">IMPORTANT NOTICE</AccordionTrigger>
                             <AccordionContent className="text-gray-900 px-6 pb-6 pt-1 text-sm space-y-3">
@@ -291,11 +291,15 @@ const Footer = () => {
                     </Accordion>
                 </div>
             </div>
+            <div className="w-full flex justify-center px-2 md:h-52">
+                <img src="/LaptopThanks.jpg" className="hidden md:block w-full h-full object-contain" alt="" />
+                <img src="/MobileThanks.jpg" className="md:hidden w-full h-full object-contain" alt="" />
+            </div>
 
             <Card className="my-2 px-2 py-8 max-w-xl lg:max-w-4xl xl:max-w-7xl mx-auto">
                 <CardContent className="flex flex-col lg:flex-row items-start justify-between">
                     <div className="text-justify">
-                        <Image src="/logo.png" width={200} height={100} alt="footer" />
+                        <Image src="/NewLogo.png" width={200} height={100} alt="footer" className="w-80 object-contain h-32"/>
                         <p className="text-black text-sm lg:w-[40vw] xl:w-[35vw] font-barlow mt-6">Rishikesh Handmade Craft is a platform that celebrates the traditional art and culture of Rishikesh. It showcases eco-friendly, handcrafted items like wooden carvings, paintings, jewelry, and home decor made by skilled local artisans. By supporting this platform, you help preserve age-old crafts and empower local communities.</p>
                         <p className="text-black text-sm lg:w-[40vw] xl:w-[35vw] font-barlow mt-6">Our website is your gateway to the heart of Rishikesh, offering rich and soulful handmade creations crafted by local artisans.</p>
 
