@@ -6,7 +6,7 @@ export default function CategoryProductsGrid({ visibleProducts }) {
 
   return (
     <>
-      <div className="flex items-center justify-start flex-wrap md:px-5 gap-5 md:gap-5 md:py-8 py-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 px-5  md:py-8 py-2">
         {visibleProducts.length === 0 ? (
           <div className="col-span-full text-center py-8">
             <h3 className="text-xl font-medium text-gray-600">No products found for this category</h3>

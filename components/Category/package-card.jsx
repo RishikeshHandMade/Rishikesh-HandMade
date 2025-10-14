@@ -28,7 +28,7 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, ha
   }, [quickViewProduct]);
 
   return (
-    <div className="flex flex-col md:w-72 xxl:w-80 rounded-3xl group cursor-pointer mx-auto">
+    <div className="flex flex-col w-72 rounded-3xl group cursor-pointer">
       {/* Image Section */}
       <div className="relative w-full md:h-92 rounded-3xl overflow-hidden flex items-center justify-center group/image border border-gray-300">
         {/* GET 10% OFF Tag */}
