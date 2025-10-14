@@ -278,7 +278,7 @@ const Header = () => {
           <MenuBar menuItems={menuItems} />
         </div>
         <Link href={"/"}>
-          <img className="w-48 h-fit object-contain drop-shadow-xl" src="/NewLogo.png" alt="Rishikesh Handmade" />
+          <img className="w-32 object-contain drop-shadow-xl" src="/logo.png" alt="Rishikesh Handmade" />
         </Link>
 
         <div className="flex items-center gap-2">
