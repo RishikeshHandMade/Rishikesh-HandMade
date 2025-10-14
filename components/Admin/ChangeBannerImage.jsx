@@ -90,7 +90,7 @@ const ChangeBannerImage = () => {
             });
             const data = await res.json();
             if (res.ok && data.url) {
-                setFormData(prev => ({ ...prev, mobileImg:{url:data.url,key:data.url|| ''} }));
+                setFormData(prev => ({ ...prev, mobileImg:{url:data.url,key:data.key|| ''} }));
                 toast.success('Mobile Banner Image Uploaded!');
             } else {
                 toast.error('Cloudinary upload failed: ' + (data.error || 'Unknown error'));
@@ -216,10 +216,10 @@ const ChangeBannerImage = () => {
                         <UploadIcon className="w-4 h-4" />
                     </Button>
                     {uploadingFront && <div className="text-blue-600 font-semibold">Uploading...</div>}
-                    {formData.frontImg.url && (
+                    {formData?.frontImg.url && (
                         <div className="relative w-48 h-28 border rounded overflow-hidden mb-2">
                             <Image
-                                src={formData.frontImg.url}
+                                src={formData?.frontImg.url}
                                 alt="Banner Preview"
                                 fill
                                 className="object-cover"
@@ -255,10 +255,10 @@ const ChangeBannerImage = () => {
                         <UploadIcon className="w-4 h-4" />
                     </Button>
                     {uploadingMobileImg && <div className="text-blue-600 font-semibold">Uploading...</div>}
-                    {formData.mobileImg.url && (
+                    {formData.mobileImg?.url && (
                         <div className="relative w-48 h-28 border rounded overflow-hidden mb-2">
                             <Image
-                                src={formData.mobileImg.url}
+                                src={formData.mobileImg?.url}
                                 alt="Banner Preview"
                                 fill
                                 className="object-cover"

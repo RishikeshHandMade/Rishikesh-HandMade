@@ -98,7 +98,7 @@ function StickyAddToCartBar({ product }) {
         {/* Variant Selector */}
         {variants.length > 0 && (
           <select
-            className="border border-black px-4 py-2 rounded"
+            className="border border-black px-2 md:px-4 py-2 rounded"
             value={selectedVariantIdx}
             onChange={e => setSelectedVariantIdx(Number(e.target.value))}
           >
@@ -142,7 +142,7 @@ function StickyAddToCartBar({ product }) {
 
           {/* Add to Cart Button */}
           <button
-            className={`px-6 py-2 rounded-md font-medium ${selectedVariant?.qty > 0
+            className={`md:px-6 px-4 py-2 rounded-md font-medium ${selectedVariant?.qty > 0
                 ? 'bg-blue-600 text-white hover:bg-blue-700'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}

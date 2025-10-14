@@ -294,7 +294,7 @@ const Footer = () => {
             <Card className="my-2 px-2 py-8 max-w-xl lg:max-w-4xl xl:max-w-7xl mx-auto">
                 <CardContent className="flex flex-col lg:flex-row items-start justify-between">
                     <div className="text-justify">
-                        <Image src="/NewLogo.png" width={200} height={100} alt="footer" className="w-[20vw] object-contain h-32" />
+                        <Image src="/NewLogo.png" width={200} height={100} alt="footer" className="md:w-[20vw] object-contain w-52 md:h-32" />
                         <p className="text-black text-sm lg:w-[40vw] xl:w-[35vw] font-barlow mt-6">Special Thanks
                             <br />
                             We express our heartfelt gratitude to the Development Commissioner (Handicrafts), Ministry of Textiles for sponsoring and supporting our website. We sincerely thank them for giving us this opportunity to promote the talented local artisans of Rishikesh, Uttarakhand. Their support plays a crucial role in uplifting and sustaining the handicraft industry.</p>
@@ -336,7 +336,7 @@ const Footer = () => {
                 </CardFooter>
             </Card>
             <div className="max-w-[25rem] md:max-w-[60rem] xl:max-w-7xl mx-auto font-barlow">
-                <p className="text-white text-center text-sm">Buy Handicraft and Handloom Items Online | Home and Living Products for Sale | Buy Handloom and Handicraft Items | Handmade Home Décor and Utility for Sale | Buy Home Decor Items Online | Handloom Cushions Online | Buy Handmade Bhimal And Jute Accessories |  Handmade Handicraft Accessories for Sale | Handmade Floor Coverings Jute Bhimal Foot Door Mat Online Sale | Handmade Religious Items for Sale Online | Buy Handmade Jute Bhimal Woolen Footwear | Buy Handmade Jute Slippers  Footwear | Handcrafted Lighting Items Online | Handmade Office Stationery Jute File Folder  Items for Sale | Jute Bags for Shopping</p>
+                <p className="text-white text-center text-sm px-2">Buy Handicraft and Handloom Items Online | Home and Living Products for Sale | Buy Handloom and Handicraft Items | Handmade Home Décor and Utility for Sale | Buy Home Decor Items Online | Handloom Cushions Online | Buy Handmade Bhimal And Jute Accessories |  Handmade Handicraft Accessories for Sale | Handmade Floor Coverings Jute Bhimal Foot Door Mat Online Sale | Handmade Religious Items for Sale Online | Buy Handmade Jute Bhimal Woolen Footwear | Buy Handmade Jute Slippers  Footwear | Handcrafted Lighting Items Online | Handmade Office Stationery Jute File Folder  Items for Sale | Jute Bags for Shopping</p>
                 <p className="text-white font-bold text-center my-4">
                     &copy; <CurrentYear /> <Link href={'/'} className="font-bold text-white">Rishikesh Handmade</Link>. All rights reserved
                 </p>

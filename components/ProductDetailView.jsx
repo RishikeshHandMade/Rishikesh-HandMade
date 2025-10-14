@@ -294,7 +294,7 @@ export default function ProductDetailView({ product }) {
   };
   return (
     <>
-      <div className="flex flex-col md:flex-row gap-4">
+      <div className="flex flex-col md:flex-row gap-4 mx-auto">
         {/* LEFT: Product Images */}
         <div className="w-full md:w-1/3 flex flex-col items-center">
           {/* Main Image Carousel (QuickView style, embla-controlled) */}
@@ -360,8 +360,8 @@ export default function ProductDetailView({ product }) {
                 </CarouselContent>
                 {allImages.length > 5 && (
                   <>
-                    <CarouselPrevious />
-                    <CarouselNext />
+                    <CarouselNext className="!right-2 !top-1/2 !-translate-y-1/2 z-10 " />
+                    <CarouselPrevious className="!left-1 !top-1/2 !-translate-y-1/2 z-10" />
                   </>
                 )}
               </Carousel>
@@ -1201,15 +1201,15 @@ export default function ProductDetailView({ product }) {
               {highlights.slice(0, showAllHighlights ? highlights.length : 3).map((highlight, index) => (
                 <li key={index} className="flex flex-col items-start gap-2">
                   <div className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-md text-gray-700 text-wrap">{highlight}</span>
+                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span className="text-md text-gray-700 text-wrap">{highlight}</span>
                   </div>
-                  <hr className="bg-gray-300 h-[px] w-full"/>
+                  <hr className="bg-gray-300 h-[px] w-full" />
                 </li>
               ))}
               {highlights.length > 3 && (
                 <div className="text-right mt-2">
-                  <button 
+                  <button
                     onClick={() => setShowAllHighlights(!showAllHighlights)}
                     className="text-blue-600 hover:text-blue-800 text-md font-medium"
                   >

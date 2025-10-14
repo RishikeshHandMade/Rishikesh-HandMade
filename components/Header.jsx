@@ -278,11 +278,10 @@ const Header = () => {
           <MenuBar menuItems={menuItems} />
         </div>
         <Link href={"/"}>
-          <img className="w-[150px] object-contain drop-shadow-xl" src="/logo.png" alt="Rishikesh Handmade" />
+          <img className="w-48 h-fit object-contain drop-shadow-xl" src="/NewLogo.png" alt="Rishikesh Handmade" />
         </Link>
 
-        <div className="flex items-center gap-3">
-
+        <div className="flex items-center gap-2">
           <button
             className="relative p-2 rounded-full hover:bg-neutral-100 transition"
             onClick={() => { setInitialCartTab('wishlist'); setIsCartOpen(true); }}

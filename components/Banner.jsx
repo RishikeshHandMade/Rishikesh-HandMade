@@ -86,16 +86,16 @@ const Banner = () => {
                         <span>Checkout</span>
                     </h2>
                     <p className="font-barlow text-gray-600 mb-5 md:w-[50%] w-full mx-auto text-center">From everyday essentials to the latest trends, we bring everything to your fingertips. Enjoy easy browsing, secure checkout, and doorstep delivery with exciting deals and free shipping.</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-4 ">
+                    <div className="grid grid-cols-1 md:grid-cols-2 md:gap-4 ">
                         {promotinalBanner.map((item, idx) => (
-                            <div key={idx} className="flex flex-col h-[220px] md:h-[400px] overflow-hidden relative group">
+                            <div key={idx} className="flex flex-col h-[200px] md:h-[400px] overflow-hidden relative group">
                                 <Link
                                     href={item.buttonLink}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="absolute inset-0 flex items-center justify-center group-hover:opacity-100 transition-opacity duration-300"
                                 >
-                                <img src={item.image?.url} alt={item.title} className="absolute inset-0 w-full h-full md:object-contain object-contain objec         t-center transition-transform duration-300 group-hover:scale-105" />
+                                <img src={item.image?.url} alt={item.title} className="absolute inset-0 w-full h-full md:object-contain object-contain object-center transition-transform duration-300 group-hover:scale-105" />
                                 </Link>
                             </div>
                         ))}

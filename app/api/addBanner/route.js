@@ -15,7 +15,7 @@ export async function GET() {
 export async function POST(req) {
     await connectDB();
     try {
-        const { buttonLink, frontImg,mobileImg, order } = await req.json();
+        const { buttonLink, frontImg, mobileImg, order } = await req.json();
 
         // Find the highest order number
         const lastBanner = await HeroBanner.findOne().sort({ order: -1 });
@@ -26,7 +26,7 @@ export async function POST(req) {
             order: nextOrder,
             frontImg,
             mobileImg
-        
+
         });
         await newBanner.save();
         return NextResponse.json(newBanner, { status: 201 });
@@ -38,7 +38,7 @@ export async function POST(req) {
 export async function PATCH(req) {
     await connectDB();
     try {
-        const { id, buttonLink, frontImg,mobileImg,order } = await req.json();
+        const { id, buttonLink, frontImg, mobileImg, order } = await req.json();
         const updatedBanner = await HeroBanner.findByIdAndUpdate(
             id,
             {
@@ -65,20 +65,40 @@ export async function DELETE(req) {
         if (!banner) {
             return NextResponse.json({ error: "Banner not found" }, { status: 404 });
         }
+        // console.log(banner.mobileImg.key)
+        try {
+            // Delete front image from Cloudinary if it exists
+            if (banner.frontImg?.key) {
+                try {
+                    await deleteFileFromCloudinary(banner.frontImg.key);
+                } catch (cloudinaryError) {
+                    console.error('Error deleting front image from Cloudinary:', cloudinaryError);
+                    // Continue with deletion even if Cloudinary deletion fails
+                }
+            }
 
-        // Delete the image from Uploadthing (if key exists)
-        if (banner.frontImg?.key) {
-            await deleteFileFromCloudinary(banner.frontImg.key);
-        }
-        // Delete the image from Uploadthing (if key exists)
-        if (banner.mobileImg?.key) {
-            await deleteFileFromCloudinary(banner.mobileImg.key);
-        }
-        // Delete banner from database
-        await HeroBanner.findByIdAndDelete(id);
+            if (banner.mobileImg?.key) {
+                try {
+                    await deleteFileFromCloudinary(banner.mobileImg.key);
+                } catch (cloudinaryError) {
+                    console.error('Error deleting mobile image from Cloudinary:', cloudinaryError);
+                    // Continue with deletion even if Cloudinary deletion fails
+                }
+            }
 
-        return NextResponse.json({ message: "Banner deleted successfully" }, { status: 200 });
+            // Delete banner from database
+            await HeroBanner.findByIdAndDelete(id);
+
+            return NextResponse.json({ message: "Banner deleted successfully" }, { status: 200 });
+        } catch (dbError) {
+            console.error('Database error:', dbError);
+            throw dbError; // This will be caught by the outer catch
+        }
     } catch (error) {
-        return NextResponse.json({ error: `Failed to delete banner: ${error.message}` }, { status: 500 });
+        console.error('Error in DELETE /api/addBanner:', error);
+        return NextResponse.json(
+            { error: error.message || "Failed to delete banner" },
+            { status: 500 }
+        );
     }
 }
