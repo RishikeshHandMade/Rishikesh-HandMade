@@ -529,7 +529,11 @@ export default function ProductDetailView({ product }) {
                     <div className="flex justify-between items-center w-full gap-2">
                       <span>{size}</span>
                       <div className="h-4 w-px bg-gray-300" />
-                      <span className="text-gray-600 text-md"> {weight ? Number(weight).toLocaleString() : '0.00'} kg</span>
+                      <span className="text-gray-600 text-md">  {weight ? (
+                        Number(weight) < 1 
+                          ? `${(Number(weight) * 1000).toFixed(0)}g` 
+                          : `${Number(weight).toFixed(3)} kg`
+                      ) : '0g'}</span>
                     </div>
                   </button>
                 );

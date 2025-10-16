@@ -59,6 +59,7 @@ const SizeManagement = ({ productData, productId }) => {
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [optionals, setOptionals] = useState([
+    { label: "S", checked: false },
     { label: "L", checked: false },
     { label: "M", checked: false },
     { label: "XL", checked: false },

@@ -391,7 +391,11 @@ const CartDetails = () => {
                       <td className="border p-2 text-center">₹{item.originalPrice ?? item.price}</td>
                       <td className="border p-2 text-center">{getDiscount(item)}</td>
                       <td className="border p-2 text-center">₹{getAfterDiscount(item)}</td>
-                      <td className="border p-2 text-center">{item.weight ?? 0}g</td>
+                      <td className="border p-2 text-center">{item.weight ? (
+                        Number(item.weight) < 1 
+                          ? `${(Number(item.weight) * 1000).toFixed(0)}g` 
+                          : `${Number(item.weight).toFixed(3)} kg`
+                      ) : '0g'}</td>
                       <td className="border p-2 text-center">₹{(item.price * item.cgst / 100).toFixed(2)}</td>
                       <td className="border p-2 text-center">₹{(item.price * item.sgst / 100).toFixed(2)}</td>
                       <td className="border p-2 text-center">

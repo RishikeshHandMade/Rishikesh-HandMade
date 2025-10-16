@@ -13,14 +13,8 @@ export const PUT = async (req, { params }) => {
     try {
         await connectDB();
         const { id } =await params;
-        const { title, image, link } = await req.json();
+        const { title, image, link,isActive } = await req.json();
 
-        if (!title || !link) {
-            return new Response(JSON.stringify({ error: 'Title and link are required' }), { 
-                status: 400,
-                headers: { 'Content-Type': 'application/json' }
-            });
-        }
 
         let imageUrl = null;
         let imagePublicId = null;
@@ -66,7 +60,8 @@ export const PUT = async (req, { params }) => {
         const updateData = { 
             title, 
             link,
-            ...(imageUrl && { image: { url: imageUrl, public_id: imagePublicId } })
+            ...(imageUrl && { image: { url: imageUrl, public_id: imagePublicId } }),
+            isActive
         };
 
         // Update the package in the database

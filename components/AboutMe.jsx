@@ -64,7 +64,7 @@ const AboutMe = () => {
 
       {/* Main Content */}
       <section className="content-inner md:p-10 p-4 overflow-hidden">
-      <div className="container mx-auto md:px-20 px-5">
+        <div className="container mx-auto md:px-20 px-5">
           <div className="flex flex-col lg:flex-row gap-10 items-stretch">
             {/* Left: Text and Accordion */}
             <div className="lg:w-1/2 flex flex-col justify-center overflow-y-auto">
@@ -157,10 +157,10 @@ const AboutMe = () => {
       </section>
 
       <section className="content-inner md:p-10 p-4 overflow-hidden">
-      <div className="container mx-auto md:px-20 px-5">
+        <div className="container mx-auto md:px-5 px-5">
           <div className="flex flex-col lg:flex-row gap-8 mb-10 items-center">
             {/* Left: Heading and Paragraph */}
-            <div className="w-full lg:w-[57%]">
+            <div className="w-full lg:w-[50%]">
               <h2 className="text-3xl md:text-5xl font-bold mb-4 text-black leading-tight">Our Team of Experts</h2>
               <p className="text-md text-gray-700 mb-4">
                 Behind Rishikesh Handmade Craft is a dedicated team of experienced professionals and industry veterans who share a deep passion for traditional Indian craftsmanship. Our core team includes expert artisans, designers, curators, and community leaders — many of whom have over 20 years of hands-on experience in the handicraft and cottage industry.
@@ -170,14 +170,14 @@ const AboutMe = () => {
               </p>
             </div>
             {/* Right: Two Images in a row (first two team members) */}
-            <div className=" hidden md:flex w-full lg:w-[43%] flex-row gap-8 items-start justify-center">
+            <div className=" hidden md:flex w-full lg:w-[50%] flex-row gap-8 items-start justify-center">
               {loading ? (
                 <div>Loading Team Member...</div>
               ) : teamMembers.length > 0 ? (
                 teamMembers.slice(0, 2).map((member, idx) => (
                   <div key={member._id || idx} className="flex flex-col items-center">
                     <div className={`relative w-72 h-72 rounded-2xl overflow-hidden shadow-lg ${idx === 0 ? "bg-[#f6e9da]" : "bg-[#d6f0fa]"} flex items-center justify-center`}>
-                      <Image src={member.image?.url || "/placeholder.jpeg"} alt={member.title} width={224} height={224} className="object-cover w-full h-full" />
+                      <Image src={member.image?.url || "/placeholder.jpeg"} alt={member.title} width={224} height={224} className="object-cover w-full h-full hover:scale-105 transition-all duration-300" />
                     </div>
                     <div className="mt-3 text-center">
                       <div className="font-bold text-lg">{member.title}</div>
@@ -192,14 +192,14 @@ const AboutMe = () => {
           </div>
 
           {/* Team Grid (remaining team members) */}
-          <div className="hidden md:flex grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-8 mb-10">
+          <div className="hidden md:flex grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 flex-wrap gap-7 mb-10">
             {loading ? (
               <div>Loading...</div>
             ) : teamMembers.length > 2 ? (
               teamMembers.slice(2).map((member, idx) => (
                 <div key={member._id || idx} className="flex flex-col items-center">
                   <div className="w-72 h-72 rounded-2xl overflow-hidden shadow-lg bg-[#d6f0fa] flex items-center justify-center">
-                    <Image src={member.image?.url || "/placeholder.jpeg"} alt={member.title} width={224} height={224} className="object-cover w-full h-full" />
+                    <Image src={member.image?.url || "/placeholder.jpeg"} alt={member.title} width={224} height={224} className="object-cover w-full h-full hover:scale-105 transition-all duration-300" />
                   </div>
                   <div className="mt-3 text-center">
                     <div className="font-bold text-lg">{member.title}</div>
@@ -218,7 +218,7 @@ const AboutMe = () => {
               teamMembers.map((member, idx) => (
                 <div key={member._id || idx} className="flex flex-col items-center">
                   <div className="md:w-72 w-full h-full md:h-72 rounded-2xl overflow-hidden shadow-lg bg-[#d6f0fa] flex items-center justify-center">
-                    <Image src={member.image?.url || "/placeholder.jpeg"} alt={member.title} width={224} height={224} className="object-cover w-full h-full" />
+                    <Image src={member.image?.url || "/placeholder.jpeg"} alt={member.title} width={224} height={224} className="object-cover w-full h-full hover:scale-105 transition-all duration-300" />
                   </div>
                   <div className="mt-3 text-center">
                     <div className="font-bold text-md">{member.title}</div>
@@ -288,7 +288,7 @@ const AboutMe = () => {
               </div>
             </div>
           </section> */}
-  
+
         </div>
       </section>
     </div>

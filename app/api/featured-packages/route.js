@@ -1,13 +1,31 @@
+import { NextResponse } from 'next/server';
 import connectDB from "@/lib/connectDB";
 import FeaturedPackageCard from "@/models/FeaturedPackageCard";
 
-export const GET = async (req) => {
+const shuffleArray = (array) => {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+};
+
+export const GET = async () => {
     try {
         await connectDB();
-        const packages = await FeaturedPackageCard.find({});
-        return new Response(JSON.stringify(packages), { status: 200 });
+        const packages = await FeaturedPackageCard.find({isActive:true});
+        const shuffledPackages = shuffleArray(packages);
+        return NextResponse.json({
+            success: true,
+            data: shuffledPackages
+        });
     } catch (error) {
-        return new Response("Failed to fetch featured packages", { status: 500 });
+        console.error('Error fetching packages:', error);
+        return NextResponse.json(
+            { success: false, message: 'Failed to fetch packages' },
+            { status: 500 }
+        );
     }
 };
 

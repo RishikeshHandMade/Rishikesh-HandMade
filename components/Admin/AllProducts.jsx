@@ -222,8 +222,6 @@ const AllProducts = () => {
               <th className="p-3 text-left">ID</th>
               <th className="p-3 text-center">Price</th>
               <th className="p-3 text-center">Stock</th>
-              <th className="p-3 text-center">Category</th>
-              <th className="p-3 text-center">Type</th>
               <th className="p-3 text-center">Artisan</th>
               <th className="p-3 text-center">Actions</th>
             </tr>
@@ -271,13 +269,11 @@ const AllProducts = () => {
                     {Array.isArray(product?.quantity?.variants) && product.quantity.variants.length > 0 && product.quantity.variants[0].qty > 0 ? "In Stock" : "Out of Stock"}
                   </span>
                 </td>
-                <td className="p-3 text-center">{product.categoryTag?.title || 'No Category'}</td>
-                <td className="p-3 text-center">{product.isDirect ? "Direct" : "Category"}</td>
                 <td className="p-3 text-center">{
                   product.artisan?.name ||
                   ((product.artisan?.firstName || "") + (product.artisan?.lastName ? " " + product.artisan.lastName : "")) ||
                   product.artisan?.name ||
-                  '-'
+                  'N/A'
                 }</td>
                 <td className="p-3 text-center flex gap-2 justify-center">
                   {/* <button

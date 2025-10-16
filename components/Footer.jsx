@@ -336,7 +336,7 @@ const Footer = () => {
                 </CardFooter>
             </Card>
             <div className="max-w-[25rem] md:max-w-[60rem] xl:max-w-7xl mx-auto font-barlow">
-                <p className="text-white text-center text-sm px-2">Buy Handicraft and Handloom Items Online | Home and Living Products for Sale | Buy Handloom and Handicraft Items | Handmade Home Décor and Utility for Sale | Buy Home Decor Items Online | Handloom Cushions Online | Buy Handmade Bhimal And Jute Accessories |  Handmade Handicraft Accessories for Sale | Handmade Floor Coverings Jute Bhimal Foot Door Mat Online Sale | Handmade Religious Items for Sale Online | Buy Handmade Jute Bhimal Woolen Footwear | Buy Handmade Jute Slippers  Footwear | Handcrafted Lighting Items Online | Handmade Office Stationery Jute File Folder  Items for Sale | Jute Bags for Shopping</p>
+                <p className="text-white text-center text-sm px-2">Buy Handicraft and Handloom Items Online | Home and Living Products for Sale | Buy Handloom and Handicraft Items | Handmade Home Décor and Utility for Sale | Buy Home Decor Items Online | Handloom Cushions Online | Buy Handmade Bhimal And Jute Accessories |  Handmade Handicraft Accessories for Sale | Handmade Floor Coverings Jute Bhimal Foot Door Mat Online Sale | Handmade Religious Items for Sale Online | Buy Handmade Jute Bhimal Woolen Footwear | Buy Handmade Jute Slippers  Footwear | Handcrafted Lighting Items Online | Handmade Office Stationery Jute File Folder  Items for Sale</p>
                 <p className="text-white font-bold text-center my-4">
                     &copy; <CurrentYear /> <Link href={'/'} className="font-bold text-white">Rishikesh Handmade</Link>. All rights reserved
                 </p>

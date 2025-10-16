@@ -10,6 +10,8 @@ import { Button } from "../ui/button";
 // import { deleteFileFromUploadthing } from "@/utils/Utapi"; // Removed UploadThing
 import { X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Switch } from "../ui/switch";
 const ManageFeaturedPackages = () => {
     const [packages, setPackages] = useState([]);
     const [editingPackage, setEditingPackage] = useState(null);
@@ -26,11 +28,12 @@ const ManageFeaturedPackages = () => {
     useEffect(() => {
         const fetchPackages = async () => {
             try {
-                const response = await fetch("/api/featured-packages");
+                const response = await fetch("/api/featured-packages/admin");
                 const data = await response.json();
-                setPackages(data);
+                console.log(data);
+                setPackages(data.data || []);
             } catch (error) {
-                toast.error("Failed to fetch Product");
+                toast.error("Failed to fetch Packages", error);
             }
         };
         fetchPackages();
@@ -71,8 +74,8 @@ const ManageFeaturedPackages = () => {
             setFormData({ title: "", image: { url: "", key: "" }, link: "" });
 
             // Refresh the list of packages
-            const updatedPackages = await fetch("/api/featured-packages").then((res) => res.json());
-            setPackages(updatedPackages);
+            const updatedPackages = await fetch("/api/featured-packages/admin").then((res) => res.json());
+            setPackages(updatedPackages.data || []);
         } catch (error) {
             toast.error(error.message);
         }
@@ -107,8 +110,8 @@ const ManageFeaturedPackages = () => {
             toast.success("Product deleted successfully");
 
             // Refresh the list of packages
-            const updatedPackages = await fetch("/api/featured-packages").then((res) => res.json());
-            setPackages(updatedPackages);
+            const updatedPackages = await fetch("/api/featured-packages/admin").then((res) => res.json());
+            setPackages(updatedPackages.data || []);
 
             // If we were editing this package, clear the form
             if (editingPackage === id) {
@@ -127,6 +130,29 @@ const ManageFeaturedPackages = () => {
         setShowDeleteModal(false);
         setPackageToDelete({ id: null, imageKey: null });
     };
+    const handleToggleFeatured = async (id, value) => {
+        try {
+            const response = await fetch(`/api/featured-packages/${id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ isActive: value }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to update featured status");
+            }
+
+            toast.success("Featured status updated successfully");
+
+            // Refresh the list of packages
+            const updatedPackages = await fetch("/api/featured-packages/admin").then((res) => res.json());
+            setPackages(updatedPackages.data || []);
+        } catch (error) {
+            toast.error(error.message);
+        }
+    };
 
     return (
         <div className="p-6 mt-12 mx-auto max-w-7xl w-full ">
@@ -135,9 +161,10 @@ const ManageFeaturedPackages = () => {
                 <Input name="title" placeholder="e.g. Add Product Title" value={formData.title} onChange={handleChange} required />
                 <Label>Link</Label>
                 <Input name="link" placeholder="e.g. Add Product Link" value={formData.link} onChange={handleChange} required />
-
+                <br />
                 {/* Uploadthing Image Upload */}
-
+                <Label>Image</Label>
+                <br />
                 {formData?.image?.url === "" && (
                     <>
                         <input
@@ -208,31 +235,84 @@ const ManageFeaturedPackages = () => {
                 <br />
 
                 <Button className="mt-4 bg-blue-600 hover:bg-blue-700" type="submit">
-                    {editingPackage ? "Update Product" : "Add Product"}
+                    {editingPackage ? "Update Packages" : "Add Packages"}
                 </Button>
             </form >
 
-            {/* Display Existing Packages */}
-            < div className="mt-6" >
-                <h2 className="text-xl font-bold">Existing Products</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-                    {packages.map((pkg) => (
-                        <div key={pkg._id} className="p-4 border rounded-lg shadow-md">
-                            <Image src={pkg.image.url} alt={pkg.title} width={300} height={200} className="rounded-md" />
-                            <h3 className="font-bold text-lg mt-2">{pkg.title}</h3>
-                            <Button onClick={() => handleEdit(pkg)} className="mt-2 bg-blue-600 hover:bg-blue-700">
-                                Edit
-                            </Button>
-                            <Button
-                                onClick={() => handleDelete(pkg._id, pkg.image.key)}
-                                className="bg-red-600 hover:bg-red-700 ml-2"
-                            >
-                                Delete
-                            </Button>
-                        </div>
-                    ))}
+            <div className="bg-white rounded shadow p-6">
+                <h4 className="mb-3 font-semibold text-lg">Manage Featured Products</h4>
+                <div className="overflow-x-auto">
+                    <Table className="min-w-full divide-y divide-gray-200">
+                        <TableHeader>
+                            <TableRow className="bg-gray-100">
+                                <TableHead className="px-4 py-3 text-center">S.No</TableHead>
+                                <TableHead className="px-4 py-3 text-center">Image</TableHead>
+                                <TableHead className="px-4 py-3 text-center">Title</TableHead>
+                                <TableHead className="px-4 py-3 text-center">Active</TableHead>
+                                <TableHead className="px-4 py-3 text-center">Action</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {packages.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={3} className="text-center py-4">No featured products found.</TableCell>
+                                </TableRow>
+                            ) : (
+                                packages.map((pkg, idx) => (
+                                    <TableRow key={pkg._id}>
+                                        <TableCell className="px-4 py-3 text-center font-medium">{idx + 1}</TableCell>
+                                        <TableCell className="px-4 py-3 text-center text-wrap">
+                                            {pkg.title}
+                                        </TableCell>
+                                        <TableCell className="px-4 py-3 text-center ">
+
+                                            <div className="w-24 h-24 rounded-lg overflow-hidden border flex items-center justify-center bg-white mx-auto">
+                                                <img
+                                                    src={pkg.image.url}
+                                                    alt="Blog Preview"
+                                                    className="w-full h-full object-cover mx-auto"
+                                                    onError={e => { e.target.style.display = 'none'; }}
+                                                />
+                                            </div>
+
+                                        </TableCell>
+
+                                        <TableCell className="px-4 py-3 text-center">
+                                            <Switch
+                                                checked={pkg.isActive}
+                                                onCheckedChange={(value) => handleToggleFeatured(pkg._id, value)}
+                                            >
+
+                                            </Switch>
+                                        </TableCell>
+                                        <TableCell className="px-4 py-3 text-center">
+                                            <div className="flex gap-2 justify-center">
+
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="bg-yellow-500 text-white px-3 py-1 rounded"
+                                                    onClick={() => handleEdit(pkg)}
+                                                >
+                                                    Edit
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="bg-red-500 text-white px-3 py-1 rounded"
+                                                    onClick={() => handleDelete(pkg._id)}
+                                                >
+                                                    Delete
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
                 </div>
-            </div >
+            </div>
             {/* Delete Confirmation Dialog */}
             <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
                 <DialogContent>

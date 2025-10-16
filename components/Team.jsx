@@ -42,21 +42,21 @@ const Team = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col lg:flex-row gap-8 mb-10 items-start">
             {/* Left: Heading and Paragraph */}
-            <div className="w-full lg:w-[57%]">
+            <div className="w-full lg:w-[50%]">
               <h2 className="text-xl md:text-4xl font-semibold mb-4 text-gray-800 leading-tight">Behind Rishikesh Handmade Craft is a dedicated team of experienced professionals and industry veterans who share a deep passion for traditional Indian craftsmanship.</h2>
               <p className="text-md md:text-xl text-gray-700 mb-4">
                 Our core team includes expert artisans, designers, curators, and community leaders — many of whom have over 20 years of hands-on experience in the handicraft and cottage industry.
               </p>
             </div>
             {/* Right: Two Images in a row (first two team members) */}
-            <div className=" hidden md:flex w-full lg:w-[43%] flex-row gap-8 items-start justify-center">
+            <div className=" hidden md:flex w-full lg:w-[50%] flex-row gap-8 items-start justify-center">
               {loading ? (
                 <div>Loading Team Member...</div>
               ) : teamMembers.length > 0 ? (
                 teamMembers.slice(0, 2).map((member, idx) => (
                   <div key={member._id || idx} className="flex flex-col items-center">
                     <div className={`relative w-72 h-72 rounded-2xl overflow-hidden shadow-lg ${idx === 0 ? "bg-[#f6e9da]" : "bg-[#d6f0fa]"} flex items-center justify-center`}>
-                      <Image src={member.image?.url || "/placeholder.jpeg"} alt={member.title} width={224} height={224} className="object-cover w-full h-full" />
+                      <Image src={member.image?.url || "/placeholder.jpeg"} alt={member.title} width={224} height={224} className="object-cover w-full h-full hover:scale-105 transition-all duration-300" />
                     </div>
                     <div className="mt-3 text-center">
                       <div className="font-bold text-lg">{member.title}</div>

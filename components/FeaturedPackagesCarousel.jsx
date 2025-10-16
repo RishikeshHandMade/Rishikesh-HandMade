@@ -77,7 +77,7 @@ export default function FeaturedPackagesCarousel({ featuredPackages: initialFeat
                         <CarouselItem key={item._id} className="pl-1 md:basis-1/2 lg:basis-1/3 xl:basis-1/3">
                             <div className="p-1">
                                 <Card>
-                                    <CardContent className="p-0 rounded-xl flex flex-col h-[420px] justify-between  bg-white rounded-xl shadow  flex flex-col  relative overflow-hidden group">
+                                    <CardContent className="p-0 flex flex-col h-[420px] justify-between  bg-white rounded-xl shadow  relative overflow-hidden group">
                                         <div className="relative w-full h-full rounded-lg overflow-hidden">
                                             <Image
                                                 src={item?.image?.url || item?.basicDetails?.thumbnail?.url || "/RandomTourPackageImages/u1.jpg"}
