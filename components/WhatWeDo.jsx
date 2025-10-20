@@ -34,12 +34,12 @@ const WhatWeDo = () => {
     <div className="w-full min-h-screen bg-[#fcf7f1]">
       {/* Banner */}
       <div className="relative w-full h-[100px] md:h-[320px] flex items-center justify-center">
-        <Image src="/bg7.jpg" alt="Banner" layout="fill" objectFit="cover" className="z-0 opacity-80" priority />
+        <Image src="/6th.jpg" alt="Banner" layout="fill" objectFit="cover" className="z-0 opacity-80" priority />
         <div className="absolute left-[10%] top-10 z-10 container w-fit mx-auto px-4 hidden md:flex flex-col justify-center h-full bg-white rounded-xl">
           <div className=" max-w-2xl flex-col items-center justify-center px-10">
             <h1 className="text-3xl  font-semibold text-black mb-2 drop-shadow-lg">The Impact of What We Do How <br /> We Make a Difference</h1>
             <div className="w-96 rounded-lg overflow-hidden shadow-lg">
-              <Image src="/pic7.jpg" alt="Intro" width={300} height={300} className="object-cover w-full h-full" />
+              <Image src="/7th.jpg" alt="Intro" width={300} height={300} className="object-cover w-full h-full" />
             </div>
           </div>
         </div>
@@ -47,7 +47,7 @@ const WhatWeDo = () => {
       <div className="md:hidden py-10 flex flex-col items-center justify-center">
         <h1 className="text-xl font-semibold text-center text-black mb-2 drop-shadow-lg">The Impact of What We Do How <br /> We Make a Difference</h1>
         <div className="w-96 rounded-lg overflow-hidden shadow-lg px-2">
-          <Image src="/pic7.jpg" alt="Intro" width={300} height={300} className="object-cover w-full h-full" />
+          <Image src="/7th.jpg" alt="Intro" width={300} height={300} className="object-cover w-full h-full" />
         </div>
       </div>
 
@@ -114,7 +114,7 @@ const WhatWeDo = () => {
             {/* Right Side - keep width fixed and separated */}
             <div className="lg:w-5/12 w-full flex items-center justify-center sticky top-20 self-start p-10 md:p-0">
             <div className="w-full max-w-md rounded-xl overflow-hidden bg-white shadow-lg">
-                <Image src="/Rishikesh.jpg" alt="Rishikesh" width={400} height={500} className="object-cover w-full h-full" />
+                <Image src="/8th.jpg" alt="Rishikesh" width={400} height={500} className="object-cover w-full h-full" />
               </div>
             </div>
           </div>

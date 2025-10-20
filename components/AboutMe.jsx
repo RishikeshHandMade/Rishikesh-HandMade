@@ -127,17 +127,17 @@ const AboutMe = () => {
             <div className="lg:w-1/2 min-h-[600px] h-full flex">
               <div className="grid grid-cols-5 gap-4 w-full ">
                 <div className="col-span-3">
-                  <Image src="/A1.jpg" alt="A1" width={900} height={400} className="rounded-lg shadow-lg object-cover w-full h-full" />
+                  <Image src="/1st.jpg" alt="A1" width={900} height={400} className="rounded-lg shadow-lg object-cover w-full h-full" />
                 </div>
                 <div className="col-span-2">
-                  <Image src="/A2.jpg" alt="A2" width={300} height={400} className="rounded-lg shadow-lg object-cover w-full h-full" />
+                  <Image src="/2nd.jpg" alt="A2" width={300} height={400} className="rounded-lg shadow-lg object-cover w-full h-full" />
                 </div>
 
                 <div className="col-span-5 row-span-2">
-                  <Image src="/A3.jpg" alt="A3" width={800} height={300} className="rounded-lg shadow-lg object-cover w-full h-auto" />
+                  <Image src="/3rd.jpg" alt="A3" width={800} height={300} className="rounded-lg shadow-lg object-cover w-full h-auto" />
                 </div>
                 <div className="col-span-5 row-span-2">
-                  <Image src="/A4.jpg" alt="A4" width={400} height={300} className="rounded-lg shadow-lg object-cover w-full h-auto" />
+                  <Image src="/4th.jpg" alt="A4" width={400} height={300} className="rounded-lg shadow-lg object-cover w-full h-auto" />
                 </div>
               </div>
             </div>

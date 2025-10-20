@@ -105,7 +105,162 @@ const Header = () => {
           : "block"
           } bg-[#fcf7f1] text-black border-b font-barlow tracking-wider w-full`}
       >
-        <TopAdvertisementMarquee />
+        <div className="hidden md:flex items-center">
+
+          <TopAdvertisementMarquee />
+          {/* Login/Cart section on the right */}
+
+          <div className="flex items-center justify-between gap-2 bg-orange-500 w-[40%]">
+            <div className="bg-black text-white py-[11px] px-2 h-full flex items-center gap-2">
+              <p className="text-sm">Follow</p>
+              <Link
+                target="_blank"
+                className="hover:scale-110 transition-all duration-300"
+                href={'https://share.google/RwYRUNBjlwGlwTxfL'}>
+                <Image
+                priority
+                  src="/GoogleLogo.png"
+                  alt="Logo"
+                  width={23}
+                  height={23}
+                />
+              </Link>
+              <Link
+                className="hover:scale-110 transition-all duration-300"
+                target="_blank"
+                href={'https://www.instagram.com/rishikeshhandmade09/'}
+              >
+                <Image
+priority
+src="/instaLogo.png"
+                  alt="Logo"
+                  width={23}
+                  height={23}
+                />
+              </Link>
+              <Link
+                href={'https://www.facebook.com/profile.php?id=100076229983946'}
+                target="_blank"
+                className="hover:scale-110 transition-all duration-300"
+              >
+                <Image
+                  src="/FbLogo.png"
+priority
+                  alt="Logo"
+                  width={23}
+                  height={23}
+                />
+              </Link>
+            </div>
+            <div className="relative" ref={profileMenuRef}>
+              {status === "loading" ? (
+                <Loader2 className="animate-spin text-blue-600" size={25} />
+              ) : isUser ? (
+                <>
+                  {/* Profile Picture Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsProfileOpen(!isProfileOpen);
+                    }}
+                    className="focus:outline-none border-dashed border-4 border-blue-600 rounded-full"
+                  >
+                    <Image
+                      src={session.user.image || "/user.png"}
+                      alt="Profile"
+                      width={44}
+                      height={44}
+                      className="rounded-full cursor-pointer w-8 h-8"
+                    />
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {isProfileOpen && (
+                    <div
+                      className="absolute top-10 right-0 mt-2 w-fit text-black bg-white shadow-lg rounded-lg border z-[999]"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <p className="px-4 pt-2 text-sm font-bold text-gray-700">{session.user.name}</p>
+                      <p className="px-4 pb-2 text-sm text-gray-700">{session.user.email}</p>
+                      <div className="h-px bg-gray-200" />
+                      <Link
+                        href="/dashboard?section=orders"
+                        className="flex items-center rounded-lg w-full text-left px-4 py-2 hover:bg-blue-100"
+                        onClick={() => setIsProfileOpen(false)}
+                      >Dashboard
+                      </Link>
+                      <button
+                        className="flex items-center rounded-lg w-full text-red-600 text-left px-4 py-2 hover:bg-blue-100 hover:underline"
+                        onClick={() => signOut()}
+                      >
+                        <LogOutIcon size={15} className="mr-2" /> Sign Out
+                      </button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="relative" ref={authDropdownRef}>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsAuthDropdownOpen(!isAuthDropdownOpen);
+                    }}
+                    className="flex flex-col items-center py-2 hover:underline hover:scale-105 transition-all duration-300 text-white"
+                  >
+
+                    <h2 className="text-sm">Login</h2>
+                  </button>
+                  <AnimatePresence>
+                    {isAuthDropdownOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute top-12 right-0 w-48 text-black bg-white shadow-lg rounded-lg border z-[9999]"
+
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Link
+                          href="/sign-in"
+                          onClick={() => setIsAuthDropdownOpen(false)}
+                          className="block px-4 py-2 hover:bg-blue-100 text-sm"
+                        >
+                          Sign In
+                        </Link>
+                        <Link
+                          href="/sign-up"
+                          onClick={() => setIsAuthDropdownOpen(false)}
+                          className="block px-4 py-2 hover:bg-blue-100 text-sm border-t border-gray-100"
+                        >
+                          Create Account
+                        </Link>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
+            </div>
+            <div className="w-[2px] bg-white h-6"></div>
+            <div className="flex items-center justify-between gap-5 pr-5">
+              <Link
+                target="_blank"
+                href="https://rishikeshnaturalhandicrafts.com/"
+                className="text-white text-sm hover:underline  hover:scale-105 transition-all duration-300"
+              >
+                About Producer Company
+              </Link>
+              <div className="w-[2px] bg-white h-6"></div>
+              <a
+                href="/RNFHPC Share Holders PDF.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white text-sm hover:underline hover:scale-105 transition-all duration-300">
+                List of Members
+              </a>
+            </div>
+          </div>
+        </div>
         <div className="md:flex hidden items-center justify-between gap-8 border-b border-gray-400 md:px-8 ">
           <div className="flex flex-row justify-between w-full items-center px-8">
             {/* Logo on the left */}
