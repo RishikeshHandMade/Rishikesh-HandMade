@@ -775,25 +775,25 @@ const RandomTourPackageSection = () => {
             </div>
           </div>
 
-          <section className="w-full py-8">
-            <div className="max-w-6xl mx-auto px-6">
+          <section className="w-full py-8 bg-white">
+            <div className="max-w-[90%] mx-auto">
               <div className="flex flex-col lg:flex-row items-center lg:items-start gap-6">
                 {/* Left - text + button */}
                 <div className="w-full lg:w-2/3">
-                  <p className="text-sm text-black mb-2">Producer Company</p>
+                  <p className="text-md text-black mb-2">Producer Company</p>
                   <h2 className="text-2xl sm:text-3xl lg:text-3xl font-extrabold tracking-tight text-black mb-4">
                     Rishikesh Natural Fiber Handicrafts Producer Company
                   </h2>
 
                   <div className="h-px w-full bg-black/10 mb-6" />
 
-                  <p className="text-sm text-black leading-relaxed mb-4">
+                  <p className="text-md text-black leading-relaxed mb-4">
                     Over the years, Rishikesh Natural Fibre Handicrafts Producer Company Ltd. has
                     successfully empowered 243 artisans, primarily underprivileged women, by
                     creating sustainable income opportunities through natural fibre-based handicrafts.
                   </p>
 
-                  <p className="text-sm text-black leading-relaxed mb-6">
+                  <p className="text-md text-black leading-relaxed mb-6">
                     We have established a strong grassroots production network, promoted eco-friendly
                     products across regional and national platforms, and contributed to preserving
                     traditional skills of Uttarakhand. Our efforts have not only improved livelihoods
@@ -909,57 +909,6 @@ const RandomTourPackageSection = () => {
               </Carousel>
             </div>
           )}
-          <section className="w-full py-12">
-            <div className="max-w-6xl mx-auto px-6 lg:px-10 flex flex-col lg:flex-row gap-10 items-start">
-              {/* Left - Image */}
-              <div className="w-full lg:w-1/2 relative">
-                <div className="relative z-10">
-                  <img
-                    src="/Banners.jpg"
-                    alt="Cluster artisans meeting"
-                    className="w-full rounded-lg shadow-lg object-contain"
-                  />
-                </div>
-                <div className="absolute top-5 right-[-20px] bottom-5 w-10 bg-blue-700 hidden lg:block"></div>
-              </div>
-
-              {/* Right - Text */}
-              <div className="w-full lg:w-1/2 text-gray-700">
-                <p className="text-sm font-semibold text-blue-700 uppercase tracking-wide mb-2">
-                  Under the AHVY Scheme of O/O DC(Handicrafts), Ministry of Textiles, Govt. of India
-                </p>
-
-                <h2 className="text-4xl font-bold text-blue-900 mb-6">
-                  Our <span className="text-blue-700">#Objective</span>
-                </h2>
-
-                <p className="text-md leading-relaxed mb-6 text-gray-600">
-                  To promote and develop handicrafts, handloom, and cottage industry products through production, design, processing, and marketing. The company aims to support artisans by organizing exhibitions, trade fairs, and marketing events in India and abroad, while providing technical, financial, and consultancy support to enhance the socio-economic growth of craft communities and strengthen the handicraft cluster.
-                </p>
-
-                <ul className="space-y-4 text-gray-700">
-                  <li className="flex items-start gap-3">
-                    <span className="text-blue-700 text-md">➤</span>
-                    <p className="text-sm">
-                      The objective will be held for the benefit of the cluster artisans in order to
-                      understand the concept of producer company functioning and role responsibility
-                      of the members of the producer company.
-                    </p>
-                  </li>
-
-                  <li className="flex items-start gap-3">
-                    <span className="text-blue-700 text-md">➤</span>
-                    <p className="text-sm">
-                      To spearhead the initiation of exploring the possibilities and potentialities of
-                      market promotion of handicraft products across the country and abroad in
-                      accordance with the new Look East policy etc.
-                    </p>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </section>
-  
 
 
 
@@ -981,10 +930,12 @@ const RandomTourPackageSection = () => {
           )}
 
         </div>
+      </section>
                 {/* <!-- Elfsight Facebook Feed | Untitled Facebook Feed --> */}
           <script src="https://static.elfsight.com/platform/platform.js" async></script>
           <div className="elfsight-app-668bfb4e-aa67-4b7c-8ae0-71c6f58234e2" data-elfsight-app-lazy></div>
-      </section>
+
+
 
     </>
   );

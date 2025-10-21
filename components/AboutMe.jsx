@@ -63,7 +63,7 @@ const AboutMe = () => {
       </div>
 
       {/* Main Content */}
-      <section className="content-inner md:p-10 p-4 overflow-hidden">
+      <section className="content-inner md:p-5 p-4 overflow-hidden">
         <div className="container mx-auto md:px-20 px-5">
           <div className="flex flex-col lg:flex-row gap-10 items-stretch">
             {/* Left: Text and Accordion */}
@@ -144,25 +144,13 @@ const AboutMe = () => {
           </div>
         </div>
       </section>
-
-      {/* Get In Touch Section */}
-      <section className="w-full bg-black py-5 text-white flex flex-col md:flex-row items-center justify-between  md:px-24 gap-6 ">
-        <div className="md:mb-0 md:px-3">
-          <h3 className="text-xl md:text-3xl font-bold gap-2 text-center md:text-start">Questions?
-            <br className="md:hidden" />
-            <span className="text-sm md:text-lg font-normal px-2">Our experts will help find the gear that’s right for you</span>
-          </h3>
-        </div>
-        <Link href="/contact" className="btn bg-white text-black font-bold px-8 py-3 rounded-lg shadow transition">Get In Touch</Link>
-      </section>
-
-      <section className="content-inner md:p-10 p-4 overflow-hidden">
+      <section className="content-inner md:p-5 p-4 overflow-hidden">
         <div className="container mx-auto md:px-5 px-5">
           <div className="flex flex-col lg:flex-row gap-8 mb-10 items-center">
             {/* Left: Heading and Paragraph */}
-            <div className="w-full lg:w-[50%]">
+            <div className="">
               <h2 className="text-3xl md:text-5xl font-bold mb-4 text-black leading-tight">Our Team of Experts</h2>
-              <p className="text-md text-gray-700 mb-4">
+              <p className="text-md text-gray-700 mb-4 text-wrap max-w-2xl">
                 Behind Rishikesh Handmade Craft is a dedicated team of experienced professionals and industry veterans who share a deep passion for traditional Indian craftsmanship. Our core team includes expert artisans, designers, curators, and community leaders — many of whom have over 20 years of hands-on experience in the handicraft and cottage industry.
                 <br />
                 <br />
@@ -170,7 +158,7 @@ const AboutMe = () => {
               </p>
             </div>
             {/* Right: Two Images in a row (first two team members) */}
-            <div className=" hidden md:flex w-full lg:w-[50%] flex-row gap-8 items-start justify-center">
+            <div className=" hidden md:flex flex-row gap-8 items-start justify-center">
               {loading ? (
                 <div>Loading Team Member...</div>
               ) : teamMembers.length > 0 ? (
@@ -185,14 +173,12 @@ const AboutMe = () => {
                     </div>
                   </div>
                 ))
-              ) : (
-                <div>No team members found.</div>
-              )}
+              ) : null}
             </div>
           </div>
 
           {/* Team Grid (remaining team members) */}
-          <div className="hidden md:flex grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 flex-wrap gap-7 mb-10">
+          <div className="hidden md:flex grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 flex-wrap gap-7 mb-10 mx-auto w-full xl:px-0">
             {loading ? (
               <div>Loading...</div>
             ) : teamMembers.length > 2 ? (

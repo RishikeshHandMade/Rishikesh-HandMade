@@ -23,7 +23,7 @@ export default function TopAdvertisementMarquee() {
   if (banners.length === 0) return null;
 
   return (
-    <div className="bg-orange-500 overflow-hidden w-[60%] py-[6px]">
+    <div className="bg-orange-500 overflow-hidden w-[70%] py-[6px]">
       <div
         className="relative flex h-10 md:h-8 items-center"
         onMouseEnter={() => setIsPaused(true)}
@@ -84,7 +84,7 @@ export default function TopAdvertisementMarquee() {
         }
 
         .animate-marquee {
-          animation: marquee 10s linear infinite;
+          animation: marquee 5s linear infinite;
           display: flex;
           align-items: center;
           min-width: max-content;
@@ -93,7 +93,7 @@ export default function TopAdvertisementMarquee() {
 
         @media (min-width: 768px) {
           .animate-marquee {
-            animation-duration: 10s;
+            animation-duration: 5s;
             gap: 2rem;
           }
         }
