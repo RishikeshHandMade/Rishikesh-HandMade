@@ -348,7 +348,7 @@ const ArtisanDetails = ({ artisan }) => {
               <div className="font-bold text-md flex items-center"> Artisan No: <span className="font-normal text-md">{artisan.artisanNumber || 'Artisan Number Not Available'}</span></div>
               <div className="text-md font-semibold text-black">{artisan.yearsOfExperience || '0'} Years of Experience</div>
               <div className="font-bold text-md mt-2">Specializations:</div>
-              <div className="flex gap-3 flex-wrap mb-2 px-10">
+              <div className="flex gap-3 flex-wrap mb-2 w-[500px] px-2">
                 {(artisan.specializations || ['No Specializations']).map((spec, i) => (
                   <span key={i} className="bg-gray-200 rounded-full px-2 md:px-4 py-1 text-sm md:text-base font-semibold tracking-tight border border-gray-300">{spec}</span>
                 ))}
@@ -1227,10 +1227,6 @@ const ArtisanDetails = ({ artisan }) => {
               };
               return (
                 <div key={card.id} className="relative rounded-2xl overflow-hidden shadow-md group transition-all h-full  w-[340px]  flex flex-col bg-[#fbeff2] ">
-                  {/* Date Badge */}
-                  <div className="absolute top-5 left-5 z-20 flex items-center gap-2">
-                    <span className="bg-white rounded px-3 py-1 text-md font-bold shadow text-gray-800">{card.subtitle}</span>
-                  </div>
                   {/* Card Image */}
                   <div className="relative w-full h-96">
                     <img
@@ -1245,16 +1241,16 @@ const ArtisanDetails = ({ artisan }) => {
                     <div>
                       <Link
                         href={`/artisan/${card.slug}`}
-                        className="font-bold text-2xl text-white mb-3 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
+                        className="font-bold text-2xl text-white mb-1 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
                         title={card.name}
                       >
                         {card.name}
                       </Link>
-                      <div className="text-md text-white drop-shadow-md">{card.title}</div>
+                      {/* <div className="text-md text-white drop-shadow-md">{card.title}</div> */}
                     </div>
                     {/* Arrow Button with Socials on Hover */}
                     <div className="relative group/arrow">
-                      <button className="bg-white text-black rounded-full w-12 h-12 flex items-center justify-center shadow transition group-hover/arrow:bg-[#e84393] group-hover/arrow:text-white">
+                      <button className="bg-white text-black rounded-full w-10 h-10 flex items-center justify-center shadow transition group-hover/arrow:bg-[#e84393] group-hover/arrow:text-white">
                         <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                         </svg>
@@ -1338,10 +1334,6 @@ const ArtisanDetails = ({ artisan }) => {
                   return (
                     <CarouselItem key={card.id} className="pl-5 md:basis-1/2 lg:basis-1/4 min-w-0 snap-start">
                       <div className="relative rounded-2xl overflow-hidden shadow-md group transition-all h-full flex flex-col bg-[#fbeff2]">
-                        {/* Date Badge */}
-                        <div className="absolute top-5 left-5 z-20 flex items-center gap-2">
-                          <span className="bg-white rounded px-3 py-1 text-md font-bold shadow text-gray-800">{card.subtitle}</span>
-                        </div>
                         {/* Card Image */}
                         <div className="relative w-full h-96">
                           <img
@@ -1361,11 +1353,11 @@ const ArtisanDetails = ({ artisan }) => {
                             >
                               {card.name}
                             </Link>
-                            <div className="text-md text-white drop-shadow-md">{card.title}</div>
+                            {/* <div className="text-md text-white drop-shadow-md">{card.title}</div> */}
                           </div>
                           {/* Arrow Button with Socials on Hover */}
                           <div className="relative group/arrow">
-                            <button className="bg-white text-black rounded-full w-12 h-12 flex items-center justify-center shadow transition group-hover/arrow:bg-[#e84393] group-hover/arrow:text-white">
+                            <button className="bg-white text-black rounded-full w-10 h-10 flex items-center justify-center shadow transition group-hover/arrow:bg-[#e84393] group-hover/arrow:text-white">
                               <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                               </svg>
@@ -1455,10 +1447,6 @@ const ArtisanDetails = ({ artisan }) => {
                   return (
                     <CarouselItem key={card.id} className="pl-5 md:basis-1/2 lg:basis-1/4 min-w-0 snap-start">
                       <div className="relative rounded-2xl overflow-hidden shadow-md group transition-all h-full flex flex-col bg-[#fbeff2]">
-                        {/* Date Badge */}
-                        <div className="absolute top-5 left-5 z-20 flex items-center gap-2">
-                          <span className="bg-white rounded px-3 py-1 text-md font-bold shadow text-gray-800">{card.subtitle}</span>
-                        </div>
                         {/* Card Image */}
                         <div className="relative w-full h-96">
                           <img
@@ -1478,11 +1466,11 @@ const ArtisanDetails = ({ artisan }) => {
                             >
                               {card.name}
                             </Link>
-                            <div className="text-md text-white drop-shadow-md">{card.title}</div>
+                            {/* <div className="text-md text-white drop-shadow-md">{card.title}</div> */}
                           </div>
                           {/* Arrow Button with Socials on Hover */}
                           <div className="relative group/arrow">
-                            <button className="bg-white text-black rounded-full w-12 h-12 flex items-center justify-center shadow transition group-hover/arrow:bg-[#e84393] group-hover/arrow:text-white">
+                            <button className="bg-white text-black rounded-full w-10 h-10 flex items-center justify-center shadow transition group-hover/arrow:bg-[#e84393] group-hover/arrow:text-white">
                               <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                               </svg>
