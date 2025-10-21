@@ -153,13 +153,13 @@ const Header = () => {
               </Link>
             </div>
             <div className="w-[2px] bg-white h-6"></div>
-            <div className="flex items-center justify-between gap-5 px-2">
+            <div className="flex items-center justify-between gap-5 px-5">
               <Link
                 target="_blank"
                 href="https://rishikeshnaturalhandicrafts.com/"
                 className="text-white text-sm hover:underline  hover:scale-105 transition-all duration-300 text-nowrap"
               >
-                About Producer Company
+              Producer Company
               </Link>
               <div className="w-[2px] bg-white h-6"></div>
               <a

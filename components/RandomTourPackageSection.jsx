@@ -418,7 +418,7 @@ const RandomTourPackageSection = () => {
           {/* Artisan Carousel Section */}
           <div className="w-full py-10 md:py-20">
             {/* Desktop: Grid/List */}
-            <div className="w-full max-w-[90%] mx-auto mb-16">
+            <div className="w-full max-w-[90%] mx-auto">
               <div className="flex flex-col md:flex-row items-start gap-5">
                 {/* Left: Heading and description */}
                 <div className="flex-1 flex flex-col justify-center md:pr-8">
@@ -474,7 +474,7 @@ const RandomTourPackageSection = () => {
                     };
                     return (
                       <div key={card.id} className="relative rounded-2xl shadow-md group transition-all h-full w-[340px] flex flex-col bg-[#fbeff2] overflow-hidden">
-             
+
                         {/* Card Image */}
                         <div className="relative w-full h-96">
                           <img
@@ -483,18 +483,30 @@ const RandomTourPackageSection = () => {
                             className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
                             style={{ objectFit: 'cover' }}
                           />
+
+                          <Link
+                            href={`/artisan/${card.slug}`}
+                            className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                          >
+                            <span className="bg-white text-black font-medium px-4 py-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                              View Details
+                            </span>
+                          </Link>
                         </div>
                         {/* Card Content Overlay */}
-                        <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-6 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
-                          <div>
+                        <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-4 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
+                          <div className="flex flex-col">
                             <Link
                               href={`/artisan/${card.slug}`}
-                              className="font-bold text-2xl text-white mb-3 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
+                              className="font-bold text-2xl text-white mb-2 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
                               title={card.name}
                             >
                               {card.name}
                             </Link>
-                            {/* <div className="text-md text-white drop-shadow-md">{card.title}</div> */}
+                            {/* Date Badge */}
+                            {/* <div className="absolute top-5 left-5 z-20 flex items-center gap-2"> */}
+                            <span className="text-white rounded text-md text-wrap font-bold shadow">{card.subtitle}</span>
+                            {/* </div> */}
                           </div>
                           {/* Arrow Button with Socials on Hover */}
                           <div className="relative group/arrow">
@@ -537,7 +549,7 @@ const RandomTourPackageSection = () => {
               {artisan && artisan.length > 2 && (
                 <div className="hidden md:flex mt-10">
                   <Carousel className="w-full">
-                    <CarouselContent className="flex gap-4">
+                    <CarouselContent className="flex ">
                       {artisan.slice(2).map((item, idx) => {
                         const card = {
                           id: item._id || idx,
@@ -590,18 +602,29 @@ const RandomTourPackageSection = () => {
                                   className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
                                   style={{ objectFit: 'cover' }}
                                 />
+                                <Link
+                                  href={`/artisan/${card.slug}`}
+                                  className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                >
+                                  <span className="bg-white text-black font-medium px-4 py-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                                    View Details
+                                  </span>
+                                </Link>
                               </div>
                               {/* Card Content Overlay */}
-                              <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-6 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
-                                <div>
+                              <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-4 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
+                                <div className="flex flex-col">
                                   <Link
                                     href={`/artisan/${card.slug}`}
-                                    className="font-bold text-2xl text-white mb-3 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
+                                    className="font-bold text-2xl text-white mb-2 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
                                     title={card.name}
                                   >
                                     {card.name}
                                   </Link>
-                                  {/* <div className="text-md text-white drop-shadow-md">{card.title}</div> */}
+                                  {/* Date Badge */}
+                                  {/* <div className="absolute top-5 left-5 z-20 flex items-center gap-2"> */}
+                                  <span className="text-white rounded text-md text-wrap font-bold shadow">{card.subtitle}</span>
+                                  {/* </div> */}
                                 </div>
                                 {/* Arrow Button with Socials on Hover */}
                                 <div className="relative group/arrow">
@@ -611,7 +634,7 @@ const RandomTourPackageSection = () => {
                                     </svg>
                                   </button>
                                   {/* Social Icons: show on arrow hover */}
-                                  <div className="absolute bottom-14 right-0 flex flex-col gap-4 opacity-0 group-hover/arrow:opacity-100 transition-opacity duration-300 z-30 items-center">
+                                  <div className="absolute bottom-12 right-0 flex flex-col gap-4 opacity-0 group-hover/arrow:opacity-100 transition-opacity duration-300 z-30 items-center">
                                     {card.socials.slice(0, 6).map((s, i) => (
                                       <a
                                         key={i}
@@ -619,9 +642,9 @@ const RandomTourPackageSection = () => {
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className={`
-                                bg-white rounded-full w-12 h-12 flex items-center justify-center shadow hover:bg-gray-100 transition
-                                transform translate-y-5 group-hover/arrow:translate-y-0
-                              `}
+                          bg-white rounded-full w-12 h-12 flex items-center justify-center shadow hover:bg-gray-100 transition
+                          transform translate-y-5 group-hover/arrow:translate-y-0
+                        `}
                                         style={{
                                           transitionProperty: 'transform, opacity, background-color, box-shadow',
                                           transitionDuration: '0.6s',
@@ -704,18 +727,29 @@ const RandomTourPackageSection = () => {
                                   className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
                                   style={{ objectFit: 'cover' }}
                                 />
+                                <Link
+                                  href={`/artisan/${card.slug}`}
+                                  className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                >
+                                  <span className="bg-white text-black font-medium px-4 py-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                                    View Details
+                                  </span>
+                                </Link>
                               </div>
                               {/* Card Content Overlay */}
-                              <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-6 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
-                                <div>
+                              <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-4 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
+                                <div className="flex flex-col">
                                   <Link
                                     href={`/artisan/${card.slug}`}
-                                    className="font-bold text-2xl text-white mb-3 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
+                                    className="font-bold text-2xl text-white mb-2 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
                                     title={card.name}
                                   >
                                     {card.name}
                                   </Link>
-                                  {/* <div className="text-md text-white drop-shadow-md">{card.title}</div> */}
+                                  {/* Date Badge */}
+                                  {/* <div className="absolute top-5 left-5 z-20 flex items-center gap-2"> */}
+                                  <span className="text-white rounded text-md text-wrap font-bold shadow">{card.subtitle}</span>
+                                  {/* </div> */}
                                 </div>
                                 {/* Arrow Button with Socials on Hover */}
                                 <div className="relative group/arrow">
@@ -725,7 +759,7 @@ const RandomTourPackageSection = () => {
                                     </svg>
                                   </button>
                                   {/* Social Icons: show on arrow hover */}
-                                  <div className="absolute bottom-14 right-0 flex flex-col gap-4 opacity-0 group-hover/arrow:opacity-100 transition-opacity duration-300 z-30 items-center">
+                                  <div className="absolute bottom-12 right-0 flex flex-col gap-4 opacity-0 group-hover/arrow:opacity-100 transition-opacity duration-300 z-30 items-center">
                                     {card.socials.slice(0, 6).map((s, i) => (
                                       <a
                                         key={i}
@@ -733,9 +767,9 @@ const RandomTourPackageSection = () => {
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className={`
-                                bg-white rounded-full w-12 h-12 flex items-center justify-center shadow hover:bg-gray-100 transition
-                                transform translate-y-5 group-hover/arrow:translate-y-0
-                              `}
+                          bg-white rounded-full w-12 h-12 flex items-center justify-center shadow hover:bg-gray-100 transition
+                          transform translate-y-5 group-hover/arrow:translate-y-0
+                        `}
                                         style={{
                                           transitionProperty: 'transform, opacity, background-color, box-shadow',
                                           transitionDuration: '0.6s',

@@ -32,10 +32,6 @@ const LeftTextBlock = () => (
 const ArtisanCard = ({ card }) => {
     return (
         <div key={card.id} className="relative group transition-all h-full w-[340px] flex flex-col bg-[#fbeff2] overflow-hidden">
-            {/* Date Badge */}
-            <div className="absolute top-5 left-5 z-20 flex items-center gap-2">
-                <span className="bg-white rounded px-3 py-1 text-md font-bold shadow text-gray-800">{card.subtitle}</span>
-            </div>
             {/* Card Image */}
             <div className="relative w-full h-96">
                 <img
@@ -44,18 +40,29 @@ const ArtisanCard = ({ card }) => {
                     className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
                     style={{ objectFit: 'cover' }}
                 />
+                <Link
+                    href={`/artisan/${card.slug}`}
+                    className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                >
+                    <span className="bg-white text-black font-medium px-4 py-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                        View Details
+                    </span>
+                </Link>
             </div>
             {/* Card Content Overlay */}
-            <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-6 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
-                <div>
+            <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-4 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
+                <div className="flex flex-col">
                     <Link
-                        href={`/artisan/${card.id}`}
-                        className="font-bold text-2xl text-white mb-3 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
+                        href={`/artisan/${card.slug}`}
+                        className="font-bold text-2xl text-white mb-2 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
                         title={card.name}
                     >
                         {card.name}
                     </Link>
-                    <div className="text-md text-white drop-shadow-md">{card.title}</div>
+                    {/* Date Badge */}
+                    {/* <div className="absolute top-5 left-5 z-20 flex items-center gap-2"> */}
+                    <span className="text-white rounded text-md text-wrap font-bold shadow">{card.subtitle}</span>
+                    {/* </div> */}
                 </div>
                 {/* Arrow Button with Socials on Hover */}
                 <div className="relative group/arrow">
@@ -72,9 +79,10 @@ const ArtisanCard = ({ card }) => {
                                 href={s.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className={
-                                    `bg-white rounded-full w-12 h-12 flex items-center justify-center shadow hover:bg-gray-100 transition transform translate-y-5 group-hover/arrow:translate-y-0`
-                                }
+                                className={`
+                          bg-white rounded-full w-12 h-12 flex items-center justify-center shadow hover:bg-gray-100 transition
+                          transform translate-y-5 group-hover/arrow:translate-y-0
+                        `}
                                 style={{
                                     transitionProperty: 'transform, opacity, background-color, box-shadow',
                                     transitionDuration: '0.6s',
@@ -163,6 +171,7 @@ const ArtisanList = () => {
                                             {firstRowArtisans.map((item, idx) => {
                                                 const card = {
                                                     id: item._id || idx,
+                                                    slug: item.slug,
                                                     name: `${item.title ? item.title + " " : ""}${item.firstName || ''} ${item.lastName || ''}`.trim() || "Unknown Artisan",
                                                     date: item.createdAt ? new Date(item.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase() : "N/A",
                                                     image: item.profileImage?.url || item.image || "/bg-custom-1.jpg",
@@ -243,11 +252,11 @@ const ArtisanList = () => {
                                 return (
                                     <div key={item._id || idx} className="relative flex flex-col md:flex-row bg-[#f8f5ef] rounded-2xl my-2 md:items-center gap-6">
                                         {/* Image */}
-                                        <div className="flex-shrink-0 flex justify-center items-center">
+                                        <div className="flex-shrink-0 flex justify-center items-center overflow-hidden">
                                             <img
                                                 src={item.profileImage?.url || item.image || "/bg-custom-1.jpg"}
                                                 alt={item.firstName || 'Artisan'}
-                                                className="w-72 h-72 rounded-xl object-cover"
+                                                className="w-72 h-72 rounded-xl object-cover hover:scale-105 transition-all duration-300"
                                             />
                                         </div>
                                         {/* Details */}
@@ -260,7 +269,7 @@ const ArtisanList = () => {
                                                         {`${item.title ? item.title + " " : ""}${item.firstName || ''} ${item.lastName || ''}`.trim() || "Unknown Artisan"}
                                                     </h3>
                                                     {/* Reviews with stars */}
-                                                    <div className="flex items-center gap-1 flex-shrink-0">
+                                                    <div className="flex items-center justify-between px-5 gap-1 flex-shrink-0">
                                                         {(() => {
                                                             const avgRating =
                                                                 item.promotions && item.promotions.length > 0
@@ -304,7 +313,7 @@ const ArtisanList = () => {
                                             <div className="font-bold text-md">
                                                 {(item.artisanStories?.shortDescription?.split(" ").length > 40)
                                                     ? item.artisanStories.shortDescription.split(" ").slice(0, 40).join(" ") + "..."
-                                                    : item.artisanStories?.shortDescription || "No Story"}
+                                                    : item.artisanStories?.shortDescription || ""}
                                             </div>
 
                                             {/* Social icons top right */}
@@ -339,8 +348,9 @@ const ArtisanList = () => {
                                                 )}
                                             </div>
                                             {/* Eye icon bottom right */}
-                                            <Link href={`/artisan/${item._id || idx}`} className="absolute bottom-4 right-4 bg-black text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg hover:bg-[#ff4f00] transition-all z-10" title="View Artisan Details">
+                                            <Link href={`/artisan/${item.slug}`} className="absolute bottom-4 right-4 bg-black text-white rounded px-5 py-1 gap-2 flex items-center justify-center shadow-lg hover:bg-[#ff4f00] transition-all z-10" title="View Artisan Details">
                                                 <Eye size={28} />
+                                                View Details
                                             </Link>
                                         </div>
                                     </div>
