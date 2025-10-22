@@ -389,6 +389,96 @@ const ArtisanList = () => {
                     </div>
                 )}
             </div>
+                    <section className="w-full py-8 bg-white">
+                        <div className="max-w-[90%] mx-auto">
+                          <div className="flex flex-col lg:flex-row items-center lg:items-between gap-5">
+                            {/* Left - text + button */}
+                            <div className="w-full lg:w-[80%] px-5">
+                              <p className="text-md text-black mb-2">Producer Company</p>
+                              <h2 className="text-2xl sm:text-3xl lg:text-3xl font-extrabold tracking-tight text-black mb-4">
+                                Rishikesh Natural Fiber Handicrafts Producer Company
+                              </h2>
+            
+                              <div className="h-px w-full bg-black/10 mb-6" />
+            
+                              <p className="text-md text-black leading-relaxed mb-4">
+                                Over the years, Rishikesh Natural Fibre Handicrafts Producer
+                                Company Ltd. has successfully empowered 243 artisans,
+                                primarily underprivileged women, by creating sustainable
+                                income opportunities through natural fibre-based
+                                handicrafts.
+                              </p>
+            
+                              <p className="text-md text-black leading-relaxed mb-6">
+                                We have established a strong grassroots production network,
+                                promoted eco-friendly products across regional and national
+                                platforms, and contributed to preserving traditional skills
+                                of Uttarakhand. Our efforts have not only improved
+                                livelihoods but also supported environmental conservation
+                                through the use of locally sourced, biodegradable materials.
+                              </p>
+            
+                              {/* Buttons */}
+                              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mt-10">
+                                <Link
+                                  className="bg-black text-white px-6 py-3 rounded-md font-medium hover:bg-gray-900 transition flex items-center justify-center gap-2"
+                                  href={"https://rishikeshnaturalhandicrafts.com/"}
+                                >
+                                  More About Us
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-4 w-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth="2"
+                                      d="M9 5l7 7-7 7"
+                                    />
+                                  </svg>
+                                </Link>
+            
+                                <Link
+                                  className="bg-black text-white px-6 py-3 rounded-md font-medium hover:bg-gray-900 transition flex items-center justify-center gap-2"
+                                  href={"/RNFHPC Share Holders PDF.pdf"}
+                                >
+                                  Company Members
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-4 w-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth="2"
+                                      d="M9 5l7 7-7 7"
+                                    />
+                                  </svg>
+                                </Link>
+                              </div>
+                            </div>
+                            <div className="h-80 w-[3px] bg-black"></div>
+            
+                            {/* Right - logo */}
+                            <div className="w-full lg:w-[20%] flex justify-center">
+                              <div className="max-w-[220px] lg:max-w-[260px] p-4 bg-white rounded-lg flex items-center justify-center">
+                                {/* Replace src with your actual image path. example: '/images/logo.jpg' or import locally */}
+                                <img
+                                  src="/image.jpg"
+                                  alt="Rishikesh logo"
+                                  className="w-full h-auto object-contain"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </section>
         </div>
     );
 };

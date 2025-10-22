@@ -885,11 +885,11 @@ const RandomTourPackageSection = () => {
                         return (
                           <CarouselItem
                             key={card.id}
-                            className="pl-5 md:basis-1/2 lg:basis-1/4 min-w-0 snap-start"
+                            className="pl-5 md:basis-1/2 lg:basis-1/5 min-w-0 snap-start"
                           >
                             <div className="relative rounded-2xl overflow-hidden shadow-md group transition-all h-full flex flex-col bg-[#fbeff2]">
                               {/* Card Image */}
-                              <div className="relative w-full h-96">
+                              <div className="relative w-full h-80">
                                 <img
                                   src={card.image}
                                   alt={card.name}
@@ -910,21 +910,21 @@ const RandomTourPackageSection = () => {
                                 <div className="flex flex-col">
                                   <Link
                                     href={`/artisan/${card.slug}`}
-                                    className="font-bold text-2xl text-white mb-2 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
+                                    className="font-bold text-xl text-white mb-2 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
                                     title={card.name}
                                   >
                                     {card.name}
                                   </Link>
                                   {/* Date Badge */}
                                   {/* <div className="absolute top-5 left-5 z-20 flex items-center gap-2"> */}
-                                  <span className="text-white rounded text-md text-wrap font-bold shadow">
+                                  <span className="text-white rounded text-sm text-wrap font-bold shadow">
                                     {card.subtitle}
                                   </span>
                                   {/* </div> */}
                                 </div>
                                 {/* Arrow Button with Socials on Hover */}
                                 <div className="relative group/arrow">
-                                  <button className="bg-white text-black rounded-full w-12 h-12 flex items-center justify-center shadow transition group-hover/arrow:bg-[#e84393] group-hover/arrow:text-white">
+                                  <button className="bg-white text-black rounded-full w-10 h-10 flex items-center justify-center shadow transition group-hover/arrow:bg-[#e84393] group-hover/arrow:text-white">
                                     <svg
                                       xmlns="http://www.w3.org/2000/svg"
                                       className="w-6 h-6"
@@ -949,7 +949,7 @@ const RandomTourPackageSection = () => {
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className={`
-                          bg-white rounded-full w-12 h-12 flex items-center justify-center shadow hover:bg-gray-100 transition
+                          bg-white rounded-full w-9 h-9 flex items-center justify-center shadow hover:bg-gray-100 transition
                           transform translate-y-5 group-hover/arrow:translate-y-0
                         `}
                                         style={{
@@ -1210,75 +1210,6 @@ const RandomTourPackageSection = () => {
               )}
             </div>
           </div>
-
-          <section className="w-full py-8 bg-white">
-            <div className="max-w-[90%] mx-auto">
-              <div className="flex flex-col lg:flex-row items-center lg:items-start gap-6">
-                {/* Left - text + button */}
-                <div className="w-full lg:w-2/3">
-                  <p className="text-md text-black mb-2">Producer Company</p>
-                  <h2 className="text-2xl sm:text-3xl lg:text-3xl font-extrabold tracking-tight text-black mb-4">
-                    Rishikesh Natural Fiber Handicrafts Producer Company
-                  </h2>
-
-                  <div className="h-px w-full bg-black/10 mb-6" />
-
-                  <p className="text-md text-black leading-relaxed mb-4">
-                    Over the years, Rishikesh Natural Fibre Handicrafts Producer
-                    Company Ltd. has successfully empowered 243 artisans,
-                    primarily underprivileged women, by creating sustainable
-                    income opportunities through natural fibre-based
-                    handicrafts.
-                  </p>
-
-                  <p className="text-md text-black leading-relaxed mb-6">
-                    We have established a strong grassroots production network,
-                    promoted eco-friendly products across regional and national
-                    platforms, and contributed to preserving traditional skills
-                    of Uttarakhand. Our efforts have not only improved
-                    livelihoods but also supported environmental conservation
-                    through the use of locally sourced, biodegradable materials.
-                  </p>
-
-                  <div className="flex items-center gap-4">
-                    <a
-                      href="https://rishikeshnaturalhandicrafts.com/"
-                      target="_blank"
-                      className="inline-flex items-center gap-3 bg-black text-white px-5 py-3 rounded-md shadow-md hover:bg-gray-900 transition"
-                      aria-label="Contact us"
-                    >
-                      <span>Contact Us</span>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10.293 15.707a1 1 0 010-1.414L13.586 11H4a1 1 0 110-2h9.586l-3.293-3.293a1 1 0 111.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </a>
-                  </div>
-                </div>
-
-                {/* Right - logo */}
-                <div className="w-full lg:w-1/3 flex justify-center lg:justify-end">
-                  <div className="max-w-[220px] lg:max-w-[260px] p-4 bg-white rounded-lg flex items-center justify-center">
-                    {/* Replace src with your actual image path. example: '/images/logo.jpg' or import locally */}
-                    <img
-                      src="/image.jpg"
-                      alt="Rishikesh logo"
-                      className="w-full h-auto object-contain"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
           {consultancyBanner.length > 0 && (
             <div className="w-full px-2 md:py-10">
               <h2 className="text-2xl md:text-3xl font-bold text-center mb-2 uppercase">
@@ -1432,8 +1363,9 @@ const RandomTourPackageSection = () => {
 
           {/* Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mt-10">
-            <Link className="bg-black text-white px-6 py-3 rounded-md font-medium hover:bg-gray-900 transition flex items-center justify-center gap-2"
-            href={"/about-us"}
+            <Link
+              className="bg-black text-white px-6 py-3 rounded-md font-medium hover:bg-gray-900 transition flex items-center justify-center gap-2"
+              href={"https://rishikeshnaturalhandicrafts.com/"}
             >
               More About Us
               <svg
@@ -1452,8 +1384,9 @@ const RandomTourPackageSection = () => {
               </svg>
             </Link>
 
-            <Link className="bg-black text-white px-6 py-3 rounded-md font-medium hover:bg-gray-900 transition flex items-center justify-center gap-2"
-            href={"/allArtisans"}
+            <Link
+              className="bg-black text-white px-6 py-3 rounded-md font-medium hover:bg-gray-900 transition flex items-center justify-center gap-2"
+              href={"/RNFHPC Share Holders PDF.pdf"}
             >
               Company Members
               <svg

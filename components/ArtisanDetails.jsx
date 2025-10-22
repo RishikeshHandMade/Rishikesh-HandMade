@@ -1345,10 +1345,10 @@ const ArtisanDetails = ({ artisan }) => {
                     ],
                   };
                   return (
-                    <CarouselItem key={card.id} className="pl-5 md:basis-1/2 lg:basis-1/4 min-w-0 snap-start">
+                    <CarouselItem key={card.id} className="pl-5 md:basis-1/2 lg:basis-1/5 min-w-0 snap-start">
                       <div className="relative rounded-2xl overflow-hidden shadow-md group transition-all h-full flex flex-col bg-[#fbeff2]">
                         {/* Card Image */}
-                        <div className="relative w-full h-96">
+                        <div className="relative w-full h-80">
                           <img
                             src={card.image}
                             alt={card.name}
@@ -1369,19 +1369,19 @@ const ArtisanDetails = ({ artisan }) => {
                           <div className="flex flex-col">
                             <Link
                               href={`/artisan/${card.slug}`}
-                              className="font-bold text-2xl text-white mb-2 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
+                              className="font-bold text-xl text-white mb-2 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
                               title={card.name}
                             >
                               {card.name}
                             </Link>
                             {/* Date Badge */}
                             {/* <div className="absolute top-5 left-5 z-20 flex items-center gap-2"> */}
-                            <span className="text-white rounded text-md text-wrap font-bold shadow">{card.subtitle}</span>
+                            <span className="text-white rounded text-sm text-wrap font-bold shadow">{card.subtitle}</span>
                             {/* </div> */}
                           </div>
                           {/* Arrow Button with Socials on Hover */}
                           <div className="relative group/arrow">
-                            <button className="bg-white text-black rounded-full w-12 h-12 flex items-center justify-center shadow transition group-hover/arrow:bg-[#e84393] group-hover/arrow:text-white">
+                            <button className="bg-white text-black rounded-full w-10 h-10 flex items-center justify-center shadow transition group-hover/arrow:bg-[#e84393] group-hover/arrow:text-white">
                               <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                               </svg>
@@ -1395,7 +1395,7 @@ const ArtisanDetails = ({ artisan }) => {
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className={`
-                          bg-white rounded-full w-12 h-12 flex items-center justify-center shadow hover:bg-gray-100 transition
+                          bg-white rounded-full w-9 h-9 flex items-center justify-center shadow hover:bg-gray-100 transition
                           transform translate-y-5 group-hover/arrow:translate-y-0
                         `}
                                   style={{
