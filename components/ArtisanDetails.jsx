@@ -348,12 +348,13 @@ const ArtisanDetails = ({ artisan }) => {
               <div className="font-bold text-md flex items-center"> Artisan No: <span className="font-normal text-md">{artisan.artisanNumber || 'Artisan Number Not Available'}</span></div>
               <div className="text-md font-semibold text-black">{artisan.yearsOfExperience || '0'} Years of Experience</div>
               <div className="font-bold text-md mt-2">Specializations:</div>
-              <div className="flex gap-3 flex-wrap mb-2 w-[500px] px-2">
+              <div className="flex gap-3 flex-wrap mb-2 md:w-[500px] px-2">
                 {(artisan.specializations || ['No Specializations']).map((spec, i) => (
                   <span key={i} className="bg-gray-200 rounded-full px-2 md:px-4 py-1 text-sm md:text-base font-semibold tracking-tight border border-gray-300">{spec}</span>
                 ))}
               </div>
               {/* Social Icons Row */}
+              {artisan.socialPlugin&&(
               <div className="flex items-center gap-2">
                 <div className="font-bold text-md">Social:</div>
                 {artisan.socialPlugin?.facebook && (
@@ -385,6 +386,7 @@ const ArtisanDetails = ({ artisan }) => {
                   </a>
                 )}
               </div>
+              )}
               <div className="md:hidden flex flex-col gap-2">
                 <div className="font-bold mt-2 text-md">City: <span className="font-normal text-md">{artisan.address?.city || 'No City'}</span></div>
                 <div className="font-bold mt-2 text-md">State: <span className="font-normal text-md">{artisan.address?.state || 'No State'}</span></div>
