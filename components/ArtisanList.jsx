@@ -443,7 +443,8 @@ const ArtisanList = () => {
             
                                 <Link
                                   className="bg-black text-white px-6 py-3 rounded-md font-medium hover:bg-gray-900 transition flex items-center justify-center gap-2"
-                                  href={"/RNFHPC Share Holders PDF.pdf"}
+                                  href={"/RNFHPC_Share_Holders_PDF.pdf"}
+                                  target="_blank"
                                 >
                                   Company Members
                                   <svg

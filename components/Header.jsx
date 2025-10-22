@@ -163,7 +163,7 @@ const Header = () => {
               </Link>
               <div className="w-[2px] bg-white h-6"></div>
               <a
-                href="/RNFHPC Share Holders PDF.pdf"
+                href="/RNFHPC_Share_Holders_PDF.pdf"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-white text-sm hover:underline hover:scale-105 transition-all duration-300 text-nowrap">
