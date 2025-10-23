@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { Star, X } from "lucide-react";
 import {
   CalendarClock,
   MapPin,
@@ -88,7 +89,98 @@ const RandomTourPackageSection = () => {
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const [loading1, setLoading1] = useState(true);
   const [bannerSection3rd, setBannerSection3rd] = useState([]);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [selectedReviews, setSelectedReviews] = useState([]);
+  const ReviewModal = ({ open, onClose, reviews }) => {
+    if (!open) return null;
+    return (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+        onClick={onClose}
+      >
+        <div
+          className="max-w-xl w-full p-4 relative bg-white rounded-lg shadow-lg overflow-hidden"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            className="absolute z-50 bg-gray-200 rounded-full p-2 top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl"
+            onClick={onClose}
+          >
+            <X />
+          </button>
 
+          {reviews && reviews.length > 0 ? (
+            <div className="h-[400px] overflow-y-auto px-2 py-5">
+              {reviews.map((review, idx) => (
+                <div
+                  key={idx}
+                  className="bg-[#f9fafb] border border-gray-200 rounded-xl p-6 mb-6 shadow-sm"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    {/* Avatar and Name */}
+                    <div className="flex items-center gap-3 mb-2">
+                      <Image
+                        src={review.image?.url || "/placeholder.jpeg"}
+                        alt={review.createdBy}
+                        width={48}
+                        height={48}
+                        className="rounded-full h-10 w-10 object-cover border border-gray-300"
+                        style={{ minWidth: 48, minHeight: 48 }}
+                      />
+                      <span className="font-semibold text-base text-gray-900">
+                        {review.createdBy}
+                      </span>
+                    </div>
+
+                    {/* Stars and Verified */}
+                    <div className="flex flex-col md:flex-row  items-center gap-2 md:mb-3">
+                      <div className="flex">
+                        {[...Array(review.rating)].map((_, i) => (
+                          <Star
+                            key={i}
+                            size={20}
+                            color="#12b76a"
+                            fill="#12b76a"
+                          />
+                        ))}
+                      </div>
+                      <span className="text-green-600 font-medium flex items-center gap-1 text-sm ml-2">
+                        <svg
+                          width="16"
+                          height="16"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            fill="#12b76a"
+                            d="M9.5 17.5l-5-5 1.4-1.4 3.6 3.6 7.6-7.6 1.4 1.4-9 9z"
+                          />
+                        </svg>
+                        Verified
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Title */}
+                  <div className="text-[16px] font-bold text-gray-800 my-2">
+                    {review.title}
+                  </div>
+
+                  {/* Review Text */}
+                  <div
+                    className="text-gray-500 text-[15px] font-normal leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: review.review }}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-gray-500">No reviews yet.</div>
+          )}
+        </div>
+      </div>
+    );
+  };
   // Prevent background scroll when Quick View is open
   useEffect(() => {
     if (quickViewProduct) {
@@ -569,6 +661,7 @@ const RandomTourPackageSection = () => {
                         experience: item.yearsOfExperience
                           ? `${item.yearsOfExperience} years experience`
                           : "",
+                        promotions: item.promotions,
                         location: item.address
                           ? `${item.address.city}, ${item.address.state}`
                           : "",
@@ -661,89 +754,130 @@ const RandomTourPackageSection = () => {
                         ],
                       };
                       return (
-                        <div
-                          key={card.id}
-                          className="relative rounded-2xl shadow-md group transition-all h-full w-[340px] flex flex-col bg-[#fbeff2] overflow-hidden"
-                        >
-                          {/* Card Image */}
-                          <div className="relative w-full h-96">
-                            <img
-                              src={card.image}
-                              alt={card.name}
-                              className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
-                              style={{ objectFit: "cover" }}
-                            />
+                        <div key={card.id} className="flex flex-col items-center gap-2">
+                          <div
+                            className="relative rounded-2xl shadow-md group transition-all h-full w-[340px] flex flex-col bg-[#fbeff2] overflow-hidden"
+                          >
+                            {/* Card Image */}
+                            <div className="relative w-full h-96">
+                              <img
+                                src={card.image}
+                                alt={card.name}
+                                className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+                                style={{ objectFit: "cover" }}
+                              />
 
-                            <Link
-                              href={`/artisan/${card.slug}`}
-                              className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                            >
-                              <span className="bg-white text-black font-medium px-4 py-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                                View Details
-                              </span>
-                            </Link>
-                          </div>
-                          {/* Card Content Overlay */}
-                          <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-4 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
-                            <div className="flex flex-col">
                               <Link
                                 href={`/artisan/${card.slug}`}
-                                className="font-bold text-2xl text-white mb-2 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
-                                title={card.name}
+                                className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                               >
-                                {card.name}
+                                <span className="bg-white text-black font-medium px-4 py-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                                  View Details
+                                </span>
                               </Link>
-                              {/* Date Badge */}
-                              {/* <div className="absolute top-5 left-5 z-20 flex items-center gap-2"> */}
-                              <span className="text-white rounded text-md text-wrap font-bold shadow">
-                                {card.subtitle}
-                              </span>
-                              {/* </div> */}
                             </div>
-                            {/* Arrow Button with Socials on Hover */}
-                            <div className="relative group/arrow">
-                              <button className="bg-white text-black rounded-full w-12 h-12 flex items-center justify-center shadow transition group-hover/arrow:bg-[#e84393] group-hover/arrow:text-white">
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="w-6 h-6"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                  strokeWidth={2}
+                            {/* Card Content Overlay */}
+                            <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-4 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
+                              <div className="flex flex-col">
+                                <Link
+                                  href={`/artisan/${card.slug}`}
+                                  className="font-bold text-2xl text-white mb-2 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
+                                  title={card.name}
                                 >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    d="M9 5l7 7-7 7"
-                                  />
-                                </svg>
-                              </button>
-                              {/* Social Icons: show on arrow hover */}
-                              <div className="absolute bottom-12 right-0 flex flex-col gap-4 opacity-0 group-hover/arrow:opacity-100 transition-opacity duration-300 z-30 items-center">
-                                {card.socials.slice(0, 6).map((s, i) => (
-                                  <a
-                                    key={i}
-                                    href={s.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className={`
+                                  {card.name}
+                                </Link>
+                                {/* Date Badge */}
+                                {/* <div className="absolute top-5 left-5 z-20 flex items-center gap-2"> */}
+                                <span className="text-white rounded text-md text-wrap font-bold shadow">
+                                  {card.subtitle}
+                                </span>
+                                {/* </div> */}
+                              </div>
+                              {/* Arrow Button with Socials on Hover */}
+                              <div className="relative group/arrow">
+                                <button className="bg-white text-black rounded-full w-12 h-12 flex items-center justify-center shadow transition group-hover/arrow:bg-[#e84393] group-hover/arrow:text-white">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="w-6 h-6"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth={2}
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M9 5l7 7-7 7"
+                                    />
+                                  </svg>
+                                </button>
+                                {/* Social Icons: show on arrow hover */}
+                                <div className="absolute bottom-12 right-0 flex flex-col gap-4 opacity-0 group-hover/arrow:opacity-100 transition-opacity duration-300 z-30 items-center">
+                                  {card.socials.slice(0, 6).map((s, i) => (
+                                    <a
+                                      key={i}
+                                      href={s.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className={`
                           bg-white rounded-full w-12 h-12 flex items-center justify-center shadow hover:bg-gray-100 transition
                           transform translate-y-5 group-hover/arrow:translate-y-0
                         `}
-                                    style={{
-                                      transitionProperty:
-                                        "transform, opacity, background-color, box-shadow",
-                                      transitionDuration: "0.6s",
-                                      transitionTimingFunction:
-                                        "cubic-bezier(0.4,0,0.2,1)",
-                                      transitionDelay: `${i * 60}ms`,
-                                    }}
-                                  >
-                                    {s.icon}
-                                  </a>
-                                ))}
+                                      style={{
+                                        transitionProperty:
+                                          "transform, opacity, background-color, box-shadow",
+                                        transitionDuration: "0.6s",
+                                        transitionTimingFunction:
+                                          "cubic-bezier(0.4,0,0.2,1)",
+                                        transitionDelay: `${i * 60}ms`,
+                                      }}
+                                    >
+                                      {s.icon}
+                                    </a>
+                                  ))}
+                                </div>
                               </div>
                             </div>
+                          </div>
+                          {/* Reviews with stars */}
+                          <div className="flex items-center justify-between w-full flex-shrink text-black px-5">
+                            <button
+                              className="flex flex-row items-center justify-between w-full px-2 cursor-pointer group bg-transparent border-0 p-0"
+                              onClick={() => {
+                                setSelectedReviews(card.promotions || []);
+                                setReviewModalOpen(true);
+                              }}
+                              style={{ outline: "none" }}
+                              aria-label="Show reviews"
+                            >
+                              <div className="flex items-center gap-1">
+                                {(() => {
+                                  const avgRating =
+                                    card.promotions &&
+                                    card.promotions.length > 0
+                                      ? card.promotions.reduce(
+                                          (sum, p) => sum + (p.rating || 0),
+                                          0
+                                        ) / card.promotions.length
+                                      : 0;
+                                  return [...Array(5)].map((_, i) => (
+                                    <Star
+                                      key={i}
+                                      size={18}
+                                      className={
+                                        i < avgRating
+                                          ? "fill-yellow-400 text-yellow-400"
+                                          : "text-gray-300"
+                                      }
+                                      fill={i < avgRating ? "#facc15" : "none"}
+                                    />
+                                  ));
+                                })()}
+                              </div>
+                              <span className="ml-2 hover:underline text-black flex flex-row text-md">
+                                {card.promotions?.length || 0} Reviews
+                              </span>
+                            </button>
                           </div>
                         </div>
                       );
@@ -783,6 +917,7 @@ const RandomTourPackageSection = () => {
                               ? item.specializations.join(", ")
                               : "Artisan",
                           subtitle: item.shgName || "",
+                          promotions: item.promotions,
                           experience: item.yearsOfExperience
                             ? `${item.yearsOfExperience} years experience`
                             : "",
@@ -887,85 +1022,129 @@ const RandomTourPackageSection = () => {
                             key={card.id}
                             className="pl-5 md:basis-1/2 lg:basis-1/5 min-w-0 snap-start"
                           >
-                            <div className="relative rounded-2xl overflow-hidden shadow-md group transition-all h-full flex flex-col bg-[#fbeff2]">
-                              {/* Card Image */}
-                              <div className="relative w-full h-80">
-                                <img
-                                  src={card.image}
-                                  alt={card.name}
-                                  className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
-                                  style={{ objectFit: "cover" }}
-                                />
-                                <Link
-                                  href={`/artisan/${card.slug}`}
-                                  className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                >
-                                  <span className="bg-white text-black font-medium px-4 py-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                                    View Details
-                                  </span>
-                                </Link>
-                              </div>
-                              {/* Card Content Overlay */}
-                              <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-4 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
-                                <div className="flex flex-col">
+                            <div className="flex flex-col items-center gap-2">
+                              <div className="relative rounded-2xl overflow-hidden shadow-md group transition-all h-full flex flex-col bg-[#fbeff2]">
+                                {/* Card Image */}
+                                <div className="relative w-full h-80">
+                                  <img
+                                    src={card.image}
+                                    alt={card.name}
+                                    className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+                                    style={{ objectFit: "cover" }}
+                                  />
                                   <Link
                                     href={`/artisan/${card.slug}`}
-                                    className="font-bold text-xl text-white mb-2 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
-                                    title={card.name}
+                                    className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                                   >
-                                    {card.name}
+                                    <span className="bg-white text-black font-medium px-4 py-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                                      View Details
+                                    </span>
                                   </Link>
-                                  {/* Date Badge */}
-                                  {/* <div className="absolute top-5 left-5 z-20 flex items-center gap-2"> */}
-                                  <span className="text-white rounded text-sm text-wrap font-bold shadow">
-                                    {card.subtitle}
-                                  </span>
-                                  {/* </div> */}
                                 </div>
-                                {/* Arrow Button with Socials on Hover */}
-                                <div className="relative group/arrow">
-                                  <button className="bg-white text-black rounded-full w-10 h-10 flex items-center justify-center shadow transition group-hover/arrow:bg-[#e84393] group-hover/arrow:text-white">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      className="w-6 h-6"
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                      stroke="currentColor"
-                                      strokeWidth={2}
+                                {/* Card Content Overlay */}
+                                <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-4 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
+                                  <div className="flex flex-col">
+                                    <Link
+                                      href={`/artisan/${card.slug}`}
+                                      className="font-bold text-xl text-white mb-2 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
+                                      title={card.name}
                                     >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M9 5l7 7-7 7"
-                                      />
-                                    </svg>
-                                  </button>
-                                  {/* Social Icons: show on arrow hover */}
-                                  <div className="absolute bottom-12 right-0 flex flex-col gap-4 opacity-0 group-hover/arrow:opacity-100 transition-opacity duration-300 z-30 items-center">
-                                    {card.socials.slice(0, 6).map((s, i) => (
-                                      <a
-                                        key={i}
-                                        href={s.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className={`
+                                      {card.name}
+                                    </Link>
+                                    {/* Date Badge */}
+                                    {/* <div className="absolute top-5 left-5 z-20 flex items-center gap-2"> */}
+                                    <span className="text-white rounded text-sm text-wrap font-bold shadow">
+                                      {card.subtitle}
+                                    </span>
+                                    {/* </div> */}
+                                  </div>
+                                  {/* Arrow Button with Socials on Hover */}
+                                  <div className="relative group/arrow">
+                                    <button className="bg-white text-black rounded-full w-10 h-10 flex items-center justify-center shadow transition group-hover/arrow:bg-[#e84393] group-hover/arrow:text-white">
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="w-6 h-6"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        strokeWidth={2}
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          d="M9 5l7 7-7 7"
+                                        />
+                                      </svg>
+                                    </button>
+                                    {/* Social Icons: show on arrow hover */}
+                                    <div className="absolute bottom-12 right-0 flex flex-col gap-4 opacity-0 group-hover/arrow:opacity-100 transition-opacity duration-300 z-30 items-center">
+                                      {card.socials.slice(0, 6).map((s, i) => (
+                                        <a
+                                          key={i}
+                                          href={s.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className={`
                           bg-white rounded-full w-9 h-9 flex items-center justify-center shadow hover:bg-gray-100 transition
                           transform translate-y-5 group-hover/arrow:translate-y-0
                         `}
-                                        style={{
-                                          transitionProperty:
-                                            "transform, opacity, background-color, box-shadow",
-                                          transitionDuration: "0.6s",
-                                          transitionTimingFunction:
-                                            "cubic-bezier(0.4,0,0.2,1)",
-                                          transitionDelay: `${i * 60}ms`,
-                                        }}
-                                      >
-                                        {s.icon}
-                                      </a>
-                                    ))}
+                                          style={{
+                                            transitionProperty:
+                                              "transform, opacity, background-color, box-shadow",
+                                            transitionDuration: "0.6s",
+                                            transitionTimingFunction:
+                                              "cubic-bezier(0.4,0,0.2,1)",
+                                            transitionDelay: `${i * 60}ms`,
+                                          }}
+                                        >
+                                          {s.icon}
+                                        </a>
+                                      ))}
+                                    </div>
                                   </div>
                                 </div>
+                              </div>
+                              {/* Reviews with stars */}
+                              <div className="flex items-center justify-between w-full flex-shrink text-black px-5">
+                                <button
+                                  className="flex flex-row items-center justify-between w-full px-2 cursor-pointer group bg-transparent border-0 p-0"
+                                  onClick={() => {
+                                    setSelectedReviews(card.promotions || []);
+                                    setReviewModalOpen(true);
+                                  }}
+                                  style={{ outline: "none" }}
+                                  aria-label="Show reviews"
+                                >
+                                  <div className="flex items-center gap-1">
+                                    {(() => {
+                                      const avgRating =
+                                        card.promotions &&
+                                        card.promotions.length > 0
+                                          ? card.promotions.reduce(
+                                              (sum, p) => sum + (p.rating || 0),
+                                              0
+                                            ) / card.promotions.length
+                                          : 0;
+                                      return [...Array(5)].map((_, i) => (
+                                        <Star
+                                          key={i}
+                                          size={18}
+                                          className={
+                                            i < avgRating
+                                              ? "fill-yellow-400 text-yellow-400"
+                                              : "text-gray-300"
+                                          }
+                                          fill={
+                                            i < avgRating ? "#facc15" : "none"
+                                          }
+                                        />
+                                      ));
+                                    })()}
+                                  </div>
+                                  <span className="ml-2 hover:underline text-black flex flex-row text-md">
+                                    {card.promotions?.length || 0} Reviews
+                                  </span>
+                                </button>
                               </div>
                             </div>
                           </CarouselItem>
@@ -973,8 +1152,8 @@ const RandomTourPackageSection = () => {
                       })}
                     </CarouselContent>
                     <div className="flex items-center gap-3 mt-4 justify-center">
-                      <CarouselPrevious className="bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
-                      <CarouselNext className="bg-[#f7eedd] !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
+                      <CarouselPrevious className="bg-[#f7eedd] absolute left-5 !rounded-full !w-12 !h-12 !flex !items-center !justify-center transition" />
+                      <CarouselNext className="bg-[#f7eedd] !rounded-full absolute right-5 !w-12 !h-12 !flex !items-center !justify-center transition" />
                     </div>
                   </Carousel>
                 </div>
@@ -1012,6 +1191,7 @@ const RandomTourPackageSection = () => {
                               ? item.specializations.join(", ")
                               : "Artisan",
                           subtitle: item.shgName || "",
+                          promotions: item.promotions,
                           experience: item.yearsOfExperience
                             ? `${item.yearsOfExperience} years experience`
                             : "",
@@ -1116,85 +1296,129 @@ const RandomTourPackageSection = () => {
                             key={card.id}
                             className="pl-5 md:basis-1/2 lg:basis-1/4 min-w-0 snap-start"
                           >
-                            <div className="relative rounded-2xl overflow-hidden shadow-md group transition-all h-full flex flex-col bg-[#fbeff2]">
-                              {/* Card Image */}
-                              <div className="relative w-full h-96">
-                                <img
-                                  src={card.image}
-                                  alt={card.name}
-                                  className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
-                                  style={{ objectFit: "cover" }}
-                                />
-                                <Link
-                                  href={`/artisan/${card.slug}`}
-                                  className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                >
-                                  <span className="bg-white text-black font-medium px-4 py-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                                    View Details
-                                  </span>
-                                </Link>
-                              </div>
-                              {/* Card Content Overlay */}
-                              <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-4 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
-                                <div className="flex flex-col">
+                            <div className="flex flex-col items-center gap-2">
+                              <div className="relative rounded-2xl overflow-hidden shadow-md group transition-all h-full flex flex-col bg-[#fbeff2]">
+                                {/* Card Image */}
+                                <div className="relative w-full h-96">
+                                  <img
+                                    src={card.image}
+                                    alt={card.name}
+                                    className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+                                    style={{ objectFit: "cover" }}
+                                  />
                                   <Link
                                     href={`/artisan/${card.slug}`}
-                                    className="font-bold text-2xl text-white mb-2 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
-                                    title={card.name}
+                                    className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                                   >
-                                    {card.name}
+                                    <span className="bg-white text-black font-medium px-4 py-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                                      View Details
+                                    </span>
                                   </Link>
-                                  {/* Date Badge */}
-                                  {/* <div className="absolute top-5 left-5 z-20 flex items-center gap-2"> */}
-                                  <span className="text-white rounded text-md text-wrap font-bold shadow">
-                                    {card.subtitle}
-                                  </span>
-                                  {/* </div> */}
                                 </div>
-                                {/* Arrow Button with Socials on Hover */}
-                                <div className="relative group/arrow">
-                                  <button className="bg-white text-black rounded-full w-12 h-12 flex items-center justify-center shadow transition group-hover/arrow:bg-[#e84393] group-hover/arrow:text-white">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      className="w-6 h-6"
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                      stroke="currentColor"
-                                      strokeWidth={2}
+                                {/* Card Content Overlay */}
+                                <div className="absolute left-0 bottom-0 w-full flex justify-between items-end p-4 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
+                                  <div className="flex flex-col">
+                                    <Link
+                                      href={`/artisan/${card.slug}`}
+                                      className="font-bold text-2xl text-white mb-2 leading-tight drop-shadow-md hover:underline hover:decoration-2 hover:underline-offset-4 transition cursor-pointer"
+                                      title={card.name}
                                     >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M9 5l7 7-7 7"
-                                      />
-                                    </svg>
-                                  </button>
-                                  {/* Social Icons: show on arrow hover */}
-                                  <div className="absolute bottom-12 right-0 flex flex-col gap-4 opacity-0 group-hover/arrow:opacity-100 transition-opacity duration-300 z-30 items-center">
-                                    {card.socials.slice(0, 6).map((s, i) => (
-                                      <a
-                                        key={i}
-                                        href={s.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className={`
+                                      {card.name}
+                                    </Link>
+                                    {/* Date Badge */}
+                                    {/* <div className="absolute top-5 left-5 z-20 flex items-center gap-2"> */}
+                                    <span className="text-white rounded text-md text-wrap font-bold shadow">
+                                      {card.subtitle}
+                                    </span>
+                                    {/* </div> */}
+                                  </div>
+                                  {/* Arrow Button with Socials on Hover */}
+                                  <div className="relative group/arrow">
+                                    <button className="bg-white text-black rounded-full w-12 h-12 flex items-center justify-center shadow transition group-hover/arrow:bg-[#e84393] group-hover/arrow:text-white">
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="w-6 h-6"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        strokeWidth={2}
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          d="M9 5l7 7-7 7"
+                                        />
+                                      </svg>
+                                    </button>
+                                    {/* Social Icons: show on arrow hover */}
+                                    <div className="absolute bottom-12 right-0 flex flex-col gap-4 opacity-0 group-hover/arrow:opacity-100 transition-opacity duration-300 z-30 items-center">
+                                      {card.socials.slice(0, 6).map((s, i) => (
+                                        <a
+                                          key={i}
+                                          href={s.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className={`
                           bg-white rounded-full w-12 h-12 flex items-center justify-center shadow hover:bg-gray-100 transition
                           transform translate-y-5 group-hover/arrow:translate-y-0
                         `}
-                                        style={{
-                                          transitionProperty:
-                                            "transform, opacity, background-color, box-shadow",
-                                          transitionDuration: "0.6s",
-                                          transitionTimingFunction:
-                                            "cubic-bezier(0.4,0,0.2,1)",
-                                          transitionDelay: `${i * 60}ms`,
-                                        }}
-                                      >
-                                        {s.icon}
-                                      </a>
-                                    ))}
+                                          style={{
+                                            transitionProperty:
+                                              "transform, opacity, background-color, box-shadow",
+                                            transitionDuration: "0.6s",
+                                            transitionTimingFunction:
+                                              "cubic-bezier(0.4,0,0.2,1)",
+                                            transitionDelay: `${i * 60}ms`,
+                                          }}
+                                        >
+                                          {s.icon}
+                                        </a>
+                                      ))}
+                                    </div>
                                   </div>
                                 </div>
+                              </div>
+                              {/* Reviews with stars */}
+                              <div className="flex items-center justify-between w-full flex-shrink text-black px-5">
+                                <button
+                                  className="flex flex-row items-center justify-between w-full px-2 cursor-pointer group bg-transparent border-0 p-0"
+                                  onClick={() => {
+                                    setSelectedReviews(card.promotions || []);
+                                    setReviewModalOpen(true);
+                                  }}
+                                  style={{ outline: "none" }}
+                                  aria-label="Show reviews"
+                                >
+                                  <div className="flex items-center gap-1">
+                                    {(() => {
+                                      const avgRating =
+                                        card.promotions &&
+                                        card.promotions.length > 0
+                                          ? card.promotions.reduce(
+                                              (sum, p) => sum + (p.rating || 0),
+                                              0
+                                            ) / card.promotions.length
+                                          : 0;
+                                      return [...Array(5)].map((_, i) => (
+                                        <Star
+                                          key={i}
+                                          size={18}
+                                          className={
+                                            i < avgRating
+                                              ? "fill-yellow-400 text-yellow-400"
+                                              : "text-gray-300"
+                                          }
+                                          fill={
+                                            i < avgRating ? "#facc15" : "none"
+                                          }
+                                        />
+                                      ));
+                                    })()}
+                                  </div>
+                                  <span className="ml-2 hover:underline text-black flex flex-row text-md">
+                                    {card.promotions?.length || 0} Reviews
+                                  </span>
+                                </button>
                               </div>
                             </div>
                           </CarouselItem>
@@ -1209,6 +1433,11 @@ const RandomTourPackageSection = () => {
                 </div>
               )}
             </div>
+            <ReviewModal
+              open={reviewModalOpen}
+              onClose={() => setReviewModalOpen(false)}
+              reviews={selectedReviews}
+            />
           </div>
           {consultancyBanner.length > 0 && (
             <div className="w-full px-2 md:py-10">
