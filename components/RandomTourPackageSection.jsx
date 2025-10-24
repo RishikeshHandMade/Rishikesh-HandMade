@@ -93,6 +93,7 @@ const RandomTourPackageSection = () => {
   const [selectedReviews, setSelectedReviews] = useState([]);
   const ReviewModal = ({ open, onClose, reviews }) => {
     if (!open) return null;
+    console.log(reviews)
     return (
       <div
         className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
@@ -169,7 +170,7 @@ const RandomTourPackageSection = () => {
                   {/* Review Text */}
                   <div
                     className="text-gray-500 text-[15px] font-normal leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: review.review }}
+                    dangerouslySetInnerHTML={{ __html: review.shortDescription }}
                   />
                 </div>
               ))}

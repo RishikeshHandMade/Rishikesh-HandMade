@@ -291,7 +291,7 @@ const ArtisanList = () => {
                   {/* Review Text */}
                   <div
                     className="text-gray-500 text-[15px] font-normal leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: review.review }}
+                    dangerouslySetInnerHTML={{ __html: review.shortDescription}}
                   />
                 </div>
               ))}
