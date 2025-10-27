@@ -32,7 +32,7 @@ export async function GET(request) {
 
   try {
     const products = await Product.find(filter)
-      .select('title gallery quantity price')
+      .select('title gallery quantity price slug')
       .populate({ path: 'gallery', select: 'mainImage' })
       .populate({ path: 'quantity', select: 'variants' })
       
@@ -52,6 +52,7 @@ export async function GET(request) {
     _id: prod._id,
     title: prod.title,
     image: imageUrl,
+    slug: prod.slug,
     price: variants.length > 0 ? variants[0].price : null,
     inStock,
     variants,

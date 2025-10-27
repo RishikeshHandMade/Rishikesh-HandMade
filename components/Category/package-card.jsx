@@ -8,6 +8,7 @@ import { useCart } from "@/context/CartContext"
 import toast from "react-hot-toast"
 import QuickViewProductCard from "../QuickViewProductCard";
 const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, handleAddToCart }) => {
+  console.log(pkg)
   // If not passed as prop, fallback to context
   const cart = useCart?.() || {}
   const addToWishlistFn = addToWishlist || cart.addToWishlist
@@ -86,7 +87,7 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, ha
 
 
           {(() => {
-            const price = pkg.price || 0;
+            const price = pkg?.quantity?.variants[0].price || 0;
             const originalPrice = pkg.originalPrice || price;
             const coupon = pkg.coupon || pkg.coupons?.coupon;
             let discountedPrice = price;

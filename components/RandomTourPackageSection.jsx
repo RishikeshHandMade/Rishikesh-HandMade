@@ -285,9 +285,8 @@ const RandomTourPackageSection = () => {
               miss out — elevate your experience now!
             </p>
             <Carousel
-              className={`w-full md:w-[95%] mx-auto my-4 ${
-                products.length > 0 ? "block" : "hidden"
-              }`}
+              className={`w-full md:w-[95%] mx-auto my-4 ${products.length > 0 ? "block" : "hidden"
+                }`}
             >
               <CarouselContent className="w-full gap-2">
                 {products.length > 0 &&
@@ -332,11 +331,10 @@ const RandomTourPackageSection = () => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className={`rounded-full transition-colors duration-300 h-12 w-12 shadow-none ${
-                                wishlist.some((i) => i.id === item._id)
+                              className={`rounded-full transition-colors duration-300 h-12 w-12 shadow-none ${wishlist.some((i) => i.id === item._id)
                                   ? "bg-pink-600 hover:bg-pink-700"
                                   : "bg-white hover:bg-[#b3a7a3]"
-                              }`}
+                                }`}
                               onClick={() => {
                                 if (wishlist.some((i) => i.id === item._id)) {
                                   removeFromWishlist(item._id);
@@ -388,12 +386,12 @@ const RandomTourPackageSection = () => {
                                       item.code || item.productCode || "",
                                     discountPercent:
                                       coupon &&
-                                      typeof coupon.percent === "number"
+                                        typeof coupon.percent === "number"
                                         ? coupon.percent
                                         : undefined,
                                     discountAmount:
                                       coupon &&
-                                      typeof coupon.amount === "number"
+                                        typeof coupon.amount === "number"
                                         ? coupon.amount
                                         : undefined,
                                     cgst:
@@ -637,17 +635,16 @@ const RandomTourPackageSection = () => {
                         id: item._id || idx,
                         slug: item.slug,
                         name:
-                          `${item.title ? item.title + " " : ""}${
-                            item.firstName || ""
-                          } ${item.lastName || ""}`.trim() || "Unknown Artisan",
+                          `${item.title ? item.title + " " : ""}${item.firstName || ""
+                            } ${item.lastName || ""}`.trim() || "Unknown Artisan",
                         date: item.createdAt
                           ? new Date(item.createdAt)
-                              .toLocaleDateString("en-GB", {
-                                day: "2-digit",
-                                month: "short",
-                                year: "numeric",
-                              })
-                              .toUpperCase()
+                            .toLocaleDateString("en-GB", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            })
+                            .toUpperCase()
                           : "N/A",
                         image:
                           item.profileImage?.url ||
@@ -655,7 +652,7 @@ const RandomTourPackageSection = () => {
                           "/bg-custom-1.jpg",
                         title:
                           item.specializations &&
-                          item.specializations.length > 0
+                            item.specializations.length > 0
                             ? item.specializations.join(", ")
                             : "Artisan",
                         subtitle: item.shgName || "",
@@ -855,11 +852,11 @@ const RandomTourPackageSection = () => {
                                 {(() => {
                                   const avgRating =
                                     card.promotions &&
-                                    card.promotions.length > 0
+                                      card.promotions.length > 0
                                       ? card.promotions.reduce(
-                                          (sum, p) => sum + (p.rating || 0),
-                                          0
-                                        ) / card.promotions.length
+                                        (sum, p) => sum + (p.rating || 0),
+                                        0
+                                      ) / card.promotions.length
                                       : 0;
                                   return [...Array(5)].map((_, i) => (
                                     <Star
@@ -895,18 +892,17 @@ const RandomTourPackageSection = () => {
                           id: item._id || idx,
                           slug: item.slug,
                           name:
-                            `${item.title ? item.title + " " : ""}${
-                              item.firstName || ""
-                            } ${item.lastName || ""}`.trim() ||
+                            `${item.title ? item.title + " " : ""}${item.firstName || ""
+                              } ${item.lastName || ""}`.trim() ||
                             "Unknown Artisan",
                           date: item.createdAt
                             ? new Date(item.createdAt)
-                                .toLocaleDateString("en-GB", {
-                                  day: "2-digit",
-                                  month: "short",
-                                  year: "numeric",
-                                })
-                                .toUpperCase()
+                              .toLocaleDateString("en-GB", {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              })
+                              .toUpperCase()
                             : "N/A",
                           image:
                             item.profileImage?.url ||
@@ -914,7 +910,7 @@ const RandomTourPackageSection = () => {
                             "/bg-custom-1.jpg",
                           title:
                             item.specializations &&
-                            item.specializations.length > 0
+                              item.specializations.length > 0
                               ? item.specializations.join(", ")
                               : "Artisan",
                           subtitle: item.shgName || "",
@@ -1120,11 +1116,11 @@ const RandomTourPackageSection = () => {
                                     {(() => {
                                       const avgRating =
                                         card.promotions &&
-                                        card.promotions.length > 0
+                                          card.promotions.length > 0
                                           ? card.promotions.reduce(
-                                              (sum, p) => sum + (p.rating || 0),
-                                              0
-                                            ) / card.promotions.length
+                                            (sum, p) => sum + (p.rating || 0),
+                                            0
+                                          ) / card.promotions.length
                                           : 0;
                                       return [...Array(5)].map((_, i) => (
                                         <Star
@@ -1169,18 +1165,17 @@ const RandomTourPackageSection = () => {
                           id: item._id || idx,
                           slug: item.slug,
                           name:
-                            `${item.title ? item.title + " " : ""}${
-                              item.firstName || ""
-                            } ${item.lastName || ""}`.trim() ||
+                            `${item.title ? item.title + " " : ""}${item.firstName || ""
+                              } ${item.lastName || ""}`.trim() ||
                             "Unknown Artisan",
                           date: item.createdAt
                             ? new Date(item.createdAt)
-                                .toLocaleDateString("en-GB", {
-                                  day: "2-digit",
-                                  month: "short",
-                                  year: "numeric",
-                                })
-                                .toUpperCase()
+                              .toLocaleDateString("en-GB", {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              })
+                              .toUpperCase()
                             : "N/A",
                           image:
                             item.profileImage?.url ||
@@ -1188,7 +1183,7 @@ const RandomTourPackageSection = () => {
                             "/bg-custom-1.jpg",
                           title:
                             item.specializations &&
-                            item.specializations.length > 0
+                              item.specializations.length > 0
                               ? item.specializations.join(", ")
                               : "Artisan",
                           subtitle: item.shgName || "",
@@ -1394,11 +1389,11 @@ const RandomTourPackageSection = () => {
                                     {(() => {
                                       const avgRating =
                                         card.promotions &&
-                                        card.promotions.length > 0
+                                          card.promotions.length > 0
                                           ? card.promotions.reduce(
-                                              (sum, p) => sum + (p.rating || 0),
-                                              0
-                                            ) / card.promotions.length
+                                            (sum, p) => sum + (p.rating || 0),
+                                            0
+                                          ) / card.promotions.length
                                           : 0;
                                       return [...Array(5)].map((_, i) => (
                                         <Star
@@ -1480,11 +1475,10 @@ const RandomTourPackageSection = () => {
                               {[1, 2, 3, 4, 5].map((star) => (
                                 <svg
                                   key={star}
-                                  className={`w-7 h-7 ${
-                                    star <= (item.rating || 0)
+                                  className={`w-7 h-7 ${star <= (item.rating || 0)
                                       ? "text-orange-400"
                                       : "text-gray-300"
-                                  }`}
+                                    }`}
                                   fill="currentColor"
                                   viewBox="0 0 20 20"
                                   xmlns="http://www.w3.org/2000/svg"
@@ -1639,14 +1633,8 @@ const RandomTourPackageSection = () => {
         </div>
         <div className="w-full">
           {/* <!-- Elfsight Facebook Feed | Untitled Facebook Feed --> */}
-          <script
-            src="https://static.elfsight.com/platform/platform.js"
-            async
-          ></script>
-          <div
-            className="elfsight-app-668bfb4e-aa67-4b7c-8ae0-71c6f58234e2"
-            data-elfsight-app-lazy
-          ></div>
+          <script src="https://elfsightcdn.com/platform.js" async></script>
+          <div className="elfsight-app-681f1493-b47c-4a72-9e0a-2f7e3d346475" data-elfsight-app-lazy></div>
         </div>
       </section>
     </>
