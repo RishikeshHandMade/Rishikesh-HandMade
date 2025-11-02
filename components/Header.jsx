@@ -2,7 +2,7 @@
 import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import TopAdvertisementMarquee from "./TopAdvertisementMarquee";
-import { ChevronDown, LogOutIcon, Mail, Phone, Truck, User2Icon } from "lucide-react"
+import { ChevronDown, LogOutIcon, Mail, Phone, Truck, User2Icon,Handshake } from "lucide-react"
 import Link from "next/link"
 import MenuBar from "./MenuBar"
 import { Button } from "./ui/button"
@@ -318,6 +318,15 @@ const Header = () => {
                 >
                   <Truck size={20} />
                   <span className="text-xs font-medium mt-1">Track Order</span>
+                </Link>
+              </div>
+              <div className="flex items-center flex-col">
+                <Link
+                  href="/become_partner"
+                  className="flex flex-col items-center p-2 rounded-lg hover:bg-neutral-100 transition-colors"
+                >
+                  <Handshake />
+                  <span className="text-xs font-medium">Become Partner</span>
                 </Link>
               </div>
               <SearchBar />

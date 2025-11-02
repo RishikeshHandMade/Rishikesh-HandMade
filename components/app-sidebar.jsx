@@ -59,6 +59,12 @@ const data = {
       url: "/admin/edit_artisan",
       icon: User,
     },
+        { divider: true },
+    {
+      name: "Partner Details",
+      url: "/admin/partner_details",
+      icon: User,
+    },
     { divider: true },
 
     {
