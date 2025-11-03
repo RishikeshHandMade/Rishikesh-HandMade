@@ -3,12 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ArrowLeftIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import BecomePartner from '@/components/admin/BecomePartner';
-import PartnerLoginDetails from '@/components/admin/PartnerLoginDetails';
+import BecomePartners from "@/components/Admin/BecomePartners"
+import PartnerLoginDetails from '@/components/Admin/PartnerLoginDetails';
 
 const AddDirectProduct = () => {
   const router = useRouter();
   const [productData, setProductData] = useState(null);
+  const [approvedVendor, setApprovedVendor] = useState(null);
   const [loading, setLoading] = useState(false);
   // console.log(productData)
   useEffect(() => {
@@ -21,16 +22,32 @@ const AddDirectProduct = () => {
       })
         .then(res => res.json())
         .then(data => {
-          console.log(data)
+          // console.log(data)
           setProductData(data);
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+  }, []);
+    useEffect(() => {
+    setLoading(true);
+    fetch(`/api/becomePartner/isApproved`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      })
+        .then(res => res.json())
+        .then(data => {
+          console.log(data)
+          setApprovedVendor(data);
           setLoading(false);
         })
         .catch(() => setLoading(false));
   }, []);
 
   const sectionConfig = [
-    { key: 'partner', label: 'Become Partner', component: (props) => <BecomePartner {...props} partnerDetails={productData} /> },
-    { key: 'login', label: 'Partner Login Details', component: (props) => <PartnerLoginDetails {...props} partnerDetails={productData} /> }, ];
+    { key: 'partner', label: 'Become Partner', component: (props) => <BecomePartners {...props} partnerDetails={productData} /> },
+    { key: 'login', label: 'Partner Login Details', component: (props) => <PartnerLoginDetails {...props} approvedVendor={approvedVendor} /> }, ];
   const [activeSection, setActiveSection] = useState(sectionConfig[0].key);
 
 

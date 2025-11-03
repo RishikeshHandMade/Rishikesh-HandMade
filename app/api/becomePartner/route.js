@@ -67,24 +67,46 @@ export async function POST(req) {
 }
 
 // Update application status (for admin)
+// In app/api/becomePartner/route.js - PATCH handler
 export async function PATCH(req) {
     await connectDB();
     try {
-        const { id, status, notes } = await req.json();
+        const { id, isActive, status, notes, partnerUsername, partnerPassword } = await req.json();
         
-        if (!id || !['approved', 'rejected', 'pending'].includes(status)) {
+        if (!id) {
             return NextResponse.json(
-                { error: "Invalid request" },
+                { error: "ID is required" },
                 { status: 400 }
             );
         }
 
+        const updateData = {};
+        
+        // Handle isActive toggle - only update isActive, not status
+        if (isActive !== undefined) {
+            updateData.isActive = isActive;
+            // Don't modify the status here
+        }
+        
+        // Handle explicit status updates (from other parts of the app)
+        if (status && ['approved', 'rejected', 'pending'].includes(status)) {
+            updateData.status = status;
+            // Only update isActive if this is a status change from the admin panel
+            if (status === 'approved') {
+                updateData.isActive = true;
+            } else if (status === 'rejected') {
+                updateData.isActive = false;
+            }
+        }
+        
+        // Add other optional fields
+        if (notes) updateData.notes = notes;
+        if (partnerUsername) updateData.partnerUsername = partnerUsername;
+        if (partnerPassword) updateData.partnerPassword = partnerPassword;
+
         const updatedApplication = await BecomePartner.findByIdAndUpdate(
             id,
-            { 
-                status,
-                ...(notes && { notes })
-            },
+            updateData,
             { new: true }
         );
 
@@ -97,6 +119,7 @@ export async function PATCH(req) {
 
         return NextResponse.json(updatedApplication, { status: 200 });
     } catch (error) {
+        console.error("Error updating application:", error);
         return NextResponse.json(
             { error: `Failed to update application: ${error.message}` },
             { status: 500 }

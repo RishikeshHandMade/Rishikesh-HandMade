@@ -81,6 +81,8 @@ const BecomePartnerSchema = new mongoose.Schema({
         url: String,
         key: String,
     },
+    partnerUsername:{type:String},
+    partnerPassword:{type:String},
     
     // Timestamps
     status: { 
@@ -88,6 +90,7 @@ const BecomePartnerSchema = new mongoose.Schema({
         enum: ['pending', 'approved', 'rejected'],
         default: 'pending' 
     },
+    isActive:{type:Boolean,default:false},
     notes: { type: String },
     
 }, { timestamps: true });

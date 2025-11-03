@@ -7,27 +7,85 @@ import { Search, Eye, EyeOff, Edit, Save, X } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 
-const PartnerLoginDetails = ({ partnerDetails }) => {
+const PartnerLoginDetails = ({ approvedVendor }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingId, setEditingId] = useState(null);
-  const [editedData, setEditedData] = useState({});
-  const [partners, setPartners] = useState([]);
+  const [editedData, setEditedData] = useState({
+    partnerUsername: '',
+    partnerPassword: ''
+  });
+  const [showPassword, setShowPassword] = useState({});
+  // Ensure approvedVendor is an array
+  const safeApprovedVendor = Array.isArray(approvedVendor) ? approvedVendor : [];
 
-  const filteredPartners = partners.filter(partner => 
-    partner.businessName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    partner.username?.toLowerCase().includes(searchTerm.toLowerCase())
+  const [partners, setPartners] = useState(safeApprovedVendor);
+
+  // Update partners when approvedVendor changes
+  useEffect(() => {
+    if (Array.isArray(approvedVendor)) {
+      setPartners(approvedVendor);
+    }
+  }, [approvedVendor]);
+
+  const filteredPartners = safeApprovedVendor.filter(partner =>
+    partner?.businessName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    partner?.partnerUsername?.toLowerCase().includes(searchTerm.toLowerCase())
   );
   const handleStatusChange = async (id, isActive) => {
     try {
-      // Here you would typically make an API call to update the status
-      // For now, we'll just update the local state
-      setPartners(partners.map(partner => 
-        partner._id === id 
-          ? { ...partner, isActive } 
+      // Update local state optimistically
+      const updatedPartners = partners.map(partner =>
+        partner._id === id
+          ? { ...partner, isActive }
           : partner
-      ));
+      );
+      setPartners(updatedPartners);
+
+      // Make API call to update status
+      const response = await fetch('/api/becomePartner', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id,
+          isActive,
+          // We're not sending status here as the backend will handle it based on isActive
+        })
+      });
+
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(responseData.error || 'Failed to update status');
+      }
+
+      // Update the partners state with the server response
+      setPartners(prevPartners =>
+        prevPartners.map(partner =>
+          partner._id === responseData._id ? responseData : partner
+        )
+      );
+
     } catch (error) {
       console.error('Error updating status:', error);
+      // Revert the local state on error
+      if (Array.isArray(approvedVendor)) {
+        setPartners(approvedVendor);
+      } else {
+        // If approvedVendor is not an array, refetch the data
+        try {
+          const res = await fetch('/api/becomePartner/isApproved');
+          if (res.ok) {
+            const data = await res.json();
+            setPartners(data);
+          }
+        } catch (fetchError) {
+          console.error('Failed to refetch partners:', fetchError);
+        }
+      }
+      // Show error message to user
+      alert(`Failed to update status: ${error.message}`);
     }
   };
 
@@ -63,69 +121,66 @@ const PartnerLoginDetails = ({ partnerDetails }) => {
                 <TableRow key={partner._id}>
                   <TableCell>{index + 1}</TableCell>
                   <TableCell className="font-medium">{partner.businessName}</TableCell>
-                  
+
                   {/* Username */}
                   <TableCell>
                     {editingId === partner._id ? (
                       <Input
                         type="text"
-                        value={editedData.username || ''}
-                        onChange={(e) => setEditedData({...editedData, username: e.target.value})}
+                        value={editedData.partnerUsername || ''}
+                        onChange={(e) => setEditedData({ ...editedData, partnerUsername: e.target.value })}
                         className="h-8"
                       />
                     ) : (
-                      partner.username
+                      partner.partnerUsername
                     )}
                   </TableCell>
-                  
+
                   {/* Password */}
                   <TableCell>
                     {editingId === partner._id ? (
                       <div className="relative">
                         <Input
-                          type="password"
-                          value={editedData.password || ''}
-                          onChange={(e) => setEditedData({...editedData, password: e.target.value})}
+                          type={showPassword[partner._id] ? 'text' : 'password'}
+                          value={editedData.partnerPassword || ''}
+                          onChange={(e) => setEditedData({ ...editedData, partnerPassword: e.target.value })}
                           className="h-8 pr-10"
                         />
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                          onClick={() => {
-                            const input = document.querySelector(`#password-${partner._id}`);
-                            if (input) {
-                              input.type = input.type === 'password' ? 'text' : 'password';
-                            }
-                          }}
+                          onClick={() => setShowPassword(prev => ({
+                            ...prev,
+                            [partner._id]: !prev[partner._id]
+                          }))}
                         >
-                          <Eye className="h-4 w-4" />
+                          {showPassword[partner._id] ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
                         </button>
                       </div>
                     ) : (
                       <div className="flex items-center">
-                        <span>••••••••</span>
-                        <button 
+                        <span>{showPassword[partner._id] ? partner.partnerPassword : '••••••••'}</span>
+                        <button
                           className="ml-2 text-muted-foreground hover:text-foreground"
-                          onClick={() => {
-                            const input = document.querySelector(`#password-${partner._id}`);
-                            if (input) {
-                              input.type = input.type === 'password' ? 'text' : 'password';
-                            }
-                          }}
+                          onClick={() => setShowPassword(prev => ({
+                            ...prev,
+                            [partner._id]: !prev[partner._id]
+                          }))}
                         >
-                          <Eye className="h-4 w-4" />
+                          {showPassword[partner._id] ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
                         </button>
                       </div>
                     )}
-                    <input 
-                      id={`password-${partner._id}`}
-                      type="password" 
-                      value={partner.password} 
-                      readOnly 
-                      className="hidden" 
-                    />
                   </TableCell>
-                  
+
                   {/* Status */}
                   <TableCell>
                     <div className="flex items-center space-x-2">
