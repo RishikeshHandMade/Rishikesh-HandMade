@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import toast  from "react-hot-toast";
 import {
   Select,
   SelectContent,
@@ -127,17 +128,6 @@ function DocumentPreview({ url, label }) {
                 </div>
               )}
             </div>
-            <div className="border-t p-4 flex justify-end">
-              <a
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                download
-              >
-                Download
-              </a>
-            </div>
           </div>
         </div>
       )}
@@ -209,11 +199,11 @@ const BecomePartner = ({ partnerDetails }) => {
 
       setGeneratedCredentials({ username, password });
       setIsCredentialsModalOpen(true);
-
-      // Store the partner info for later use
       setSelectedPartner(partner);
       return;
     }
+
+    const loadingToast = toast.loading('Updating status...');
 
     try {
       const response = await fetch("/api/becomePartner", {
@@ -224,11 +214,10 @@ const BecomePartner = ({ partnerDetails }) => {
         body: JSON.stringify({
           id,
           status: newStatus,
-          ...(newStatus === "approved" &&
-            generatedCredentials.username && {
-              partnerUsername: generatedCredentials.username,
-              partnerPassword: generatedCredentials.password,
-            }),
+          ...(newStatus === "approved" && generatedCredentials.username && {
+            partnerUsername: generatedCredentials.username,
+            partnerPassword: generatedCredentials.password,
+          }),
         }),
       });
 
@@ -236,18 +225,29 @@ const BecomePartner = ({ partnerDetails }) => {
         throw new Error("Failed to update status");
       }
 
-      // Refresh the data
-      window.location.reload();
+      // Dismiss loading toast and show success message
+      toast.dismiss(loadingToast);
+      toast.success(`Status updated to ${newStatus}`);
+
+      // Refresh after a short delay to show success message
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
     } catch (error) {
       console.error("Error updating status:", error);
+      toast.dismiss(loadingToast);
+      toast.error(error.message || 'Failed to update status');
     }
   };
 
   const handleApproveWithCredentials = async () => {
     if (!selectedPartner) return;
 
+    const loadingToast = toast.loading('Approving vendor...');
+
     try {
-      const response = await fetch("/api/becomePartner", {
+      // First update the partner status
+      const updateResponse = await fetch("/api/becomePartner", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -260,16 +260,97 @@ const BecomePartner = ({ partnerDetails }) => {
         }),
       });
 
-      if (!response.ok) {
+      if (!updateResponse.ok) {
         throw new Error("Failed to update status");
+      }
+
+      // Send email with credentials
+      const emailResponse = await fetch('/api/brevo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: selectedPartner.email,
+          subject: 'Your Vendor Account Has Been Approved',
+          htmlContent: `<!DOCTYPE html>
+          <html>
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Vendor Account Approved</title>
+              <style>
+                  body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+                  .header { text-align: center; margin-bottom: 30px; }
+                  .content { background: #f9f9f9; padding: 20px; border-radius: 5px; }
+                  .credentials { background: #fff; padding: 15px; border: 1px solid #e0e0e0; border-radius: 5px; margin: 20px 0; }
+                  .button {
+                      display: inline-block;
+                      padding: 10px 20px;
+                      background-color: #4CAF50;
+                      color: white !important;
+                      text-decoration: none;
+                      border-radius: 5px;
+                      margin: 15px 0;
+                  }
+                  .footer { margin-top: 30px; font-size: 12px; color: #777; text-align: center; }
+              </style>
+          </head>
+          <body>
+              <div class="header">
+                  <h2>Welcome to Rishikesh HandMade Vendor Portal</h2>
+              </div>
+              
+              <div class="content">
+                  <p>Dear ${selectedPartner.contactPerson},</p>
+                  
+                  <p>We are pleased to inform you that your vendor application has been approved. You can now access your vendor dashboard using the credentials below:</p>
+                  
+                  <div class="credentials">
+                      <p><strong>Website URL:</strong> <a href="https://rishikeshhandmade.com/vendor/login">https://rishikeshhandmade.com/vendor/login</a></p>
+                      <p><strong>Username:</strong> ${generatedCredentials.username}</p>
+                      <p><strong>Password:</strong> ${generatedCredentials.password}</p>
+                  </div>
+                  
+                  <p>For security reasons, we recommend changing your password after your first login.</p>
+                  
+                  <div style="text-align: center;">
+                      <a href="https://rishikeshhandmade.com/vendor/login" class="button">Access Vendor Dashboard</a>
+                  </div>
+                  
+                  <p>If you have any questions or need assistance, please don't hesitate to contact our support team.</p>
+                  
+                  <p>Best regards,<br>Rishikesh HandMade Team</p>
+              </div>
+              
+              <div class="footer">
+                  <p>This is an automated message, please do not reply to this email.</p>
+                  <p>© ${new Date().getFullYear()} Rishikesh HandMade. All rights reserved.</p>
+              </div>
+          </body>
+          </html>`
+        })
+      });
+
+      if (!emailResponse.ok) {
+        console.error('Failed to send email, but vendor was approved');
+        // Continue even if email fails since the approval was successful
       }
 
       setIsCredentialsModalOpen(false);
       setGeneratedCredentials({ username: "", password: "" });
       setSelectedPartner(null);
       
+      // Dismiss loading toast and show success message
+      toast.dismiss(loadingToast);
+      toast.success('Vendor approved and credentials sent via email');
+      
+      // Refresh after a short delay to show success message
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+
     } catch (error) {
-      console.error("Error updating status:", error);
+      console.error("Error:", error);
+      toast.error(error.message || 'An error occurred while approving the vendor');
     }
   };
 
@@ -325,13 +406,12 @@ const BecomePartner = ({ partnerDetails }) => {
                   <TableCell>{partner.gstNumber || "N/A"}</TableCell>
                   <TableCell>
                     <span
-                      className={`px-2 py-1 rounded-full text-xs ${
-                        partner.status === "approved"
-                          ? "bg-green-100 text-green-800"
-                          : partner.status === "rejected"
+                      className={`px-2 py-1 rounded-full text-xs ${partner.status === "approved"
+                        ? "bg-green-100 text-green-800"
+                        : partner.status === "rejected"
                           ? "bg-red-100 text-red-800"
                           : "bg-yellow-100 text-yellow-800"
-                      }`}
+                        }`}
                     >
                       {partner.status}
                     </span>
@@ -378,30 +458,35 @@ const BecomePartner = ({ partnerDetails }) => {
 
       {/* View Modal */}
       <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
           {selectedPartner && (
             <div className="space-y-6">
               <DialogHeader>
-                <DialogTitle className="text-2xl font-bold text-gray-800">
-                  Partner Application Details
-                </DialogTitle>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">Status:</span>
-                  <span
-                    className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      selectedPartner.status === "approved"
-                        ? "bg-green-100 text-green-800"
-                        : selectedPartner.status === "rejected"
-                        ? "bg-red-100 text-red-800"
-                        : "bg-yellow-100 text-yellow-800"
-                    }`}
-                  >
-                    {selectedPartner.status.charAt(0).toUpperCase() +
-                      selectedPartner.status.slice(1)}
-                  </span>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <DialogTitle className="text-2xl font-bold text-gray-800">
+                      Partner Application Details
+                    </DialogTitle>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Applied on: {new Date(selectedPartner.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 bg-gray-50 px-3 py-1 rounded-full">
+                    <span className="text-sm font-medium">Status:</span>
+                    <span
+                      className={`px-2 py-1 text-xs font-medium rounded-full ${selectedPartner.status === "approved"
+                          ? "bg-green-100 text-green-800"
+                          : selectedPartner.status === "rejected"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}
+                    >
+                      {selectedPartner.status.charAt(0).toUpperCase() +
+                        selectedPartner.status.slice(1)}
+                    </span>
+                  </div>
                 </div>
               </DialogHeader>
-
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Business Information */}
                 <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
@@ -410,176 +495,98 @@ const BecomePartner = ({ partnerDetails }) => {
                     Business Information
                   </h3>
                   <div className="space-y-3 text-sm text-gray-700">
-                    <InfoRow
-                      label="Business Name"
-                      value={selectedPartner.businessName}
-                    />
-                    <InfoRow
-                      label="Business Type"
-                      value={selectedPartner.businessType}
-                    />
-                    <InfoRow
-                      label="Industry"
-                      value={selectedPartner.industryCategory}
-                    />
-                    <InfoRow
-                      label="Year Established"
-                      value={selectedPartner.yearOfEstablishment}
-                    />
-                    <InfoRow
-                      label="Legal Structure"
-                      value={selectedPartner.legalStructure}
-                    />
-                    <InfoRow
-                      label="GST Registered"
-                      value={selectedPartner.isGstRegistered ? "Yes" : "No"}
-                    />
+                    <InfoRow label="Business Name" value={selectedPartner.businessName} />
+                    <InfoRow label="Business Type" value={selectedPartner.businessType} />
+                    <InfoRow label="Industry Category" value={selectedPartner.industryCategory} />
+                    <InfoRow label="Year Established" value={selectedPartner.yearOfEstablishment} />
+                    <InfoRow label="Legal Structure" value={selectedPartner.legalStructure} />
+                    <InfoRow label="GST Registered" value={selectedPartner.isGstRegistered ? "Yes" : "No"} />
                     {selectedPartner.isGstRegistered && (
-                      <InfoRow
-                        label="GST Number"
-                        value={selectedPartner.gstNumber}
-                      />
+                      <InfoRow label="GST Number" value={selectedPartner.gstNumber} />
                     )}
-                    <InfoRow
-                      label="PAN Number"
-                      value={selectedPartner.panNumber}
-                    />
-                    <InfoRow
-                      label="MSME Number"
-                      value={selectedPartner.msmeNumber || "N/A"}
-                    />
+                    <InfoRow label="PAN Number" value={selectedPartner.panNumber} />
+                    <InfoRow label="MSME Number" value={selectedPartner.msmeNumber || "N/A"} />
+                    <InfoRow label="Delivery Capability" value={selectedPartner.deliveryCapability} />
+                    <InfoRow label="Quality Certifications" value={selectedPartner.qualityCertifications || "N/A"} />
+                    <InfoRow label="Return Policy" value={selectedPartner.returnPolicy || "N/A"} />
+                    <InfoRow label="Referred By" value={selectedPartner.referredBy || "N/A"} />
                   </div>
                 </div>
 
-                {/* Contact Information */}
-                <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">
-                    <User className="h-5 w-5 inline-block mr-2 text-blue-600" />
-                    Contact Information
-                  </h3>
-                  <div className="space-y-3 text-sm text-gray-700">
-                    <InfoRow
-                      label="Contact Person"
-                      value={selectedPartner.contactPerson}
-                    />
-                    <InfoRow
-                      label="Designation"
-                      value={selectedPartner.designation}
-                    />
-                    <InfoRow label="Mobile" value={selectedPartner.mobile} />
-                    <InfoRow
-                      label="Alternate Mobile"
-                      value={selectedPartner.alternateMobile || "N/A"}
-                    />
-                    <InfoRow label="Email" value={selectedPartner.email} />
-                    <InfoRow
-                      label="WhatsApp"
-                      value={selectedPartner.whatsappNumber || "N/A"}
-                    />
+                {/* Contact & Bank Information */}
+                <div className="space-y-6">
+                  {/* Contact Information */}
+                  <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">
+                      <User className="h-5 w-5 inline-block mr-2 text-blue-600" />
+                      Contact Information
+                    </h3>
+                    <div className="space-y-3 text-sm text-gray-700">
+                      <InfoRow label="Contact Person" value={selectedPartner.contactPerson} />
+                      <InfoRow label="Designation" value={selectedPartner.designation} />
+                      <InfoRow label="Mobile" value={selectedPartner.mobile} />
+                      <InfoRow label="Alternate Mobile" value={selectedPartner.alternateMobile || "N/A"} />
+                      <InfoRow label="Email" value={selectedPartner.email} />
+                      <InfoRow label="WhatsApp" value={selectedPartner.whatsappNumber || "N/A"} />
+                      <div className="pt-2">
+                        <h4 className="font-medium text-gray-700 mb-2">Address:</h4>
+                        <div className="pl-4 border-l-2 border-gray-200">
+                          <p>{selectedPartner.address}</p>
+                          <p>{selectedPartner.city}, {selectedPartner.state}</p>
+                          <p>{selectedPartner.pincode}, {selectedPartner.country}</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
-                  <h3 className="text-lg font-semibold text-gray-800 mt-6 mb-4 pb-2 border-b border-gray-200">
-                    <MapPin className="h-5 w-5 inline-block mr-2 text-blue-600" />
-                    Address
-                  </h3>
-                  <div className="space-y-1 text-sm text-gray-700">
-                    <p>{selectedPartner.address}</p>
-                    <p>
-                      {selectedPartner.city}, {selectedPartner.state}
-                    </p>
-                    <p>
-                      {selectedPartner.pincode}, {selectedPartner.country}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Bank Details */}
-                <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">
-                    <Banknote className="h-5 w-5 inline-block mr-2 text-blue-600" />
-                    Bank Details
-                  </h3>
-                  <div className="space-y-3 text-sm text-gray-700">
-                    <InfoRow
-                      label="Bank Name"
-                      value={selectedPartner.bankName}
-                    />
-                    <InfoRow
-                      label="Account Holder"
-                      value={selectedPartner.accountHolderName}
-                    />
-                    <InfoRow
-                      label="Account Number"
-                      value={selectedPartner.accountNumber}
-                    />
-                    <InfoRow
-                      label="IFSC Code"
-                      value={selectedPartner.ifscCode}
-                    />
-                    <InfoRow label="Branch" value={selectedPartner.branch} />
-                  </div>
-                </div>
-
-                {/* Documents */}
-                <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">
-                    <FileText className="h-5 w-5 inline-block mr-2 text-blue-600" />
-                    Documents
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {selectedPartner.productCatalog?.url && (
-                      <DocumentPreview
-                        url={selectedPartner.productCatalog.url}
-                        label="Product Catalog"
-                      />
-                    )}
-                    {selectedPartner.panCard?.url && (
-                      <DocumentPreview
-                        url={selectedPartner.panCard.url}
-                        label="PAN Card"
-                      />
-                    )}
-                    {selectedPartner.aadhaarUpload?.url && (
-                      <DocumentPreview
-                        url={selectedPartner.aadhaarUpload.url}
-                        label="Aadhaar Card"
-                      />
-                    )}
-                    {selectedPartner.authorizedPersonPhoto?.url && (
-                      <DocumentPreview
-                        url={selectedPartner.authorizedPersonPhoto.url}
-                        label="Authorized Person Photo"
-                      />
-                    )}
-                    {selectedPartner.businessCard?.url && (
-                      <DocumentPreview
-                        url={selectedPartner.businessCard.url}
-                        label="Business Card"
-                      />
-                    )}
-                    {selectedPartner.cancelledCheque?.url && (
-                      <DocumentPreview
-                        url={selectedPartner.cancelledCheque.url}
-                        label="Cancelled Cheque"
-                      />
-                    )}
-                    {selectedPartner.gstCertificate?.url && (
-                      <DocumentPreview
-                        url={selectedPartner.gstCertificate.url}
-                        label="GST Certificate"
-                      />
-                    )}
-                    {selectedPartner.msmeCertificate?.url && (
-                      <DocumentPreview
-                        url={selectedPartner.msmeCertificate.url}
-                        label="MSME Certificate"
-                      />
-                    )}
-                    {/* Add more document links as needed */}
+                  {/* Bank Details */}
+                  <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">
+                      <Banknote className="h-5 w-5 inline-block mr-2 text-blue-600" />
+                      Bank Details
+                    </h3>
+                    <div className="space-y-3 text-sm text-gray-700">
+                      <InfoRow label="Bank Name" value={selectedPartner.bankName} />
+                      <InfoRow label="Account Holder" value={selectedPartner.accountHolderName} />
+                      <InfoRow label="Account Number" value={selectedPartner.accountNumber} />
+                      <InfoRow label="IFSC Code" value={selectedPartner.ifscCode} />
+                      <InfoRow label="Branch" value={selectedPartner.branch} />
+                    </div>
                   </div>
                 </div>
               </div>
 
+              {/* Documents Section - Full Width */}
+              <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">
+                  <FileText className="h-5 w-5 inline-block mr-2 text-blue-600" />
+                  Documents & Images
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {[
+                    { field: 'panCard', label: 'PAN Card' },
+                    { field: 'cancelledCheque', label: 'Cancelled Cheque' },
+                    { field: 'productCatalog', label: 'Product Catalog' },
+                    { field: 'businessCard', label: 'Business Card' },
+                    { field: 'aadhaarUpload', label: 'Aadhaar Card' },
+                    { field: 'authorizedPersonPhoto', label: 'Authorized Person Photo' },
+                    { field: 'gstCertificate', label: 'GST Certificate' },
+                    { field: 'msmeCertificate', label: 'MSME Certificate' },
+                  ].map(({ field, label }) => (
+                    selectedPartner[field]?.url && (
+                      <div key={field} className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+                        <DocumentPreview
+                          url={selectedPartner[field].url}
+                          label={label}
+                        />
+                        <div className="p-3 bg-gray-50 border-t">
+                          <p className="text-sm font-medium text-center text-gray-700">{label}</p>
+                        </div>
+                      </div>
+                    )
+                  ))}
+                </div>
+              </div>
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
                 <Button
                   variant="outline"
@@ -722,7 +729,7 @@ const BecomePartner = ({ partnerDetails }) => {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </div >
   );
 };
 

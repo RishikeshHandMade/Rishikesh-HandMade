@@ -15,39 +15,39 @@ const AddDirectProduct = () => {
   useEffect(() => {
     setLoading(true);
     fetch(`/api/becomePartner`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+    })
+      .then(res => res.json())
+      .then(data => {
+        // console.log(data)
+        setProductData(data);
+        setLoading(false);
       })
-        .then(res => res.json())
-        .then(data => {
-          // console.log(data)
-          setProductData(data);
-          setLoading(false);
-        })
-        .catch(() => setLoading(false));
+      .catch(() => setLoading(false));
   }, []);
-    useEffect(() => {
+  useEffect(() => {
     setLoading(true);
     fetch(`/api/becomePartner/isApproved`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log(data)
+        setApprovedVendor(data);
+        setLoading(false);
       })
-        .then(res => res.json())
-        .then(data => {
-          console.log(data)
-          setApprovedVendor(data);
-          setLoading(false);
-        })
-        .catch(() => setLoading(false));
+      .catch(() => setLoading(false));
   }, []);
 
   const sectionConfig = [
     { key: 'partner', label: 'Become Partner', component: (props) => <BecomePartners {...props} partnerDetails={productData} /> },
-    { key: 'login', label: 'Partner Login Details', component: (props) => <PartnerLoginDetails {...props} approvedVendor={approvedVendor} /> }, ];
+    { key: 'login', label: 'Partner Login Details', component: (props) => <PartnerLoginDetails {...props} approvedVendor={approvedVendor} /> },];
   const [activeSection, setActiveSection] = useState(sectionConfig[0].key);
 
 

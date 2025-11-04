@@ -64,6 +64,8 @@ const BecomePartner = () => {
     const [currentSection, setCurrentSection] = useState(1);
     const totalSections = 6;
     const [uploading, setUploading] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showThankYouModal, setShowThankYouModal] = useState(false);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -83,19 +85,19 @@ const BecomePartner = () => {
     const handleFileUpload = async (e, field) => {
         const file = e.target.files[0];
         if (!file) return;
-        
+
         setUploading(field);
         const formData = new FormData();
         formData.append('file', file);
-        
+
         try {
             const res = await fetch('/api/cloudinary', {
                 method: 'POST',
                 body: formData
             });
-            
+
             const data = await res.json();
-            
+
             if (res.ok && data.url) {
                 setFormData(prev => ({
                     ...prev,
@@ -112,19 +114,17 @@ const BecomePartner = () => {
             setUploading('');
         }
     };
-    
+
     const removeFile = (field) => {
         setFormData(prev => ({
             ...prev,
-            [field]: null   
+            [field]: null
         }));
     };
 
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         // Basic client-side validation
         if (!formData.businessName || !formData.email || !formData.mobile) {
             toast.error('Please fill in all required fields');
@@ -132,7 +132,7 @@ const BecomePartner = () => {
         }
 
         setIsSubmitting(true);
-        
+
         try {
             const response = await fetch('/api/becomePartner', {
                 method: 'POST',
@@ -187,9 +187,9 @@ const BecomePartner = () => {
                 productCatalog: null,
                 businessCard: null
             });
-            
+
             setCurrentSection(1);
-            toast.success('Application submitted successfully! We will get back to you soon.');
+            setShowThankYouModal(true);
         } catch (error) {
             console.error('Submission error:', error);
             toast.error(error.message || 'Failed to submit application. Please try again.');
@@ -496,7 +496,7 @@ const BecomePartner = () => {
                                                     <SelectValue placeholder="Select State" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {statesIndia.map((state,idx) => (
+                                                    {statesIndia.map((state, idx) => (
                                                         <SelectItem key={idx} value={state}>
                                                             {state}
                                                         </SelectItem>
@@ -1139,7 +1139,63 @@ const BecomePartner = () => {
                     </form>
                 </CardContent>
             </Card>
+            {/* Thank You Modal */}
+            {showThankYouModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg p-8 max-w-md w-full relative">
+                        <button
+                            onClick={() => setShowThankYouModal(false)}
+                            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                strokeWidth="1.5"
+                                stroke="currentColor"
+                                className="w-6 h-6"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M6 18L18 6M6 6l12 12"
+                                />
+                            </svg>
+                        </button>
+                        <div className="text-center">
+                            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg
+                                    className="w-12 h-12 text-green-500"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                        d="M5 13l4 4L19 7"
+                                    ></path>
+                                </svg>
+                            </div>
+                            <h3 className="text-2xl font-bold text-gray-800 mb-2">Thank You!</h3>
+                            <p className="text-gray-600 mb-6">
+                                Thanks for registering. Our team will review your application and contact you shortly after approval.
+                            </p>
+                            <button
+                                onClick={() => setShowThankYouModal(false)}
+                                className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 transition-colors"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
+
+
     );
 };
 
