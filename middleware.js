@@ -50,8 +50,17 @@ export async function middleware(req) {
       return NextResponse.redirect(new URL("/sign-in", req.url));
     }
   }
+  if (pathname.startsWith('/vendor')) {
+    const session = await getToken({ req: request });
 
-  return NextResponse.next();
+    if (!session || session.role !== 'vendor') {
+      const url = new URL('/vendor/login', request.url);
+      url.searchParams.set('callbackUrl', pathname);
+      return NextResponse.redirect(url);
+    }
+  }
+
+return NextResponse.next();
 }
 
 // Apply middleware to protect admin and user routes

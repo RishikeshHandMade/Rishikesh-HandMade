@@ -9,6 +9,7 @@
   a {
     @apply text-[#2563eb] underline underline-offset-2 decoration-1 hover:text-[#3b82f6] transition-colors duration-200;
   }
+
   /* Ensure links are visible in dark mode */
   .dark a {
     @apply text-[#60a5fa] hover:text-[#93c5fd];
@@ -205,8 +206,11 @@
 .animate-spin-slow {
   animation: spin 3s linear infinite;
 }
+
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Tiptap editor styles */
@@ -249,7 +253,7 @@
 }
 
 .tiptap-editor .ProseMirror1 {
-  
+
   min-height: 200px;
   max-height: none;
   border: 1px solid transparent;
@@ -275,14 +279,17 @@
   font-weight: bold;
   margin-bottom: 0.5em;
 }
+
 .ProseMirror1 a {
   text-decoration: underline;
-  color:#2563eb
+  color: #2563eb
 }
+
 .ProseMirror1 a:hover {
   text-decoration: underline;
-  color:#2563eb
+  color: #2563eb
 }
+
 .ProseMirror1 h2 {
   font-size: 1.5em;
   margin: 1em 0 0.5em;
@@ -306,6 +313,7 @@
 .ProseMirror1 strong {
   font-weight: 600;
 }
+
 .ProseMirror1 h3 {
   font-size: 1.17em;
   font-weight: bold;
@@ -349,24 +357,28 @@
 
 .custom-desc-list {
   font-family: inherit;
-  font-size: 1.05rem; /* Adjust as needed */
+  font-size: 1.05rem;
+  /* Adjust as needed */
   line-height: 1.6;
   color: #1a1a1a;
   word-break: break-word;
 }
 
 .custom-desc-list p {
-  margin: 0 0 0.7em 0; /* Add space below paragraphs */
+  margin: 0 0 0.7em 0;
+  /* Add space below paragraphs */
 }
 
 .custom-desc-list ul,
 .custom-desc-list ol {
-  margin: 0 0 1em 1.5em; /* Add space below lists, keep indent */
+  margin: 0 0 1em 1.5em;
+  /* Add space below lists, keep indent */
   padding-left: 1.5em;
 }
 
 .custom-desc-list li {
-  margin-bottom: 0.35em; /* Space between list items */
+  margin-bottom: 0.35em;
+  /* Space between list items */
   line-height: 1.5;
 }
 
@@ -408,8 +420,10 @@
 
 .custom-desc-list th,
 .custom-desc-list td {
-  border: 1px solid #0e69e1; /* Updated border color for better contrast */
-  padding: 2px 4px; /* Minimum padding: 2px top/bottom, 4px left/right */
+  border: 1px solid #0e69e1;
+  /* Updated border color for better contrast */
+  padding: 2px 4px;
+  /* Minimum padding: 2px top/bottom, 4px left/right */
   text-align: left;
 }
 
@@ -426,6 +440,7 @@
 .custom-desc-list tr:hover {
   background-color: #edf2f7;
 }
+
 /* Status Badges */
 .status-badge {
   @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
@@ -439,4 +454,9 @@
 /* Action Buttons */
 .action-btn {
   @apply flex items-center justify-center w-full py-2 px-4 border rounded-md text-sm font-medium transition-colors;
+}
+
+.required-field::after {
+  content: " *";
+  color: red;
 }

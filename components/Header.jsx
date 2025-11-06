@@ -2,7 +2,7 @@
 import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import TopAdvertisementMarquee from "./TopAdvertisementMarquee";
-import { ChevronDown, LogOutIcon, Mail, Phone, Truck, User2Icon,Handshake } from "lucide-react"
+import { ChevronDown, LogOutIcon, Mail, Phone, Truck, User2Icon, Handshake } from "lucide-react"
 import Link from "next/link"
 import MenuBar from "./MenuBar"
 import { Button } from "./ui/button"
@@ -100,6 +100,7 @@ const Header = () => {
           pathName.includes("page") ||
           pathName.includes("sign-up") ||
           pathName.includes("sign-in") ||
+          pathName.includes("vendor/login") ||
           pathName.includes("customEnquiry")
           ? "hidden"
           : "block"
@@ -159,7 +160,7 @@ const Header = () => {
                 href="https://rishikeshnaturalhandicrafts.com/"
                 className="text-white text-sm hover:underline  hover:scale-105 transition-all duration-300 text-nowrap"
               >
-              Producer Company
+                Producer Company
               </Link>
               <div className="w-[2px] bg-white h-6"></div>
               <a
@@ -208,7 +209,7 @@ const Header = () => {
                     {/* Dropdown Menu */}
                     {isProfileOpen && (
                       <div
-                        className="absolute top-14 right-0 mt-2 w-fit text-black bg-white shadow-lg rounded-lg border z-50"
+                        className="absolute top-14 right-0 mt-2 w-fit text-black bg-white shadow-lg rounded-lg border z-[999]"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <p className="px-4 pt-2 text-sm font-bold text-gray-700">{session.user.name}</p>
@@ -329,6 +330,17 @@ const Header = () => {
                   <span className="text-xs font-medium">Become Partner</span>
                 </Link>
               </div>
+              {!session?.user?.isVendor && (
+                <div className="flex items-center flex-col">
+                  <Link
+                    href="/vendor/login"
+                    className="flex flex-col items-center p-2 rounded-lg hover:bg-neutral-100 transition-colors"
+                  >
+                    <User2Icon />
+                    <span className="text-xs font-medium">Vendor Login</span>
+                  </Link>
+                </div>
+              )}
               <SearchBar />
             </div>
           </div>
@@ -336,15 +348,19 @@ const Header = () => {
       </header>
       {/* Show only on md and larger screens, and only if not in admin section */}
       <div className="hidden md:block sticky top-0 z-50">
-        {!pathName.includes("admin") && (
-          <div className="w-full print:hidden">
-            <div className={`bg-white py-2 border-b border-gray-200 transition-all duration-300 ${showHeader ? "translate-y-0" : "-translate-y-full"}`}>
-              <div className="container mx-auto px-4">
-                <MenuBar menuItems={menuItems} />
+        {pathName.includes("admin") ||
+          pathName.includes("vendor/login") ||
+          pathName.includes("sign-in") ||
+          pathName.includes("sign-up") ||
+          pathName.includes("customEnquiry") || (
+            <div className="w-full print:hidden">
+              <div className={`bg-white py-2 border-b border-gray-200 transition-all duration-300 ${showHeader ? "translate-y-0" : "-translate-y-full"}`}>
+                <div className="container mx-auto px-4">
+                  <MenuBar menuItems={menuItems} />
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
 
       <div className="lg:hidden flex items-center justify-between md:justify-between py-1 px-2">

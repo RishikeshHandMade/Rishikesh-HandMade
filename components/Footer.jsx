@@ -54,7 +54,14 @@ const Footer = () => {
 
     return (
         <footer className={`print:hidden ${pathName.includes('admin') && 'hidden'}
-         ${pathName.includes('artisan') && 'block'} ${pathName.includes('product') && 'block'} ${pathName.includes('customEnquiry') && 'hidden'} ${pathName.includes('checkout') && 'hidden'}  ${pathName.includes('category') && 'block'} bg-black text-white py-4`}>
+        ${pathName.includes('vendor/login') && 'hidden'}
+        ${pathName.includes('sign-in') && 'hidden'}
+        ${pathName.includes('sign-up') && 'hidden'}
+         ${pathName.includes('artisan') && 'block'} 
+         ${pathName.includes('product') && 'block'} 
+         ${pathName.includes('customEnquiry') && 'hidden'}
+          ${pathName.includes('checkout') && 'hidden'}  
+          ${pathName.includes('category') && 'block'} bg-black text-white py-4`}>
             <div className="hidden md:flex flex-wrap lg:justify-between px-10 justify-start md:gap-20 lg:gap-0 gap-12 max-w-[22rem] md:maxw-[45rem] lg:max-w-[60rem] xl:max-w-6xl mx-auto">
                 <div className="flex flex-col gap-2 px-5">
                     <h1 className="font-semibold text-xl my-4">Main Menu</h1>

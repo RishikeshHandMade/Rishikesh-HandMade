@@ -121,86 +121,207 @@ const BecomePartner = () => {
             [field]: null
         }));
     };
+    // Add these functions in your component
+    const validateNumberInput = (e) => {
+        // Allow only numbers and limit to 10 digits
+        const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+        return value;
+    };
 
+    const handleMobileChange = (e) => {
+        const value = validateNumberInput(e);
+        setFormData(prev => ({ ...prev, mobile: value }));
+    };
+
+    const handleAlternateNumberChange = (e) => {
+        const value = validateNumberInput(e);
+        setFormData(prev => ({ ...prev, alternateNumber: value }));
+    };
+
+    const handlePincodeChange = (e) => {
+        // For pincode, allow only numbers and limit to 6 digits
+        const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+        setFormData(prev => ({ ...prev, pincode: value }));
+    };
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        // Basic client-side validation
-        if (!formData.businessName || !formData.email || !formData.mobile) {
-            toast.error('Please fill in all required fields');
-            return;
-        }
-
-        setIsSubmitting(true);
+        const loadingToast = toast.loading('Submitting application...');
 
         try {
+            // Required fields check
+            const requiredFields = {
+                'Business Name': formData.businessName,
+                'Email': formData.email,
+                'Mobile': formData.mobile,
+                'Contact Person': formData.contactPerson,
+                'Business Type': formData.businessType,
+                'Industry/Product Category': formData.industryCategory,
+                'Year of Establishment': formData.yearOfEstablishment,
+                'Legal Structure': formData.legalStructure,
+                'PAN Number': formData.panNumber,
+                'Address Line 1': formData.addressLine1,
+                'City': formData.city,
+                'State': formData.state,
+                'Pincode': formData.pincode,
+                'Country': formData.country
+            };
+
+            // Check for empty required fields
+            const missingFields = Object.entries(requiredFields)
+                .filter(([_, value]) => !value)
+                .map(([field]) => field);
+
+            if (missingFields.length > 0) {
+                toast.dismiss(loadingToast);
+                toast.error(`Please fill in all required fields: ${missingFields.join(', ')}`);
+                return;
+            }
+
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(formData.email)) {
+                toast.dismiss(loadingToast);
+                toast.error('Please enter a valid email address');
+                return;
+            }
+
+            // Mobile number validation (10 digits)
+            const mobileRegex = /^\d{10}$/;
+            if (!mobileRegex.test(formData.mobile)) {
+                toast.dismiss(loadingToast);
+                toast.error('Please enter a valid 10-digit mobile number');
+                return;
+            }
+
+            // Check if alternate number is provided and valid
+            if (formData.alternateNumber && !mobileRegex.test(formData.alternateNumber)) {
+                toast.dismiss(loadingToast);
+                toast.error('Please enter a valid 10-digit alternate number or leave it empty');
+                return;
+            }
+
+            // Check if PAN number is valid (10 characters, alphanumeric)
+            const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+            if (formData.panNumber && !panRegex.test(formData.panNumber)) {
+                toast.dismiss(loadingToast);
+                toast.error('Please enter a valid PAN number (e.g., AAAAA9999A)');
+                return;
+            }
+
+            // If GST registered, validate GST number
+            if (formData.isGstRegistered) {
+                const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+                if (!gstRegex.test(formData.gstNumber)) {
+                    toast.dismiss(loadingToast);
+                    toast.error('Please enter a valid GST number');
+                    return;
+                }
+            }
+
+            // If everything is valid, proceed with submission
             const response = await fetch('/api/becomePartner', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(formData),
             });
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Something went wrong');
+            if (response.ok) {
+                setShowThankYouModal(true);
+                setFormData(initialFormState);
+                setCurrentSection(1);
+                toast.dismiss(loadingToast);
+                toast.success('Application submitted successfully!');
+            } else {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to submit application');
             }
-
-            // Clear form after successful submission
-            setFormData({
-                businessName: '',
-                businessType: '',
-                industryCategory: '',
-                yearOfEstablishment: '',
-                legalStructure: '',
-                isGstRegistered: false,
-                gstNumber: '',
-                panNumber: '',
-                msmeNumber: '',
-                contactPerson: '',
-                designation: '',
-                mobile: '',
-                alternateMobile: '',
-                email: '',
-                whatsappNumber: '',
-                address: '',
-                city: '',
-                state: '',
-                pincode: '',
-                country: '',
-                deliveryCapability: '',
-                bankName: '',
-                accountHolderName: '',
-                accountNumber: '',
-                ifscCode: '',
-                branch: '',
-                qualityCertifications: '',
-                returnPolicy: '',
-                aadhaarNumber: '',
-                referredBy: '',
-                gstCertificate: null,
-                panCard: null,
-                msmeCertificate: null,
-                cancelledCheque: null,
-                productCatalog: null,
-                businessCard: null
-            });
-
-            setCurrentSection(1);
-            setShowThankYouModal(true);
         } catch (error) {
-            console.error('Submission error:', error);
-            toast.error(error.message || 'Failed to submit application. Please try again.');
-        } finally {
-            setIsSubmitting(false);
+            console.error('Error submitting application:', error);
+            toast.dismiss(loadingToast);
+            toast.error(error.message || 'An error occurred while submitting the form');
         }
+    };
+    const validateCurrentSection = () => {
+        const sectionFields = {
+            1: ['businessName', 'businessType', 'industryCategory', 'yearOfEstablishment',
+                'legalStructure', 'isGstRegistered', 'gstNumber', 'panNumber'],
+            2: ['contactPerson', 'mobile', 'email', 'addressLine1', 'city', 'state', 'pincode', 'country'],
+            3: ['productDescription', 'productionCapacity', 'deliveryCapability'],
+            // Add more sections if needed
+        };
+
+        const currentFields = sectionFields[currentSection] || [];
+        const missingFields = currentFields.filter(field => {
+            // Special handling for gstNumber since it's conditionally required
+            if (field === 'gstNumber' && !formData.isGstRegistered) {
+                return false;
+            }
+            return !formData[field];
+        });
+
+        if (missingFields.length > 0) {
+            const fieldLabels = {
+                businessName: 'Business Name',
+                businessType: 'Business Type',
+                industryCategory: 'Industry Category',
+                yearOfEstablishment: 'Year of Establishment',
+                legalStructure: 'Legal Structure',
+                isGstRegistered: 'GST Registration',
+                gstNumber: 'GST Number',
+                panNumber: 'PAN Number',
+                contactPerson: 'Contact Person',
+                mobile: 'Mobile Number',
+                email: 'Email',
+                addressLine1: 'Address Line 1',
+                city: 'City',
+                state: 'State',
+                pincode: 'Pincode',
+                country: 'Country',
+                productDescription: 'Product Description',
+                productionCapacity: 'Production Capacity',
+                deliveryCapability: 'Delivery Capability'
+            };
+
+            const missingFieldNames = missingFields.map(field => fieldLabels[field] || field).join(', ');
+            toast.error(`Please fill in all required fields: ${missingFieldNames}`);
+            return false;
+        }
+
+        // Additional validation for specific fields
+        if (currentSection === 1) {
+            if (formData.isGstRegistered && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(formData.gstNumber)) {
+                toast.error('Please enter a valid GST number');
+                return false;
+            }
+            if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panNumber)) {
+                toast.error('Please enter a valid PAN number');
+                return false;
+            }
+        }
+
+        if (currentSection === 2) {
+            if (!/^[6-9]\d{9}$/.test(formData.mobile)) {
+                toast.error('Please enter a valid 10-digit mobile number');
+                return false;
+            }
+            if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+                toast.error('Please enter a valid email address');
+                return false;
+            }
+            if (!/^\d{6}$/.test(formData.pincode)) {
+                toast.error('Please enter a valid 6-digit pincode');
+                return false;
+            }
+        }
+
+        return true;
     };
 
     const nextSection = () => {
-        if (currentSection < totalSections) {
-            setCurrentSection(currentSection + 1);
+        if (validateCurrentSection()) {
+            setCurrentSection(prev => Math.min(prev + 1, totalSections));
         }
     };
 
@@ -241,6 +362,7 @@ const BecomePartner = () => {
                                         <Input
                                             id="businessName"
                                             name="businessName"
+                                            className="required-field"
                                             placeholder="Enter Business / Company Name"
                                             value={formData.businessName}
                                             onChange={handleChange}
@@ -408,7 +530,7 @@ const BecomePartner = () => {
                                             id="mobile"
                                             name="mobile"
                                             value={formData.mobile}
-                                            onChange={handleChange}
+                                            onChange={handleMobileChange}
                                             required
                                             pattern="[0-9]{10}"
                                             placeholder="Enter Mobile Number"
@@ -422,7 +544,7 @@ const BecomePartner = () => {
                                             id="alternateMobile"
                                             name="alternateMobile"
                                             value={formData.alternateMobile}
-                                            onChange={handleChange}
+                                            onChange={handleAlternateNumberChange}
                                             pattern="[0-9]{10}"
                                             placeholder="Enter Alternate Mobile Number"
                                         />
@@ -511,7 +633,7 @@ const BecomePartner = () => {
                                                 id="pincode"
                                                 name="pincode"
                                                 value={formData.pincode}
-                                                onChange={handleChange}
+                                                onChange={handlePincodeChange}
                                                 required
                                                 pattern="[0-9]{6}"
                                                 placeholder="123456"
@@ -1118,7 +1240,15 @@ const BecomePartner = () => {
                                     Next
                                 </Button>
                             ) : (
-                                <Button type="submit" disabled={isSubmitting}>
+                                <Button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    onClick={(e) => {
+                                        if (validateCurrentSection()) {
+                                            handleSubmit(e);
+                                        }
+                                    }}
+                                >
                                     {isSubmitting ? (
                                         <>
                                             <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

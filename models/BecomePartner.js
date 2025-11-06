@@ -81,18 +81,19 @@ const BecomePartnerSchema = new mongoose.Schema({
         url: String,
         key: String,
     },
-    partnerUsername:{type:String},
-    partnerPassword:{type:String},
-    
+    partnerUsername: { type: String },
+    partnerPassword: { type: String },
+    partnerPasswordPlain: { type: String },
+
     // Timestamps
-    status: { 
-        type: String, 
+    status: {
+        type: String,
         enum: ['pending', 'approved', 'rejected'],
-        default: 'pending' 
+        default: 'pending'
     },
-    isActive:{type:Boolean,default:false},
+    isActive: { type: Boolean, default: false },
     notes: { type: String },
-    
+
 }, { timestamps: true });
 
 export default mongoose.models.BecomePartner || mongoose.model('BecomePartner', BecomePartnerSchema);

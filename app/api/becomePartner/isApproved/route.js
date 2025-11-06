@@ -7,7 +7,7 @@ export async function GET() {
     await connectDB();
     try {
         const applications = await BecomePartner.find({status:"approved"})
-        .select("partnerPassword partnerUsername businessName isActive status").lean()
+        .select("partnerUsername partnerPasswordPlain businessName isActive status").lean()
         return NextResponse.json(applications, { status: 200 });
     } catch (error) {
         return NextResponse.json(

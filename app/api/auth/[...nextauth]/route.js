@@ -6,6 +6,7 @@ import connectDB from '@/lib/connectDB';
 import Admin from '@/models/Admin';
 import bcrypt from 'bcryptjs';
 import SubAdmin from '@/models/SubAdmin';
+import BecomePartner from '@/models/BecomePartner';
 
 export const authOptions = {
   providers: [
@@ -38,6 +39,45 @@ export const authOptions = {
         }
 
         return { id: user._id.toString(), name: user.name, email: user.email, isAdmin: false };
+      },
+    }),
+    CredentialsProvider({
+      id: 'vendor-login',
+      name: 'Vendor Login',
+      credentials: {
+        username: { label: 'Username', type: 'text' },
+        password: { label: 'Password', type: 'password' },
+      },
+      async authorize(credentials) {
+        await connectDB();
+        
+        // Find vendor by partnerUsername
+        const vendor = await BecomePartner.findOne({ 
+          partnerUsername: credentials.username,
+          status: 'approved',
+          isActive: true
+        });
+
+        if (!vendor) {
+          throw new Error('Invalid username or account not approved');
+        }
+
+        // Check if we have a hashed password to verify
+        if (vendor.partnerPassword) {
+          // If password is hashed, use bcrypt to verify
+          const isValidPassword = await bcrypt.compare(credentials.password, vendor.partnerPassword);
+          if (!isValidPassword) {
+            throw new Error('Invalid password');
+          }
+        }
+
+        return {
+          id: vendor._id.toString(),
+          name: vendor.contactPerson || 'Vendor',
+          email: vendor.email,
+          role: 'vendor',
+          isVendor: true
+        };
       },
     }),
     CredentialsProvider({
@@ -114,17 +154,23 @@ export const authOptions = {
     },
 
     async session({ session, token, user }) {
-      session.user.id = token.sub || user?.id;
-      session.user.isAdmin = token.isAdmin || false;
-      session.user.isSubAdmin = token.isSubAdmin || false;
+      if (session.user) {
+        session.user.id = token.sub || user?.id;
+        session.user.role = token.role || 'user';
+        session.user.isAdmin = token.isAdmin || false;
+        session.user.isSubAdmin = token.isSubAdmin || false;
+        session.user.isVendor = token.isVendor || false;
+      }
       return session;
     },
 
     async jwt({ token, user, account }) {
       if (user) {
         token.sub = user.id;
+        token.role = user.role || 'user';
         token.isAdmin = user.isAdmin || false;
         token.isSubAdmin = user.isSubAdmin || false;
+        token.isVendor = user.isVendor || false;
       }
       return token;
     }

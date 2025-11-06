@@ -71,7 +71,7 @@ export async function POST(req) {
 export async function PATCH(req) {
     await connectDB();
     try {
-        const { id, isActive, status, notes, partnerUsername, partnerPassword } = await req.json();
+        const { id, isActive, status, notes, partnerUsername, partnerPassword, partnerPasswordPlain } = await req.json();
         
         if (!id) {
             return NextResponse.json(
@@ -103,6 +103,7 @@ export async function PATCH(req) {
         if (notes) updateData.notes = notes;
         if (partnerUsername) updateData.partnerUsername = partnerUsername;
         if (partnerPassword) updateData.partnerPassword = partnerPassword;
+        if (partnerPasswordPlain) updateData.partnerPasswordPlain = partnerPasswordPlain;
 
         const updatedApplication = await BecomePartner.findByIdAndUpdate(
             id,

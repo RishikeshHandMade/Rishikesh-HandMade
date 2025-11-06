@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import toast  from "react-hot-toast";
+import toast from "react-hot-toast";
 import {
   Select,
   SelectContent,
@@ -24,6 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import bcrypt from 'bcryptjs';
 import { Search, Eye, X } from "lucide-react";
 import { FileText, Building2, User, MapPin, Banknote } from "lucide-react";
 // Helper component for consistent info rows
@@ -246,6 +247,8 @@ const BecomePartner = ({ partnerDetails }) => {
     const loadingToast = toast.loading('Approving vendor...');
 
     try {
+      const plainPassword = generatedCredentials.password || generatePassword();
+      const hashedPassword = await bcrypt.hash(plainPassword, 10);
       // First update the partner status
       const updateResponse = await fetch("/api/becomePartner", {
         method: "PATCH",
@@ -256,7 +259,8 @@ const BecomePartner = ({ partnerDetails }) => {
           id: selectedPartner._id,
           status: "approved",
           partnerUsername: generatedCredentials.username,
-          partnerPassword: generatedCredentials.password,
+          partnerPassword: hashedPassword, // Save hashed password
+          partnerPasswordPlain: plainPassword, // Save plain text password
         }),
       });
 
@@ -307,11 +311,8 @@ const BecomePartner = ({ partnerDetails }) => {
                   <div class="credentials">
                       <p><strong>Website URL:</strong> <a href="https://rishikeshhandmade.com/vendor/login">https://rishikeshhandmade.com/vendor/login</a></p>
                       <p><strong>Username:</strong> ${generatedCredentials.username}</p>
-                      <p><strong>Password:</strong> ${generatedCredentials.password}</p>
-                  </div>
-                  
-                  <p>For security reasons, we recommend changing your password after your first login.</p>
-                  
+                      <p><strong>Password:</strong> ${generatedCredentials.plainPassword}</p>
+                  </div>                  
                   <div style="text-align: center;">
                       <a href="https://rishikeshhandmade.com/vendor/login" class="button">Access Vendor Dashboard</a>
                   </div>
@@ -338,11 +339,11 @@ const BecomePartner = ({ partnerDetails }) => {
       setIsCredentialsModalOpen(false);
       setGeneratedCredentials({ username: "", password: "" });
       setSelectedPartner(null);
-      
+
       // Dismiss loading toast and show success message
       toast.dismiss(loadingToast);
       toast.success('Vendor approved and credentials sent via email');
-      
+
       // Refresh after a short delay to show success message
       setTimeout(() => {
         window.location.reload();
@@ -475,10 +476,10 @@ const BecomePartner = ({ partnerDetails }) => {
                     <span className="text-sm font-medium">Status:</span>
                     <span
                       className={`px-2 py-1 text-xs font-medium rounded-full ${selectedPartner.status === "approved"
-                          ? "bg-green-100 text-green-800"
-                          : selectedPartner.status === "rejected"
-                            ? "bg-red-100 text-red-800"
-                            : "bg-yellow-100 text-yellow-800"
+                        ? "bg-green-100 text-green-800"
+                        : selectedPartner.status === "rejected"
+                          ? "bg-red-100 text-red-800"
+                          : "bg-yellow-100 text-yellow-800"
                         }`}
                     >
                       {selectedPartner.status.charAt(0).toUpperCase() +
