@@ -25,7 +25,7 @@ import Autoplay from "embla-carousel-autoplay";
 import QuickViewProductCard from "./QuickViewProductCard";
 import { useCart } from "../context/CartContext";
 import { toast } from "react-hot-toast";
-
+import { useSession } from 'next-auth/react';
 const RandomTourPackageSection = () => {
   // ...existing state and hooks
   const handleAddToCart = (item) => {
@@ -82,7 +82,7 @@ const RandomTourPackageSection = () => {
     });
     toast.success("Added to cart!");
   };
-
+  const { data: session } = useSession();
   const { addToCart, addToWishlist, removeFromWishlist, wishlist } = useCart();
   const [products, setProducts] = useState([]);
   const [artisan, setArtisan] = useState([]);
@@ -332,8 +332,8 @@ const RandomTourPackageSection = () => {
                               variant="ghost"
                               size="icon"
                               className={`rounded-full transition-colors duration-300 h-12 w-12 shadow-none ${wishlist.some((i) => i.id === item._id)
-                                  ? "bg-pink-600 hover:bg-pink-700"
-                                  : "bg-white hover:bg-[#b3a7a3]"
+                                ? "bg-pink-600 hover:bg-pink-700"
+                                : "bg-white hover:bg-[#b3a7a3]"
                                 }`}
                               onClick={() => {
                                 if (wishlist.some((i) => i.id === item._id)) {
@@ -481,46 +481,38 @@ const RandomTourPackageSection = () => {
                           <div className="flex items-center gap-4">
                             {(() => {
                               const price = item?.quantity?.variants[0].price;
-                              const coupon =
-                                item.coupon || item.coupons?.coupon;
+                              const vendorPrice = item?.quantity?.variants[0]?.vendorPrice; // Get vendor price
+                              const coupon = item.coupon || item.coupons?.coupon;
                               let discountedPrice = price;
                               let hasDiscount = false;
 
-                              if (
-                                coupon &&
-                                typeof coupon.percent === "number" &&
-                                coupon.percent > 0
-                              ) {
-                                discountedPrice =
-                                  price - (price * coupon.percent) / 100;
+                              // Check if user is a vendor and vendor price exists
+                              const isVendor = session?.user?.isVendor;
+                              const displayPrice = isVendor && vendorPrice ? vendorPrice : price;
+
+                              if (coupon && typeof coupon.percent === "number" && coupon.percent > 0) {
+                                discountedPrice = displayPrice - (displayPrice * coupon.percent) / 100;
                                 hasDiscount = true;
-                              } else if (
-                                coupon &&
-                                typeof coupon.amount === "number" &&
-                                coupon.amount > 0
-                              ) {
-                                discountedPrice = price - coupon.amount;
+                              } else if (coupon && typeof coupon.amount === "number" && coupon.amount > 0) {
+                                discountedPrice = displayPrice - coupon.amount;
                                 hasDiscount = true;
                               }
 
-                              if (hasDiscount && discountedPrice < price) {
+                              if (hasDiscount && discountedPrice < displayPrice) {
                                 return (
                                   <span>
                                     <del className="text-black font-bold text-md md:text-md">
-                                      ₹{formatNumeric(price)}
+                                      ₹{formatNumeric(displayPrice)}
                                     </del>
                                     <span className="font-bold text-md md:text-md text-black px-2">
-                                      ₹
-                                      {formatNumeric(
-                                        Math.round(discountedPrice)
-                                      )}
+                                      ₹{formatNumeric(Math.round(discountedPrice))}
                                     </span>
                                   </span>
                                 );
                               } else {
                                 return (
                                   <span className="font-bold text-md md:text-md text-black">
-                                    ₹{formatNumeric(price)}
+                                    ₹{formatNumeric(displayPrice)}
                                   </span>
                                 );
                               }
@@ -1476,8 +1468,8 @@ const RandomTourPackageSection = () => {
                                 <svg
                                   key={star}
                                   className={`w-7 h-7 ${star <= (item.rating || 0)
-                                      ? "text-orange-400"
-                                      : "text-gray-300"
+                                    ? "text-orange-400"
+                                    : "text-gray-300"
                                     }`}
                                   fill="currentColor"
                                   viewBox="0 0 20 20"

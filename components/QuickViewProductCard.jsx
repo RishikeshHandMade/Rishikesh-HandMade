@@ -7,10 +7,12 @@ import { Heart, Share2, Ruler, Mail, Star } from "lucide-react"
 import { useCart } from "../context/CartContext";
 import Autoplay from "embla-carousel-autoplay";
 import toast from "react-hot-toast"
+import { useSession } from 'next-auth/react';
 export default function QuickViewProductCard({ product, onClose }) {
   // ...existing hooks
-  console.log(product)
+  // console.log(product)
   if (!product) return null;
+  const { data: session } = useSession();
   const { addToCart, addToWishlist, removeFromWishlist, wishlist } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [showFullDesc, setShowFullDesc] = React.useState(false);
@@ -140,6 +142,11 @@ export default function QuickViewProductCard({ product, onClose }) {
   const formatNumeric = (num) => {
     return new Intl.NumberFormat("en-IN").format(num);
   };
+  // Calculate vendor prices if available
+  const vendorPrice = product?.quantity?.variants[0]?.vendorPrice;
+  const totalVendorPrice = vendorPrice ? vendorPrice * quantity : totalPrice;
+  const totalOriginalVendorPrice = vendorPrice ? vendorPrice * quantity : totalOriginalPrice;
+  const isVendor = session?.user?.isVendor;
   return (
     <div className="flex flex-col md:flex-row bg-white shadow-lg w-full md:max-w-4xl min-h-[400px]">
       {/* Left: Image Gallery */}
@@ -183,7 +190,7 @@ export default function QuickViewProductCard({ product, onClose }) {
               <button
                 key={idx}
                 className={`relative w-14 h-14 border rounded-lg overflow-hidden focus:outline-none bg-white/80 ${activeImageIdx === idx ? 'ring-2 ring-black' : ''}`}
-                onClick={() => {  
+                onClick={() => {
                   if (carouselApi && idx !== activeImageIdx) {
                     carouselApi.scrollTo(idx);
                   }
@@ -288,8 +295,8 @@ export default function QuickViewProductCard({ product, onClose }) {
                     <div className="h-4 w-px bg-gray-300" />
                     <span className="text-gray-600 text-md">
                       {weight ? (
-                        Number(weight) < 1 
-                          ? `${(Number(weight) * 1000).toFixed(0)}g` 
+                        Number(weight) < 1
+                          ? `${(Number(weight) * 1000).toFixed(0)}g`
                           : `${Number(weight).toFixed(3)} kg`
                       ) : '0g'}
                     </span>
@@ -352,7 +359,23 @@ export default function QuickViewProductCard({ product, onClose }) {
                 </div>
               ) : (
                 <div className="flex flex-col items-start">
-                  <span className="font-bold text-xl">₹{formatNumeric(totalPrice)}</span>                </div>
+                  {session?.user?.isVendor ? (
+                    // Vendor view - show both prices
+                    <div className="flex flex-col">
+                      
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-xl">₹{formatNumeric(vendorPrice || totalPrice)}</span>
+                        {vendorPrice && vendorPrice < totalPrice && (
+                          <span className="text-gray-500 line-through text-md">₹{formatNumeric(totalPrice)}</span>
+                        )}
+                      </div>
+                   
+                    </div>
+                  ) : (
+                    // Regular user view - just show regular price
+                    <span className="font-bold text-xl">₹{formatNumeric(totalPrice)}</span>
+                  )}
+                </div>
               )}
             </div>
           </div>

@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useCart } from "../context/CartContext";
 import { toast } from "react-hot-toast";
+import { useSession } from "next-auth/react";
 
 function hexToColorName(hex) {
   if (!hex) return '';
@@ -22,6 +23,7 @@ function hexToColorName(hex) {
 
 function StickyAddToCartBar({ product }) {
   const { addToCart } = useCart();
+  const { data: session } = useSession();
   // Extract sizes from variants
   const variants = Array.isArray(product?.quantity?.variants) ? product.quantity.variants : [];
   const [selectedVariantIdx, setSelectedVariantIdx] = useState(0);
@@ -75,7 +77,9 @@ function StickyAddToCartBar({ product }) {
               {selectedVariant ? (
                 selectedVariant.qty > 0 ? (
                   <span className="text-lg font-bold text-gray-900">
-                    ₹{selectedVariant.price}
+                    ₹{session?.user?.isVendor && selectedVariant.vendorPrice
+                      ? selectedVariant.vendorPrice
+                      : selectedVariant.price}
                   </span>
                 ) : (
                   <span className="text-red-600 font-medium">Out of Stock</span>
@@ -143,8 +147,8 @@ function StickyAddToCartBar({ product }) {
           {/* Add to Cart Button */}
           <button
             className={`md:px-6 px-4 py-2 rounded-md font-medium ${selectedVariant?.qty > 0
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              ? 'bg-blue-600 text-white hover:bg-blue-700'
+              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             onClick={() => {
               if (!selectedVariant) {

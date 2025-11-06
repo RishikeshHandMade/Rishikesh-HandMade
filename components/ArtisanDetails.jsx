@@ -19,6 +19,8 @@ import Autoplay from "embla-carousel-autoplay";
 import BlogQuickViewModal from "./BlogQuickViewModal";
 import { Star } from "lucide-react";
 import ReviewModal from "./ReviewModal";
+import { useSession } from 'next-auth/react';
+
 const CertificateSectionCarousel = ({ certificates, onImageClick }) => {
   if (!certificates || certificates.length === 0)
     return (
@@ -148,7 +150,8 @@ const ArtisanDetails = ({ artisan }) => {
     if (typeof num !== "number") return num;
     return num.toLocaleString("en-IN");
   };
-
+  const { data: session } = useSession();
+  const isVendor = session?.user?.isVendor;
   // ...existing state
   const [otherArtisans, setOtherArtisans] = useState([]);
   const [showBlogModal, setShowBlogModal] = useState(false);
@@ -251,7 +254,7 @@ const ArtisanDetails = ({ artisan }) => {
                   {/* Review Text */}
                   <div
                     className="text-gray-500 text-[15px] font-normal leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: review.shortDescription}}
+                    dangerouslySetInnerHTML={{ __html: review.shortDescription }}
                   />
                 </div>
               ))}
@@ -302,22 +305,22 @@ const ArtisanDetails = ({ artisan }) => {
     artisan.products && artisan.products.length > 0
       ? artisan.products
       : [
-          {
-            _id: 1,
-            title: "Sample Product 1",
-            image: "https://via.placeholder.com/120x120?text=Product+1",
-          },
-          {
-            _id: 2,
-            title: "Sample Product 2",
-            image: "https://via.placeholder.com/120x120?text=Product+2",
-          },
-          {
-            _id: 3,
-            title: "Sample Product 3",
-            image: "https://via.placeholder.com/120x120?text=Product+3",
-          },
-        ];
+        {
+          _id: 1,
+          title: "Sample Product 1",
+          image: "https://via.placeholder.com/120x120?text=Product+1",
+        },
+        {
+          _id: 2,
+          title: "Sample Product 2",
+          image: "https://via.placeholder.com/120x120?text=Product+2",
+        },
+        {
+          _id: 3,
+          title: "Sample Product 3",
+          image: "https://via.placeholder.com/120x120?text=Product+3",
+        },
+      ];
   // console.log(products)
 
   const [showExpertModal, setShowExpertModal] = useState(false);
@@ -781,9 +784,8 @@ const ArtisanDetails = ({ artisan }) => {
                           />
                           <button
                             onClick={handleCopy}
-                            className={`ml-2 p-1 rounded hover:bg-gray-200 transition ${
-                              copied ? "bg-green-100" : ""
-                            }`}
+                            className={`ml-2 p-1 rounded hover:bg-gray-200 transition ${copied ? "bg-green-100" : ""
+                              }`}
                             title={copied ? "Copied!" : "Copy URL"}
                           >
                             <Copy
@@ -1046,9 +1048,8 @@ const ArtisanDetails = ({ artisan }) => {
                         />
                         <button
                           onClick={handleCopy}
-                          className={`ml-2 p-1 rounded hover:bg-gray-200 transition ${
-                            copied ? "bg-green-100" : ""
-                          }`}
+                          className={`ml-2 p-1 rounded hover:bg-gray-200 transition ${copied ? "bg-green-100" : ""
+                            }`}
                           title={copied ? "Copied!" : "Copy URL"}
                         >
                           <Copy
@@ -1328,9 +1329,8 @@ const ArtisanDetails = ({ artisan }) => {
             <span className="border-t-4 border-black">Product We Develop</span>
           </h3>
           <Carousel
-            className={`w-full mx-auto my-4 ${
-              products.length > 0 ? "block" : "hidden"
-            }`}
+            className={`w-full mx-auto my-4 ${products.length > 0 ? "block" : "hidden"
+              }`}
             plugins={[Autoplay({ delay: 4000 })]}
           >
             <CarouselContent className="w-full gap-2">
@@ -1370,11 +1370,10 @@ const ArtisanDetails = ({ artisan }) => {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className={`rounded-full transition-colors duration-300 h-12 w-12 shadow-none ${
-                              wishlist.some((i) => i.id === item._id)
-                                ? "bg-pink-600 hover:bg-pink-700"
-                                : "bg-white hover:bg-[#b3a7a3]"
-                            }`}
+                            className={`rounded-full transition-colors duration-300 h-12 w-12 shadow-none ${wishlist.some((i) => i.id === item._id)
+                              ? "bg-pink-600 hover:bg-pink-700"
+                              : "bg-white hover:bg-[#b3a7a3]"
+                              }`}
                             onClick={() => {
                               if (wishlist.some((i) => i.id === item._id)) {
                                 removeFromWishlist(item._id);
@@ -1512,12 +1511,14 @@ const ArtisanDetails = ({ artisan }) => {
                         >
                           {item?.title}
                         </Link>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-between w-full gap-2">
                           {(() => {
                             const price = item?.quantity?.variants[0]?.price;
+                            const vendorPrice = item?.quantity?.variants[0]?.vendorPrice;
                             const coupon = item.coupon || item.coupons?.coupon;
                             let discountedPrice = price;
                             let hasDiscount = false;
+                            const displayPrice = isVendor && vendorPrice ? vendorPrice : price;
                             if (
                               coupon &&
                               typeof coupon.percent === "number" &&
@@ -1548,9 +1549,9 @@ const ArtisanDetails = ({ artisan }) => {
                               );
                             } else {
                               return (
-                                <span className="font-bold text-md md:text-xl text-black">
-                                  ₹{formatNumeric(price)}
-                                </span>
+                                  <span className="font-bold text-md md:text-xl text-black">
+                                    ₹{formatNumeric(displayPrice)}
+                                  </span>
                               );
                             }
                           })()}
@@ -1802,17 +1803,16 @@ const ArtisanDetails = ({ artisan }) => {
                   id: item._id || idx,
                   slug: item.slug,
                   name:
-                    `${item.title ? item.title + " " : ""}${
-                      item.firstName || ""
-                    } ${item.lastName || ""}`.trim() || "Unknown Artisan",
+                    `${item.title ? item.title + " " : ""}${item.firstName || ""
+                      } ${item.lastName || ""}`.trim() || "Unknown Artisan",
                   date: item.createdAt
                     ? new Date(item.createdAt)
-                        .toLocaleDateString("en-GB", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })
-                        .toUpperCase()
+                      .toLocaleDateString("en-GB", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })
+                      .toUpperCase()
                     : "N/A",
                   image:
                     item.profileImage?.url || item.image || "/bg-custom-1.jpg",
@@ -2018,9 +2018,9 @@ const ArtisanDetails = ({ artisan }) => {
                             const avgRating =
                               card.promotions && card.promotions.length > 0
                                 ? card.promotions.reduce(
-                                    (sum, p) => sum + (p.rating || 0),
-                                    0
-                                  ) / card.promotions.length
+                                  (sum, p) => sum + (p.rating || 0),
+                                  0
+                                ) / card.promotions.length
                                 : 0;
                             return [...Array(5)].map((_, i) => (
                               <Star
@@ -2056,17 +2056,16 @@ const ArtisanDetails = ({ artisan }) => {
                     id: item._id || idx,
                     slug: item.slug,
                     name:
-                      `${item.title ? item.title + " " : ""}${
-                        item.firstName || ""
-                      } ${item.lastName || ""}`.trim() || "Unknown Artisan",
+                      `${item.title ? item.title + " " : ""}${item.firstName || ""
+                        } ${item.lastName || ""}`.trim() || "Unknown Artisan",
                     date: item.createdAt
                       ? new Date(item.createdAt)
-                          .toLocaleDateString("en-GB", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })
-                          .toUpperCase()
+                        .toLocaleDateString("en-GB", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })
+                        .toUpperCase()
                       : "N/A",
                     image:
                       item.profileImage?.url ||
@@ -2275,9 +2274,9 @@ const ArtisanDetails = ({ artisan }) => {
                                 const avgRating =
                                   card.promotions && card.promotions.length > 0
                                     ? card.promotions.reduce(
-                                        (sum, p) => sum + (p.rating || 0),
-                                        0
-                                      ) / card.promotions.length
+                                      (sum, p) => sum + (p.rating || 0),
+                                      0
+                                    ) / card.promotions.length
                                     : 0;
                                 return [...Array(5)].map((_, i) => (
                                   <Star
@@ -2319,17 +2318,16 @@ const ArtisanDetails = ({ artisan }) => {
                     id: item._id || idx,
                     slug: item.slug,
                     name:
-                      `${item.title ? item.title + " " : ""}${
-                        item.firstName || ""
-                      } ${item.lastName || ""}`.trim() || "Unknown Artisan",
+                      `${item.title ? item.title + " " : ""}${item.firstName || ""
+                        } ${item.lastName || ""}`.trim() || "Unknown Artisan",
                     date: item.createdAt
                       ? new Date(item.createdAt)
-                          .toLocaleDateString("en-GB", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })
-                          .toUpperCase()
+                        .toLocaleDateString("en-GB", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })
+                        .toUpperCase()
                       : "N/A",
                     image:
                       item.profileImage?.url ||
@@ -2538,9 +2536,9 @@ const ArtisanDetails = ({ artisan }) => {
                                 const avgRating =
                                   card.promotions && card.promotions.length > 0
                                     ? card.promotions.reduce(
-                                        (sum, p) => sum + (p.rating || 0),
-                                        0
-                                      ) / card.promotions.length
+                                      (sum, p) => sum + (p.rating || 0),
+                                      0
+                                    ) / card.promotions.length
                                     : 0;
                                 return [...Array(5)].map((_, i) => (
                                   <Star

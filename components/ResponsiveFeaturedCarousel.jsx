@@ -8,52 +8,16 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { Card, CardContent } from "@/components/ui/card";
 import { useCart } from "../context/CartContext";
 import { toast } from "react-hot-toast"
-
-const dummyProducts = [
-  {
-    id: 1,
-    name: "Loremour De Saliduar Cosmopolis",
-    image: "/RandomTourPackageImages/u1.jpg",
-    oldPrice: 140.0,
-    price: 126.0,
-    checked: true,
-  },
-  {
-    id: 2,
-    name: "Dinterdum Condiment Milancelos",
-    image: "/RandomTourPackageImages/u2.jpg",
-    oldPrice: 139.0,
-    price: 89.0,
-    checked: true,
-    priceRange: true,
-    minPrice: 89.0,
-    maxPrice: 139.0,
-  },
-  {
-    id: 3,
-    name: "Magnis Durtarien Aldo Lacinado Pharetas",
-    image: "/RandomTourPackageImages/u3.jpg",
-    oldPrice: 90.0,
-    price: 80.0,
-    checked: true,
-  },
-  {
-    id: 4,
-    name: "Dempus Dortis Delios Nullam Sapiendo",
-    image: "/RandomTourPackageImages/u1.jpg",
-    price: 89.0,
-    checked: true,
-  },
-];
-
+import { useSession } from "next-auth/react"
 
 const ResponsiveFeaturedCarousel = ({ products }) => {
   const { addToCart, addToWishlist, removeFromWishlist, wishlist } = useCart();
+  const { data: session } = useSession();
   // Use products if available and non-empty, otherwise fallback to 3 dummy products
   // console.log(products)
   const displayProducts = Array.isArray(products) && products.length > 0
     ? products
-    : dummyProducts;
+    : [];
 
   // Always keep selected state in sync with displayProducts length
   const [selected, setSelected] = React.useState(() => displayProducts.map((p) => p.checked ?? true));
@@ -69,12 +33,6 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
       return copy;
     });
   };
-
-  // Calculate totals
-  const total = displayProducts.reduce(
-    (sum, p, i) => (selected[i] ? sum + (p.quantity?.variants[0].price || p.minPrice || 0) : sum),
-    0
-  );
   const chunkArray = (arr, size) =>
     Array.from({ length: Math.ceil(arr.length / size) }, (_, i) =>
       arr.slice(i * size, i * size + size)
@@ -193,8 +151,8 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
 
       {/* Carousel Section (Left) */}
       <div className="flex-1 w-full md:max-w-[70%] mx-auto flex flex-row items-start">
-         {/* Desktop Carousel: 4 products per row */}
-         <div className="hidden md:flex relative w-full">
+        {/* Desktop Carousel: 4 products per row */}
+        <div className="hidden md:flex relative w-full">
           <Carousel className="w-full">
             <CarouselContent className="w-full gap-2">
               {chunkArray(displayProducts, 4).map((row, rowIdx) => (
@@ -238,10 +196,13 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
                                 </span>
                               )}
                               {(() => {
+                                let couponApplied = false;
                                 const price = product.quantity?.variants?.[0]?.price || product.price || product.minPrice || 0;
                                 const coupon = product.coupon || product.coupons?.coupon;
                                 let discountedPrice = price;
-                                let couponApplied = false;
+                                const vendorPrice = product.quantity?.variants?.[0]?.vendorPrice;
+                                const displayPrice = session?.user?.isVendor && vendorPrice ? vendorPrice : price;
+
                                 if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
                                   discountedPrice = price - (price * coupon.percent) / 100;
                                   couponApplied = true;
@@ -254,7 +215,7 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
                                     <span className="text-[19px] font-bold text-black ml-1">₹{Math.round(discountedPrice)?.toLocaleString('en-IN')}</span>
                                   );
                                 } else {
-                                  return <span className="text-[19px] font-bold text-black">₹{price?.toLocaleString('en-IN')}</span>;
+                                  return <span className="text-[19px] font-bold text-black">₹{displayPrice?.toLocaleString('en-IN')}</span>;
                                 }
                               })()}
                             </div>
@@ -275,8 +236,8 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
             <CarouselPrevious className="absolute -left-8 top-1/2 -translate-y-1/2" />
             <CarouselNext className="absolute -right-8 top-1/2 -translate-y-1/2" />
           </Carousel>
-        </div>       
-        
+        </div>
+
         {/* Mobile Carousel: 2 products per row */}
         <div className="flex md:hidden relative w-full">
           <Carousel className="w-full">
@@ -322,10 +283,13 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
                                 </span>
                               )}
                               {(() => {
+                                let couponApplied = false;
                                 const price = product.quantity?.variants?.[0]?.price || product.price || product.minPrice || 0;
                                 const coupon = product.coupon || product.coupons?.coupon;
                                 let discountedPrice = price;
-                                let couponApplied = false;
+                                const vendorPrice = product.quantity?.variants?.[0]?.vendorPrice;
+                                const displayPrice = session?.user?.isVendor && vendorPrice ? vendorPrice : price;
+
                                 if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
                                   discountedPrice = price - (price * coupon.percent) / 100;
                                   couponApplied = true;
@@ -338,7 +302,7 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
                                     <span className="text-[17px] font-bold text-black ml-1">₹{Math.round(discountedPrice)?.toLocaleString('en-IN')}</span>
                                   );
                                 } else {
-                                  return <span className="text-[17px] font-bold text-black">₹{price?.toLocaleString('en-IN')}</span>;
+                                  return <span className="text-[17px] font-bold text-black">₹{displayPrice?.toLocaleString('en-IN')}</span>;
                                 }
                               })()}
                             </div>
@@ -361,8 +325,8 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
           </Carousel>
         </div>
 
-       
-    
+
+
       </div>
       {/* Summary Section (Right) */}
       <div className="flex-shrink-0 w-[320px] md:ml-8">
@@ -372,35 +336,41 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
             let originalTotal = 0;
             let discountedTotal = 0;
             let anyDiscount = false;
+
             displayProducts.forEach((product, idx) => {
               if (!selected[idx]) return;
-              const price = product.quantity?.variants?.[0]?.price || product.price || product.minPrice || 0;
+              const price = Number(product.quantity?.variants?.[0]?.price || product.price || product.minPrice || 0);
+              const vendorPrice = Number(product.quantity?.variants?.[0]?.vendorPrice || 0);
+              const displayPrice = session?.user?.isVendor && vendorPrice > 0 ? vendorPrice : price;
               const coupon = product.coupon || product.coupons?.coupon;
-              let discountedPrice = price;
+              let discountedPrice = displayPrice;
+
               if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
-                discountedPrice = price - (price * coupon.percent) / 100;
+                discountedPrice = displayPrice - (displayPrice * coupon.percent) / 100;
                 anyDiscount = true;
               } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
-                discountedPrice = price - coupon.amount;
+                discountedPrice = displayPrice - coupon.amount;
                 anyDiscount = true;
               }
-              originalTotal += price;
-              discountedTotal += discountedPrice;
+
+              originalTotal = Number(originalTotal) + Number(price);
+              discountedTotal = Number(discountedTotal) + Number(discountedPrice);
             });
+
+            // Ensure we have valid numbers before formatting
+            const formattedOriginalTotal = isNaN(originalTotal) ? '0.00' : Number(originalTotal).toFixed(2);
+            const formattedDiscountedTotal = isNaN(discountedTotal) ? '0.00' : Number(discountedTotal).toFixed(2);
+
             if (anyDiscount) {
               return (
                 <div className="flex gap-2 items-center mb-2">
-                  <span className="text-gray-400 line-through text-base">₹{originalTotal.toFixed(2)}</span>
-                  <span className="text-xl font-bold text-black">₹{discountedTotal.toFixed(2)}</span>
-                </div>
-              );
-            } else {
-              return (
-                <div className="flex gap-2 items-center mb-2">
-                  <span className="text-xl font-bold text-black">₹{originalTotal.toFixed(2)}</span>
+                  <span className="text-gray-400 line-through text-base">₹{formattedOriginalTotal}</span>
+                  <span className="text-xl font-bold text-black">₹{formattedDiscountedTotal}</span>
                 </div>
               );
             }
+
+            return <span className="text-xl font-bold text-black mb-2">₹{formattedOriginalTotal}</span>;
           })()}
           <button
             className="bg-black text-white w-full py-3 rounded-lg font-bold text-base mb-3 mt-2 hover:bg-gray-900 transition"

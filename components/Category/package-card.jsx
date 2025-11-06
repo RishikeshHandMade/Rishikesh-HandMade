@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button"
 import { useCart } from "@/context/CartContext"
 import toast from "react-hot-toast"
 import QuickViewProductCard from "../QuickViewProductCard";
+import { useSession } from "next-auth/react"
 const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, handleAddToCart }) => {
-  console.log(pkg)
+  // console.log(pkg)
   // If not passed as prop, fallback to context
   const cart = useCart?.() || {}
   const addToWishlistFn = addToWishlist || cart.addToWishlist
@@ -18,6 +19,11 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, ha
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const isWishlisted = wishlist?.some?.(i => i.id === pkg._id)
   const formatNumber = (number) => new Intl.NumberFormat('en-IN').format(number)
+  const { data: session } = useSession()
+  const isVendor = session?.user?.isVendor;
+  const vendorPrice = pkg?.vendorPrice || pkg?.price;
+  const showVendorPrice = isVendor && vendorPrice && vendorPrice < pkg.price;
+
   // Prevent background scroll when Quick View is open
   useEffect(() => {
     if (quickViewProduct) {
@@ -67,7 +73,7 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, ha
         />
         <div className="absolute left-0 right-0 bottom-0 flex items-center justify-center translate-y-10 opacity-0 group-hover/image:translate-y-0 group-hover/image:opacity-100 transition-all duration-300 py-4 ">
           <Button
-            className="bg-black text-white hover:bg-gray-800 tra`nsition-colors duration-300 uppercase text-sm font-bold px-8 py-3 rounded-full shadow-lg border-2 border-white"
+            className="bg-black text-white hover:bg-gray-800 transition-colors duration-300 uppercase text-sm font-bold px-8 py-3 rounded-full shadow-lg border-2 border-white"
             onClick={() => setQuickViewProduct(pkg)}
           >
             QUICK VIEW
@@ -112,7 +118,11 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, ha
               );
             } else {
               return (
-                <span className="font-semibold text-[18px] text-black">₹{formatNumber(price)}</span>
+                showVendorPrice ? (
+                  <span className="font-semibold text-[18px] text-black px-2">₹{formatNumber(vendorPrice)}</span>
+                ) : (
+                  <span className="font-semibold text-[18px] text-black">₹{formatNumber(price)}</span>
+                )
               );
             }
           })()}

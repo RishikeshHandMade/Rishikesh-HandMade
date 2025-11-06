@@ -105,21 +105,6 @@ export default function ChatBot() {
   // Load chat history from DB (or localStorage fallback)
   useEffect(() => {
     async function loadHistory() {
-      if (session?.user?.id) {
-        try {
-          const res = await fetch(`/api/getMessages?userId=${session.user.id}`);
-          const data = await res.json();
-
-          if (data.messages && Array.isArray(data.messages)) {
-            setMessages((prev) => (JSON.stringify(prev) !== JSON.stringify(data.messages) ? data.messages : prev));
-            return;
-          } else {
-            setMessages([]);
-          }
-        } catch (error) {
-          setMessages([]);
-        }
-      }
       // fallback to localStorage
       const localHistory = localStorage.getItem("chatbot_history");
       if (localHistory) {

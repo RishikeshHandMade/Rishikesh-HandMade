@@ -21,10 +21,12 @@ import {
 } from "./ui/dialog";
 import VisuallyHidden from '@/components/VisuallyHidden';
 import Autoplay from "embla-carousel-autoplay";
+import { useSession } from 'next-auth/react';
 
 export default function ProductDetailView({ product }) {
   // console.log(product);
   // --- Ask An Expert Modal State ---
+  const { data: session } = useSession();
   const [showExpertModal, setShowExpertModal] = useState(false);
   // Artisan Modal State
   const [showArtisanModal, setShowArtisanModal] = useState(false);
@@ -433,9 +435,26 @@ export default function ProductDetailView({ product }) {
               </div>
 
             )}
-            {!hasDiscount && (
-              <span className="font-bold text-xl text-black">₹{price}</span>
-            )}
+            <div className="flex items-center gap-2">
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <div className="flex flex-col gap-2">
+                    <span className="text-xs text-green-600">Vendor Price</span>
+                    <span className="font-bold text-xl text-black">
+                      ₹{formatNumeric(session?.user?.isVendor && selectedVariant?.vendorPrice ?
+                        selectedVariant.vendorPrice :
+                        price)}
+                    </span>
+                  </div>
+                  {session?.user?.isVendor && selectedVariant?.vendorPrice && (
+                    <div className="flex flex-col gap-3">
+                      <span className="text-xs text-green-600">Regular Price</span>
+                      <del className="text-gray-600 font-semibold text-md">₹{formatNumeric(price)}</del>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
           {/* Stock Status */}
           {/* Quantity */}
@@ -530,8 +549,8 @@ export default function ProductDetailView({ product }) {
                       <span>{size}</span>
                       <div className="h-4 w-px bg-gray-300" />
                       <span className="text-gray-600 text-md">  {weight ? (
-                        Number(weight) < 1 
-                          ? `${(Number(weight) * 1000).toFixed(0)}g` 
+                        Number(weight) < 1
+                          ? `${(Number(weight) * 1000).toFixed(0)}g`
                           : `${Number(weight).toFixed(3)} kg`
                       ) : '0g'}</span>
                     </div>
@@ -738,92 +757,64 @@ export default function ProductDetailView({ product }) {
                 );
               })}
             </div>
-            {/* Pincode check UI */}
-            <div className="">
-              <div className="flex items-center gap-2 my-2">
-                <span className="text-base font-medium flex items-center gap-1">
-                  <MapPin size={18} className="inline-block" />
-                  Delivery Options
-                </span>
+            {/* Pincode Input Section - Make this more visible */}
+            <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="flex items-center gap-2 mb-2">
+                <MapPin size={18} className="text-gray-700" />
+                <span className="font-medium text-gray-800">Check Delivery Options</span>
               </div>
-              {!pincodeResult ? (
-                <div className="border rounded px-4 py-3 flex items-center gap-2 bg-white max-w-xs">
-                  <input
-                    type="text"
-                    className="flex-1 bg-transparent outline-none text-gray-700"
-                    placeholder="Enter pincode"
-                    value={pincodeInput}
-                    onChange={e => setPincodeInput(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
-                    maxLength={6}
-                  />
-                  <button
-                    className="text-blue-900 font-semibold ml-2"
-                    disabled={loadingShipping || pincodeInput.length !== 6}
-                    onClick={async () => {
-                      setPincodeError('');
-                      setLoadingShipping(true);
-                      setPincodeResult(null);
-                      try {
-                        // You may want to auto-detect state/district from another API if needed.
-                        // Here, we assume checkZip API can find from just pincode.
-                        const res = await fetch('/api/zipcode/checkZip', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ pincode: pincodeInput }),
-                        });
-                        const data = await res.json();
-                        if (data.success) {
-                          setPincodeResult(data);
-                          setPincodeError("");
-                          // Persist delivery location to localStorage
-                          localStorage.setItem('deliveryLocation', JSON.stringify({
-                            pincode: data.pincode,
-                            city: data.city,
-                            state: data.state,
-                            district: data.district
-                          }));
-                        } else {
-                          setPincodeError(data.message || 'Delivery not available');
-                        }
-                      } catch {
-                        setPincodeError('Server error. Please try again.');
-                      } finally {
-                        setLoadingShipping(false);
+              <div className="flex items-center gap-2">
+                <input
+                required
+                  type="text"
+                  className="flex-1/2 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter 6-digit pincode"
+                  value={pincodeInput}
+                  onChange={e => setPincodeInput(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
+                  maxLength={6}
+                />
+                <button
+                  className={` flex gap-2 items-center px-4 py-2 rounded font-medium ${pincodeInput.length === 6
+                    ? 'bg-blue-600 text-white hover:bg-blue-700'
+                    : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                    }`}
+                  disabled={pincodeInput.length !== 6 || loadingShipping}
+                  onClick={async () => {
+                    setPincodeError('');
+                    setLoadingShipping(true);
+                    try {
+                      const res = await fetch('/api/zipcode/checkZip', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ pincode: pincodeInput }),
+                      });
+                      const data = await res.json();
+                      if (data.success) {
+                        setPincodeResult(data);
+                        toast.success('Delivery available to your pincode!');
+                      } else {
+                        setPincodeError('Delivery not available to this pincode');
+                        toast.error('Delivery not available to this pincode');
                       }
-                    }}
-                  >
-                    {loadingShipping ? (
-                      <span className="flex items-center">
-                        <Loader2 className="animate-spin mr-2" />
-                        Checking...
-                      </span>
-                    ) : (
-                      'Check'
-                    )}
-                  </button>
-                </div>
-              ) : (
-                <div className="border rounded px-4 py-3 bg-white w-fit">
-                  <div className="flex items-center gap-2 mb-2">
-                    <MapPin size={18} className="inline-block" />
-                    <span className="font-semibold">Delivery options for {pincodeResult.pincode}</span>
-                    <button
-                      className="ml-auto px-2 py-1 border rounded border-black text-sm"
-                      onClick={() => {
-                        setPincodeInput('');
-                        setPincodeResult(null);
-                      }}
-                    >
-                      Change
-                    </button>
-                  </div>
-                  <div className="mb-1 text-sm">
-                    Shipping to: <span className="font-semibold">{pincodeResult.city || pincodeResult.district}, {pincodeResult.state}, India</span>
-                  </div>
-                </div>
-              )}
+                    } catch (error) {
+                      setPincodeError('Error checking pincode. Please try again.');
+                      toast.error('Error checking pincode');
+                    } finally {
+                      setLoadingShipping(false);
+                    }
+                  }}
+                >
+             
+                  {loadingShipping ? <Loader2 className="animate-spin"/> : 'Check'}
+                </button>
+              </div>
               {pincodeError && (
-                <div className="text-red-600 text-xs mt-1">{pincodeError}</div>
+                <p className="text-red-500 text-sm mt-2">{pincodeError}</p>
+              )}
+              {pincodeResult && (
+                <p className="text-green-600 text-sm mt-2">
+                  ✓ Delivery available to {pincodeResult.city}, {pincodeResult.state}
+                </p>
               )}
             </div>
             {/* Tags, etc. */}
@@ -1036,14 +1027,22 @@ export default function ProductDetailView({ product }) {
             {/* Buy Now Button */}
             <button
               className={`border border-black py-3 font-semibold w-full ${selectedVariant?.qty > 0
-                ? 'hover:bg-gray-100'
+                ? pincodeResult
+                  ? 'bg-black text-white hover:bg-gray-800'
+                  : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                 : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                 }`}
               onClick={async () => {
                 if (!selectedVariant) return;
-                // Block if pincode is not entered
-                if (!pincodeInput) {
-                  toast.error('Please enter your pincode before proceeding.');
+
+                // First check if pincode is checked and valid
+                if (!pincodeResult) {
+                  toast.error('Please check delivery availability by entering your pincode first.');
+                  // Scroll to pincode section
+                  document.querySelector('input[placeholder="Enter 6-digit pincode"]')?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                  });
                   return;
                 }
                 try {
@@ -1141,9 +1140,14 @@ export default function ProductDetailView({ product }) {
                   toast.error('Failed to prepare product. Please try again.');
                 }
               }}
-              disabled={!selectedVariant || selectedVariant.qty <= 0}
+              disabled={!selectedVariant || selectedVariant.qty <= 0 || !pincodeResult}
             >
-              {selectedVariant?.qty > 0 ? 'BUY IT NOW' : 'OUT OF STOCK'}
+              {selectedVariant?.qty > 0
+                ? pincodeResult
+                  ? 'BUY IT NOW'
+                  : 'PLEASE CHECK PINCODE FIRST'
+                : 'OUT OF STOCK'
+              }
             </button>
             <Dialog open={showArtisanModal} onOpenChange={setShowArtisanModal}>
               <DialogContent className="max-w-md h-[80vh] md:h-fit overflow-y-auto w-full p-0 md:overflow-hidden">
@@ -1164,7 +1168,7 @@ export default function ProductDetailView({ product }) {
                   <img
                     src={product.artisan?.profileImage?.url || "/placeholder.jpeg"}
                     alt={product.artisan?.artisanName}
-                    className="w-full h-42 md:h-52 object-cover"
+                    className="w-full h-42 md:h-52 object-contain"
                   />
                   {/* Card body */}
                   <div className="bg-white p-6">
@@ -1195,8 +1199,8 @@ export default function ProductDetailView({ product }) {
           </div>
         </div>
       </div >
-      <div className="w-full p-2 md:px-10 border">
-        {highlights.length > 0 && (
+      {highlights.length > 0 && (
+        <div className="w-full p-2 md:px-10 border">
           <div className="mt-4 w-full p-4 rounded-lg">
             <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
               <InfoIcon className="w-5 h-5" /> Product Highlights
@@ -1224,8 +1228,8 @@ export default function ProductDetailView({ product }) {
             </ul>
           </div>
 
-        )}
-      </div>
+        </div>
+      )}
     </>
   );
 }
