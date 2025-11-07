@@ -1375,6 +1375,7 @@ const CheckOut = () => {
 
       // Get products based on mode (buy now or regular cart)
       let productsToProcess = [];
+      // console.log(productsToProcess)
 
       if (isBuyNow) {
         // Parse buy now product and add to products array

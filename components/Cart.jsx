@@ -16,6 +16,7 @@ export default function Cart({ open, onClose, initialTab = "cart" }) {
   const cartItems = Array.isArray(rawCart) ? rawCart : [];
   const cartTotal = cartItems.reduce((sum, item) => sum + item.price * item.qty, 0);
   const isLoggedIn = status === "authenticated" && userId;
+  const isVendor = session?.user?.isVendor;
 
   useEffect(() => {
     if (open) {
@@ -38,71 +39,10 @@ export default function Cart({ open, onClose, initialTab = "cart" }) {
       if (!open) setShow(false);
     }
   }, []);
-
-  // Sync cart to backend on change (DISABLED)
-  /*
-  useEffect(() => {
-    if (!isLoggedIn || !userId || isClearing) return; // Prevent sync when clearing
-    
-    // Only sync if cart actually changed
-    const currentCart = localStorage.getItem('cart');
-    const currentCartData = currentCart ? JSON.parse(currentCart) : [];
-    if (JSON.stringify(cart) !== JSON.stringify(currentCartData)) {
-      fetch("/api/sync-cart", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, cart }),
-      });
-    }
-  }, [cart, isLoggedIn, userId, isClearing]);
-  */
-
-  // Sync wishlist to backend on change
-  // useEffect(() => {
-  //   if (isLoggedIn) {
-  //     // console.log('[Cart.jsx] Syncing wishlist to backend', wishlist);
-  //     fetch("/api/sync-wishlist", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ userId, wishlist }),
-  //     });
-  //   }
-  // }, [wishlist, isLoggedIn, userId]);
-
-  // Fetch cart/wishlist from backend on mount if logged in
-  // useEffect(() => {
-  //   if (isLoggedIn && cart.length === 0 && !isClearing) {
-  //     fetch(`/api/sync-cart`, {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ userId, cart: [] }), // empty triggers fetch only
-  //     })
-  //       .then(res => res.json())
-  //       .then(data => {
-  //         if (data.cart) {
-  //           // console.log('[Cart.jsx] setCart from backend fetch', data.cart);
-  //           setCart(data.cart);
-  //         }
-  //       });
-  //   }
-  //   if (isLoggedIn && wishlist.length === 0) {
-  //     fetch(`/api/sync-wishlist`, {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ userId, wishlist: [] }),
-  //     })
-  //       .then(res => res.json())
-  //       .then(data => {
-  //         if (data.wishlist) {
-  //           // console.log('[Cart.jsx] setWishlist from backend fetch', data.wishlist);
-  //           setWishlist(data.wishlist);
-  //         }
-  //       });
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [isLoggedIn, userId]);
-
-  const subtotal = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const subtotal = cart.reduce((sum, item) => {
+    const itemPrice = isVendor && item.vendorPrice ? item.vendorPrice : item.price;
+    return sum + (itemPrice * (item.qty || 1));
+  }, 0);
   if (!show || typeof window === "undefined") return null;
 
   return ReactDOM.createPortal(
@@ -161,7 +101,11 @@ export default function Cart({ open, onClose, initialTab = "cart" }) {
                   )}
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                  <span className="font-semibold">₹{(item.price * (item.qty || 1)).toFixed(2)}</span>
+                  {item.vendorPrice ? (
+                    <span className="font-semibold">₹{(item.vendorPrice * (item.qty || 1)).toFixed(2)}</span>
+                  ) : (
+                    <span className="font-semibold">₹{(item.price * (item.qty || 1)).toFixed(2)}</span>
+                  )}
                   {tab === "cart" ? (
                     <button onClick={async () => await removeFromCart(item.id)} className="text-neutral-400 hover:text-red-500">
                       <X size={18} />

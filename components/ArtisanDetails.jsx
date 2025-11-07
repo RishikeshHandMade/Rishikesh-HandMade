@@ -113,7 +113,7 @@ const ArtisanDetails = ({ artisan }) => {
       couponApplied = true;
       couponCode = coupon.couponCode;
     }
-    addToCart({
+    const cartItem = {
       id: item._id,
       name: item.title,
       image: item?.gallery?.mainImage || "/placeholder.jpeg",
@@ -143,7 +143,11 @@ const ArtisanDetails = ({ artisan }) => {
         (item.tax && item.tax.sgst) ||
         0,
       totalQuantity: item?.quantity?.variants[0]?.qty || 0,
-    });
+    };
+    if (isVendor) {
+      cartItem.vendorPrice = item?.quantity?.variants[0]?.vendorPrice;
+    }
+    addToCart(cartItem);
     toast.success("Added to cart!");
   };
   const formatNumeric = (num) => {
@@ -173,14 +177,13 @@ const ArtisanDetails = ({ artisan }) => {
   const shareBoxRef = useRef(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [isLoadingReviews, setIsLoadingReviews] = useState(true);
-  const [artisanReviews, setArtisanReviews] = useState([]);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [selectedReviews, setSelectedReviews] = useState([]);
   const ReviewModals = ({ open, onClose, reviews }) => {
     if (!open) return null;
     return (
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 animate-fadeIn duration-300"
         onClick={onClose}
       >
         <div
@@ -1403,7 +1406,7 @@ const ArtisanDetails = ({ artisan }) => {
                                   couponApplied = true;
                                   couponCode = coupon.couponCode;
                                 }
-                                addToWishlist({
+                                const wishlistItem = {
                                   id: item._id,
                                   name: item.title,
                                   image:
@@ -1441,7 +1444,13 @@ const ArtisanDetails = ({ artisan }) => {
                                     0,
                                   totalQuantity:
                                     item?.quantity?.variants[0]?.qty || 0,
-                                });
+                                };
+
+                                if (isVendor) {
+                                  wishlistItem.vendorPrice = item?.quantity?.variants[0]?.vendorPrice;
+                                }
+
+                                addToWishlist(wishlistItem);
                                 toast.success("Added to wishlist!");
                               }
                             }}
@@ -1549,9 +1558,9 @@ const ArtisanDetails = ({ artisan }) => {
                               );
                             } else {
                               return (
-                                  <span className="font-bold text-md md:text-xl text-black">
-                                    ₹{formatNumeric(displayPrice)}
-                                  </span>
+                                <span className="font-bold text-md md:text-xl text-black">
+                                  ₹{formatNumeric(displayPrice)}
+                                </span>
                               );
                             }
                           })()}
@@ -2587,7 +2596,7 @@ const ArtisanDetails = ({ artisan }) => {
 
           {/* Review Card Overlay */}
           <div className="hidden md:flex flex-col justify-start w-full items-end ">
-            <div className="button px-10 mb-2">
+            <div className="button absolute top-[15%] right-2 px-10 mb-2 ">
               <Button
                 className="bg-white text-black hover:bg-black hover:text-white transition-colors duration-300"
                 onClick={() => setShowReviewModal(true)}

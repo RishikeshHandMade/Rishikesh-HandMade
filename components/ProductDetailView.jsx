@@ -294,6 +294,7 @@ export default function ProductDetailView({ product }) {
 
     return processedHtml;
   };
+  const isVendor = session?.user?.isVendor;
   return (
     <>
       <div className="flex flex-col md:flex-row gap-4 mx-auto">
@@ -439,19 +440,15 @@ export default function ProductDetailView({ product }) {
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
                   <div className="flex flex-col gap-2">
-                    <span className="text-xs text-green-600">Vendor Price</span>
-                    <span className="font-bold text-xl text-black">
-                      ₹{formatNumeric(session?.user?.isVendor && selectedVariant?.vendorPrice ?
-                        selectedVariant.vendorPrice :
-                        price)}
-                    </span>
+                    {session?.user?.isVendor && selectedVariant?.vendorPrice && (
+                      <div className="flex flex-col gap-1">
+                        <span className="text-xs text-green-600">Vendor Price</span>
+                        <span className="font-bold text-xl text-black">
+                          ₹{formatNumeric(selectedVariant.vendorPrice)}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                  {session?.user?.isVendor && selectedVariant?.vendorPrice && (
-                    <div className="flex flex-col gap-3">
-                      <span className="text-xs text-green-600">Regular Price</span>
-                      <del className="text-gray-600 font-semibold text-md">₹{formatNumeric(price)}</del>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
@@ -765,7 +762,7 @@ export default function ProductDetailView({ product }) {
               </div>
               <div className="flex items-center gap-2">
                 <input
-                required
+                  required
                   type="text"
                   className="flex-1/2 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter 6-digit pincode"
@@ -804,8 +801,8 @@ export default function ProductDetailView({ product }) {
                     }
                   }}
                 >
-             
-                  {loadingShipping ? <Loader2 className="animate-spin"/> : 'Check'}
+
+                  {loadingShipping ? <Loader2 className="animate-spin" /> : 'Check'}
                 </button>
               </div>
               {pincodeError && (
@@ -890,11 +887,12 @@ export default function ProductDetailView({ product }) {
                           toast.error("Selected variant is out of stock");
                           return;
                         }
-                        addToCart({
+                        const cartItem = {
                           id: product._id,
                           name: product.title,
                           image: typeof selectedImage === "string" ? selectedImage : selectedImage?.url || product.gallery?.mainImage?.url || '/placeholder.png',
                           price: hasDiscount ? Math.round(discountedPrice) : selectedVariant.price,
+                          vendorPrice: product?.quantity?.variants[0]?.vendorPrice,
                           originalPrice: selectedVariant.price,
                           couponApplied: hasDiscount,
                           couponCode: coupon ? coupon.couponCode : '',
@@ -909,7 +907,11 @@ export default function ProductDetailView({ product }) {
                           sgst: (product.taxes && product.taxes.sgst) || product.sgst || (product.tax && product.tax.sgst) || 0,
                           igst: (product.taxes && product.taxes.igst) || product.igst || (product.tax && product.tax.igst) || 0,
                           totalQuantity: selectedVariant.qty || 0,
-                        });
+                        }
+                        if (isVendor) {
+                          cartItem.vendorPrice = product?.quantity?.variants[0]?.vendorPrice;
+                        }
+                        addToCart(cartItem);
                         toast.success("Added to cart!");
                       }}
                     >
@@ -934,11 +936,12 @@ export default function ProductDetailView({ product }) {
                     removeFromWishlist(product._id);
                     toast.success("Removed from wishlist!");
                   } else {
-                    addToWishlist({
+                    const wishlistItem = {
                       id: product._id,
                       name: product.title,
                       image: typeof selectedImage === "string" ? selectedImage : selectedImage?.url || product.gallery?.mainImage?.url || '/placeholder.png',
                       price: hasDiscount ? Math.round(discountedPrice) : selectedVariant.price,
+                      vendorPrice: product?.quantity?.variants[0]?.vendorPrice,
                       originalPrice: selectedVariant.price,
                       couponApplied: hasDiscount,
                       couponCode: coupon ? coupon.couponCode : '',
@@ -953,7 +956,13 @@ export default function ProductDetailView({ product }) {
                       sgst: (product.taxes && product.taxes.sgst) || product.sgst || (product.tax && product.tax.sgst) || 0,
                       igst: (product.taxes && product.taxes.igst) || product.igst || (product.tax && product.tax.igst) || 0,
                       totalQuantity: selectedVariant.qty || 0,
-                    });
+                    };
+
+                    if (isVendor) {
+                      wishlistItem.vendorPrice = product?.quantity?.variants[0]?.vendorPrice;
+                    }
+
+                    addToWishlist(wishlistItem);
                     toast.success("Added to wishlist!");
                   }
                 }}
@@ -1129,7 +1138,9 @@ export default function ProductDetailView({ product }) {
                     sgst: Number((product.taxes && product.taxes.sgst) || product.sgst || (product.tax && product.tax.sgst) || 0),
                     // quantity: product.quantity || {},
                   };
-
+                  if (isVendor) {
+                    buyNowProduct.vendorPrice = product?.quantity?.variants[0]?.vendorPrice;
+                  }
                   // Store the product in localStorage
                   localStorage.setItem('buyNowProduct', JSON.stringify(buyNowProduct));
 
@@ -1199,37 +1210,39 @@ export default function ProductDetailView({ product }) {
           </div>
         </div>
       </div >
-      {highlights.length > 0 && (
-        <div className="w-full p-2 md:px-10 border">
-          <div className="mt-4 w-full p-4 rounded-lg">
-            <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
-              <InfoIcon className="w-5 h-5" /> Product Highlights
-            </h3>
-            <ul className="space-y-4 mt-2 md:px-10 py-5">
-              {highlights.slice(0, showAllHighlights ? highlights.length : 3).map((highlight, index) => (
-                <li key={index} className="flex flex-col items-start gap-2">
-                  <div className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                    <span className="text-md text-gray-700 text-wrap">{highlight}</span>
+      {
+        highlights.length > 0 && (
+          <div className="w-full p-2 md:px-10 border">
+            <div className="mt-4 w-full p-4 rounded-lg">
+              <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
+                <InfoIcon className="w-5 h-5" /> Product Highlights
+              </h3>
+              <ul className="space-y-4 mt-2 md:px-10 py-5">
+                {highlights.slice(0, showAllHighlights ? highlights.length : 3).map((highlight, index) => (
+                  <li key={index} className="flex flex-col items-start gap-2">
+                    <div className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span className="text-md text-gray-700 text-wrap">{highlight}</span>
+                    </div>
+                    <hr className="bg-gray-300 h-[px] w-full" />
+                  </li>
+                ))}
+                {highlights.length > 3 && (
+                  <div className="text-right mt-2">
+                    <button
+                      onClick={() => setShowAllHighlights(!showAllHighlights)}
+                      className="text-blue-600 hover:text-blue-800 text-md font-medium"
+                    >
+                      {showAllHighlights ? 'Show less' : `+${highlights.length - 3} more`}
+                    </button>
                   </div>
-                  <hr className="bg-gray-300 h-[px] w-full" />
-                </li>
-              ))}
-              {highlights.length > 3 && (
-                <div className="text-right mt-2">
-                  <button
-                    onClick={() => setShowAllHighlights(!showAllHighlights)}
-                    className="text-blue-600 hover:text-blue-800 text-md font-medium"
-                  >
-                    {showAllHighlights ? 'Show less' : `+${highlights.length - 3} more`}
-                  </button>
-                </div>
-              )}
-            </ul>
-          </div>
+                )}
+              </ul>
+            </div>
 
-        </div>
-      )}
+          </div>
+        )
+      }
     </>
   );
 }

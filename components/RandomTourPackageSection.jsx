@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Star, X } from "lucide-react";
 import {
   CalendarClock,
@@ -9,7 +9,6 @@ import {
   ArrowRight,
   Globe,
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Carousel,
   CarouselContent,
@@ -26,8 +25,12 @@ import QuickViewProductCard from "./QuickViewProductCard";
 import { useCart } from "../context/CartContext";
 import { toast } from "react-hot-toast";
 import { useSession } from 'next-auth/react';
+import { useInView } from 'react-intersection-observer';
 const RandomTourPackageSection = () => {
   // ...existing state and hooks
+  const { data: session } = useSession();
+  const isVendor = session?.user?.role === 'vendor' || session?.user?.role === 'admin';
+
   const handleAddToCart = (item) => {
     const price = item?.quantity?.variants[0].price;
     const coupon = item.coupon || item.coupons?.coupon;
@@ -49,7 +52,7 @@ const RandomTourPackageSection = () => {
       couponCode = coupon.couponCode;
     }
 
-    addToCart({
+    const cartItem = {
       id: item._id,
       name: item.title,
       image: item?.gallery?.mainImage || "/placeholder.jpeg",
@@ -79,10 +82,13 @@ const RandomTourPackageSection = () => {
         (item.tax && item.tax.sgst) ||
         0,
       totalQuantity: item?.quantity?.variants[0]?.qty || 0,
-    });
+    };
+    if (isVendor) {
+      cartItem.vendorPrice = item?.quantity?.variants[0]?.vendorPrice;
+    }
+    addToCart(cartItem);
     toast.success("Added to cart!");
   };
-  const { data: session } = useSession();
   const { addToCart, addToWishlist, removeFromWishlist, wishlist } = useCart();
   const [products, setProducts] = useState([]);
   const [artisan, setArtisan] = useState([]);
@@ -91,6 +97,13 @@ const RandomTourPackageSection = () => {
   const [bannerSection3rd, setBannerSection3rd] = useState([]);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [selectedReviews, setSelectedReviews] = useState([]);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const { ref, inView } = useInView({
+    threshold: 0.1,
+    triggerOnce: false
+  });
   const ReviewModal = ({ open, onClose, reviews }) => {
     if (!open) return null;
     console.log(reviews)
@@ -211,22 +224,40 @@ const RandomTourPackageSection = () => {
     }
   };
   // Fetch Prouducts
-  const fetchProducts = async () => {
-    try {
-      const res = await fetch("/api/product");
-      const data = await res.json();
-      // console.log("Product API response:", data);
+  const fetchProducts = useCallback(async () => {
+    if (loading || !hasMore) return;
 
-      if (data && data.length > 0) {
-        setProducts(data);
-      } else {
-        setProducts([]);
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/product?page=${page}&limit=15`);
+      const data = await response.json();
+      // console.log('API Response:', data); // Add this line for debugging
+
+      // Ensure we have a valid array of products
+      const products = Array.isArray(data?.products)
+        ? data.products
+        : Array.isArray(data)
+          ? data
+          : [];
+
+      if (products.length === 0) {
+        setHasMore(false);
+        return;
       }
+
+      setProducts(prev => {
+        // Ensure we always have an array to spread
+        const currentProducts = Array.isArray(prev) ? prev : [];
+        return [...currentProducts, ...products];
+      });
+      setPage(prev => prev + 1);
     } catch (error) {
-      // console.error("Error fetching products:", error);
-      setProducts([]);
+      console.error('Error fetching products:', error);
+      setHasMore(false);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [page, loading, hasMore]);
   const [consultancyBanner, setConsultancyBanner] = useState([]);
   // console.log(promotinalBanner)
   const fetchPromotinalBanner = async () => {
@@ -264,6 +295,11 @@ const RandomTourPackageSection = () => {
     fetchArtisan();
     fetchProducts();
   }, []);
+  useEffect(() => {
+    if (inView && hasMore) {
+      fetchProducts();
+    }
+  }, [inView, hasMore, fetchProducts]);
 
   const formatNumeric = (num) => {
     return new Intl.NumberFormat("en-IN").format(num);
@@ -294,6 +330,7 @@ const RandomTourPackageSection = () => {
                     <CarouselItem
                       key={index}
                       className="pl-5 md:basis-1/2 lg:basis-1/4 min-w-0 snap-start"
+                      ref={index === products.length - 3 ? ref : null} // Add ref to trigger loading
                     >
                       <div className="flex flex-col md:w-[290px] ">
                         {/* Image Section */}
@@ -342,6 +379,7 @@ const RandomTourPackageSection = () => {
                                 } else {
                                   const price =
                                     item?.quantity?.variants[0].price;
+                                  const vendorPrice = item?.quantity?.variants[0]?.vendorPrice; // Get vendor price
                                   const coupon =
                                     item.coupon || item.coupons?.coupon;
                                   let discountedPrice = price;
@@ -366,7 +404,8 @@ const RandomTourPackageSection = () => {
                                     couponApplied = true;
                                     couponCode = coupon.couponCode;
                                   }
-                                  addToWishlist({
+
+                                  const wishlistItem = {
                                     id: item._id,
                                     name: item.title,
                                     image:
@@ -406,7 +445,13 @@ const RandomTourPackageSection = () => {
                                       0,
                                     totalQuantity:
                                       item?.quantity?.variants[0]?.qty || 0,
-                                  });
+                                  };
+
+                                  if (isVendor) {
+                                    wishlistItem.vendorPrice = item?.quantity?.variants[0]?.vendorPrice;
+                                  }
+
+                                  addToWishlist(wishlistItem);
                                   toast.success("Added to wishlist!");
                                 }
                               }}

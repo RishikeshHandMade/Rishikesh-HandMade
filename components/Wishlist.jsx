@@ -2,6 +2,7 @@
 import React from "react";
 import { useCart } from "../context/CartContext";
 import toast from "react-hot-toast";
+import { useSession } from "next-auth/react";
 
 
 function RemoveIcon() {
@@ -14,6 +15,8 @@ const Wishlist = () => {
   const { wishlist, removeFromWishlist, addToCart } = useCart();
   // console.log(addToCart)
   const loading = false; // context is always available
+  const { data: session, status } = useSession();
+  const isVendor = session?.user?.isVendor;
 
   return (
     <div className="bg-[#fcf7f1]">
@@ -71,13 +74,13 @@ const Wishlist = () => {
 
                       {/* Price */}
                       <td className="px-4 py-4 text-right">
-                        {item.oldPrice && (
+                        {!isVendor && item.oldPrice && (
                           <span className="text-gray-400 line-through mr-2 text-sm">
                             ₹{item.oldPrice}
                           </span>
                         )}
                         <span className="text-gray-900 font-semibold text-base">
-                          ₹{item.price}
+                          ₹{isVendor && item.vendorPrice ? item.vendorPrice : item.price}
                         </span>
                       </td>
 
@@ -107,7 +110,7 @@ const Wishlist = () => {
                           onClick={() => {
                             removeFromWishlist(item.id);
                             toast.success("Removed from wishlist!");
-                          } }
+                          }}
                         >
                           <RemoveIcon />
                         </button>

@@ -182,7 +182,7 @@ export default function ReviewModal({ open, onClose, onSubmit, artisan, type = '
   };
 
   return (
-    <div key={modalKey} className="fixed inset-0 z-[99999] bg-black/40 flex items-center justify-center p-0 overflow-y-auto">
+    <div key={modalKey} className="fixed inset-0 z-[99999] bg-black/40 flex items-center justify-center p-0 overflow-y-auto animate-fadeIn duration-300">
       <div className="relative bg-white rounded-lg shadow-xl w-full max-w-lg md:h-screen h-[90vh] p-6 md:p-4 flex flex-col overflow-y-auto scrollbar-none" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <style>{`.scrollbar-none::-webkit-scrollbar { display: none; }`}</style>
         {/* Close X top right */}

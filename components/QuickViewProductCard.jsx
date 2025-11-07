@@ -405,7 +405,9 @@ export default function QuickViewProductCard({ product, onClose }) {
           <button
             className="bg-black text-white px-4 py-2 font-semibold hover:bg-gray-800 w-1/2"
             onClick={() => {
-              const price = product?.quantity?.variants[0].price;
+              const basePrice = product?.quantity?.variants[0].price;
+              const vendorPrice = product?.quantity?.variants[0]?.vendorPrice;
+              const price = isVendor && vendorPrice ? vendorPrice : basePrice;
               const coupon = product.coupon || product.coupons?.coupon;
               let discountedPrice = price;
               let couponApplied = false;
@@ -420,13 +422,14 @@ export default function QuickViewProductCard({ product, onClose }) {
                 couponApplied = true;
                 couponCode = coupon.couponCode;
               }
-              addToCart({
+              
+              const cartItem = {
                 id: product._id,
                 name: product.title,
                 image: product?.gallery?.mainImage || "/placeholder.jpeg",
                 price: Math.round(discountedPrice),
                 originalPrice: price,
-                qty: 1,
+                qty: Number(quantity) || 1,
                 couponApplied,
                 couponCode: couponApplied ? couponCode : undefined,
                 productCode: product.code || product.productCode || '',
@@ -435,11 +438,17 @@ export default function QuickViewProductCard({ product, onClose }) {
                 cgst: (product.taxes && product.taxes.cgst) || product.cgst || (product.tax && product.tax.cgst) || 0,
                 sgst: (product.taxes && product.taxes.sgst) || product.sgst || (product.tax && product.tax.sgst) || 0,
                 quantity: product.quantity || {},
-              }, quantity);
+              };
+              
+              if (isVendor) {
+                cartItem.vendorPrice = vendorPrice;
+              }
+              
+              addToCart(cartItem);
               toast.success("Added to cart!");
             }}
-
           >ADD TO CART</button>
+          
           <button
             className="border border-black py-1 font-semibold w-1/2 flex items-center justify-center gap-2 bg-white hover:bg-[#b3a7a3]"
             onClick={() => {
@@ -447,31 +456,47 @@ export default function QuickViewProductCard({ product, onClose }) {
                 removeFromWishlist(product._id);
                 toast.success("Removed from wishlist!");
                 return;
-              } else {
-                const coupon = product.coupon || product.coupons?.coupon;
-                const originalPrice = product?.quantity?.variants[0].price;
-                let discountedPrice = originalPrice;
-                let couponApplied = false;
-                let couponCode = '';
-                if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
-                  discountedPrice = originalPrice - (originalPrice * coupon.percent) / 100;
-                  couponApplied = true;
-                  couponCode = coupon.couponCode;
-                } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
-                  discountedPrice = originalPrice - coupon.amount;
-                  couponApplied = true;
-                  couponCode = coupon.couponCode;
-                }
-                addToWishlist({
-                  id: product._id,
-                  name: product.title,
-                  image: product?.gallery?.mainImage || "/placeholder.png",
-                  price: couponApplied ? Math.round(discountedPrice) : couponApplied,
-                  couponCode,
-                  qty: quantity
-                });
-                toast.success("Added to wishlist!");
               }
+              
+              const basePrice = product?.quantity?.variants[0].price;
+              const vendorPrice = product?.quantity?.variants[0]?.vendorPrice;
+              const price = isVendor && vendorPrice ? vendorPrice : basePrice;
+              const coupon = product.coupon || product.coupons?.coupon;
+              let discountedPrice = price;
+              let couponApplied = false;
+              let couponCode = '';
+              
+              if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+                discountedPrice = price - (price * coupon.percent) / 100;
+                couponApplied = true;
+                couponCode = coupon.couponCode;
+              } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+                discountedPrice = price - coupon.amount;
+                couponApplied = true;
+                couponCode = coupon.couponCode;
+              }
+              
+              const wishlistItem = {
+                id: product._id,
+                name: product.title,
+                image: product?.gallery?.mainImage || "/placeholder.png",
+                price: Math.round(discountedPrice),
+                originalPrice: price,
+                qty: Number(quantity) || 1,
+                couponApplied,
+                couponCode: couponApplied ? couponCode : undefined,
+                productCode: product.code || product.productCode || '',
+                cgst: (product.taxes && product.taxes.cgst) || product.cgst || (product.tax && product.tax.cgst) || 0,
+                sgst: (product.taxes && product.taxes.sgst) || product.sgst || (product.tax && product.tax.sgst) || 0,
+                quantity: product.quantity || {},
+              };
+              
+              if (isVendor) {
+                wishlistItem.vendorPrice = vendorPrice;
+              }
+              
+              addToWishlist(wishlistItem);
+              toast.success("Added to wishlist!");
             }}
           >
             <div
