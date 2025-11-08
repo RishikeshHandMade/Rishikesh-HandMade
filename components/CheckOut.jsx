@@ -3,18 +3,7 @@ import React, { useState } from 'react';
 import { useCart } from "../context/CartContext";
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogClose,
-} from "./ui/dialog";
-const shippingOptions = [
-  { label: 'Free shipping', value: 'free', cost: 0 },
-  { label: 'Flat Rate', value: 'flat', cost: 25.75 },
-];
+
 // Function to load Razorpay script on client
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
@@ -128,6 +117,7 @@ const CheckOut = () => {
   }, []);
 
   const { data: session, status } = useSession();
+  const isVendor = session?.user?.isVendor;
   const router = useRouter();
   const pathname = usePathname();
   const { cart: contextCart, setCart, removeFromCart, clearCart } = useCart();
@@ -587,7 +577,7 @@ const CheckOut = () => {
         setError(null);
         setShowConfirmationModal(true);
         setOrderId(orderId);
-        
+
         // 4. Show order overview instead of redirecting
         setShowOverview(true);
 
@@ -953,7 +943,6 @@ const CheckOut = () => {
   const [payment, setPayment] = useState('cod');
   const [paymentMethod, setPaymentMethod] = useState('cod');
   const [agree, setAgree] = useState(false);
-  const [saveAddress, setSaveAddress] = useState(false);
   const [formErrors, setFormErrors] = useState({});
   const [mounted, setMounted] = React.useState(false);
   // Billing form state
@@ -1937,7 +1926,9 @@ const CheckOut = () => {
                         <span className="px-3 py-1 text-base font-semibold">{item.qty}</span>
 
                       </div>
-                      <div className="text-md text-black font-semibold whitespace-nowrap">₹{(item.originalPrice).toFixed(2)}</div>
+                      <div className="text-md text-black font-semibold whitespace-nowrap">
+                        ₹{Number(isVendor && item.vendorPrice ? item.vendorPrice : (item.originalPrice || item.price || 0)).toFixed(2)}
+                      </div>
                     </div>
                     <div className="flex justify-between items-center text-sm mb-2">
                       <span className="text-gray-600">CGST ({item.cgst}%)</span>

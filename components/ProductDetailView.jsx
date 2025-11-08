@@ -442,7 +442,7 @@ export default function ProductDetailView({ product }) {
                   <div className="flex flex-col gap-2">
                     {session?.user?.isVendor && selectedVariant?.vendorPrice && (
                       <div className="flex flex-col gap-1">
-                        <span className="text-xs text-green-600">Vendor Price</span>
+                        <span className="text-xs text-green-600">B to B Price</span>
                         <span className="font-bold text-xl text-black">
                           ₹{formatNumeric(selectedVariant.vendorPrice)}
                         </span>

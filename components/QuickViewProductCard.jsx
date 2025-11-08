@@ -364,7 +364,8 @@ export default function QuickViewProductCard({ product, onClose }) {
                     <div className="flex flex-col">
                       
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-xl">₹{formatNumeric(vendorPrice || totalPrice)}</span>
+                        <span className="font-bold text-md">B TO B Price:</span>
+                        <span className="font-bold text-xl">₹{formatNumeric(vendorPrice)}</span>
                         {vendorPrice && vendorPrice < totalPrice && (
                           <span className="text-gray-500 line-through text-md">₹{formatNumeric(totalPrice)}</span>
                         )}
