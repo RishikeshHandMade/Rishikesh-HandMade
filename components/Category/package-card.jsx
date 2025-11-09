@@ -21,9 +21,8 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, ha
   const formatNumber = (number) => new Intl.NumberFormat('en-IN').format(number)
   const { data: session } = useSession()
   const isVendor = session?.user?.isVendor;
-  const vendorPrice = pkg?.vendorPrice || pkg?.price;
-  const showVendorPrice = isVendor && vendorPrice && vendorPrice < pkg.price;
-
+  const vendorPrice = pkg?.vendorPrice;
+  
   // Prevent background scroll when Quick View is open
   useEffect(() => {
     if (quickViewProduct) {
@@ -109,7 +108,15 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, ha
               discountedPrice = price;
               hasDiscount = true;
             }
-            if (hasDiscount && discountedPrice < originalPrice) {
+            if (isVendor && vendorPrice) {
+              // Show vendor price if user is a vendor and vendor price exists
+              return (
+                <span className="font-semibold text-[18px] text-black px-2">
+                  ₹{formatNumber(vendorPrice)}
+                </span>
+              );
+            } else if (hasDiscount && discountedPrice < originalPrice) {
+              // Show discounted price for non-vendors or when no vendor price is set
               return (
                 <span>
                   <span className="font-semibold text-[18px] text-black px-2">₹{formatNumber(Math.round(discountedPrice))}</span>
@@ -117,12 +124,9 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, ha
                 </span>
               );
             } else {
+              // Default to regular price
               return (
-                showVendorPrice ? (
-                  <span className="font-semibold text-[18px] text-black px-2">₹{formatNumber(vendorPrice)}</span>
-                ) : (
-                  <span className="font-semibold text-[18px] text-black">₹{formatNumber(price)}</span>
-                )
+                <span className="font-semibold text-[18px] text-black">₹{formatNumber(price)}</span>
               );
             }
           })()}

@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import { signIn } from '@/auth';
+import { signIn as authSignIn } from 'next-auth/react';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../../[...nextauth]/route';
 import connectDB from '@/lib/connectDB';
 import BecomePartner from '@/models/BecomePartner';
 

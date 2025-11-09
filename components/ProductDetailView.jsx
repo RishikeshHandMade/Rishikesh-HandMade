@@ -428,21 +428,13 @@ export default function ProductDetailView({ product }) {
           {/* Selectors */}
           {/* Price and Coupon Section */}
           <div className="mb-2 flex items-center gap-2">
-            {hasDiscount && (
-              <div className="flex items-center gap-2 mb-1">
-                <span className="font-bold text-xl text-black">₹{formatNumeric(Math.round(discountedPrice))}</span>
-                <del className="text-gray-600 font-semibold text-sm mr-2">₹{formatNumeric(selectedVariant?.price)}</del>
-                <span className="border border-green-500 text-green-700 px-2 py-0.5 rounded text-xs font-semibold bg-green-50">Coupon Applied: {couponText}</span>
-              </div>
-
-            )}
             <div className="flex items-center gap-2">
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
                   <div className="flex flex-col gap-2">
                     {session?.user?.isVendor && selectedVariant?.vendorPrice && (
                       <div className="flex flex-col gap-1">
-                        <span className="text-xs text-green-600">B to B Price</span>
+                        <span className="text-sm text-black font-semibold">B to B Price</span>
                         <span className="font-bold text-xl text-black">
                           ₹{formatNumeric(selectedVariant.vendorPrice)}
                         </span>
@@ -452,6 +444,22 @@ export default function ProductDetailView({ product }) {
                 </div>
               </div>
             </div>
+            {hasDiscount && (
+              <div className="flex items-center gap-2 mb-1">
+                <div className="flex flex-col items-center">
+                  {session?.user?.isVendor && (
+                    <span className="text-sm text-black font-semibold">Price</span>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-xl text-black">₹{formatNumeric(Math.round(discountedPrice))}</span>
+                    <del className="text-gray-600 font-semibold text-sm mr-2">₹{formatNumeric(selectedVariant?.price)}</del>
+                  </div>
+                </div>
+                <span className="border border-green-500 text-green-700 px-2 py-0.5 rounded text-xs font-semibold bg-green-50">Coupon Applied: {couponText}</span>
+              </div>
+
+            )}
+
           </div>
           {/* Stock Status */}
           {/* Quantity */}
