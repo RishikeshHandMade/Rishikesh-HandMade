@@ -40,7 +40,7 @@ const ArtisanList = () => {
   const [selectedReviews, setSelectedReviews] = useState([]);
 
   const ArtisanCard = ({ card }) => {
-    console.log(card)
+    // console.log(card)
     return (
       <>
         <div

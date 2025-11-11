@@ -130,7 +130,7 @@ const CheckOut = () => {
     }
   }, [checkoutData, isLoading, router]);
   // Coupon state
-  console.log(checkoutData)
+  // console.log(checkoutData)
   const [couponInput, setCouponInput] = useState("");
   const [loadingCoupon, setLoadingCoupon] = useState(false);
   const [couponError, setCouponError] = useState("");
@@ -1466,35 +1466,23 @@ const CheckOut = () => {
 
         // Calculate shipping cost from multiple possible fields
         const shippingCost = Number(
-          checkoutData?.shippingCost || 
-          checkoutData?.shipping || 
-          checkoutData?.finalShipping || 
+          checkoutData?.shippingCost ||
+          checkoutData?.shipping ||
+          checkoutData?.finalShipping ||
           0
         );
-        
+
         // Calculate tax from items
         const totalTax = preparedProducts.reduce((sum, item) => {
           const itemTax = ((item.price * (item.cgst || 0) / 100) + (item.price * (item.sgst || 0) / 100)) * item.qty;
           return sum + itemTax;
         }, 0);
-        
+
         // Calculate subtotal from items
         const subTotal = preparedProducts.reduce((sum, item) => sum + (item.price * item.qty), 0);
-        
+
         // Calculate final cart total (subtotal + shipping + tax)
         const cartTotal = subTotal + shippingCost + totalTax;
-        
-        // Debug log to verify calculations
-        console.log('Order calculations:', {
-          subTotal,
-          shippingCost,
-          totalTax,
-          cartTotal,
-          checkoutDataShipping: checkoutData?.shipping,
-          checkoutDataFinalShipping: checkoutData?.finalShipping,
-          checkoutDataShippingCost: checkoutData?.shippingCost
-        });
-        
         // Prepare checkout data with all calculated values
         const updatedCheckoutData = {
           ...checkoutData,
@@ -1560,27 +1548,27 @@ const CheckOut = () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(orderData)
           });
-          
+
           const result = await response.json();
-          
+
           if (!response.ok) {
             throw new Error(result.message || 'Failed to create order');
           }
-          
+
           // Get the order ID from the response
           const createdOrderId = result._id || result.orderId || orderId;
-          
+
           if (!createdOrderId) {
             console.error('No order ID found in response:', result);
             toast.error('Error: Could not retrieve order ID');
             return;
           }
-          
+
           // Set order ID and show success modal
           setOrderId(createdOrderId);
           setShowConfirmationModal(true);
           toast.success('Bulk order request submitted successfully! We will contact you soon.');
-          
+
           // Clear cart after successful order
           await clearCart();
           if (buyNowMode) {
@@ -2214,10 +2202,10 @@ const CheckOut = () => {
                 </span>
               </div>
             )}
-            <div className="flex justify-between items-center text-sm mb-2">
+            {/* <div className="flex justify-between items-center text-sm mb-2">
               <span className="text-gray-600">Shipping Charges</span>
               <span>₹{Number(checkoutData?.shipping || 0).toFixed(2)}</span>
-            </div>
+            </div> */}
             {(() => {
               const totalCGST = checkoutData.cart.reduce(
                 (sum, item) => sum + ((item.price * item.cgst / 100) * item.qty),
@@ -2352,7 +2340,7 @@ const CheckOut = () => {
             <p className="text-red-700 text-sm">{formErrors.payment}</p>
           </div>
         )}
-        <div className="mt-4 mb-4">
+        {/* <div className="mt-4 mb-4">
           <pre className="bg-gray-100 p-4 rounded overflow-auto">
            {JSON.stringify({
               firstName,
@@ -2383,7 +2371,7 @@ const CheckOut = () => {
               }
             }, null, 2)} 
           </pre>
-        </div>
+        </div> */}
         <button
           className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded font-semibold text-sm transition-colors"
           disabled={loading || isProcessingPayment}

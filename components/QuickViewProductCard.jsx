@@ -368,7 +368,7 @@ export default function QuickViewProductCard({ product, onClose }) {
           </div>
           <div className="flex flex-col items-start">
             <div className="flex items-baseline flex-col">
-              {session?.user?.isVendor && (
+              {session?.user?.isVendor && vendorPrice && (
               <span className="font-bold text-md md:text-lg text-black mb-1">B to B Price</span>
               )}
 

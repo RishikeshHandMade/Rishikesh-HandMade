@@ -163,7 +163,7 @@ const CheckOutOverview = ({ checkoutData, paymentMethod, onEdit, onConfirm, load
   // In your component, use it like this:
   const handleDownloadInvoice = () => {
     if (!checkoutData) return;
-  
+
     const orderData = {
       orderId: orderId || `ORD-${Math.random().toString(36).substr(2, 8).toUpperCase()}`,
       orderDate: new Date().toISOString(),
@@ -179,13 +179,13 @@ const CheckOutOverview = ({ checkoutData, paymentMethod, onEdit, onConfirm, load
         image: item.image?.url || item.image || ''
       })),
       subTotal: checkoutData.subTotal || 0,
+      shippingCost: checkoutData.shippingCost || 0,
       totalDiscount: checkoutData.totalDiscount || 0,
       promoCode: checkoutData.promoCode || '',
-      totalTax: checkoutData.taxTotal || checkoutData.totalTax || '', // Changed from totalTax to taxTotal based on your data
-      shippingCost: checkoutData?.shippingCost || checkoutData?.shipping || 0,
+      totalTax: checkoutData.totalTax || taxTotal,
       cartTotal: checkoutData.cartTotal || 0
     };
-  
+
     downloadInvoiceAsPdf(orderData);
   };
   if (!checkoutData) {
@@ -195,15 +195,18 @@ const CheckOutOverview = ({ checkoutData, paymentMethod, onEdit, onConfirm, load
       </div>
     );
   }
+  // console.log(checkoutData.totalTax)
 
   // Dummy/fallbacks for demonstration; replace with real data as needed
   const {
     cart: items = [],
     subTotal = 0,
+    shippingCost = 0,
     totalDiscount = 0,
     promo,
     finalShipping = 0,
     taxTotal = 0,
+    totalTax=0,
     cartTotal = 0,
     firstName = '',
     lastName = '',
@@ -250,7 +253,7 @@ const CheckOutOverview = ({ checkoutData, paymentMethod, onEdit, onConfirm, load
                 Download Invoice
               </button>
               <button
-              className="w-fit bg-black hover:bg-gray-800 text-white font-medium py-2 px-4 rounded-md transition duration-200 mb-4 flex items-center justify-center"
+                className="w-fit bg-black hover:bg-gray-800 text-white font-medium py-2 px-4 rounded-md transition duration-200 mb-4 flex items-center justify-center"
 
                 onClick={onGoToDashboard}
               >
@@ -328,8 +331,12 @@ const CheckOutOverview = ({ checkoutData, paymentMethod, onEdit, onConfirm, load
                 <span>₹{subTotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm">
+                <span>Shipping</span>
+                <span>₹{finalShipping || shippingCost.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
                 <span className="underline cursor-pointer">GST and Fees</span>
-                <span>₹{taxTotal.toFixed(2)}</span>
+                <span>₹{taxTotal || totalTax.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-base font-semibold mt-3">
                 <span>Total (INR)</span>

@@ -30,7 +30,7 @@ const ManageFeaturedPackages = () => {
             try {
                 const response = await fetch("/api/featured-packages/admin");
                 const data = await response.json();
-                console.log(data);
+                // console.log(data);
                 setPackages(data.data || []);
             } catch (error) {
                 toast.error("Failed to fetch Packages", error);

@@ -1133,34 +1133,48 @@ export default function ProductDetailView({ product }) {
                     return;
                   }
 
+                  // Calculate final price based on vendor or regular user
+                  const vendorPrice = isVendor && product?.quantity?.variants[0]?.vendorPrice;
+                  const finalPrice = vendorPrice || Math.round(discountedPrice);
+                  
+                  // Calculate CGST and SGST based on the final price
+                  const cgstRate = Number((product.taxes?.cgst || product.cgst || product.tax?.cgst || 0));
+                  const sgstRate = Number((product.taxes?.sgst || product.sgst || product.tax?.sgst || 0));
+                  const cgstTotal = (finalPrice * cgstRate / 100) * quantity;
+                  const sgstTotal = (finalPrice * sgstRate / 100) * quantity;
+                  
                   const buyNowProduct = {
                     id: product._id,
                     name: product.title,
                     image: selectedImage || product.gallery?.mainImage?.url || '/placeholder.jpeg',
-                    price: Math.round(discountedPrice),
+                    price: finalPrice,
                     size: selectedSize,
                     weight: selectedWeight,
                     color: selectedColor,
-                    originalPrice: price,
+                    originalPrice: vendorPrice ? price : price, // Keep original price for reference
                     qty: quantity,
                     totalWeight,
-                    couponApplied,
+                    couponApplied: vendorPrice ? false : couponApplied, // No coupon for vendors
                     finalShipping: FinalShipping,
                     pincode: pincodeResult?.pincode || null,
                     city: pincodeResult?.city || null,
                     state: pincodeResult?.state || null,
                     district: pincodeResult?.district || null,
-                    couponCode: couponApplied ? couponCode : undefined,
+                    couponCode: vendorPrice ? undefined : (couponApplied ? couponCode : undefined),
                     productCode: product.code || product.productCode || '',
-                    discountPercent: couponObj && typeof couponObj.percent === 'number' ? couponObj.percent : undefined,
-                    discountAmount: couponObj && typeof couponObj.amount === 'number' ? couponObj.amount : undefined,
-                    cgst: Number((product.taxes && product.taxes.cgst) || product.cgst || (product.tax && product.tax.cgst) || 0),
-                    sgst: Number((product.taxes && product.taxes.sgst) || product.sgst || (product.tax && product.tax.sgst) || 0),
-                    // quantity: product.quantity || {},
+                    discountPercent: vendorPrice ? 0 : (couponObj?.percent || 0),
+                    discountAmount: vendorPrice ? 0 : (couponObj?.amount || 0),
+                    cgst: cgstRate,
+                    sgst: sgstRate,
+                    cgstTotal,
+                    sgstTotal,
+                    totalTax: cgstTotal + sgstTotal,
+                    taxTotal: cgstTotal + sgstTotal,
+                    isVendor: !!vendorPrice,
+                    vendorPrice: vendorPrice || undefined, // Only include if it exists
+                    shippingTierLabel,
+                    shippingPerUnit
                   };
-                  if (isVendor) {
-                    buyNowProduct.vendorPrice = product?.quantity?.variants[0]?.vendorPrice;
-                  }
                   // Store the product in localStorage
                   localStorage.setItem('buyNowProduct', JSON.stringify(buyNowProduct));
 

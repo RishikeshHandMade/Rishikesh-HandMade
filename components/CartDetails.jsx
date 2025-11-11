@@ -121,11 +121,27 @@ const CartDetails = () => {
         }
         : null,
       cartTotal: currentCart.reduce((sum, item) => {
-        const price = isVendor && item.vendorPrice !== undefined ?
-          Number(item.vendorPrice) :
-          (item.originalPrice ?? item.price);
-        const tax = ((item.cgst || 0) + (item.sgst || 0)) / 100 * price;
-        return sum + (price + (isVendor ? 0 : tax)) * item.qty; // Only add tax if not a vendor
+        // For vendors, always use vendorPrice without any discounts
+        if (isVendor && item.vendorPrice !== undefined) {
+          const vendorPrice = Number(item.vendorPrice);
+          const tax = ((item.cgst || 0) + (item.sgst || 0)) / 100 * vendorPrice;
+          return sum + (vendorPrice + tax) * item.qty;
+        }
+        
+        // For regular users, apply discounts
+        const basePrice = item.originalPrice ?? item.price;
+        let finalPrice = basePrice;
+        
+        // Apply item-level discounts if any
+        if (item.discountPercent) {
+          finalPrice = basePrice * (1 - (item.discountPercent / 100));
+        } else if (item.discountAmount) {
+          finalPrice = basePrice - item.discountAmount;
+        }
+        
+        const tax = ((item.cgst || 0) + (item.sgst || 0)) / 100 * finalPrice;
+        return sum + (finalPrice + tax) * item.qty;
+        
       }, 0) + (FinalShipping || 0) - (isVendor ? 0 : (promoDiscount || 0)),
     };
 
@@ -455,8 +471,12 @@ const CartDetails = () => {
                           ? `${(Number(item.weight) * 1000).toFixed(0)}g`
                           : `${Number(item.weight).toFixed(3)} kg`
                       ) : '0g'}</td>
-                      <td className="border p-2 text-center">₹{(item.price * item.cgst / 100).toFixed(2)}</td>
-                      <td className="border p-2 text-center">₹{(item.price * item.sgst / 100).toFixed(2)}</td>
+                      <td className="border p-2 text-center">
+                        ₹{((isVendor && item.vendorPrice !== undefined ? item.vendorPrice : item.price) * (item.cgst || 0) / 100).toFixed(2)}
+                      </td>
+                      <td className="border p-2 text-center">
+                        ₹{((isVendor && item.vendorPrice !== undefined ? item.vendorPrice : item.price) * (item.sgst || 0) / 100).toFixed(2)}
+                      </td>
                       <td className="border p-2 text-center">
                         <div className="flex items-center justify-center gap-2">
                           <button onClick={() => updateCartQty(item.id, Math.max(1, item.qty - 1))} className="w-7 h-7 bg-black text-white rounded-full flex items-center justify-center">-</button>
@@ -528,25 +548,25 @@ const CartDetails = () => {
                             `₹${item.originalPrice ?? item.price}`
                           )}
                         </div>
-                        {!isVendor&&(
+                        {!isVendor && (
 
                           <div>
-                          <span className="font-semibold">Discount:</span> {getDiscount(item)}
-                        </div>
+                            <span className="font-semibold">Discount:</span> {getDiscount(item)}
+                          </div>
                         )}
-                        {!isVendor&&(
-                        <div>
-                          <span className="font-semibold">After Discount:</span> ₹{getAfterDiscount(item)}
-                        </div>
+                        {!isVendor && (
+                          <div>
+                            <span className="font-semibold">After Discount:</span> ₹{getAfterDiscount(item)}
+                          </div>
                         )}
                         <div>
                           <span className="font-semibold">Weight:</span> {item.weight ?? 0}kg
                         </div>
-                        <div>
-                          <span className="font-semibold">CGST:</span> ₹{(item.price * item.cgst / 100).toFixed(2)}
+                        <div className="border p-2 text-center">
+                          ₹{((isVendor && item.vendorPrice !== undefined ? item.vendorPrice : item.price) * (item.cgst || 0) / 100).toFixed(2)}
                         </div>
-                        <div>
-                          <span className="font-semibold">SGST:</span> ₹{(item.price * item.sgst / 100).toFixed(2)}
+                        <div className="border p-2 text-center">
+                          ₹{((isVendor && item.vendorPrice !== undefined ? item.vendorPrice : item.price) * (item.sgst || 0) / 100).toFixed(2)}
                         </div>
                         <div>
                           <span className="font-semibold">Total:</span> ₹{getAmount(item)}
@@ -801,11 +821,17 @@ const CartDetails = () => {
               {/* Total CGST/SGST */}
               <div className="flex justify-between items-center text-sm mb-2">
                 <span className="text-gray-600">Total CGST ({cart[0]?.cgst || 0}%)</span>
-                <span className="text-gray-900 font-medium">₹{cart.reduce((total, item) => total + (item.price * item.cgst / 100 * item.qty), 0).toFixed(2)}</span>
+                <span className="text-gray-900 font-medium">₹{cart.reduce((total, item) => {
+                  const price = isVendor && item.vendorPrice !== undefined ? item.vendorPrice : item.price;
+                  return total + (price * (item.cgst || 0) / 100 * item.qty);
+                }, 0).toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center text-sm mb-2">
                 <span className="text-gray-600">Total SGST ({cart[0]?.sgst || 0}%)</span>
-                <span className="text-gray-900 font-medium">₹{cart.reduce((total, item) => total + (item.price * item.sgst / 100 * item.qty), 0).toFixed(2)}</span>
+                <span className="text-gray-900 font-medium">₹{cart.reduce((total, item) => {
+                  const price = isVendor && item.vendorPrice !== undefined ? item.vendorPrice : item.price;
+                  return total + (price * (item.sgst || 0) / 100 * item.qty);
+                }, 0).toFixed(2)}</span>
               </div>
               <hr className="my-2" />
 

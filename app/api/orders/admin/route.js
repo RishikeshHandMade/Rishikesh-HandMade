@@ -25,6 +25,9 @@ export async function GET(req) {
     } else if (type === 'online') {
       filter.paymentMethod = { $in: ['razorpay', 'online'] };
     }
+    else if (type === 'vendor') {
+      filter.isVendorOrder = true;
+    }
 
     // Get total count for pagination
     const total = await Order.countDocuments(filter);

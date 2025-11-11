@@ -59,7 +59,7 @@ const data = {
       url: "/admin/edit_artisan",
       icon: User,
     },
-        { divider: true },
+    { divider: true },
     {
       name: "Partner Details",
       url: "/admin/partner_details",
@@ -123,24 +123,24 @@ const data = {
       icon: Image
     },
     {
-      name:"Consultancy Banner",
-      url:"/admin/consultancy_banner",
-      icon:Image
+      name: "Consultancy Banner",
+      url: "/admin/consultancy_banner",
+      icon: Image
     },
     {
-      name:"Banner Section 1st",
-      url:"/admin/banner_section_1st",
-      icon:Image
+      name: "Banner Section 1st",
+      url: "/admin/banner_section_1st",
+      icon: Image
     },
     {
-      name:"Banner Section 2nd",
-      url:"/admin/banner_section_2nd",
-      icon:Image
+      name: "Banner Section 2nd",
+      url: "/admin/banner_section_2nd",
+      icon: Image
     },
     {
-      name:"Banner Section 3rd",
-      url:"/admin/banner_section_3rd",
-      icon:Image
+      name: "Banner Section 3rd",
+      url: "/admin/banner_section_3rd",
+      icon: Image
     },
 
     // Space (empty item)
@@ -215,6 +215,11 @@ const data = {
     {
       name: "Online Order Log",
       url: "/admin/online_order_log",
+      icon: ShoppingCart,
+    },
+    {
+      name: "Vendor Order",
+      url: "/admin/vendor_order",
       icon: ShoppingCart,
     },
     {

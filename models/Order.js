@@ -42,8 +42,6 @@ const OrderSchema = new Schema({
     }],
     // Vendor-specific fields
     isVendorOrder: { type: Boolean, default: false },
-    vendorNotes: { type: String },
-    expectedDeliveryDate: { type: Date },
     vendorStatus: {
         type: String,
         enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
