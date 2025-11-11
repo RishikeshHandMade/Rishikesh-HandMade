@@ -13,7 +13,7 @@ const QuantitySchema = new mongoose.Schema({
       color: String,
       qty: Number,
       price: Number,
-      vendorPrice:String,
+      vendorPrice:Number,
       weight: Number,
       profileImage: {
         type: ImageSchema,

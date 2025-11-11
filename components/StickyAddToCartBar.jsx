@@ -73,14 +73,54 @@ function StickyAddToCartBar({ product }) {
           />
           <div>
             <div className="font-semibold text-xl">{product?.title}</div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-1">
               {selectedVariant ? (
                 selectedVariant.qty > 0 ? (
-                  <span className="text-lg font-bold text-gray-900">
-                    ₹{session?.user?.isVendor && selectedVariant.vendorPrice
-                      ? selectedVariant.vendorPrice
-                      : selectedVariant.price}
-                  </span>
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg font-bold text-gray-900">
+                        {session?.user?.isVendor && selectedVariant.vendorPrice
+                          ? selectedVariant.vendorPrice
+                          : (() => {
+                            const coupon = product?.coupon || product?.coupons?.coupon;
+                            let discountedPrice = selectedVariant.price;
+
+                            if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+                              discountedPrice = selectedVariant.price - (selectedVariant.price * coupon.percent) / 100;
+                              return (
+                                <>
+                                  <span className="text-black">
+                                    ₹{discountedPrice.toFixed(2)}
+                                  </span>
+                                  <span className="line-through text-gray-500 text-sm px-2">
+                                    ₹{selectedVariant.price.toFixed(2)}
+                                  </span>
+                                </>
+                              );
+                            } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+                              discountedPrice = selectedVariant.price - coupon.amount;
+                              return (
+                                <>
+                                  <span className="line-through text-gray-500 text-sm px-2">
+                                    ₹{selectedVariant.price.toFixed(2)}
+                                  </span>
+                                  <span className="text-black">
+                                    ₹{discountedPrice.toFixed(2)}
+                                  </span>
+                                </>
+                              );
+                            }
+
+                            return `₹${selectedVariant.price.toFixed(2)}`;
+                          })()}
+                      </span>
+                    </div>
+                    {product?.coupon &&  (
+                      <span className="text-xs text-green-600">
+                        {product.coupon.couponCode ? `${product.coupon.couponCode} applied` : 'Special discount applied'}
+                      </span>
+                    )}
+                  </div>
                 ) : (
                   <span className="text-red-600 font-medium">Out of Stock</span>
                 )

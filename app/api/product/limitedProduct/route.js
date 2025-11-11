@@ -14,53 +14,16 @@ import Quantity from '@/models/Quantity';
 import ProductCoupons from '@/models/ProductCoupons';
 import ProductTax from '@/models/ProductTax';
 import ProductTagLine from '@/models/ProductTagLine';
-
-import { deleteFileFromCloudinary } from '@/utils/cloudinary';
-
-export async function POST(req) {
-  try {
-    await connectDB();
-    const body = await req.json();
-    // Accept all relevant fields
-    const { title, code, artisan, isDirect, categoryTag, ...rest } = body;
-    if (!title || !code || !artisan) {
-      return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400 });
-    }
-    // If explicitly direct, ignore categoryTag
-    let productData = {
-      title,
-      code,
-      artisan,
-      isDirect: true,
-      ...rest
-    };
-    // If not direct, require categoryTag
-    if (!isDirect) {
-      if (!categoryTag) {
-        return new Response(JSON.stringify({ error: 'categoryTag required for category products' }), { status: 400 });
-      }
-      productData.isDirect = false;
-      productData.categoryTag = categoryTag;
-    }
-    // Create product with proper linkage
-    const product = await Product.create(productData);
-    // Add product ref to artisan
-    await Artisan.findByIdAndUpdate(
-      artisan,
-      { $push: { products: product._id } },
-      { new: true, upsert: false }
-    );
-    return new Response(JSON.stringify(product), { status: 201 });
-  } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
-  }
-}
 export async function GET(req) {
   try {
     await connectDB();
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
     const name = searchParams.get('name');
+    const page = parseInt(searchParams.get('page')) || 1;
+    const limit = parseInt(searchParams.get('limit')) || 15; // Default to 15 items per page
+    const skip = (page - 1) * limit;
+
     // Support direct products filter for ProductProfile page
     const isDirectParam = searchParams.get('isDirect');
     if (id) {
@@ -130,6 +93,8 @@ export async function GET(req) {
       // Always filter for active products
       filter.active = true;
       let products = await Product.find(filter)
+        .skip(skip)
+        .limit(limit)
         .populate('artisan')
         // .populate('size')
         // .populate('color')
@@ -145,6 +110,7 @@ export async function GET(req) {
         .populate('coupons')
         .populate('taxes');
 
+
       // Ensure taxes is populated for all products
       const TaxModel = (await import('@/models/ProductTax')).default;
       products = await Promise.all(products.map(async (product) => {
@@ -158,8 +124,15 @@ export async function GET(req) {
         }
         return product;
       }));
+      const total = await Product.countDocuments(filter);
 
-      return new Response(JSON.stringify(products), { status: 200 });
+      return new Response(JSON.stringify({
+        products,
+        total,
+        page,
+        totalPages: Math.ceil(total / limit),
+        hasMore: page * limit < total
+      }), { status: 200 });
     }
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), { status: 500 });

@@ -367,8 +367,10 @@ export default function QuickViewProductCard({ product, onClose }) {
             </div>
           </div>
           <div className="flex flex-col items-start">
-            <span className="font-bold text-md md:text-lg text-black mb-1">B to B Price</span>
-            <div className="flex items-baseline gap-3">
+            <div className="flex items-baseline flex-col">
+              {session?.user?.isVendor && (
+              <span className="font-bold text-md md:text-lg text-black mb-1">B to B Price</span>
+              )}
 
               <div className="flex flex-col items-start">
                 {session?.user?.isVendor && vendorPrice && (
@@ -448,8 +450,8 @@ export default function QuickViewProductCard({ product, onClose }) {
                 cartItem.vendorPrice = vendorPrice;
               }
 
-              addToCart(cartItem);
-              toast.success("Added to cart!");
+              addToCart(cartItem, quantity);
+              toast.success(`Added ${quantity} item${quantity > 1 ? 's' : ''} to cart!`);
             }}
           >ADD TO CART</button>
 

@@ -446,7 +446,7 @@ export default function ProductDetailView({ product }) {
             </div>
             {hasDiscount && (
               <div className="flex items-center gap-2 mb-1">
-                <div className="flex flex-col items-center">
+                <div className="flex flex-col items-start">
                   {session?.user?.isVendor && (
                     <span className="text-sm text-black font-semibold">Price</span>
                   )}
@@ -852,7 +852,19 @@ export default function ProductDetailView({ product }) {
             {/* Total Price */}
             <div className="flex items-center justify-between gap-4 mb-3">
               <span className="font-bold text-xl">Total</span>
-              <span className="font-bold text-2xl">₹ {total}</span>
+              <div className="flex flex-col">
+                {isVendor && (
+                  <span className="font-semibold text-md">B to P Price</span>
+                )}
+                <span className="font-semibold text-xl">₹ {total}</span>
+              </div>
+              {isVendor  && (
+                <div className="flex flex-col">
+                  <span className="font-semibold text-md">B to B Price</span>
+                  <span className="font-semibold text-xl">₹ {selectedVariant?.vendorPrice}</span>
+                </div>
+              )}
+
             </div>
             {/* Offers/Info Boxes */}
             <div className="flex flex-col gap-3 mb-6">
@@ -919,8 +931,8 @@ export default function ProductDetailView({ product }) {
                         if (isVendor) {
                           cartItem.vendorPrice = product?.quantity?.variants[0]?.vendorPrice;
                         }
-                        addToCart(cartItem);
-                        toast.success("Added to cart!");
+                        addToCart(cartItem, quantity);
+                        toast.success(`Added ${quantity} item${quantity > 1 ? 's' : ''} to cart!`);
                       }}
                     >
                       {currentVariantInStock ? 'ADD TO CART' : 'SELECT AVAILABLE VARIANT'}

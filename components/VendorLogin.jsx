@@ -86,12 +86,6 @@ export default function VendorLogin() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
-                <Link
-                  href="/forgot-password"
-                  className="text-sm font-medium text-primary hover:underline"
-                >
-                  Forgot password?
-                </Link>
               </div>
               <div className="relative">
                 <Input
@@ -129,7 +123,7 @@ export default function VendorLogin() {
           <div className="mt-4 text-center text-sm">
             Don't have an account?{" "}
             <Link
-              href="/become-partner"
+              href="/become_partner"
               className="font-medium text-primary hover:underline"
             >
               Apply as a vendor

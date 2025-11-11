@@ -461,7 +461,7 @@ const StockManagementPage = () => {
       </div>
     );
   };
-
+// console.log(filteredProducts)
   return (
     <div className="p-4 sm:p-4 min-h-screen font-['Inter']">
       <div className="flex flex-wrap justify-between items-start mb-8 gap-4">
@@ -614,7 +614,7 @@ const StockManagementPage = () => {
         saving={saving}
       />
       {/* Pagination */}
-      <div className="flex flex-col items-center justify-center gap-4 mt-6">
+      <div className="flex items-center justify-center gap-4 mt-6">
         <span className="text-lg font-semibold">
           Page {pagination.currentPage} of {pagination.totalPages}
         </span>
@@ -622,7 +622,7 @@ const StockManagementPage = () => {
           {pagination.currentPage > 1 && (
             <button
               onClick={() => handlePageChange(pagination.currentPage - 1)}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+              className="bg-blue-500 text-black px-4 py-2 rounded hover:bg-blue-600 transition-colors"
             >
               Previous
             </button>
@@ -630,7 +630,7 @@ const StockManagementPage = () => {
           {pagination.currentPage < pagination.totalPages && (
             <button
               onClick={() => handlePageChange(pagination.currentPage + 1)}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+              className="bg-blue-500 text-black px-4 py-2 rounded hover:bg-blue-600 transition-colors"
             >
               Next
             </button>

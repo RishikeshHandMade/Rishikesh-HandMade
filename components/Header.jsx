@@ -238,7 +238,7 @@ const Header = () => {
                         e.stopPropagation();
                         setIsAuthDropdownOpen(!isAuthDropdownOpen);
                       }}
-                      className="flex flex-col items-center py-2"
+                      className="flex flex-col items-center py-2 p-2 rounded-lg hover:bg-gray-200"
                     >
                       <User className="ml-2" size={20} />
                       <h2 className="text-xs font-semibold">Sign In / Login</h2>
@@ -267,6 +267,13 @@ const Header = () => {
                           >
                             Create Account
                           </Link>
+                          <Link
+                            href="/vendor/login"
+                            onClick={() => setIsAuthDropdownOpen(false)}
+                            className="block px-4 py-2 hover:bg-blue-100 text-sm border-t border-gray-100"
+                          >
+                            Vendor Login
+                          </Link>
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -277,7 +284,7 @@ const Header = () => {
               <div className="relative group">
                 <button
                   onClick={() => { setInitialCartTab('wishlist'); setIsCartOpen(true); }}
-                  className="flex flex-col items-center p-2 rounded-lg hover:bg-neutral-100 transition-colors"
+                  className="flex flex-col items-center p-2 rounded-lg hover:bg-gray-200 transition-colors"
                   aria-label="Wishlist"
                 >
                   <div className="relative">
@@ -296,7 +303,7 @@ const Header = () => {
               <div className="relative group">
                 <button
                   onClick={() => { setInitialCartTab('cart'); setIsCartOpen(true); }}
-                  className="flex flex-col items-center p-2 rounded-lg hover:bg-neutral-100 transition-colors"
+                  className="flex flex-col items-center p-2 rounded-lg hover:bg-gray-200 transition-colors"
                   aria-label="Cart"
                 >
                   <div className="relative">
@@ -315,7 +322,7 @@ const Header = () => {
               <div className="group">
                 <Link
                   href="/dashboard?section=track"
-                  className="flex flex-col items-center p-2 rounded-lg hover:bg-neutral-100 transition-colors"
+                  className="flex flex-col items-center p-2 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   <Truck size={20} />
                   <span className="text-xs font-medium mt-1">Track Order</span>
@@ -324,23 +331,12 @@ const Header = () => {
               <div className="flex items-center flex-col">
                 <Link
                   href="/become_partner"
-                  className="flex flex-col items-center p-2 rounded-lg hover:bg-neutral-100 transition-colors"
+                  className="flex flex-col items-center p-2 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   <Handshake />
                   <span className="text-xs font-medium">Become Partner</span>
                 </Link>
               </div>
-              {!session?.user?.isVendor && (
-                <div className="flex items-center flex-col">
-                  <Link
-                    href="/vendor/login"
-                    className="flex flex-col items-center p-2 rounded-lg hover:bg-neutral-100 transition-colors"
-                  >
-                    <User2Icon />
-                    <span className="text-xs font-medium">Vendor Login</span>
-                  </Link>
-                </div>
-              )}
               <SearchBar />
             </div>
           </div>
@@ -374,7 +370,7 @@ const Header = () => {
 
         <div className="flex items-center gap-2">
           <button
-            className="relative p-2 rounded-full hover:bg-neutral-100 transition"
+            className="relative p-2 rounded-full hover:bg-gray-200 transition"
             onClick={() => { setInitialCartTab('wishlist'); setIsCartOpen(true); }}
             aria-label="Open Wishlist"
           >
@@ -387,7 +383,7 @@ const Header = () => {
           </button>
           {/* Cart & Wishlist Icons */}
           <button
-            className="relative p-2 rounded-full hover:bg-neutral-100 transition"
+            className="relative p-2 rounded-full hover:bg-gray-200 transition"
             onClick={() => { setInitialCartTab('cart'); setIsCartOpen(true); }}
             aria-label="Open Cart"
           >

@@ -96,10 +96,6 @@ const CheckOut = () => {
   const [orderData, setOrderData] = useState(null);
 
   useEffect(() => {
-    // console.log('[CheckOut] showConfirmationModal:', showConfirmationModal, 'orderId:', orderId);
-  }, [showConfirmationModal, orderId]);
-
-  useEffect(() => {
     // Load checkout data from localStorage
     const data = localStorage.getItem("checkoutCart");
     if (data) {
@@ -134,7 +130,7 @@ const CheckOut = () => {
     }
   }, [checkoutData, isLoading, router]);
   // Coupon state
-  // console.log(checkoutData)
+  console.log(checkoutData)
   const [couponInput, setCouponInput] = useState("");
   const [loadingCoupon, setLoadingCoupon] = useState(false);
   const [couponError, setCouponError] = useState("");
@@ -248,7 +244,10 @@ const CheckOut = () => {
                       <td>${item.name || 'Product'}</td>
                       <td>${item.qty || 1}</td>
                       <td>${item.size || '-'}</td>
-                      <td>₹${Number(item.price || 0).toFixed(2)}</td>
+                          <td>₹${isVendor && item.vendorPrice
+              ? (Number(item.vendorPrice) * item.qty).toFixed(2)
+              : (item.price * item.qty).toFixed(2)}</td>
+    </tr>
                     </tr>
                   `).join('') : ''}
                 </tbody>
@@ -385,6 +384,16 @@ const CheckOut = () => {
       const customerName = formFields.firstName
         ? `${formFields.firstName} ${formFields.lastName || ''}`.trim()
         : customer.name || '';
+      // 2. Calculate final amount based on vendor status
+      const isVendor = user?.isVendor;
+      const calculatedAmount = isVendor
+        ? cart.reduce((sum, item) => {
+          const itemPrice = item.vendorPrice ? Number(item.vendorPrice) : (item.originalPrice || item.price || 0);
+          const taxRate = ((Number(item.cgst) || 0) + (Number(item.sgst) || 0)) / 100;
+          const itemTotal = (itemPrice + (itemPrice * taxRate)) * (item.qty || 1);
+          return sum + itemTotal;
+        }, 0) + (checkoutData?.shippingCost || 0)
+        : finalAmount;
 
       const customerData = {
         name: customerName,
@@ -407,7 +416,7 @@ const CheckOut = () => {
           'Accept': 'application/json'
         },
         body: JSON.stringify({
-          amount: Number(finalAmount),
+          amount: Number(calculatedAmount),
           currency: 'INR',
           receipt: generateOrderId(),
           products,
@@ -436,7 +445,7 @@ const CheckOut = () => {
       // 6. Open Razorpay payment modal
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: Math.round(Number(finalAmount) * 100), // Convert to paise
+        amount: Math.round(Number(calculatedAmount) * 100), // Convert to paise
         currency: "INR",
         name: "Rishikesh Handmade",
         description: "Order Payment",
@@ -936,12 +945,17 @@ const CheckOut = () => {
   // const [error, setError] = useState(null);
 
 
-  const paymentOptions = [
-    { value: 'online', label: 'Online Payment' },
-    { value: 'cod', label: 'Cash on Delivery (COD)' }
-  ];
-  const [payment, setPayment] = useState('cod');
-  const [paymentMethod, setPaymentMethod] = useState('cod');
+  const paymentOptions = isVendor
+    ? [{ value: 'vendor', label: 'Make Bulk Order' }]
+    : [
+      { value: 'online', label: 'Online Payment' },
+      { value: 'cod', label: 'Cash on Delivery (COD)' },
+    ];
+
+  // Set default payment method based on user type
+  const [payment, setPayment] = useState(isVendor ? 'vendor' : 'cod');
+  const [paymentMethod, setPaymentMethod] = useState(isVendor ? 'vendor' : 'cod');
+  const [isBulkOrder, setIsBulkOrder] = useState(isVendor);
   const [agree, setAgree] = useState(false);
   const [formErrors, setFormErrors] = useState({});
   const [mounted, setMounted] = React.useState(false);
@@ -998,16 +1012,20 @@ const CheckOut = () => {
 
     // Calculate totals
     const subTotal = cart.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0);
-    const totalTax = cart.reduce(
-      (sum, item) => sum + (((item.cgst || 0) + (item.sgst || 0)) / 100) * (item.price || 0) * (item.qty || 1),
-      0
-    );
+    const totalTax = isVendor
+      ? productsPayload.reduce((sum, item) => {
+        const itemTax = ((item.cgst + item.sgst) / 100) * item.price;
+        return sum + (itemTax * item.qty);
+      }, 0)
+      : checkoutData.taxTotal;
+
     const shippingCost = subTotal >= 500 ? 0 : 50; // Example shipping logic
     const totalAmount = subTotal + totalTax + shippingCost;
 
     // Generate a unique order ID
     const orderId = generateOrderId();
     const transactionId = orderId;
+    const orderTotal = subTotal + totalTax + checkoutData.shippingCost - (isVendor ? 0 : (checkoutData.promoDiscount || 0));
 
     // Prepare products array
     const productsPayload = cart.map(item => {
@@ -1035,7 +1053,7 @@ const CheckOut = () => {
         variantId: variantId,
         name: item.name || 'Product',
         qty: item.qty || 1,
-        price: item.price || 0,
+        price: isVendor && item.vendorPrice ? Number(item.vendorPrice) : (item.originalPrice || item.price),
         originalPrice: item.originalPrice || item.price || 0,
 
         // Product details
@@ -1076,6 +1094,8 @@ const CheckOut = () => {
       transactionId: transactionId,
       status: 'Processing',
       agree: true,
+      orderTotal,
+      isVendor,
 
       // Customer details
       firstName: firstName,
@@ -1339,6 +1359,42 @@ const CheckOut = () => {
         setLoading(false);
       }
     }
+    else if (payment === "vendor") {
+      // Handle Cash on Delivery
+      setLoading(true);
+      try {
+        const orderData = prepareOrderData(payment);
+
+        if (isVendor) {
+          // Add vendor-specific data to order
+          orderData.orderType = 'bulk';
+          orderData.isVendorOrder = true; // Important for filtering
+          orderData.status = 'Bulk Order Requested';
+          orderData.vendorStatus = 'pending';
+        }
+
+        const result = await handleCreateOrder(payment, orderData);
+
+        if (result) {
+          // Show success and redirect
+          setShowConfirmationModal(true);
+          setOrderId(result._id || result.orderId);
+          // Clear cart and reset form
+          if (!isVendor) {
+            clearCart();
+          }
+          // Redirect to order confirmation
+          router.push(`/order-confirmation?orderId=${result._id || result.orderId}`);
+        }
+      }
+
+      catch (error) {
+        setError(error.message || 'Failed to create order');
+        toast.error(error.message || 'Failed to place order. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    }
   };
 
   // Handler for confirming payment on overview (step 2 → step 3)
@@ -1391,7 +1447,163 @@ const CheckOut = () => {
         // Use regular cart items
         productsToProcess = [...contextCart];
       }
+      if (confirmedPaymentMethod === 'vendor') {
+        // Generate order ID and set transaction ID
+        orderId = generateOrderId();
+        transactionId = orderId; // For vendor orders, use orderId as transactionId
+        setPaymentMethod('vendor');
 
+        // Prepare products with vendor pricing
+        const preparedProducts = productsToProcess.map(item => ({
+          ...item,
+          image: typeof item.image === 'string' ? item.image : item.image?.url || '',
+          qty: item.qty || 1,
+          price: item.vendorPrice || item.price || 0,
+          originalPrice: item.price || 0,
+          color: item.color || '',
+          size: item.size || ''
+        }));
+
+        // Calculate shipping cost from multiple possible fields
+        const shippingCost = Number(
+          checkoutData?.shippingCost || 
+          checkoutData?.shipping || 
+          checkoutData?.finalShipping || 
+          0
+        );
+        
+        // Calculate tax from items
+        const totalTax = preparedProducts.reduce((sum, item) => {
+          const itemTax = ((item.price * (item.cgst || 0) / 100) + (item.price * (item.sgst || 0) / 100)) * item.qty;
+          return sum + itemTax;
+        }, 0);
+        
+        // Calculate subtotal from items
+        const subTotal = preparedProducts.reduce((sum, item) => sum + (item.price * item.qty), 0);
+        
+        // Calculate final cart total (subtotal + shipping + tax)
+        const cartTotal = subTotal + shippingCost + totalTax;
+        
+        // Debug log to verify calculations
+        console.log('Order calculations:', {
+          subTotal,
+          shippingCost,
+          totalTax,
+          cartTotal,
+          checkoutDataShipping: checkoutData?.shipping,
+          checkoutDataFinalShipping: checkoutData?.finalShipping,
+          checkoutDataShippingCost: checkoutData?.shippingCost
+        });
+        
+        // Prepare checkout data with all calculated values
+        const updatedCheckoutData = {
+          ...checkoutData,
+          cartTotal: cartTotal,
+          subTotal: subTotal,
+          totalDiscount: 0,
+          totalTax: totalTax,
+          shippingCost: shippingCost,
+          // Ensure these values are numbers
+          totalAmount: cartTotal,
+          finalAmount: cartTotal,
+          grandTotal: cartTotal
+        };
+
+        // Prepare complete order data
+        const orderData = {
+          ...buildOrderPayload({
+            cart: preparedProducts,
+            checkoutData: updatedCheckoutData,
+            ...formFields,
+            payment: 'vendor',
+            paymentMethod: 'vendor',
+            paymentMethodValue: 'vendor',
+            transactionId,
+            orderId,
+            agree: true,
+            statusValue: 'Bulk Order Requested'
+          }),
+          // Vendor-specific fields
+          isVendorOrder: true,
+          vendorStatus: 'pending',
+          orderType: 'bulk',
+          totalDiscount: 0,
+          promoDiscount: 0,
+          shippingCost: shippingCost,
+          totalTax: totalTax,
+          // Ensure these values are at the root level for the order
+          subTotal: subTotal,
+          cartTotal: cartTotal,
+          grandTotal: cartTotal,
+          totalAmount: cartTotal,
+          promoCode: null,
+          // Include items array
+          items: preparedProducts.map(item => ({
+            ...item,
+            productId: item._id || item.productId,
+            variantId: item.variantId || 0,
+            quantity: item.qty || 1,
+            price: item.price || 0,
+            total: (item.price || 0) * (item.qty || 1),
+            originalPrice: item.originalPrice || item.price || 0,
+            color: item.color || '',
+            size: item.size || '',
+            weight: item.weight || 0,
+            cgst: item.cgst || 0,
+            sgst: item.sgst || 0
+          }))
+        };
+        try {
+          // Submit the order
+          const response = await fetch('/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData)
+          });
+          
+          const result = await response.json();
+          
+          if (!response.ok) {
+            throw new Error(result.message || 'Failed to create order');
+          }
+          
+          // Get the order ID from the response
+          const createdOrderId = result._id || result.orderId || orderId;
+          
+          if (!createdOrderId) {
+            console.error('No order ID found in response:', result);
+            toast.error('Error: Could not retrieve order ID');
+            return;
+          }
+          
+          // Set order ID and show success modal
+          setOrderId(createdOrderId);
+          setShowConfirmationModal(true);
+          toast.success('Bulk order request submitted successfully! We will contact you soon.');
+          
+          // Clear cart after successful order
+          await clearCart();
+          if (buyNowMode) {
+            localStorage.removeItem('buyNowProduct');
+          } else {
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem("cart");
+              localStorage.removeItem("checkoutCart");
+              localStorage.removeItem("checkoutData");
+              Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('cart_')) {
+                  localStorage.removeItem(key);
+                }
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error creating order:', error);
+          toast.error(error.message || 'Failed to create order');
+          setLoading(false);
+        }
+        return;
+      }
       if (confirmedPaymentMethod === 'cod') {
         // Always generate unique orderId for COD using shared generator
         orderId = generateOrderId();
@@ -1965,9 +2177,13 @@ const CheckOut = () => {
             </div>
 
             <div className="bg-gray-50 p-3 rounded-md mb-4">
-              <div className="flex justify-between items-center text-sm mb-2">
-                <span className="text-gray-600">Subtotal <span className="text-xs text-gray-400">(MRP)</span></span>
-                <span>₹{checkoutData.subTotal?.toFixed(2)}</span>
+              <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span>
+                  ₹{isVendor
+                    ? checkoutData.cart.reduce((sum, item) => sum + (Number(item.vendorPrice) || 0) * item.qty, 0).toFixed(2)
+                    : checkoutData.subTotal.toFixed(2)}
+                </span>
               </div>
               <div className="text-xs text-red-500 mb-1">Subtotal does not include applicable taxes</div>
               <div className="flex justify-between items-center text-sm mb-2">
@@ -2137,7 +2353,7 @@ const CheckOut = () => {
           </div>
         )}
         <div className="mt-4 mb-4">
-          {/* <pre className="bg-gray-100 p-4 rounded overflow-auto">
+          <pre className="bg-gray-100 p-4 rounded overflow-auto">
            {JSON.stringify({
               firstName,
               lastName,
@@ -2166,7 +2382,7 @@ const CheckOut = () => {
                 shippingCost: checkoutData?.shippingCost
               }
             }, null, 2)} 
-          </pre> */}
+          </pre>
         </div>
         <button
           className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded font-semibold text-sm transition-colors"
@@ -2202,6 +2418,8 @@ const CheckOut = () => {
             <>
               <span className="animate-spin inline-block mr-2">🔄</span> Processing...
             </>
+          ) : payment === 'vendor' ? (
+            `Confirm Bulk Order (₹${checkoutData?.cartTotal?.toFixed(2) || '0.00'})`
           ) : payment === 'cod' ? (
             `Place Order (₹${checkoutData?.cartTotal?.toFixed(2) || '0.00'})`
           ) : (

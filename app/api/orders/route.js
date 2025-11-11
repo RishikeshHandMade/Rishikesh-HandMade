@@ -30,8 +30,8 @@ export async function POST(req) {
         // Calculate afterDiscount if not provided
         const price = Number(product.price) || 0;
         const discountAmount = Number(product.discountAmount) || 0;
-        const afterDiscount = product.afterDiscount !== undefined 
-          ? Number(product.afterDiscount) 
+        const afterDiscount = product.afterDiscount !== undefined
+          ? Number(product.afterDiscount)
           : Math.max(0, price - discountAmount);
 
         return {
@@ -44,7 +44,7 @@ export async function POST(req) {
           price: price,
           originalPrice: Number(product.originalPrice) || price,
           afterDiscount: afterDiscount,
-          
+
           // Product details
           image: imageUrl,
           color: product.color || '',
@@ -52,7 +52,7 @@ export async function POST(req) {
           productCode: product.productCode || '',
           weight: Number(product.weight) || 0,
           totalQuantity: Number(product.totalQuantity) || 0,
-          
+
           // Tax and pricing
           cgst: Number(product.cgst) || 0,
           sgst: Number(product.sgst) || 0,
@@ -72,13 +72,13 @@ export async function POST(req) {
     body.totalDiscount = Number(body.totalDiscount) || 0;
     body.totalTax = Number(body.taxTotal) || Number(body.totalTax) || 0;
     body.shippingCost = Number(body.shippingCost) || 0;
-    
+
     // Handle coupon data from multiple possible sources
     // 1. Check for appliedCoupon object first
     if (body.appliedCoupon) {
       body.promoCode = body.appliedCoupon.code || body.promoCode || '';
       body.promoDiscount = Number(body.appliedCoupon.discount) || Number(body.promoDiscount) || 0;
-    } 
+    }
     // 2. Check for coupon data in products
     else if (body.products && Array.isArray(body.products)) {
       const productWithCoupon = body.products.find(p => p.couponCode);
@@ -92,11 +92,30 @@ export async function POST(req) {
       body.promoCode = String(body.promoCode || '');
       body.promoDiscount = Number(body.promoDiscount) || 0;
     }
-    
+
     // Ensure coupon data is properly set in the order
     if (body.couponCode) {
       body.promoCode = String(body.couponCode);
       body.promoDiscount = Number(body.promoDiscount) || 0;
+    }
+    // For vendor orders, ensure vendor-specific fields are set
+    if (body.isVendorOrder) {
+      // Apply vendor pricing if available
+      if (body.products && Array.isArray(body.products)) {
+        body.products = body.products.map(product => {
+          // Use vendorPrice if available, otherwise use regular price
+          const price = product.vendorPrice || product.price;
+          return {
+            ...product,
+            price: price,
+            originalPrice: product.originalPrice || product.price,
+            isVendorOrder: true
+          };
+        });
+      }
+      // Set default status for vendor orders
+      body.status = 'Bulk Order Requested';
+      body.vendorStatus = 'pending';
     }
 
     // ✅ Save the order
@@ -106,9 +125,9 @@ export async function POST(req) {
     // ✅ Update quantities using the updateQuantities endpoint
     const products = Array.isArray(body.products) ? body.products : [];
     const items = Array.isArray(body.items) ? body.items : [];
-    
+
     const itemsToUpdate = [];
-    
+
     // First, process the items array if it exists (for quantity updates)
     for (const item of items) {
       try {
@@ -117,7 +136,7 @@ export async function POST(req) {
           // console.warn('Skipping item with no product ID:', JSON.stringify(item, null, 2));
           continue;
         }
-        
+
         itemsToUpdate.push({
           productId,
           variantId: item.variantId || 0,
@@ -126,13 +145,13 @@ export async function POST(req) {
           price: item.price,
           discount: item.discount,
           total: item.total,
-          image:item.image
+          image: item.image
         });
       } catch (error) {
         // console.error('Error processing item:', error, 'Item:', JSON.stringify(item, null, 2));
       }
     }
-    
+
     // If no items were found in the items array, try to extract from products
     if (itemsToUpdate.length === 0) {
       for (const product of products) {
@@ -142,11 +161,11 @@ export async function POST(req) {
             // console.warn('Skipping product with no ID:', JSON.stringify(product, null, 2));
             continue;
           }
-          
+
           // If we have variants, find the matching one
           if (product.quantity?.variants?.length > 0) {
             let variantIndex = 0;
-            
+
             // If variant is specified, find its index
             if (product.variantId !== undefined) {
               variantIndex = product.quantity.variants.findIndex(
@@ -161,7 +180,7 @@ export async function POST(req) {
               );
               if (variantIndex === -1) variantIndex = 0;
             }
-            
+
             itemsToUpdate.push({
               productId,
               variantId: variantIndex,
@@ -172,7 +191,7 @@ export async function POST(req) {
               total: product.total,
               image: product.image
             });
-          } 
+          }
           // No variants, just use the product
           else {
             itemsToUpdate.push({
@@ -206,7 +225,7 @@ export async function POST(req) {
         });
 
         const responseData = await response.json().catch(() => ({}));
-        
+
         if (!response.ok) {
           // console.error('Failed to update quantities. Status:', response.status);
           // console.error('Response:', responseData);
@@ -225,22 +244,22 @@ export async function POST(req) {
         }
       } catch (error) {
         // console.error('Error in quantity update process:', {
-          // error: error.message,
+        // error: error.message,
         //   stack: error.stack,
         //   name: error.name
         // });
       }
     }
 
-    return NextResponse.json({ 
-      orderId: order._id, 
-      success: true 
+    return NextResponse.json({
+      orderId: order._id,
+      success: true
     }, { status: 200 });
   } catch (error) {
     // console.error('Error creating order:', error);
-    return NextResponse.json({ 
-      error: error.message, 
-      success: false 
+    return NextResponse.json({
+      error: error.message,
+      success: false
     }, { status: 500 });
   }
 }

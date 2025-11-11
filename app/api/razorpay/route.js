@@ -286,7 +286,6 @@ export async function PUT(request) {
         // console.log('Signature verification completed');
 
         if (generatedSignature !== razorpay_signature) {
-
             return NextResponse.json(
                 { success: false, error: "Invalid payment signature" },
                 { status: 400 }

@@ -15,12 +15,18 @@ import {
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 const CartDetails = () => {
+  // Handler for checkout navigation
+  const { data: session } = useSession();
+  const isVendor = session?.user?.isVendor;
   // 2. Get price after discount
   const getAfterDiscount = (item) => {
-    const base = isVendor && item.vendorPrice !== undefined ?
-      item.vendorPrice :
+    // Convert vendorPrice to number if it's a string
+    const vendorPrice = item.vendorPrice ? Number(item.vendorPrice) : undefined;
+    const base = isVendor && vendorPrice !== undefined ?
+      vendorPrice :
       (item.originalPrice ?? item.price);
 
+    if (isVendor) return base; // Skip discount for vendors
     if (item.discountPercent) return base * (1 - item.discountPercent / 100);
     if (item.discountAmount) return base - item.discountAmount;
     return base;
@@ -37,9 +43,7 @@ const CartDetails = () => {
 
   const router = useRouter();
 
-  // Handler for checkout navigation
-  const { data: session } = useSession();
-  const isVendor = session?.user?.isVendor;
+
 
   const handleCheckout = () => {
     if (!termsChecked) {
@@ -66,21 +70,28 @@ const CartDetails = () => {
     const checkoutData = {
       cart: currentCart.map((item) => ({
         ...item,
-        // include all important fields
-        price: getItemPrice(item), // Update the price to use vendor price if applicable
-        discountPercent: item.discountPercent || null,
-        discountAmount: item.discountAmount || null,
+        price: isVendor && item.vendorPrice !== undefined ?
+          item.vendorPrice :
+          (item.originalPrice ?? item.price),
+        discountPercent: isVendor ? 0 : (item.discountPercent || null),
+        discountAmount: isVendor ? 0 : (item.discountAmount || null),
         cgst: item.cgst || 0,
         sgst: item.sgst || 0,
         originalPrice: item.originalPrice ?? item.price,
-        afterDiscount: getAfterDiscount(item),
+        afterDiscount: isVendor ?
+          (item.vendorPrice ?? item.originalPrice ?? item.price) :
+          getAfterDiscount(item),
       })),
       subTotal: currentCart.reduce((sum, item) => {
-        const price = getItemPrice(item);
+        const price = isVendor && item.vendorPrice !== undefined ?
+          item.vendorPrice :
+          (item.originalPrice ?? item.price);
         return sum + price * item.qty;
       }, 0),
-      totalDiscount: currentCart.reduce((sum, item) => {
-        const basePrice = getItemPrice(item);
+      totalDiscount: isVendor ? 0 : currentCart.reduce((sum, item) => {
+        const basePrice = isVendor && item.vendorPrice !== undefined ?
+          item.vendorPrice :
+          (item.originalPrice ?? item.price);
         const discount = item.discountPercent
           ? basePrice * (item.discountPercent / 100)
           : (item.discountAmount || 0);
@@ -92,7 +103,9 @@ const CartDetails = () => {
       state: pincodeResult?.state || null,
       district: pincodeResult?.district || null,
       taxTotal: currentCart.reduce((sum, item) => {
-        const price = getAfterDiscount(item);
+        const price = isVendor && item.vendorPrice !== undefined ?
+          item.vendorPrice :
+          (item.originalPrice ?? item.price);
         const tax = ((item.cgst || 0) + (item.sgst || 0)) / 100 * price * item.qty;
         return sum + tax;
       }, 0),
@@ -108,10 +121,12 @@ const CartDetails = () => {
         }
         : null,
       cartTotal: currentCart.reduce((sum, item) => {
-        const price = getAfterDiscount(item);
+        const price = isVendor && item.vendorPrice !== undefined ?
+          Number(item.vendorPrice) :
+          (item.originalPrice ?? item.price);
         const tax = ((item.cgst || 0) + (item.sgst || 0)) / 100 * price;
-        return sum + (price + tax) * item.qty;
-      }, 0) + (FinalShipping || 0) - (promoDiscount || 0),
+        return sum + (price + (isVendor ? 0 : tax)) * item.qty; // Only add tax if not a vendor
+      }, 0) + (FinalShipping || 0) - (isVendor ? 0 : (promoDiscount || 0)),
     };
 
     // Save to localStorage before navigation
@@ -349,17 +364,29 @@ const CartDetails = () => {
     const maxDiscount = totalAfterDiscount + taxTotal + finalShipping;
     if (promoDiscount > maxDiscount) promoDiscount = maxDiscount;
   }
-  const taxTotal = cart.reduce(
-    (sum, item) =>
-      sum +
-      ((getAfterDiscount(item) *
-        ((Number(item.cgst) || 0) + (Number(item.sgst) || 0))) /
-        100) *
-      item.qty,
-    0
-  );
-  const finalAmount = totalAfterDiscount + taxTotal + FinalShipping - (promoDiscount || 0);
+  const taxTotal = cart.reduce((sum, item) => {
+    const vendorPrice = item.vendorPrice ? Number(item.vendorPrice) : undefined;
+    const price = isVendor && vendorPrice !== undefined ?
+      vendorPrice :
+      (item.originalPrice ?? item.price);
 
+    const cgst = Number(item.cgst) || 0;
+    const sgst = Number(item.sgst) || 0;
+    const itemTax = ((cgst + sgst) / 100) * price;
+
+    return sum + (itemTax * item.qty);
+  }, 0);
+  const finalAmount = (isVendor
+    ? cart.reduce((sum, item) => {
+      const vendorPrice = item.vendorPrice ? Number(item.vendorPrice) : 0;
+      const cgst = Number(item.cgst) || 0;
+      const sgst = Number(item.sgst) || 0;
+      const itemTax = ((cgst + sgst) / 100) * vendorPrice;
+      return sum + (vendorPrice + itemTax) * item.qty;
+    }, 0)
+    : totalAfterDiscount + taxTotal) +
+    FinalShipping -
+    (isVendor ? 0 : (promoDiscount || 0));
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => {
     setMounted(true);
@@ -389,8 +416,8 @@ const CartDetails = () => {
                     <th className="border p-2">Image</th>
                     <th className="border p-2">Name / Code</th>
                     <th className="border p-2">Base Price</th>
-                    <th className="border p-2">Discount</th>
-                    <th className="border p-2">After Discount</th>
+                    {!isVendor && <th className="border p-2">Discount</th>}
+                    {!isVendor && <th className="border p-2">After Discount</th>}
                     <th className="border p-2">Weight</th>
                     <th className="border p-2">CGST %</th>
                     <th className="border p-2">SGST %</th>
@@ -421,8 +448,8 @@ const CartDetails = () => {
                           `₹${item.originalPrice ?? item.price}`
                         )}
                       </td>
-                      <td className="border p-2 text-center">{getDiscount(item)}</td>
-                      <td className="border p-2 text-center">₹{getAfterDiscount(item)}</td>
+                      {!isVendor && <td className="border p-2 text-center">{getDiscount(item)}</td>}
+                      {!isVendor && <td className="border p-2 text-center">₹{getAfterDiscount(item)}</td>}
                       <td className="border p-2 text-center">{item.weight ? (
                         Number(item.weight) < 1
                           ? `${(Number(item.weight) * 1000).toFixed(0)}g`
@@ -501,12 +528,17 @@ const CartDetails = () => {
                             `₹${item.originalPrice ?? item.price}`
                           )}
                         </div>
-                        <div>
+                        {!isVendor&&(
+
+                          <div>
                           <span className="font-semibold">Discount:</span> {getDiscount(item)}
                         </div>
+                        )}
+                        {!isVendor&&(
                         <div>
                           <span className="font-semibold">After Discount:</span> ₹{getAfterDiscount(item)}
                         </div>
+                        )}
                         <div>
                           <span className="font-semibold">Weight:</span> {item.weight ?? 0}kg
                         </div>
@@ -556,12 +588,14 @@ const CartDetails = () => {
               </div>
 
               {/* Discount Amount */}
-              <div className="flex justify-between items-center mt-2 mb-1">
-                <span className="font-bold text-base">Discount Amount</span>
-                <span className="font-bold text-base">
-                  ₹{Math.max(0, totalDiscount).toFixed(2)}
-                </span>
-              </div>
+              {!isVendor && (
+                <div className="flex justify-between items-center mt-2 mb-1">
+                  <span className="font-bold text-base">Discount Amount</span>
+                  <span className="font-bold text-base">
+                    ₹{Math.max(0, totalDiscount).toFixed(2)}
+                  </span>
+                </div>
+              )}
               {appliedPromoDetails && (
                 <div className="flex justify-between items-center mb-1 text-green-700">
                   <span className="font-bold text-base">
@@ -573,54 +607,55 @@ const CartDetails = () => {
                 </div>
               )}
               <hr className="my-2" />
+              {!isVendor && (
+                <>
+                  {/* Promo Code Section */}
+                  < div className="text-center font-semibold text-lg mb-2">
+                    Have a promo code?
+                  </div>
+                  {appliedPromo && (
+                    <div className="text-green-700 text-xs mt-1">
+                      Promo code "{appliedPromo}" applied successfully!
+                    </div>
+                  )}
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      placeholder="Apply Promo Code"
+                      className="w-full border border-blue-400 bg-blue-100 px-3 py-2 rounded text-gray-700"
+                      value={promoCode}
+                      onChange={(e) => {
+                        setPromoCode(e.target.value);
+                        setPromoError("");
+                      }}
+                      disabled={!!appliedPromo}
+                    />
 
-              {/* Promo Code Section */}
-              <div className="text-center font-semibold text-lg mb-2">
-                Have a promo code?
-              </div>
-              {appliedPromo && (
-                <div className="text-green-700 text-xs mt-1">
-                  Promo code "{appliedPromo}" applied successfully!
-                </div>
-              )}
-              <div className="flex gap-2 mb-2">
-                <input
-                  type="text"
-                  placeholder="Apply Promo Code"
-                  className="w-full border border-blue-400 bg-blue-100 px-3 py-2 rounded text-gray-700"
-                  value={promoCode}
-                  onChange={(e) => {
-                    setPromoCode(e.target.value);
-                    setPromoError("");
-                  }}
-                  disabled={!!appliedPromo}
-                />
-
-                <button
-                  className="bg-blue-600 text-white px-4 py-2 rounded font-bold hover:bg-blue-700"
-                  onClick={handleApplyPromo}
-                  disabled={!promoCode || !!appliedPromo}
-                >
-                  Apply
-                </button>
-              </div>
-
-
-              {/* Note about coupons */}
-              <div className="text-xs text-red-600 mb-2">
-                Note : If discount promo code already applied extra additional
-                coupon not applicable
-              </div>
-              {/* Nice! You saved... */}
-              {totalDiscount > 0 && (
-                <div className="bg-gray-100 rounded px-2 py-1 text-center text-sm font-semibold text-black mb-2">
-                  🎉 Nice! You saved{" "}
-                  <span className="font-bold">₹{totalDiscount.toFixed(2)}</span>{" "}
-                  on your order.
-                </div>
-              )}
-              {promoError && (
-                <div className="text-xs text-red-600 mt-1">{promoError}</div>
+                    <button
+                      className="bg-blue-600 text-white px-4 py-2 rounded font-bold hover:bg-blue-700"
+                      onClick={handleApplyPromo}
+                      disabled={!promoCode || !!appliedPromo}
+                    >
+                      Apply
+                    </button>
+                  </div>
+                  {/* Note about coupons */}
+                  <div className="text-xs text-red-600 mb-2">
+                    Note : If discount promo code already applied extra additional
+                    coupon not applicable
+                  </div>
+                  {/* Nice! You saved... */}
+                  {totalDiscount > 0 && (
+                    <div className="bg-gray-100 rounded px-2 py-1 text-center text-sm font-semibold text-black mb-2">
+                      🎉 Nice! You saved{" "}
+                      <span className="font-bold">₹{totalDiscount.toFixed(2)}</span>{" "}
+                      on your order.
+                    </div>
+                  )}
+                  {promoError && (
+                    <div className="text-xs text-red-600 mt-1">{promoError}</div>
+                  )}
+                </>
               )}
               {/* Shipping Charges */}
               <div className="flex justify-between items-center mt-2">
@@ -893,8 +928,9 @@ const CartDetails = () => {
             </div>
           </div>
         </div>
-      )}
-    </div>
+      )
+      }
+    </div >
   );
 };
 
