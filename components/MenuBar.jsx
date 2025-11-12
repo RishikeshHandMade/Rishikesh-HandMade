@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import * as NavigationMenu from "@radix-ui/react-navigation-menu";
 import Link from "next/link";
-import { ArrowDown, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import clsx from "clsx";
 const MenuBar = (props) => {
@@ -194,7 +194,7 @@ const MenuBar = (props) => {
                         <NavigationMenu.Item key={index} className="relative flex justify-start">
                             <>
                                 <NavigationMenu.Trigger className="flex items-center px-4 py-2 text-sm font-semibold hover:bg-gray-200 data-[state=open]:bg-gray-200 data-[state=open]:text-black rounded-md">
-                                    {cat.catTitle} <ArrowDown className="ml-2" size={12} />
+                                    {cat.catTitle} 
                                 </NavigationMenu.Trigger>
                                 <AnimatePresence>
                                     <NavigationMenu.Content asChild>
@@ -242,9 +242,9 @@ const MenuBar = (props) => {
                         </NavigationMenu.Item>
                     ))}
                     {menuItems.map((item, index) => (
-                        <NavigationMenu.Item key={index} className="relative flex justify-center">
+                        <NavigationMenu.Item key={index} className="relative flex items-center justify-center">
                             <NavigationMenu.Trigger className="flex items-center px-4 py-2 text-sm font-semibold hover:bg-gray-200 data-[state=open]:bg-gray-200 data-[state=open]:text-black rounded-md">
-                                {item.title} <ArrowDown className="ml-2" size={12} />
+                                {item.title} 
                             </NavigationMenu.Trigger>
                             <AnimatePresence>
                                 {item.subMenu.length > 0 && (
@@ -264,7 +264,7 @@ const MenuBar = (props) => {
                                                         <li key={subIndex}>
                                                             <NavigationMenu.Link asChild>
                                                                 <Link
-                                                                    className="block px-4 py-2 rounded-md hover:bg-gray-200"
+                                                                    className="block px-2 py-2 rounded-md hover:bg-gray-200"
                                                                     href={`/category/${subItem.url}`}
                                                                 >
                                                                     {subItem.title}
