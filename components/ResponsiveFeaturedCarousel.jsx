@@ -164,7 +164,7 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
                         <div>
                           <div className="w-full h-56 relative mb-3 rounded-xl overflow-hidden flex items-center justify-center bg-gray-50">
                             <Image
-                              src={product.gallery?.mainImage?.url || (product.image && product.image.url) || product.image || "/product.jpeg"}
+                              src={product.gallery?.mainImage?.url || (product.image && product.image.url) || product.image || "/placeholder.jpeg"}
                               alt={product.title || product.packageName || "Product image"}
                               width={180}
                               height={180}

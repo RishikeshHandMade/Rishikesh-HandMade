@@ -822,28 +822,7 @@ export default function ProductDetailView({ product }) {
                 </p>
               )}
             </div>
-            {/* Tags, etc. */}
-            {product.categoryTag && (
-              <div className="mb-4">
-                <div className="text-sm mb-1">
-                  <span className="block font-semibold text-lg mb-2">Category:</span>
-                  <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto pr-1">
-                    {Array.isArray(product.categoryTag?.tags) && product.categoryTag.tags.length > 0 ? (
-                      product.categoryTag.tags.map((tag, index) => (
-                        <span
-                          key={index}
-                          className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800"
-                        >
-                          {tag}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-gray-500">No categories</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
+
           </div>
         </div>
         {/* RIGHT: Price/Offers/Add to Cart Box */}
@@ -858,7 +837,7 @@ export default function ProductDetailView({ product }) {
                 )}
                 <span className="font-semibold text-xl">₹ {total}</span>
               </div>
-              {isVendor  && (
+              {isVendor && (
                 <div className="flex flex-col">
                   <span className="font-semibold text-md">B to B Price</span>
                   <span className="font-semibold text-xl">₹ {selectedVariant?.vendorPrice}</span>
@@ -1136,13 +1115,13 @@ export default function ProductDetailView({ product }) {
                   // Calculate final price based on vendor or regular user
                   const vendorPrice = isVendor && product?.quantity?.variants[0]?.vendorPrice;
                   const finalPrice = vendorPrice || Math.round(discountedPrice);
-                  
+
                   // Calculate CGST and SGST based on the final price
                   const cgstRate = Number((product.taxes?.cgst || product.cgst || product.tax?.cgst || 0));
                   const sgstRate = Number((product.taxes?.sgst || product.sgst || product.tax?.sgst || 0));
                   const cgstTotal = (finalPrice * cgstRate / 100) * quantity;
                   const sgstTotal = (finalPrice * sgstRate / 100) * quantity;
-                  
+
                   const buyNowProduct = {
                     id: product._id,
                     name: product.title,
@@ -1246,34 +1225,48 @@ export default function ProductDetailView({ product }) {
       </div >
       {
         highlights.length > 0 && (
-          <div className="w-full p-2 md:px-10 border">
-            <div className="mt-4 w-full p-4 rounded-lg">
-              <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
-                <InfoIcon className="w-5 h-5" /> Product Highlights
-              </h3>
-              <ul className="space-y-4 mt-2 md:px-10 py-5">
-                {highlights.slice(0, showAllHighlights ? highlights.length : 3).map((highlight, index) => (
-                  <li key={index} className="flex flex-col items-start gap-2">
-                    <div className="flex items-start gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span className="text-md text-gray-700 text-wrap">{highlight}</span>
-                    </div>
-                    <hr className="bg-gray-300 h-[px] w-full" />
-                  </li>
-                ))}
-                {highlights.length > 3 && (
-                  <div className="text-right mt-2">
-                    <button
-                      onClick={() => setShowAllHighlights(!showAllHighlights)}
-                      className="text-blue-600 hover:text-blue-800 text-md font-medium"
-                    >
-                      {showAllHighlights ? 'Show less' : `+${highlights.length - 3} more`}
-                    </button>
-                  </div>
-                )}
-              </ul>
-            </div>
+          <div className="flex flex-col md:flex-row gap-4 w-full">
+            <div className="w-full md:w-2/3 p-2 md:px-5 border">
+              <div className="mt-4 w-full p-2 rounded-lg">
+                <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
+                  <InfoIcon className="w-5 h-5" /> Product Highlights
+                </h3>
+                <ul className="space-y-4 mt-2 md:px-5 py-5">
+                  {highlights.map((highlight, index) => (
+                    <li key={index} className="flex flex-col items-start gap-2">
+                      <div className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                        <span className="text-md text-gray-700 text-wrap">{highlight}</span>
+                      </div>
+                      <hr className="bg-gray-300 h-[px] w-full" />
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
+            </div>
+            {/* Tags, etc. */}
+            {product.categoryTag && (
+              <div className="mb-4 w-full md:w-1/3">
+                <div className="text-sm mb-1">
+                  <span className="block font-semibold text-lg mb-2">Category:</span>
+                  <div className="flex flex-wrap gap-2 pr-1">
+                    {Array.isArray(product.categoryTag?.tags) && product.categoryTag.tags.length > 0 ? (
+                      product.categoryTag.tags.map((tag, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center px-3 py-1 rounded-full text-md font-semibold bg-gray-100 text-gray-800"
+                        >
+                          {tag}
+                        </span>
+                      ))
+                    ) :
+                      null
+                    }
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )
       }

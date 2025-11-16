@@ -59,7 +59,7 @@ function StickyAddToCartBar({ product }) {
 
   return (
     <div
-      className={`fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg transform transition-transform duration-300 ${showBar ? "translate-y-0" : "translate-y-full"
+      className={`hidden md:fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg transform transition-transform duration-300 ${showBar ? "translate-y-0" : "translate-y-full"
         }`}
     >
       <div className="flex items-center justify-center gap-2 md:justify-between md:py-4 py-2 max-w-6xl mx-auto">
