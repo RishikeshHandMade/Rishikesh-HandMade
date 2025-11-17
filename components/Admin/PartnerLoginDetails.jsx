@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import toast from 'react-hot-toast';
 const PartnerLoginDetails = ({ approvedVendor }) => {
-  console.log(approvedVendor)
+  // console.log(approvedVendor)
   const [searchTerm, setSearchTerm] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editedData, setEditedData] = useState({

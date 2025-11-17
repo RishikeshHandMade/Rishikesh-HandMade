@@ -160,6 +160,7 @@ const CheckOutOverview = ({ checkoutData, paymentMethod, onEdit, onConfirm, load
   React.useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+  // console.log(checkoutData)
   // In your component, use it like this:
   const handleDownloadInvoice = () => {
     if (!checkoutData) return;
@@ -206,7 +207,7 @@ const CheckOutOverview = ({ checkoutData, paymentMethod, onEdit, onConfirm, load
     promo,
     finalShipping = 0,
     taxTotal = 0,
-    totalTax=0,
+    totalTax = 0,
     cartTotal = 0,
     firstName = '',
     lastName = '',
@@ -329,6 +330,10 @@ const CheckOutOverview = ({ checkoutData, paymentMethod, onEdit, onConfirm, load
               <div className="flex justify-between text-sm">
                 <span>Subtotal</span>
                 <span>₹{subTotal.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>Discount</span>
+                <span className="text-green-500">- ₹{totalDiscount.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span>Shipping</span>

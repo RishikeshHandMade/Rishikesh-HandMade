@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useCart } from "../context/CartContext";
 import Link from "next/link";
 import toast from "react-hot-toast"
-import { MapPin } from "lucide-react"
+import { MapPin, Loader2 } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -127,21 +127,21 @@ const CartDetails = () => {
           const tax = ((item.cgst || 0) + (item.sgst || 0)) / 100 * vendorPrice;
           return sum + (vendorPrice + tax) * item.qty;
         }
-        
+
         // For regular users, apply discounts
         const basePrice = item.originalPrice ?? item.price;
         let finalPrice = basePrice;
-        
+
         // Apply item-level discounts if any
         if (item.discountPercent) {
           finalPrice = basePrice * (1 - (item.discountPercent / 100));
         } else if (item.discountAmount) {
           finalPrice = basePrice - item.discountAmount;
         }
-        
+
         const tax = ((item.cgst || 0) + (item.sgst || 0)) / 100 * finalPrice;
         return sum + (finalPrice + tax) * item.qty;
-        
+
       }, 0) + (FinalShipping || 0) - (isVendor ? 0 : (promoDiscount || 0)),
     };
 
@@ -224,23 +224,41 @@ const CartDetails = () => {
     };
     fetchShippingCharge();
   }, [cart, totalWeight]);
+  // Add this function after the other handlers, before the return statement
+  const handlePincodeCheck = async () => {
+    if (pincodeInput.length !== 6) {
+      setPincodeError('Please enter a valid 6-digit pincode');
+      return;
+    }
 
-  useEffect(() => {
-    // Fetch states/districts from API on mount
-    const fetchStates = async () => {
-      try {
-        const res = await fetch('/api/zipcode');
-        const data = await res.json();
-        if (data.success && Array.isArray(data.data)) {
-          setStatesList(data.data);
-        }
-      } catch (e) {
-        setStatesList([]);
-      }
-    };
+    setPincodeError('');
+    setLoadingShipping(true);
 
-    fetchStates();
-  }, []);
+    try {
+      // Save to local storage
+      const locationData = {
+        pincode: pincodeInput,
+        lastChecked: new Date().toISOString()
+      };
+
+      // Save to local storage
+      localStorage.setItem('deliveryLocation', JSON.stringify(locationData));
+
+      // Update state
+      setPincodeResult(locationData);
+      toast.success('Pincode saved successfully!');
+
+      // Close the modal if open
+      setIsPincodeModalOpen(false);
+
+    } catch (error) {
+      console.error('Error saving pincode:', error);
+      setPincodeError('Error saving pincode. Please try again.');
+      toast.error('Error saving pincode');
+    } finally {
+      setLoadingShipping(false);
+    }
+  };
 
   const handleApplyPincode = () => {
     setIsPincodeConfirmModalOpen(false);
@@ -687,85 +705,41 @@ const CartDetails = () => {
                 </span>
               </div>
               {/* Pincode check UI */}
-              <div className="">
+              {/* Pincode Input Section */}
+              <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-base font-medium flex items-center gap-1">
-                    <MapPin size={18} className="inline-block" />
-                    Delivery Options
-                  </span>
+                  <MapPin size={18} className="text-gray-700" />
+                  <span className="font-medium">Delivery Location</span>
                 </div>
-                {!pincodeResult ? (
-                  <div className="border rounded px-4 py-3 flex items-center gap-2 bg-white max-w-xs">
-                    <input
-                      type="text"
-                      className="flex-1 bg-transparent outline-none text-gray-700"
-                      placeholder="Enter pincode"
-                      value={pincodeInput}
-                      onChange={e => setPincodeInput(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
-                      maxLength={6}
-                    />
-                    <button
-                      className="text-blue-900 font-semibold ml-2"
-                      disabled={loadingShipping || pincodeInput.length !== 6}
-                      onClick={async () => {
-                        setPincodeError('');
-                        setLoadingShipping(true);
-                        setPincodeResult(null);
-                        try {
-                          const res = await fetch('/api/zipcode/checkZip', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ pincode: pincodeInput }),
-                          });
-                          const data = await res.json();
-                          if (data.success) {
-                            setPincodeResult(data);
-                            setPincodeError("");
-                            // Persist delivery location to localStorage
-                            localStorage.setItem('deliveryLocation', JSON.stringify({
-                              pincode: data.pincode,
-                              city: data.city,
-                              state: data.state,
-                              district: data.district
-                            }));
-                            setIsPincodeModalOpen(false);
-                            setIsPincodeConfirmModalOpen(true);
-                          } else {
-                            setPincodeError(data.message || 'Delivery not available');
-                          }
-                        } catch {
-                          setPincodeError('Server error. Please try again.');
-                        } finally {
-                          setLoadingShipping(false);
-                        }
-                      }}
-                    >
-                      {loadingShipping ? 'Checking...' : 'Check'}
-                    </button>
-                  </div>
-                ) : (
-                  <div className="border rounded px-4 py-3 bg-white w-fit">
-                    <div className="flex items-center gap-2 mb-2">
-                      <MapPin size={18} className="inline-block" />
-                      <span className="font-semibold">Delivery options for {pincodeResult.pincode}</span>
-                      <button
-                        className="ml-auto px-2 py-1 border rounded border-black text-sm"
-                        onClick={() => {
-                          setPincodeInput('');
-                          setPincodeResult(null);
-                        }}
-                      >
-                        Change
-                      </button>
-                    </div>
-                    <div className="mb-1 text-sm">
-                      Shipping to: <span className="font-semibold">{pincodeResult.city || pincodeResult.district}, {pincodeResult.state}, India</span>
-                    </div>
-                  </div>
-                )}
+                <div className="flex gap-2">
+                  <input
+                    required
+                    type="text"
+                    className="flex-1/2 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter 6-digit pincode"
+                    value={pincodeInput}
+                    onChange={e => setPincodeInput(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
+                    maxLength={6}
+                  />
+                  <button
+                    className={`flex gap-2 items-center px-4 py-2 rounded font-medium ${pincodeInput.length === 6
+                      ? 'bg-blue-600 text-white hover:bg-blue-700'
+                      : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                      }`}
+                    disabled={pincodeInput.length !== 6 || loadingShipping}
+                    onClick={handlePincodeCheck}
+                  >
+                    {loadingShipping ? <Loader2 className="animate-spin" /> : 'Save Pincode'}
+                  </button>
+                </div>
                 {pincodeError && (
-                  <div className="text-red-600 text-xs mt-1">
-                    {pincodeError}
+                  <p className="text-red-500 text-sm mt-2">{pincodeError}</p>
+                )}
+                {pincodeResult && (
+                  <div className="mt-2 text-sm">
+                    <p className="text-green-600">
+                      ✓ Delivery available to {pincodeResult.pincode}
+                    </p>
                   </div>
                 )}
               </div>

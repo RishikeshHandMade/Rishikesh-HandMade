@@ -101,7 +101,7 @@ const Faq = () => {
                 <div
                   className={`px-8 pb-4 pt-0 text-gray-900 text-lg border-t border-gray-100 overflow-hidden
     transition-all duration-300 ease-in-out
-    transform transition-transform
+    transform
     ${openIdx === idx ? 'max-h-60 opacity-100 translate-y-0' : 'max-h-0 opacity-0 translate-y-2'}
   `}
                   style={{ pointerEvents: openIdx === idx ? 'auto' : 'none' }}

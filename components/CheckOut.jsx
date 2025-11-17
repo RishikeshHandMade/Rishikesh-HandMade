@@ -812,14 +812,18 @@ const CheckOut = () => {
   }, [status]); // Re-run when auth status changes
   // --- PINCODE CHECK STATE ---
   const [isPincodeConfirmModalOpen, setIsPincodeConfirmModalOpen] = useState(false);
-  const [statesList, setStatesList] = useState([]);
   const [pincodeChecked, setPincodeChecked] = useState(false);
-
-  // Fetch states/districts for dropdowns on mount
+  const [pincodeInput, setPincodeInput] = useState('');
+  const [pincodeError, setPincodeError] = useState('');
+  const [pincodeResult, setPincodeResult] = useState(null);
+  // Load saved pincode on mount
   useEffect(() => {
-    fetch('/api/zipcode')
-      .then(res => res.json())
-      .then(data => setStatesList(Array.isArray(data) ? data : []));
+    const saved = localStorage.getItem('deliveryLocation');
+    if (saved) {
+      const loc = JSON.parse(saved);
+      setPincodeInput(loc.pincode);
+      setPincodeResult(loc);
+    }
   }, []);
 
   const handleApplyPincode = () => {

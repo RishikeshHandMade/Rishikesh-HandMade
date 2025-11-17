@@ -106,7 +106,7 @@ const RandomTourPackageSection = () => {
   });
   const ReviewModal = ({ open, onClose, reviews }) => {
     if (!open) return null;
-    console.log(reviews)
+    // console.log(reviews)
     return (
       <div
         className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
