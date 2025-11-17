@@ -58,7 +58,7 @@ const BecomePartnerSchema = new mongoose.Schema({
     // Bank Details
     bankName: { type: String, required: true },
     accountHolderName: { type: String, required: true },
-    accountNumber: { type: String, required: true },
+    accountNumber: { type: Number, required: true },
     ifscCode: { type: String, required: true },
     branch: { type: String, required: true },
 
@@ -67,7 +67,7 @@ const BecomePartnerSchema = new mongoose.Schema({
     returnPolicy: { type: String },
 
     // Verification
-    aadhaarNumber: { type: String, required: true },
+    aadhaarNumber: { type: String, },
 
     // Other
     referredBy: { type: String },

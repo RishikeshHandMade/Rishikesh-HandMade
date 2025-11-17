@@ -22,7 +22,6 @@ export async function POST(req) {
     await connectDB();
     try {
         const formData = await req.json();
-        
         // Basic validation
         if (!formData.businessName || !formData.email || !formData.mobile) {
             return NextResponse.json(
@@ -72,7 +71,7 @@ export async function PATCH(req) {
     await connectDB();
     try {
         const { id, isActive, status, notes, partnerUsername, partnerPassword, partnerPasswordPlain } = await req.json();
-        
+
         if (!id) {
             return NextResponse.json(
                 { error: "ID is required" },
@@ -81,13 +80,13 @@ export async function PATCH(req) {
         }
 
         const updateData = {};
-        
+
         // Handle isActive toggle - only update isActive, not status
         if (isActive !== undefined) {
             updateData.isActive = isActive;
             // Don't modify the status here
         }
-        
+
         // Handle explicit status updates (from other parts of the app)
         if (status && ['approved', 'rejected', 'pending'].includes(status)) {
             updateData.status = status;
@@ -98,7 +97,7 @@ export async function PATCH(req) {
                 updateData.isActive = false;
             }
         }
-        
+
         // Add other optional fields
         if (notes) updateData.notes = notes;
         if (partnerUsername) updateData.partnerUsername = partnerUsername;

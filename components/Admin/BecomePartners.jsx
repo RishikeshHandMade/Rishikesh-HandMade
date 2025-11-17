@@ -529,6 +529,7 @@ const BecomePartner = ({ partnerDetails }) => {
                       <InfoRow label="Alternate Mobile" value={selectedPartner.alternateMobile || "N/A"} />
                       <InfoRow label="Email" value={selectedPartner.email} />
                       <InfoRow label="WhatsApp" value={selectedPartner.whatsappNumber || "N/A"} />
+                      <InfoRow label="Aadhaar Number" value={selectedPartner.aadhaarNumber || "N/A"} />
                       <div className="pt-2">
                         <h4 className="font-medium text-gray-700 mb-2">Address:</h4>
                         <div className="pl-4 border-l-2 border-gray-200">
