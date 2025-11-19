@@ -429,12 +429,17 @@ export default function QuickViewProductCard({ product, onClose }) {
                 couponCode = coupon.couponCode;
               }
 
+              // Generate unique cart item ID based on product ID, size, and color
+              const cartItemId = `${product._id}-${selectedSize || ''}-${selectedColor || ''}`.toLowerCase().replace(/\s+/g, '-');
+              
               const cartItem = {
-                id: product._id,
+                id: cartItemId,
+                productId: product._id,
                 name: product.title,
                 image: product?.gallery?.mainImage || "/placeholder.jpeg",
                 price: Math.round(discountedPrice),
-                originalPrice: price,
+                originalPrice: selectedVariant?.price || basePrice,
+                vendorPrice: selectedVariant?.vendorPrice,
                 qty: Number(quantity) || 1,
                 couponApplied,
                 couponCode: couponApplied ? couponCode : undefined,
@@ -443,12 +448,12 @@ export default function QuickViewProductCard({ product, onClose }) {
                 discountAmount: coupon && typeof coupon.amount === 'number' ? coupon.amount : undefined,
                 cgst: (product.taxes && product.taxes.cgst) || product.cgst || (product.tax && product.tax.cgst) || 0,
                 sgst: (product.taxes && product.taxes.sgst) || product.sgst || (product.tax && product.tax.sgst) || 0,
-                quantity: product.quantity || {},
+                size: selectedSize,
+                weight: selectedWeight,
+                color: selectedColor,
+                variantId: selectedVariant?._id,
+                totalQuantity: selectedVariant?.qty || 0,
               };
-
-              if (isVendor) {
-                cartItem.vendorPrice = vendorPrice;
-              }
 
               addToCart(cartItem, quantity);
               toast.success(`Added ${quantity} item${quantity > 1 ? 's' : ''} to cart!`);
@@ -458,8 +463,11 @@ export default function QuickViewProductCard({ product, onClose }) {
           <button
             className="border border-black py-1 font-semibold w-1/2 flex items-center justify-center gap-2 bg-white hover:bg-[#b3a7a3]"
             onClick={() => {
-              if (wishlist.some(i => i.id === product._id)) {
-                removeFromWishlist(product._id);
+              // Generate variant-specific ID for checking
+              const variantId = `${product._id}-${selectedSize || ''}-${selectedColor || ''}`.toLowerCase().replace(/\s+/g, '-');
+              
+              if (wishlist.some(i => i.id === variantId)) {
+                removeFromWishlist(variantId);
                 toast.success("Removed from wishlist!");
                 return;
               }
@@ -482,24 +490,29 @@ export default function QuickViewProductCard({ product, onClose }) {
                 couponCode = coupon.couponCode;
               }
 
+              // Generate unique wishlist item ID based on product ID, size, and color
+              const wishlistItemId = `${product._id}-${selectedSize || ''}-${selectedColor || ''}`.toLowerCase().replace(/\s+/g, '-');
+              
               const wishlistItem = {
-                id: product._id,
+                id: wishlistItemId,
+                productId: product._id,
                 name: product.title,
                 image: product?.gallery?.mainImage || "/placeholder.png",
                 price: Math.round(discountedPrice),
-                originalPrice: price,
+                originalPrice: selectedVariant?.price || basePrice,
+                vendorPrice: selectedVariant?.vendorPrice,
                 qty: Number(quantity) || 1,
                 couponApplied,
                 couponCode: couponApplied ? couponCode : undefined,
                 productCode: product.code || product.productCode || '',
                 cgst: (product.taxes && product.taxes.cgst) || product.cgst || (product.tax && product.tax.cgst) || 0,
                 sgst: (product.taxes && product.taxes.sgst) || product.sgst || (product.tax && product.tax.sgst) || 0,
-                quantity: product.quantity || {},
+                size: selectedSize,
+                weight: selectedWeight,
+                color: selectedColor,
+                variantId: selectedVariant?._id,
+                totalQuantity: selectedVariant?.qty || 0,
               };
-
-              if (isVendor) {
-                wishlistItem.vendorPrice = vendorPrice;
-              }
 
               addToWishlist(wishlistItem);
               toast.success("Added to wishlist!");

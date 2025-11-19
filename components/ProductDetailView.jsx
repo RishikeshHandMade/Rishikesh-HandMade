@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Heart, Share2, Ruler, Mail, Star, MapPin, InfoIcon, X, Loader2, CheckCircle } from "lucide-react"
 import { useCart } from "../context/CartContext";
 import { toast } from "react-hot-toast";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation"
 import {
   Carousel,
   CarouselContent,
@@ -24,10 +24,11 @@ import Autoplay from "embla-carousel-autoplay";
 import { useSession } from 'next-auth/react';
 
 export default function ProductDetailView({ product }) {
-  // console.log(product);
+  console.log(product);
   // --- Ask An Expert Modal State ---
   const { data: session } = useSession();
   const [showExpertModal, setShowExpertModal] = useState(false);
+
   // Artisan Modal State
   const [showArtisanModal, setShowArtisanModal] = useState(false);
   const [expertForm, setExpertForm] = useState({
@@ -41,7 +42,6 @@ export default function ProductDetailView({ product }) {
   const data = product?.productTagLine?.highlights;
   // console.log(data)
   const [highlights, setHighlights] = useState(data || []);
-  const [showAllHighlights, setShowAllHighlights] = useState(false);
   const handleExpertInputChange = (e) => {
     const { name, value, type } = e.target;
     setExpertForm((prev) => ({
@@ -111,7 +111,7 @@ export default function ProductDetailView({ product }) {
 
   // console.log(product)
   const [selectedImage, setSelectedImage] = React.useState(product?.gallery?.mainImage?.url || []);
-
+  const pathname = usePathname();
   const [quantity, setQuantity] = React.useState(1);
   const [showSizeChart, setShowSizeChart] = React.useState(false);
   const [selectedSize, setSelectedSize] = React.useState(null);
@@ -122,24 +122,7 @@ export default function ProductDetailView({ product }) {
   const words = desc.split(' ');
   const [shippingTierLabel, setShippingTierLabel] = useState("");
   const [FinalShipping, setFinalShipping] = useState(0);
-  const [pincodeResult, setPincodeResult] = React.useState(null);
-  const [pincodeError, setPincodeError] = React.useState("");
-  const [stateInput, setStateInput] = React.useState("");
-  const [districtInput, setDistrictInput] = React.useState("");
-  const [statesList, setStatesList] = useState([]);
-  const [pincodeInput, setPincodeInput] = React.useState("");
-  const [loadingShipping, setLoadingShipping] = useState(false);
   const [shippingPerUnit, setShippingPerUnit] = useState(null);
-
-  // Restore delivery location from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('deliveryLocation');
-    if (saved) {
-      const loc = JSON.parse(saved);
-      setPincodeInput(loc.pincode);
-      setPincodeResult(loc);
-    }
-  }, []);
 
   // Extract variants
   const variants = Array.isArray(product?.quantity?.variants) ? product.quantity.variants : [];
@@ -193,6 +176,7 @@ export default function ProductDetailView({ product }) {
     couponText = `${coupon.couponCode || ''} (₹${coupon.amount} OFF)`;
   }
   const price = selectedVariant ? formatNumeric(selectedVariant.price) : 0;
+  // console.log(price)
   const total = hasDiscount ? (discountedPrice * quantity).toFixed(2) : (selectedVariant ? (selectedVariant.price * quantity).toFixed(2) : 0);
 
   const { cart, addToCart, setCart, addToWishlist, removeFromWishlist, wishlist } = useCart();
@@ -251,38 +235,6 @@ export default function ProductDetailView({ product }) {
     setActiveImageIdx(carouselApi.selectedScrollSnap());
     return () => carouselApi.off('select', onSelect);
   }, [carouselApi]);
-  const handlePincodeCheck = async () => {
-    if (pincodeInput.length !== 6) {
-      setPincodeError('Please enter a valid 6-digit pincode');
-      return;
-    }
-
-    setPincodeError('');
-    setLoadingShipping(true);
-
-    try {
-      // Save to local storage
-      const locationData = {
-        pincode: pincodeInput,
-        // Add timestamp
-        lastChecked: new Date().toISOString()
-      };
-
-      // Save to local storage
-      localStorage.setItem('deliveryLocation', JSON.stringify(locationData));
-
-      // Update state
-      setPincodeResult(locationData);
-      toast.success('Pincode saved successfully!');
-
-    } catch (error) {
-      console.error('Error saving pincode:', error);
-      setPincodeError('Error saving pincode. Please try again.');
-      toast.error('Error saving pincode');
-    } finally {
-      setLoadingShipping(false);
-    }
-  };
   const unescapeHtml = (html) => {
     if (!html || typeof html !== 'string') return '';
 
@@ -441,14 +393,14 @@ export default function ProductDetailView({ product }) {
           })()}
           {/* Selectors */}
           {/* Price and Coupon Section */}
-          <div className="mb-2 flex items-center gap-2">
+          <div className="mb-2 flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
                   <div className="flex flex-col gap-2">
                     {session?.user?.isVendor && selectedVariant?.vendorPrice && (
-                      <div className="flex flex-col gap-1">
-                        <span className="text-sm text-black font-semibold">B to B Price</span>
+                      <div className="flex items-center gap-4">
+                        <span className="text-sm text-black font-semibold">B2B Price</span>
                         <span className="font-bold text-xl text-black">
                           ₹{formatNumeric(selectedVariant.vendorPrice)}
                         </span>
@@ -458,11 +410,14 @@ export default function ProductDetailView({ product }) {
                 </div>
               </div>
             </div>
-            {hasDiscount && (
+            {session?.user?.isVendor && selectedVariant?.vendorPrice && (
+              <div className="bg-black h-px" />
+            )}
+            {hasDiscount ? (
               <div className="flex items-center gap-2 mb-1">
-                <div className="flex flex-col items-start">
+                <div className="flex gap-4 items-start">
                   {session?.user?.isVendor && (
-                    <span className="text-sm text-black font-semibold">Price</span>
+                    <span className="text-sm text-black font-semibold">B2C Price</span>
                   )}
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-xl text-black">₹{formatNumeric(Math.round(discountedPrice))}</span>
@@ -471,7 +426,14 @@ export default function ProductDetailView({ product }) {
                 </div>
                 <span className="border border-green-500 text-green-700 px-2 py-0.5 rounded text-xs font-semibold bg-green-50">Coupon Applied: {couponText}</span>
               </div>
-
+            ) : (
+              <div className="flex items-center gap-2 mb-1">
+                <div className="flex gap-4 items-start">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-xl text-black">₹{formatNumeric(selectedVariant?.price || 0)}</span>
+                  </div>
+                </div>
+              </div>
             )}
 
           </div>
@@ -553,13 +515,23 @@ export default function ProductDetailView({ product }) {
                     onClick={() => {
                       setSelectedSize(size);
                       setQuantity(1);
-                      // Get all colors for this size
-                      const colorsForSize = variants.filter(v => v.size === size).map(v => v.color);
-                      const newColor = colorsForSize.includes(selectedColor) ? selectedColor : colorsForSize[0];
-                      setSelectedColor(newColor);
-                      // Get weight for size+color
-                      const weightForSize = variants.find(v => v.size === size && v.color === newColor)?.weight;
-                      setSelectedWeight(weightForSize);
+
+                      // Find all variants with the selected size
+                      const variantsForSize = variants.filter(v => v.size === size);
+
+                      // If no variants found for this size, reset color and weight
+                      if (variantsForSize.length === 0) {
+                        setSelectedColor(null);
+                        setSelectedWeight(null);
+                        return;
+                      }
+
+                      // Try to find a variant with the current color, otherwise use the first available color
+                      const colorVariant = variantsForSize.find(v => v.color === selectedColor) || variantsForSize[0];
+
+                      // Update color and weight based on the found variant
+                      setSelectedColor(colorVariant.color);
+                      setSelectedWeight(colorVariant.weight);
                     }}
                     aria-pressed={selectedSize === size}
                     tabIndex={0}
@@ -776,44 +748,6 @@ export default function ProductDetailView({ product }) {
                 );
               })}
             </div>
-            {/* Pincode Input Section - Make this more visible */}
-            <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <div className="flex items-center gap-2 mb-2">
-                <MapPin size={18} className="text-gray-700" />
-                <span className="font-medium">Delivery Location</span>
-              </div>
-              <div className="flex gap-2">
-                <input
-                  required
-                  type="text"
-                  className="flex-1/2 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter 6-digit pincode"
-                  value={pincodeInput}
-                  onChange={e => setPincodeInput(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
-                  maxLength={6}
-                />
-                <button
-                  className={`flex gap-2 items-center px-4 py-2 rounded font-medium ${pincodeInput.length === 6
-                    ? 'bg-blue-600 text-white hover:bg-blue-700'
-                    : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                    }`}
-                  disabled={pincodeInput.length !== 6 || loadingShipping}
-                  onClick={handlePincodeCheck}
-                >
-                  {loadingShipping ? <Loader2 className="animate-spin" /> : 'Save Pincode'}
-                </button>
-              </div>
-              {pincodeError && (
-                <p className="text-red-500 text-sm mt-2">{pincodeError}</p>
-              )}
-              {pincodeResult && (
-                <div className="mt-2 text-sm">
-                  <p className="text-green-600">
-                    ✓ Delivery available to {pincodeResult.pincode}
-                  </p>
-                </div>
-              )}
-            </div>
 
           </div>
         </div>
@@ -825,17 +759,17 @@ export default function ProductDetailView({ product }) {
               <span className="font-bold text-xl">Total</span>
               <div className="flex flex-col">
                 {isVendor && (
-                  <span className="font-semibold text-md">B to P Price</span>
+                  <span className="font-semibold text-md">B2C Price</span>
                 )}
                 <span className="font-semibold text-xl">₹ {total} <span className="text-sm text-black">(+Tax)</span></span>
               </div>
-              {isVendor && (
+              {isVendor && selectedVariant?.vendorPrice && (
                 <div className="flex flex-col">
-                  <span className="font-semibold text-md">B to B Price</span>
+                  <span className="font-semibold text-md">B2B Price</span>
                   <span className="font-semibold text-xl">₹ {selectedVariant?.vendorPrice} <span className="text-sm text-black">(+Tax)</span></span>
                 </div>
               )}
-             
+
             </div>
             {/* Offers/Info Boxes */}
             <div className="flex flex-col gap-3 mb-6">
@@ -878,12 +812,16 @@ export default function ProductDetailView({ product }) {
                           toast.error("Selected variant is out of stock");
                           return;
                         }
+                        // Use product ID as the base ID, CartContext will handle variant matching
+                        // Update the cartItemId to include size and color
+                        const cartItemId = `${product._id}-${selectedSize || ''}-${selectedColor || ''}`.toLowerCase().replace(/\s+/g, '-');
                         const cartItem = {
-                          id: product._id,
+                          id: cartItemId, // Use just the product ID as the base ID
+                          productId: product._id, // Keep original product ID for reference
                           name: product.title,
                           image: typeof selectedImage === "string" ? selectedImage : selectedImage?.url || product.gallery?.mainImage?.url || '/placeholder.png',
                           price: hasDiscount ? Math.round(discountedPrice) : selectedVariant.price,
-                          vendorPrice: product?.quantity?.variants[0]?.vendorPrice,
+                          vendorPrice: selectedVariant?.vendorPrice,
                           originalPrice: selectedVariant.price,
                           couponApplied: hasDiscount,
                           couponCode: coupon ? coupon.couponCode : '',
@@ -898,9 +836,7 @@ export default function ProductDetailView({ product }) {
                           sgst: (product.taxes && product.taxes.sgst) || product.sgst || (product.tax && product.tax.sgst) || 0,
                           igst: (product.taxes && product.taxes.igst) || product.igst || (product.tax && product.tax.igst) || 0,
                           totalQuantity: selectedVariant.qty || 0,
-                        }
-                        if (isVendor) {
-                          cartItem.vendorPrice = product?.quantity?.variants[0]?.vendorPrice;
+                          variantId: selectedVariant._id, // Keep variant ID for reference
                         }
                         addToCart(cartItem, quantity);
                         toast.success(`Added ${quantity} item${quantity > 1 ? 's' : ''} to cart!`);
@@ -932,7 +868,7 @@ export default function ProductDetailView({ product }) {
                       name: product.title,
                       image: typeof selectedImage === "string" ? selectedImage : selectedImage?.url || product.gallery?.mainImage?.url || '/placeholder.png',
                       price: hasDiscount ? Math.round(discountedPrice) : selectedVariant.price,
-                      vendorPrice: product?.quantity?.variants[0]?.vendorPrice,
+                      vendorPrice: selectedVariant?.vendorPrice,
                       originalPrice: selectedVariant.price,
                       couponApplied: hasDiscount,
                       couponCode: coupon ? coupon.couponCode : '',
@@ -948,11 +884,6 @@ export default function ProductDetailView({ product }) {
                       igst: (product.taxes && product.taxes.igst) || product.igst || (product.tax && product.tax.igst) || 0,
                       totalQuantity: selectedVariant.qty || 0,
                     };
-
-                    if (isVendor) {
-                      wishlistItem.vendorPrice = product?.quantity?.variants[0]?.vendorPrice;
-                    }
-
                     addToWishlist(wishlistItem);
                     toast.success("Added to wishlist!");
                   }
@@ -1027,24 +958,18 @@ export default function ProductDetailView({ product }) {
             {/* Buy Now Button */}
             <button
               className={`border border-black py-3 font-semibold w-full ${selectedVariant?.qty > 0
-                ? pincodeResult
-                  ? 'bg-black text-white hover:bg-gray-800'
-                  : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                ? 'bg-black text-white hover:bg-gray-800'
                 : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                 }`}
               onClick={async () => {
                 if (!selectedVariant) return;
-
-                // First check if pincode is checked and valid
-                if (!pincodeResult) {
-                  toast.error('Please check delivery availability by entering your pincode first.');
-                  // Scroll to pincode section
-                  document.querySelector('input[placeholder="Enter 6-digit pincode"]')?.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center'
-                  });
+                
+                // Check if user is logged in
+                if (!session) {
+                  router.replace(`/sign-in?callbackUrl=${encodeURIComponent(pathname)}`);
                   return;
                 }
+                
                 try {
                   // Prepare the buy-now product
                   const price = selectedVariant.price;
@@ -1127,10 +1052,6 @@ export default function ProductDetailView({ product }) {
                     totalWeight,
                     couponApplied: vendorPrice ? false : couponApplied, // No coupon for vendors
                     finalShipping: FinalShipping,
-                    pincode: pincodeResult?.pincode || null,
-                    city: pincodeResult?.city || null,
-                    state: pincodeResult?.state || null,
-                    district: pincodeResult?.district || null,
                     couponCode: vendorPrice ? undefined : (couponApplied ? couponCode : undefined),
                     productCode: product.code || product.productCode || '',
                     discountPercent: vendorPrice ? 0 : (couponObj?.percent || 0),
@@ -1156,12 +1077,10 @@ export default function ProductDetailView({ product }) {
                   toast.error('Failed to prepare product. Please try again.');
                 }
               }}
-              disabled={!selectedVariant || selectedVariant.qty <= 0 || !pincodeResult}
+              disabled={!selectedVariant || selectedVariant.qty <= 0}
             >
               {selectedVariant?.qty > 0
-                ? pincodeResult
-                  ? 'BUY IT NOW'
-                  : 'PLEASE CHECK PINCODE FIRST'
+                ? 'BUY IT NOW'
                 : 'OUT OF STOCK'
               }
             </button>

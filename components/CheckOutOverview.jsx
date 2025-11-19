@@ -4,7 +4,9 @@ import Image from 'next/image';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { toast } from 'react-hot-toast';
+import { Loader2 } from 'lucide-react';
 const downloadInvoiceAsPdf = async (orderData) => {
+  // console.log(orderData)
   try {
     // Create a temporary div to render the HTML
     const tempDiv = document.createElement('div');
@@ -28,6 +30,7 @@ const downloadInvoiceAsPdf = async (orderData) => {
       promoCode,
       totalTax,
       shippingCost,
+      finalShipping,
       cartTotal
     } = orderData;
 
@@ -101,7 +104,7 @@ const downloadInvoiceAsPdf = async (orderData) => {
           </div>
           <div style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #eee;">
             <span>Shipping:</span>
-            <span>${Number(shippingCost) > 0 ? `₹${Number(shippingCost).toFixed(2)}` : 'Free'}</span>
+            <span>${Number(finalShipping) > 0 ? `₹${Number(finalShipping).toFixed(2)}` : ''}</span>
           </div>
           <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; margin-bottom: 16px;">
             <span>Total Amount:</span>
@@ -181,6 +184,7 @@ const CheckOutOverview = ({ checkoutData, paymentMethod, onEdit, onConfirm, load
       })),
       subTotal: checkoutData.subTotal || 0,
       shippingCost: checkoutData.shippingCost || 0,
+      finalShipping:checkoutData.finalShipping||0,
       totalDiscount: checkoutData.totalDiscount || 0,
       promoCode: checkoutData.promoCode || '',
       totalTax: checkoutData.totalTax || taxTotal,
@@ -284,7 +288,7 @@ const CheckOutOverview = ({ checkoutData, paymentMethod, onEdit, onConfirm, load
                 <tr><td className="py-1 w-32 text-gray-700">Name</td><td>{firstName} {lastName}</td></tr>
                 <tr><td className="py-1 text-gray-700">Email</td><td>{email}</td></tr>
                 <tr><td className="py-1 text-gray-700">Call No.</td><td>{phone}</td></tr>
-                <tr><td className="py-1 text-gray-700">Alt. Call No.</td><td>{altPhone}</td></tr>
+                {altPhone && <tr><td className="py-1 text-gray-700">Alt. Call No.</td><td>{altPhone}</td></tr>}
               </tbody>
             </table>
           </div>
@@ -308,9 +312,10 @@ const CheckOutOverview = ({ checkoutData, paymentMethod, onEdit, onConfirm, load
             </div>
             <table className="w-full text-sm">
               <tbody>
+                <tr><td className="py-1 w-32 text-gray-700">City</td><td>{city}</td></tr>
+                <tr><td className="py-1 text-gray-700">District</td><td>{district}</td></tr>
                 <tr><td className="py-1 w-32 text-gray-700">State</td><td>{state}</td></tr>
-                <tr><td className="py-1 text-gray-700">Dist.</td><td>{district}</td></tr>
-                <tr><td className="py-1 text-gray-700">Available Pin Code</td><td>{pincode}</td></tr>
+                <tr><td className="py-1 text-gray-700">Pin Code</td><td>{pincode}</td></tr>
               </tbody>
             </table>
           </div>
@@ -351,6 +356,10 @@ const CheckOutOverview = ({ checkoutData, paymentMethod, onEdit, onConfirm, load
                 <div className="text-green-700 text-xs mt-2">Nice! You saved ₹{totalDiscount.toFixed(2)} on your order.</div>
               )}
             </div>
+            <div className="text-xs text-gray-600 mt-2">
+              Thank you for choosing to shop with us!<br />
+              Your satisfaction is our priority – shop confidently with us!
+            </div>
             <button
               className="w-full py-3 bg-black text-white rounded font-semibold text-base mt-2 mb-4 flex items-center justify-center gap-2 hover:bg-gray-900 transition-colors"
 
@@ -360,19 +369,21 @@ const CheckOutOverview = ({ checkoutData, paymentMethod, onEdit, onConfirm, load
               }}
               disabled={loading}
             >
-              {loading ? 'Processing...' : (
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  Processing... <Loader2 className="h-4 w-4 animate-spin" />
+                </span>
+              ) : (
                 <>
                   Make Confirm Order
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
                 </>
               )}
             </button>
             {error && <div className="text-red-600 text-xs text-center mb-2">{error}</div>}
-            <div className="text-xs text-gray-600 mt-2">
-              Thank you for choosing to shop with us!<br />
-              To complete your purchase, please confirm your order by selecting a payment method below. You can choose <span className="underline">Cash on Delivery (COD)</span> for a safe and convenient payment at your doorstep, or opt for <span className="underline">Online Payment</span> for faster processing and instant confirmation.<br /><br />
-              Once your payment option is selected, we will begin preparing your order for dispatch. Your satisfaction is our priority – shop confidently with us!
-            </div>
+
           </div>
         </div>
       </div>

@@ -58,8 +58,15 @@ const MenuBar = (props) => {
         }
     }, [props.fixedMenuItems]);
 
+    const [isInitialLoad, setIsInitialLoad] = React.useState(true);
+
     useEffect(() => {
         const handleMenuItemsUpdated = () => {
+            // Skip if this is the initial load to prevent duplicate API calls
+            if (isInitialLoad) {
+                setIsInitialLoad(false);
+                return;
+            }
             fetch("/api/getAllMenuItems")
                 .then(res => res.json())
                 .then(data => {
@@ -77,7 +84,7 @@ const MenuBar = (props) => {
         return () => {
             window.removeEventListener('menuItemsUpdated', handleMenuItemsUpdated);
         };
-    }, []);
+    }, [isInitialLoad]);
 
     const toggleMenu = (index) => {
         setOpenMenu(openMenu === index ? null : index);
@@ -194,7 +201,7 @@ const MenuBar = (props) => {
                         <NavigationMenu.Item key={index} className="relative flex justify-start">
                             <>
                                 <NavigationMenu.Trigger className="flex items-center px-4 py-2 text-sm font-semibold hover:bg-gray-200 data-[state=open]:bg-gray-200 data-[state=open]:text-black rounded-md">
-                                    {cat.catTitle} 
+                                    {cat.catTitle}
                                 </NavigationMenu.Trigger>
                                 <AnimatePresence>
                                     <NavigationMenu.Content asChild>
@@ -244,7 +251,7 @@ const MenuBar = (props) => {
                     {menuItems.map((item, index) => (
                         <NavigationMenu.Item key={index} className="relative flex items-center justify-center">
                             <NavigationMenu.Trigger className="flex items-center px-4 py-2 text-sm font-semibold hover:bg-gray-200 data-[state=open]:bg-gray-200 data-[state=open]:text-black rounded-md">
-                                {item.title} 
+                                {item.title}
                             </NavigationMenu.Trigger>
                             <AnimatePresence>
                                 {item.subMenu.length > 0 && (

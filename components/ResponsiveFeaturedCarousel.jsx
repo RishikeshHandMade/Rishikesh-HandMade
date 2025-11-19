@@ -43,19 +43,25 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
   const [optionModal, setOptionModal] = React.useState({ open: false, productIdx: null });
   const [selectedColor, setSelectedColor] = React.useState(null);
   const [selectedSize, setSelectedSize] = React.useState(null);
+  const [selectedWeight, setSelectedWeight] = React.useState(null);
+  const [quantity, setQuantity] = React.useState(1);
 
   // Helper to get options for modal
   const getOptions = (product) => {
     // Try product.colors (array of {name, hex}), or variants
     let colors = product.colors || [];
     let sizes = product.sizes || [];
+    let weights = product.weights || [];
     if (!colors.length && product.quantity?.variants) {
       colors = Array.from(new Set(product.quantity.variants.map(v => v.color))).filter(Boolean).map(color => ({ name: color, hex: color }));
     }
     if (!sizes.length && product.quantity?.variants) {
       sizes = Array.from(new Set(product.quantity.variants.map(v => v.size))).filter(Boolean);
     }
-    return { colors, sizes };
+    if (!weights.length && product.quantity?.variants) {
+      weights = Array.from(new Set(product.quantity.variants.map(v => v.weight))).filter(Boolean);
+    }
+    return { colors, sizes, weights };
   };
 
   // Reset modal state on open
@@ -63,6 +69,7 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
     if (optionModal.open && optionModal.productIdx != null) {
       setSelectedColor(null);
       setSelectedSize(null);
+      setQuantity(1);
     }
   }, [optionModal]);
 
@@ -73,7 +80,7 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
         (() => {
           const product = displayProducts[optionModal.productIdx];
           if (!product) return null;
-          const { colors, sizes } = getOptions(product);
+          const { colors, sizes, weights } = getOptions(product);
           return (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
               <div className="bg-white rounded-2xl shadow-xl w-[340px] p-6 relative animate-fade-in">
@@ -125,19 +132,57 @@ const ResponsiveFeaturedCarousel = ({ products }) => {
                   onClick={() => {
                     // Add to cart with selected options
                     const prod = displayProducts[optionModal.productIdx];
+                    const variants = prod.quantity?.variants || [];
+                    
+                    // Find the selected variant
+                    const selectedVariant = variants.find(v => {
+                      return (
+                        (selectedSize ? v.size === selectedSize : true) &&
+                        (selectedColor ? v.color === selectedColor : true)
+                      );
+                    });
+                    
                     let price = prod.price || prod.minPrice || 0;
                     // Find variant price if available
-                    if (prod.quantity?.variants) {
-                      const variant = prod.quantity.variants.find(v => v.size === selectedSize && (v.color === selectedColor || !selectedColor));
-                      if (variant) price = variant.price;
+                    if (selectedVariant) {
+                      price = selectedVariant.price;
                     }
+                    const cartItemId = `${prod._id}-${selectedSize || ''}-${selectedColor || ''}`.toLowerCase().replace(/\s+/g, '-');
+
+                    // Calculate discount
+                    const coupon = prod.coupon || prod.coupons?.coupon;
+                    let discountedPrice = selectedVariant ? selectedVariant.price : price;
+                    let hasDiscount = false;
+                    if (coupon && typeof coupon.percent === 'number' && coupon.percent > 0) {
+                      discountedPrice = (selectedVariant ? selectedVariant.price : price) - ((selectedVariant ? selectedVariant.price : price) * coupon.percent) / 100;
+                      hasDiscount = true;
+                    } else if (coupon && typeof coupon.amount === 'number' && coupon.amount > 0) {
+                      discountedPrice = (selectedVariant ? selectedVariant.price : price) - coupon.amount;
+                      hasDiscount = true;
+                    }
+
                     addToCart({
-                      id: prod._id || prod.id,
-                      name: prod.title || prod.name,
+                      id: cartItemId, // Use just the product ID as the base ID
+                      productId: prod._id, // Keep original product ID for reference
+                      name: prod.title,
                       image: (prod.gallery?.mainImage) || (prod.image?.url) || prod.image || "/product.jpeg",
-                      price,
-                      color: selectedColor,
+                      price: hasDiscount ? Math.round(discountedPrice) : selectedVariant.price,
+                      vendorPrice: selectedVariant?.vendorPrice,
+                      originalPrice: selectedVariant.price,
+                      couponApplied: hasDiscount,
+                      couponCode: coupon ? coupon.couponCode : '',
                       size: selectedSize,
+                      weight: selectedWeight,
+                      color: selectedColor,
+                      qty: quantity,
+                      productCode: prod.code || prod.productCode || '',
+                      discountPercent: coupon && typeof coupon.percent === 'number' ? coupon.percent : undefined,
+                      discountAmount: coupon && typeof coupon.amount === 'number' ? coupon.amount : undefined,
+                      cgst: (prod.taxes && prod.taxes.cgst) || prod.cgst || (prod.tax && prod.tax.cgst) || 0,
+                      sgst: (prod.taxes && prod.taxes.sgst) || prod.sgst || (prod.tax && prod.tax.sgst) || 0,
+                      igst: (prod.taxes && prod.taxes.igst) || prod.igst || (prod.tax && prod.tax.igst) || 0,
+                      totalQuantity: selectedVariant.qty || 0,
+                      variantId: selectedVariant._id,
                     }, 1);
                     toast.success('Added to cart!');
                     setOptionModal({ open: false, productIdx: null });

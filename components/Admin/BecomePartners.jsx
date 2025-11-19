@@ -311,7 +311,7 @@ const BecomePartner = ({ partnerDetails }) => {
                   <div class="credentials">
                       <p><strong>Website URL:</strong> <a href="https://rishikeshhandmade.com/vendor/login">https://rishikeshhandmade.com/vendor/login</a></p>
                       <p><strong>Username:</strong> ${generatedCredentials.username}</p>
-                      <p><strong>Password:</strong> ${generatedCredentials.plainPassword}</p>
+                      <p><strong>Password:</strong> ${plainPassword}</p>
                   </div>                  
                   <div style="text-align: center;">
                       <a href="https://rishikeshhandmade.com/vendor/login" class="button">Access Vendor Dashboard</a>

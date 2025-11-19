@@ -1,5 +1,5 @@
-"use client"
-import React, { useState } from 'react';
+"use client";
+import React, { useState } from "react";
 import { useCart } from "../context/CartContext";
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
@@ -7,27 +7,26 @@ import { useSession } from "next-auth/react";
 // Function to load Razorpay script on client
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
-    if (document.getElementById('razorpay-sdk')) {
+    if (document.getElementById("razorpay-sdk")) {
       return resolve(true);
     }
-    const script = document.createElement('script');
-    script.id = 'razorpay-sdk';
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    const script = document.createElement("script");
+    script.id = "razorpay-sdk";
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
     script.onload = () => resolve(true);
     script.onerror = () => resolve(false);
     document.body.appendChild(script);
   });
 };
 
-
 // Function to handle online payment with explicit backend order creation
-import axios from 'axios';
-import { toast } from 'react-hot-toast';
+import axios from "axios";
+import { toast } from "react-hot-toast";
 
 // --- Centralized Order/Transaction ID Generators ---
 function generateOrderId() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let result = '';
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let result = "";
   for (let i = 0; i < 6; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
@@ -40,11 +39,26 @@ function generateTransactionId() {
 function buildOrderPayload({
   cart,
   checkoutData,
-  street, city, district, state, pincode,
-  firstName, lastName, email, phone, altPhone,
-  payment, transactionId, orderId, agree, paymentMethodValue, statusValue
+  street,
+  city,
+  district,
+  state,
+  pincode,
+  firstName,
+  lastName,
+  email,
+  phone,
+  altPhone,
+  payment,
+  transactionId,
+  orderId,
+  agree,
+  paymentMethodValue,
+  statusValue,
 }) {
-  const fullAddress = [street, city, district, state, pincode].filter(Boolean).join(', ');
+  const fullAddress = [street, city, district, state, pincode]
+    .filter(Boolean)
+    .join(", ");
   return {
     products: cart,
     cartTotal: checkoutData?.cartTotal,
@@ -71,14 +85,13 @@ function buildOrderPayload({
     transactionId,
     payment: paymentMethodValue, // 'cod', 'online', 'direct'
     paymentMethod: paymentMethodValue,
-    status: statusValue || 'Pending',
+    status: statusValue || "Pending",
     agree,
     datePurchased: new Date(),
   };
 }
-import CheckOutOverview from './CheckOutOverview';
-import { usePathname, useRouter } from "next/navigation"
-
+import CheckOutOverview from "./CheckOutOverview";
+import { usePathname, useRouter } from "next/navigation";
 
 // Debug: Log modal state changes
 const CheckOut = () => {
@@ -92,8 +105,6 @@ const CheckOut = () => {
   const [district, setDistrict] = useState("");
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [orderId, setOrderId] = useState(null);
-  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
-  const [orderData, setOrderData] = useState(null);
 
   useEffect(() => {
     // Load checkout data from localStorage
@@ -125,12 +136,15 @@ const CheckOut = () => {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false); // Prevents double payment attempts
   const [error, setError] = useState(null);
   useEffect(() => {
-    if (!isLoading && (!checkoutData || !checkoutData.cart || checkoutData.cart.length === 0)) {
-      router.push('/');
+    if (
+      !isLoading &&
+      (!checkoutData || !checkoutData.cart || checkoutData.cart.length === 0)
+    ) {
+      router.push("/");
     }
   }, [checkoutData, isLoading, router]);
   // Coupon state
-  // console.log(checkoutData)
+  // console.log(checkoutData);
   const [couponInput, setCouponInput] = useState("");
   const [loadingCoupon, setLoadingCoupon] = useState(false);
   const [couponError, setCouponError] = useState("");
@@ -139,38 +153,42 @@ const CheckOut = () => {
   const [showOverview, setShowOverview] = useState(false);
   const [confirmedPaymentMethod, setConfirmedPaymentMethod] = useState(null);
   // Load cart data from localStorage and handle authentication state
-  const [shipping, setShipping] = useState('free');
-  const isBuyNow = typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get('mode') === 'buy-now';
-  const sendOrderConfirmationEmail = async (orderData, products, paymentMethod) => {
-
+  const [shipping, setShipping] = useState("free");
+  const isBuyNow =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("mode") === "buy-now";
+  const sendOrderConfirmationEmail = async (
+    orderData,
+    products,
+    paymentMethod
+  ) => {
     try {
       const {
-        firstName = '',
-        lastName = '',
-        street = '',
-        city = '',
-        state = '',
-        pincode = '',
-        phone = '',
-        altPhone = '',
+        firstName = "",
+        lastName = "",
+        street = "",
+        city = "",
+        state = "",
+        pincode = "",
+        phone = "",
+        altPhone = "",
         email,
         orderId,
         subTotal = 0,
         totalDiscount = 0,
-        promoCode = '',
-        promoDiscount = '',
+        promoCode = "",
+        promoDiscount = "",
         totalTax = 0,
         shippingCost = 0,
         cart = [],
-        cartTotal = 0
+        cartTotal = 0,
       } = orderData;
-      const emailResponse = await fetch('/api/brevo', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const emailResponse = await fetch("/api/brevo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           to: email,
-          subject: 'Order Confirmation',
+          subject: "Order Confirmation",
           htmlContent: `<!DOCTYPE html>
           <html lang="en">
           <head>
@@ -221,7 +239,9 @@ const CheckOut = () => {
                 <p> Name: ${firstName} ${lastName}</p>
                 <p> Address: ${street}</p>
                 <p> City: ${city}, State: ${state} Pincode: ${pincode}</p>
-                <p>Phone: ${phone}${altPhone ? `<br>Alt. Phone: ${altPhone}` : ''}</p>
+                <p>Phone: ${phone}${
+            altPhone ? `<br>Alt. Phone: ${altPhone}` : ""
+          }</p>
               </div>
           
           
@@ -238,18 +258,30 @@ const CheckOut = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  ${Array.isArray(products) ? products.map(item => `
+                  ${
+                    Array.isArray(products)
+                      ? products
+                          .map(
+                            (item) => `
                     <tr>
-                      <td><img src="${item.image?.url || item.image || ''}" class="product-img" alt="${item.name || ''}" /></td>
-                      <td>${item.name || 'Product'}</td>
+                      <td><img src="${
+                        item.image?.url || item.image || ""
+                      }" class="product-img" alt="${item.name || ""}" /></td>
+                      <td>${item.name || "Product"}</td>
                       <td>${item.qty || 1}</td>
-                      <td>${item.size || '-'}</td>
-                          <td>₹${isVendor && item.vendorPrice
-              ? (Number(item.vendorPrice) * item.qty).toFixed(2)
-              : (item.price * item.qty).toFixed(2)}</td>
+                      <td>${item.size || "-"}</td>
+                          <td>₹${
+                            isVendor && item.vendorPrice
+                              ? (Number(item.vendorPrice) * item.qty).toFixed(2)
+                              : (item.price * item.qty).toFixed(2)
+                          }</td>
     </tr>
                     </tr>
-                  `).join('') : ''}
+                  `
+                          )
+                          .join("")
+                      : ""
+                  }
                 </tbody>
               </table>
               <div style="margin-top: 24px; padding: 16px; background: #f9fafb; border-radius: 6px;">
@@ -258,19 +290,27 @@ const CheckOut = () => {
                 <span>Subtotal:</span>
                 <span>₹${Number(subTotal || 0).toFixed(2)}</span>
               </div>
-              ${totalDiscount > 0 ? `
+              ${
+                totalDiscount > 0
+                  ? `
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #10b981;">
-                  <span>Discount${promoCode ? ` (${promoCode})` : ''}:</span>
+                  <span>Discount${promoCode ? ` (${promoCode})` : ""}:</span>
                   <span>-₹${Number(totalDiscount || 0).toFixed(2)}</span>
                 </div>
-              ` : ''}
+              `
+                  : ""
+              }
               <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                 <span>Tax (GST):</span>
                 <span>₹${Number(totalTax || 0).toFixed(2)}</span>
               </div>
               <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
                 <span>Shipping:</span>
-                <span>${Number(shippingCost || 0) > 0 ? `₹${Number(shippingCost).toFixed(2)}` : 'Free'}</span>
+                <span>${
+                  Number(shippingCost || 0) > 0
+                    ? `₹${Number(shippingCost).toFixed(2)}`
+                    : "Free"
+                }</span>
               </div>
               <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: 600; margin-top: 12px;">
                 <span>Total Amount:</span>
@@ -282,7 +322,11 @@ const CheckOut = () => {
                   <div>
                     <h3 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 600;">Order Status: Pending</h3>
                     <p style="margin: 0; font-size: 14px; color: #4b5563;">
-                      Payment Method: ${paymentMethod === 'online' ? 'Online Payment' : 'Cash on Delivery'}
+                      Payment Method: ${
+                        paymentMethod === "online"
+                          ? "Online Payment"
+                          : "Cash on Delivery"
+                      }
                     </p>
                   </div>
                 </div>
@@ -295,8 +339,8 @@ const CheckOut = () => {
               <a href="https://rishikeshhandmade.com/dashboard?section=orders" class="dashboard-btn">View Order in Dashboard</a>
             </div>
           </body>
-          </html>`
-        })
+          </html>`,
+        }),
       });
 
       if (!emailResponse.ok) {
@@ -311,7 +355,17 @@ const CheckOut = () => {
       return false;
     }
   };
-  const handleOnlinePaymentWithOrder = async (finalAmount, cart, customer, setLoading, setError, routerInstance, checkoutData, formFields, user) => {
+  const handleOnlinePaymentWithOrder = async (
+    finalAmount,
+    cart,
+    customer,
+    setLoading,
+    setError,
+    routerInstance,
+    checkoutData,
+    formFields,
+    user
+  ) => {
     setLoading(true);
     setError(null);
 
@@ -320,43 +374,52 @@ const CheckOut = () => {
       if (!cart || !Array.isArray(cart) || cart.length === 0) {
         // If cart is empty but we're in buy now mode, try to get the product from localStorage
         if (formFields?.isBuyNow || checkoutData?.isBuyNow) {
-          const buyNowProductRaw = typeof window !== 'undefined' ? localStorage.getItem('buyNowProduct') : null;
+          const buyNowProductRaw =
+            typeof window !== "undefined"
+              ? localStorage.getItem("buyNowProduct")
+              : null;
           if (buyNowProductRaw) {
             const buyNowProduct = JSON.parse(buyNowProductRaw);
-            cart = [{
-              ...buyNowProduct,
-              qty: Number(buyNowProduct.qty) || 1,
-              price: Number(buyNowProduct.price) || 0,
-              originalPrice: Number(buyNowProduct.originalPrice) || Number(buyNowProduct.price) || 0,
-              color: buyNowProduct.color || '',
-              size: buyNowProduct.size || '',
-              weight: Number(buyNowProduct.weight) || 0,
-              cgst: Number(buyNowProduct.cgst) || 0,
-              sgst: Number(buyNowProduct.sgst) || 0,
-              image: typeof buyNowProduct.image === 'string'
-                ? buyNowProduct.image
-                : buyNowProduct.image?.url || ''
-            }];
+            cart = [
+              {
+                ...buyNowProduct,
+                qty: Number(buyNowProduct.qty) || 1,
+                price: Number(buyNowProduct.price) || 0,
+                originalPrice:
+                  Number(buyNowProduct.originalPrice) ||
+                  Number(buyNowProduct.price) ||
+                  0,
+                color: buyNowProduct.color || "",
+                size: buyNowProduct.size || "",
+                weight: Number(buyNowProduct.weight) || 0,
+                cgst: Number(buyNowProduct.cgst) || 0,
+                sgst: Number(buyNowProduct.sgst) || 0,
+                image:
+                  typeof buyNowProduct.image === "string"
+                    ? buyNowProduct.image
+                    : buyNowProduct.image?.url || "",
+              },
+            ];
           }
         }
 
         // If cart is still empty after checking for buy now product, throw error
         if (!cart || cart.length === 0) {
-          throw new Error('Cart is empty or invalid');
+          throw new Error("Cart is empty or invalid");
         }
       }
 
       // 2. Prepare products array with validation
-      const products = cart.map(item => {
+      const products = cart.map((item) => {
         const productId = item._id || item.productId || item.id;
         if (!productId) {
           // console.error('Invalid product in cart:', item);
-          throw new Error('One or more products in cart are invalid');
+          throw new Error("One or more products in cart are invalid");
         }
 
         // Handle image URL - ensure it's always a string
-        let imageUrl = '';
-        if (typeof item.image === 'string') {
+        let imageUrl = "";
+        if (typeof item.image === "string") {
           imageUrl = item.image;
         } else if (item.image?.url) {
           imageUrl = item.image.url;
@@ -365,81 +428,89 @@ const CheckOut = () => {
         return {
           _id: productId,
           productId,
-          name: item.name || 'Product',
+          name: item.name || "Product",
           price: Number(item.price) || 0,
           qty: Number(item.qty) || 1,
           image: imageUrl,
-          color: String(item.color || ''),
-          size: String(item.size || ''),
+          color: String(item.color || ""),
+          size: String(item.size || ""),
           weight: Number(item.weight) || 0,
           cgst: Number(item.cgst) || 0,
           sgst: Number(item.sgst) || 0,
           originalPrice: Number(item.originalPrice) || Number(item.price) || 0,
           discountAmount: Number(item.discountAmount) || 0,
-          discountPercent: Number(item.discountPercent) || 0
+          discountPercent: Number(item.discountPercent) || 0,
         };
       });
 
       // 3. Prepare customer data
       const customerName = formFields.firstName
-        ? `${formFields.firstName} ${formFields.lastName || ''}`.trim()
-        : customer.name || '';
+        ? `${formFields.firstName} ${formFields.lastName || ""}`.trim()
+        : customer.name || "";
       // 2. Calculate final amount based on vendor status
       const isVendor = user?.isVendor;
       const calculatedAmount = isVendor
         ? cart.reduce((sum, item) => {
-          const itemPrice = item.vendorPrice ? Number(item.vendorPrice) : (item.originalPrice || item.price || 0);
-          const taxRate = ((Number(item.cgst) || 0) + (Number(item.sgst) || 0)) / 100;
-          const itemTotal = (itemPrice + (itemPrice * taxRate)) * (item.qty || 1);
-          return sum + itemTotal;
-        }, 0) + (checkoutData?.shippingCost || 0)
+            const itemPrice = item.vendorPrice
+              ? Number(item.vendorPrice)
+              : item.originalPrice || item.price || 0;
+            const taxRate =
+              ((Number(item.cgst) || 0) + (Number(item.sgst) || 0)) / 100;
+            const itemTotal =
+              (itemPrice + itemPrice * taxRate) * (item.qty || 1);
+            return sum + itemTotal;
+          }, 0) + (checkoutData?.shippingCost || 0)
         : finalAmount;
 
       const customerData = {
         name: customerName,
-        email: formFields.email || customer.email || '',
-        phone: formFields.phone || customer.phone || '',
+        email: formFields.email || customer.email || "",
+        phone: formFields.phone || customer.phone || "",
         address: [
           formFields.street,
           formFields.city,
           formFields.district,
           formFields.state,
-          formFields.pincode
-        ].filter(Boolean).join(', ')
+          formFields.pincode,
+        ]
+          .filter(Boolean)
+          .join(", "),
       };
 
       // 4. Create order in backend and get Razorpay order
-      const response = await fetch('/api/razorpay', {
-        method: 'POST',
+      const response = await fetch("/api/razorpay", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          "Content-Type": "application/json",
+          Accept: "application/json",
         },
         body: JSON.stringify({
           amount: Number(calculatedAmount),
-          currency: 'INR',
+          currency: "INR",
           receipt: generateOrderId(),
           products,
-          customer: customerData
-        })
+          customer: customerData,
+        }),
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to create Razorpay order');
+        throw new Error(errorData.error || "Failed to create Razorpay order");
       }
 
       const orderData = await response.json();
       const { id: razorpayOrderId, orderId } = orderData;
 
       if (!razorpayOrderId) {
-        throw new Error('Order creation failed. No order ID returned from server.');
+        throw new Error(
+          "Order creation failed. No order ID returned from server."
+        );
       }
 
       // 5. Load Razorpay script
       const loaded = await loadRazorpayScript();
       if (!loaded) {
-        throw new Error('Failed to load Razorpay SDK. Please try again.');
+        throw new Error("Failed to load Razorpay SDK. Please try again.");
       }
 
       // 6. Open Razorpay payment modal
@@ -450,40 +521,64 @@ const CheckOut = () => {
         name: "Rishikesh Handmade",
         description: "Order Payment",
         order_id: razorpayOrderId,
-        handler: createPaymentHandler(cart, checkoutData, formFields, user, orderId, setError, setShowConfirmationModal, setOrderId, routerInstance, formFields, customerData, isBuyNow), // Pass customer data for email
+        handler: createPaymentHandler(
+          cart,
+          checkoutData,
+          formFields,
+          user,
+          orderId,
+          setError,
+          setShowConfirmationModal,
+          setOrderId,
+          routerInstance,
+          formFields,
+          customerData,
+          isBuyNow
+        ), // Pass customer data for email
         prefill: {
           name: customerData.name,
           email: customerData.email,
           contact: customerData.phone,
         },
         theme: {
-          color: "#3399cc"
+          color: "#3399cc",
         },
         modal: {
           ondismiss: () => {
             setLoading(false);
-          }
-        }
+          },
+        },
       };
 
       const rzp = new window.Razorpay(options);
       rzp.open();
-
     } catch (error) {
       // console.error('Payment error:', error);
-      setError(error.message || 'Payment processing failed. Please try again.');
+      setError(error.message || "Payment processing failed. Please try again.");
       setLoading(false);
     }
   };
 
   // Separate handler function for better organization
-  const createPaymentHandler = (cart, checkoutData, formFields, user, orderId, setError, setShowConfirmationModal, setOrderId, routerInstance, customerData, isBuyNow) => {
+  const createPaymentHandler = (
+    cart,
+    checkoutData,
+    formFields,
+    user,
+    orderId,
+    setError,
+    setShowConfirmationModal,
+    setOrderId,
+    routerInstance,
+    customerData,
+    isBuyNow
+  ) => {
     return async (response) => {
       try {
         // 1. Verify payment with backend
         const verificationResponse = await fetch("/api/razorpay", {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_order_id: response.razorpay_order_id,
@@ -493,38 +588,40 @@ const CheckOut = () => {
             formFields,
             user,
             agree: true,
-            customerData
-          })
+            customerData,
+          }),
         });
 
         if (!verificationResponse.ok) {
           const errorData = await verificationResponse.json().catch(() => ({}));
-          throw new Error(errorData.error || 'Payment verification failed');
+          throw new Error(errorData.error || "Payment verification failed");
         }
 
         const verificationData = await verificationResponse.json();
 
         if (verificationData.success) {
-          toast.success('Order placed successfully! Invoice sent to your email.');
+          toast.success(
+            "Order placed successfully! Invoice sent to your email."
+          );
           if (buyNowMode) {
-            localStorage.removeItem('buyNowProduct');
-          }
-          else {
-            if (typeof window !== 'undefined') {
+            localStorage.removeItem("buyNowProduct");
+          } else {
+            if (typeof window !== "undefined") {
               localStorage.removeItem("cart");
               localStorage.removeItem("checkoutCart");
               localStorage.removeItem("checkoutData");
-              Object.keys(localStorage).forEach(key => {
-                if (key.startsWith('cart_')) {
+              Object.keys(localStorage).forEach((key) => {
+                if (key.startsWith("cart_")) {
                   localStorage.removeItem(key);
                 }
               });
             }
           }
         } else {
-          throw new Error(verificationData.error || 'Payment verification failed');
+          throw new Error(
+            verificationData.error || "Payment verification failed"
+          );
         }
-
 
         // 2. Prepare order data for email
         const orderData = {
@@ -532,55 +629,69 @@ const CheckOut = () => {
           email: formFields.email || customerData.email,
           orderId: orderId,
           paymentId: response.razorpay_payment_id,
-          paymentMethod: 'online',
-          orderDate: new Date().toISOString()
+          paymentMethod: "online",
+          orderDate: new Date().toISOString(),
         };
 
         // 3. Send order confirmation email
         const emailSent = await sendOrderConfirmationEmail(
           {
-            ...orderData,  // This already includes form fields and email
-            firstName: formFields.firstName || '',
-            lastName: formFields.lastName || '',
-            street: formFields.street || '',
-            city: formFields.city || '',
-            state: formFields.state || '',
-            pincode: formFields.pincode || '',
-            phone: formFields.phone || '',
-            altPhone: formFields.altPhone || '',
+            ...orderData, // This already includes form fields and email
+            firstName: formFields.firstName || "",
+            lastName: formFields.lastName || "",
+            street: formFields.street || "",
+            city: formFields.city || "",
+            state: formFields.state || "",
+            pincode: formFields.pincode || "",
+            phone: formFields.phone || "",
+            altPhone: formFields.altPhone || "",
             subTotal: checkoutData?.subTotal || 0,
             totalDiscount: checkoutData?.totalDiscount || 0,
-            promoCode: checkoutData?.promoCode || checkoutData?.appliedCoupon?.code || '',
-            promoDiscount: checkoutData?.promoDiscount || checkoutData?.appliedCoupon?.discount || 0,
+            promoCode:
+              checkoutData?.promoCode ||
+              checkoutData?.appliedCoupon?.code ||
+              "",
+            promoDiscount:
+              checkoutData?.promoDiscount ||
+              checkoutData?.appliedCoupon?.discount ||
+              0,
             totalTax: checkoutData?.totalTax || checkoutData?.taxTotal || 0,
-            shippingCost: checkoutData?.shippingCost || checkoutData?.shipping || 0,
+            shippingCost:
+              checkoutData?.shippingCost || checkoutData?.shipping || 0,
             cartTotal: checkoutData?.cartTotal || 0,
-
           },
-          (isBuyNow && checkoutData?.cart)
-            ? checkoutData.cart.map(item => ({
-              ...item,
-              image: typeof item.image === 'string' ? item.image : item.image?.url || '',
-              name: item.name || 'Product',
-              qty: item.qty || 1,
-              price: item.price || 0,
-              size: item.size || ''
-            }))
-            : cart.map(item => ({
-              ...item,
-              image: typeof item.image === 'string' ? item.image : item.image?.url || '',
-              name: item.name || 'Product',
-              qty: item.qty || 1,
-              price: item.price || 0,
-              size: item.size || ''
-            })),
-          'online'
+          isBuyNow && checkoutData?.cart
+            ? checkoutData.cart.map((item) => ({
+                ...item,
+                image:
+                  typeof item.image === "string"
+                    ? item.image
+                    : item.image?.url || "",
+                name: item.name || "Product",
+                qty: item.qty || 1,
+                price: item.price || 0,
+                size: item.size || "",
+              }))
+            : cart.map((item) => ({
+                ...item,
+                image:
+                  typeof item.image === "string"
+                    ? item.image
+                    : item.image?.url || "",
+                name: item.name || "Product",
+                qty: item.qty || 1,
+                price: item.price || 0,
+                size: item.size || "",
+              })),
+          "online"
         );
 
         if (emailSent) {
-          toast.success('Order confirmation email sent!');
+          toast.success("Order confirmation email sent!");
         } else {
-          toast.error('Failed to send order confirmation email. Your order is still confirmed.');
+          toast.error(
+            "Failed to send order confirmation email. Your order is still confirmed."
+          );
         }
         // 2. Handle successful payment
         setError(null);
@@ -589,10 +700,9 @@ const CheckOut = () => {
 
         // 4. Show order overview instead of redirecting
         setShowOverview(true);
-
       } catch (error) {
         // console.error('Payment verification error:', error);
-        setError(error.message || 'Payment verification failed');
+        setError(error.message || "Payment verification failed");
       }
     };
   };
@@ -601,7 +711,7 @@ const CheckOut = () => {
     let isBuyNow = false;
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
-      isBuyNow = params.get('mode') === 'buy-now';
+      isBuyNow = params.get("mode") === "buy-now";
       setBuyNowMode(isBuyNow);
     }
     const loadCartData = async () => {
@@ -609,11 +719,14 @@ const CheckOut = () => {
       let isBuyNow = false;
       if (typeof window !== "undefined") {
         const params = new URLSearchParams(window.location.search);
-        isBuyNow = params.get('mode') === 'buy-now';
+        isBuyNow = params.get("mode") === "buy-now";
       }
       if (isBuyNow) {
         // Load buyNowProduct from localStorage
-        const buyNowRaw = typeof window !== "undefined" ? localStorage.getItem('buyNowProduct') : null;
+        const buyNowRaw =
+          typeof window !== "undefined"
+            ? localStorage.getItem("buyNowProduct")
+            : null;
         if (buyNowRaw) {
           try {
             const buyNowProduct = JSON.parse(buyNowRaw);
@@ -624,7 +737,7 @@ const CheckOut = () => {
 
             // Calculate shipping based on quantity (or weight if available)
             let shippingCost = 0;
-            let shippingTierLabel = '';
+            let shippingTierLabel = "";
             let shippingPerUnit = null;
             let totalWeight = 0;
             if (buyNowProduct.weight) {
@@ -633,15 +746,20 @@ const CheckOut = () => {
             // Prefer weight-based shipping if weight exists, else per-qty
             if (totalWeight > 0) {
               try {
-                const res = await fetch('/api/checkShipping', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
+                const res = await fetch("/api/checkShipping", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ weight: totalWeight }),
                 });
                 const data = await res.json();
-                if (data && data.available && data.shippingCharge != null && !isNaN(Number(data.shippingCharge))) {
+                if (
+                  data &&
+                  data.available &&
+                  data.shippingCharge != null &&
+                  !isNaN(Number(data.shippingCharge))
+                ) {
                   shippingCost = Number(data.shippingCharge);
-                  shippingTierLabel = data.tierLabel || '';
+                  shippingTierLabel = data.tierLabel || "";
                   shippingPerUnit = data.perUnitCharge || null;
                 } else {
                   shippingCost = 0;
@@ -656,23 +774,30 @@ const CheckOut = () => {
               shippingTierLabel = `Flat Rate x${qty}`;
             }
 
-            const totalDiscount = buyNowProduct.originalPrice && buyNowProduct.price
-              ? (Number(buyNowProduct.originalPrice) - discountedUnitPrice) * qty
+            const totalDiscount =
+              buyNowProduct.originalPrice && buyNowProduct.price
+                ? (Number(buyNowProduct.originalPrice) - discountedUnitPrice) *
+                  qty
+                : 0;
+
+            const promoCode = buyNowProduct.couponApplied
+              ? buyNowProduct.couponCode
+              : "";
+            const promoDiscount = buyNowProduct.couponApplied
+              ? totalDiscount
               : 0;
 
-            const promoCode = buyNowProduct.couponApplied ? buyNowProduct.couponCode : '';
-            const promoDiscount = buyNowProduct.couponApplied ? totalDiscount : 0;
-
             const subTotal = discountedUnitPrice * qty;
-            const cgstTotal = (discountedUnitPrice * cgstRate / 100) * qty;
-            const sgstTotal = (discountedUnitPrice * sgstRate / 100) * qty;
+            const cgstTotal = ((discountedUnitPrice * cgstRate) / 100) * qty;
+            const sgstTotal = ((discountedUnitPrice * sgstRate) / 100) * qty;
             const totalTax = cgstTotal + sgstTotal;
             const cartTotal = subTotal + totalTax + shippingCost;
 
             setCheckoutData({
               cart: [{ ...buyNowProduct, cgstTotal, sgstTotal }],
               subTotal,
-              cartTotal: Number(subTotal) + Number(totalTax) + Number(shippingCost),
+              cartTotal:
+                Number(subTotal) + Number(totalTax) + Number(shippingCost),
               shippingCost: Number(shippingCost),
               shippingTierLabel,
               shippingPerUnit,
@@ -693,14 +818,20 @@ const CheckOut = () => {
             const cgstRate = Number(buyNowProduct?.cgst) || 0;
             const sgstRate = Number(buyNowProduct?.sgst) || 0;
             const subTotal = discountedUnitPrice * qty;
-            const cgstTotal = (discountedUnitPrice * cgstRate / 100) * qty;
-            const sgstTotal = (discountedUnitPrice * sgstRate / 100) * qty;
+            const cgstTotal = ((discountedUnitPrice * cgstRate) / 100) * qty;
+            const sgstTotal = ((discountedUnitPrice * sgstRate) / 100) * qty;
             const totalTax = cgstTotal + sgstTotal;
-            const totalDiscount = buyNowProduct?.originalPrice && buyNowProduct?.price
-              ? (Number(buyNowProduct.originalPrice) - discountedUnitPrice) * qty
+            const totalDiscount =
+              buyNowProduct?.originalPrice && buyNowProduct?.price
+                ? (Number(buyNowProduct.originalPrice) - discountedUnitPrice) *
+                  qty
+                : 0;
+            const promoCode = buyNowProduct?.couponApplied
+              ? buyNowProduct.couponCode
+              : "";
+            const promoDiscount = buyNowProduct?.couponApplied
+              ? totalDiscount
               : 0;
-            const promoCode = buyNowProduct?.couponApplied ? buyNowProduct.couponCode : '';
-            const promoDiscount = buyNowProduct?.couponApplied ? totalDiscount : 0;
             const shippingCost = 0;
             const cartTotal = subTotal + totalTax + shippingCost;
             setCheckoutData({
@@ -708,7 +839,7 @@ const CheckOut = () => {
               subTotal,
               cartTotal,
               shippingCost,
-              shippingTierLabel: '',
+              shippingTierLabel: "",
               shippingPerUnit: null,
               totalTax,
               totalDiscount,
@@ -723,7 +854,10 @@ const CheckOut = () => {
         return;
       }
       // Fallback to normal cart flow
-      const stored = typeof window !== "undefined" ? localStorage.getItem("checkoutCart") : null;
+      const stored =
+        typeof window !== "undefined"
+          ? localStorage.getItem("checkoutCart")
+          : null;
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
@@ -736,17 +870,20 @@ const CheckOut = () => {
       } else if (contextCart?.length > 0) {
         // If no localStorage but we have cart in context, use that
         // --- Improved Cart Calculation Logic ---
-        const updatedCart = contextCart.map(item => {
+        const updatedCart = contextCart.map((item) => {
           // Calculate discounted price per item
           let discountedUnitPrice = Number(item.price) || 0;
           if (item.discountPercent) {
-            discountedUnitPrice = discountedUnitPrice * (1 - Number(item.discountPercent) / 100);
+            discountedUnitPrice =
+              discountedUnitPrice * (1 - Number(item.discountPercent) / 100);
           } else if (item.discountAmount) {
-            discountedUnitPrice = discountedUnitPrice - Number(item.discountAmount);
+            discountedUnitPrice =
+              discountedUnitPrice - Number(item.discountAmount);
           }
           // If coupon applied, override with coupon price/discount
           if (item.couponApplied && item.couponDiscount) {
-            discountedUnitPrice = discountedUnitPrice - Number(item.couponDiscount);
+            discountedUnitPrice =
+              discountedUnitPrice - Number(item.couponDiscount);
           }
           // Clamp to >= 0
           discountedUnitPrice = Math.max(0, discountedUnitPrice);
@@ -754,22 +891,37 @@ const CheckOut = () => {
           const qty = Number(item.qty) || 1;
           const cgstRate = Number(item.cgst) || 0;
           const sgstRate = Number(item.sgst) || 0;
-          const cgstTotal = (discountedUnitPrice * cgstRate / 100) * qty;
-          const sgstTotal = (discountedUnitPrice * sgstRate / 100) * qty;
+          const cgstTotal = ((discountedUnitPrice * cgstRate) / 100) * qty;
+          const sgstTotal = ((discountedUnitPrice * sgstRate) / 100) * qty;
 
           return { ...item, discountedUnitPrice, cgstTotal, sgstTotal };
         });
 
         // Calculate original MRP subtotal (before any discount)
-        const mrpSubTotal = updatedCart.reduce((sum, i) => sum + (Number(i.price) || 0) * (Number(i.qty) || 1), 0);
-        const subTotal = updatedCart.reduce((sum, i) => sum + i.discountedUnitPrice * (Number(i.qty) || 1), 0);
-        const totalCGST = updatedCart.reduce((sum, i) => sum + (i.cgstTotal || 0), 0);
-        const totalSGST = updatedCart.reduce((sum, i) => sum + (i.sgstTotal || 0), 0);
+        const mrpSubTotal = updatedCart.reduce(
+          (sum, i) => sum + (Number(i.price) || 0) * (Number(i.qty) || 1),
+          0
+        );
+        const subTotal = updatedCart.reduce(
+          (sum, i) => sum + i.discountedUnitPrice * (Number(i.qty) || 1),
+          0
+        );
+        const totalCGST = updatedCart.reduce(
+          (sum, i) => sum + (i.cgstTotal || 0),
+          0
+        );
+        const totalSGST = updatedCart.reduce(
+          (sum, i) => sum + (i.sgstTotal || 0),
+          0
+        );
         const totalTax = totalCGST + totalSGST;
         const totalDiscount = contextCart.reduce((sum, i) => {
           let discount = 0;
           if (i.discountPercent) {
-            discount = Number(i.price) * (Number(i.discountPercent) / 100) * (Number(i.qty) || 1);
+            discount =
+              Number(i.price) *
+              (Number(i.discountPercent) / 100) *
+              (Number(i.qty) || 1);
           } else if (i.discountAmount) {
             discount = Number(i.discountAmount) * (Number(i.qty) || 1);
           }
@@ -779,9 +931,15 @@ const CheckOut = () => {
           return sum + discount;
         }, 0);
         // Only allow promo if no item-level coupon/discount
-        const hasProductDiscount = updatedCart.some(i => i.discountPercent || i.discountAmount || i.couponApplied);
-        const promoCode = !hasProductDiscount && appliedPromo ? appliedPromo : '';
-        const promoDiscount = !hasProductDiscount && appliedPromoDetails?.discount ? appliedPromoDetails.discount : 0;
+        const hasProductDiscount = updatedCart.some(
+          (i) => i.discountPercent || i.discountAmount || i.couponApplied
+        );
+        const promoCode =
+          !hasProductDiscount && appliedPromo ? appliedPromo : "";
+        const promoDiscount =
+          !hasProductDiscount && appliedPromoDetails?.discount
+            ? appliedPromoDetails.discount
+            : 0;
 
         // Shipping cost logic (reuse your existing/fallback logic)
         const shippingCost = checkoutData?.shippingCost || 0;
@@ -791,8 +949,8 @@ const CheckOut = () => {
         setCheckoutData({
           cart: updatedCart,
           mrpSubTotal, // original MRP subtotal
-          subTotal,    // subtotal after discount
-          cartTotal,   // final amount
+          subTotal, // subtotal after discount
+          cartTotal, // final amount
           shippingCost,
           shipping,
           totalTax,
@@ -810,27 +968,6 @@ const CheckOut = () => {
     // Load cart/buy-now data when component mounts or when auth status changes
     loadCartData();
   }, [status]); // Re-run when auth status changes
-  // --- PINCODE CHECK STATE ---
-  const [isPincodeConfirmModalOpen, setIsPincodeConfirmModalOpen] = useState(false);
-  const [pincodeChecked, setPincodeChecked] = useState(false);
-  const [pincodeInput, setPincodeInput] = useState('');
-  const [pincodeError, setPincodeError] = useState('');
-  const [pincodeResult, setPincodeResult] = useState(null);
-  // Load saved pincode on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('deliveryLocation');
-    if (saved) {
-      const loc = JSON.parse(saved);
-      setPincodeInput(loc.pincode);
-      setPincodeResult(loc);
-    }
-  }, []);
-
-  const handleApplyPincode = () => {
-    setPincodeChecked(true);
-    setIsPincodeConfirmModalOpen(false);
-  };
-
   // Promo code apply handler (modeled after CartDetails)
   const handleApplyPromo = async () => {
     if (!Array.isArray(checkoutData.cart)) {
@@ -840,10 +977,13 @@ const CheckOut = () => {
     setCouponError("");
     // Block if any product-level discount/coupon
     const hasDiscountedItem = checkoutData.cart.some(
-      item => item.discountPercent || item.discountAmount || item.couponApplied
+      (item) =>
+        item.discountPercent || item.discountAmount || item.couponApplied
     );
     if (hasDiscountedItem) {
-      setCouponError("A product-level discount or coupon is already applied. Promo code cannot be used.");
+      setCouponError(
+        "A product-level discount or coupon is already applied. Promo code cannot be used."
+      );
       return;
     }
     if (!couponInput.trim()) {
@@ -857,16 +997,22 @@ const CheckOut = () => {
     setLoadingCoupon(true);
     // Calculate total before promo
     const totalAfterDiscount = checkoutData.cart.reduce(
-      (sum, item) => sum + (item.price * item.qty),
+      (sum, item) => sum + item.price * item.qty,
       0
     );
-    const cartTotalBeforePromo = totalAfterDiscount + (checkoutData.totalTax || 0) + (checkoutData.shippingCost || 0);
+    const cartTotalBeforePromo =
+      totalAfterDiscount +
+      (checkoutData.totalTax || 0) +
+      (checkoutData.shippingCost || 0);
 
     try {
       const res = await fetch("/api/validatePromo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ promoCode: couponInput.trim(), cartTotal: cartTotalBeforePromo }),
+        body: JSON.stringify({
+          promoCode: couponInput.trim(),
+          cartTotal: cartTotalBeforePromo,
+        }),
       });
       const data = await res.json();
       if (!data.valid) {
@@ -881,7 +1027,7 @@ const CheckOut = () => {
       }
       setAppliedPromo(couponInput.trim());
       setAppliedPromoDetails(data.coupon);
-      setCheckoutData(prev => ({
+      setCheckoutData((prev) => ({
         ...prev,
         cartTotal: prev.cartTotal - data.discount,
         promoCode: couponInput.trim(),
@@ -915,21 +1061,26 @@ const CheckOut = () => {
     setLoadingCoupon(true);
     setCouponError("");
     try {
-      const res = await fetch('/api/discountCoupon/apply', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/discountCoupon/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code: couponInput.trim(), cart }),
       });
       const data = await res.json();
       if (!data.success || !data.coupon) {
-        setCouponError(data.message || 'Invalid coupon code');
+        setCouponError(data.message || "Invalid coupon code");
       } else {
         // Update cart with discounted prices
-        const updatedCart = cart.map(item => ({
+        const updatedCart = cart.map((item) => ({
           ...item,
           couponApplied: true,
           couponCode: data.coupon.couponCode,
-          price: Math.round(item.price - (data.coupon.percent ? (item.price * data.coupon.percent) / 100 : data.coupon.amount || 0)),
+          price: Math.round(
+            item.price -
+              (data.coupon.percent
+                ? (item.price * data.coupon.percent) / 100
+                : data.coupon.amount || 0)
+          ),
           originalPrice: item.originalPrice || item.price,
         }));
         setLocalCart(updatedCart);
@@ -937,29 +1088,31 @@ const CheckOut = () => {
         localStorage.setItem("checkoutCart", JSON.stringify(updatedCart));
         setCouponInput("");
         setCouponError("");
-        toast.success('Coupon applied successfully!', { style: { borderRadius: '10px', border: '2px solid green' } });
+        toast.success("Coupon applied successfully!", {
+          style: { borderRadius: "10px", border: "2px solid green" },
+        });
       }
     } catch (error) {
       // console.error('Error applying coupon:', error);
-      setCouponError('Failed to apply coupon');
+      setCouponError("Failed to apply coupon");
     } finally {
       setLoadingCoupon(false);
     }
   };
   // const [error, setError] = useState(null);
 
-
   const paymentOptions = isVendor
-    ? [{ value: 'vendor', label: 'Make Bulk Order' }]
+    ? [{ value: "vendor", label: "Make Bulk Order" }]
     : [
-      { value: 'online', label: 'Online Payment' },
-      { value: 'cod', label: 'Cash on Delivery (COD)' },
-    ];
+        { value: "online", label: "Online Payment" },
+        { value: "cod", label: "Cash on Delivery (COD)" },
+      ];
 
   // Set default payment method based on user type
-  const [payment, setPayment] = useState(isVendor ? 'vendor' : 'cod');
-  const [paymentMethod, setPaymentMethod] = useState(isVendor ? 'vendor' : 'cod');
-  const [isBulkOrder, setIsBulkOrder] = useState(isVendor);
+  const [payment, setPayment] = useState(isVendor ? "vendor" : "cod");
+  const [paymentMethod, setPaymentMethod] = useState(
+    isVendor ? "vendor" : "cod"
+  );
   const [agree, setAgree] = useState(false);
   const [formErrors, setFormErrors] = useState({});
   const [mounted, setMounted] = React.useState(false);
@@ -975,12 +1128,14 @@ const CheckOut = () => {
   // const [district, setDistrict] = useState("");
   const [altPhone, setAltPhone] = useState("");
 
-  React.useEffect(() => { setMounted(true); }, []);
-  const isLoadingOrUnauth = status === 'loading' || !session;
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+  const isLoadingOrUnauth = status === "loading" || !session;
 
   React.useEffect(() => {
     if (!mounted) return;
-    if (status === 'loading') return;
+    if (status === "loading") return;
     if (!session) {
       router.replace(`/sign-in?callbackUrl=${encodeURIComponent(pathname)}`);
     }
@@ -1010,17 +1165,20 @@ const CheckOut = () => {
     let isBuyNow = false;
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
-      isBuyNow = params.get('mode') === 'buy-now';
+      isBuyNow = params.get("mode") === "buy-now";
       // console.log('📦 Order mode:', isBuyNow ? 'Buy Now' : 'Regular Cart');
     }
 
     // Calculate totals
-    const subTotal = cart.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0);
+    const subTotal = cart.reduce(
+      (sum, item) => sum + (item.price || 0) * (item.qty || 1),
+      0
+    );
     const totalTax = isVendor
       ? productsPayload.reduce((sum, item) => {
-        const itemTax = ((item.cgst + item.sgst) / 100) * item.price;
-        return sum + (itemTax * item.qty);
-      }, 0)
+          const itemTax = ((item.cgst + item.sgst) / 100) * item.price;
+          return sum + itemTax * item.qty;
+        }, 0)
       : checkoutData.taxTotal;
 
     const shippingCost = subTotal >= 500 ? 0 : 50; // Example shipping logic
@@ -1029,23 +1187,34 @@ const CheckOut = () => {
     // Generate a unique order ID
     const orderId = generateOrderId();
     const transactionId = orderId;
-    const orderTotal = subTotal + totalTax + checkoutData.shippingCost - (isVendor ? 0 : (checkoutData.promoDiscount || 0));
+    const orderTotal =
+      subTotal +
+      totalTax +
+      checkoutData.shippingCost -
+      (isVendor ? 0 : checkoutData.promoDiscount || 0);
 
     // Prepare products array
-    const productsPayload = cart.map(item => {
-      const productId = item._id || item.id || (item.product ? (item.product._id || item.product.id) : null);
+    const productsPayload = cart.map((item) => {
+      const productId =
+        item._id ||
+        item.id ||
+        (item.product ? item.product._id || item.product.id : null);
       if (!productId) {
         // console.error('Could not determine product ID for item:', item);
-        throw new Error('Invalid product: missing ID');
+        throw new Error("Invalid product: missing ID");
       }
 
       let variant = null;
       let variantId = item.variantId ?? item.variantIndex ?? 0;
 
       if (item.quantity?.variants?.length > 0) {
-        variant = item.quantity.variants.find(v =>
-          v._id === variantId || v.size === variantId || v.size === item.size
-        ) || item.quantity.variants[0];
+        variant =
+          item.quantity.variants.find(
+            (v) =>
+              v._id === variantId ||
+              v.size === variantId ||
+              v.size === item.size
+          ) || item.quantity.variants[0];
       }
 
       return {
@@ -1055,16 +1224,19 @@ const CheckOut = () => {
         productId: productId,
         _id: productId,
         variantId: variantId,
-        name: item.name || 'Product',
+        name: item.name || "Product",
         qty: item.qty || 1,
-        price: isVendor && item.vendorPrice ? Number(item.vendorPrice) : (item.originalPrice || item.price),
+        price:
+          isVendor && item.vendorPrice
+            ? Number(item.vendorPrice)
+            : item.originalPrice || item.price,
         originalPrice: item.originalPrice || item.price || 0,
 
         // Product details
-        image: item.image || { url: '', key: '' },
-        color: item.color || '',
-        size: item.size || '',
-        productCode: item.productCode || '',
+        image: item.image || { url: "", key: "" },
+        color: item.color || "",
+        size: item.size || "",
+        productCode: item.productCode || "",
         weight: item.weight || 0,
         totalQuantity: item.totalQuantity || 0,
 
@@ -1076,11 +1248,11 @@ const CheckOut = () => {
 
         // Coupon info
         couponApplied: item.couponApplied || false,
-        couponCode: item.couponCode || '',
+        couponCode: item.couponCode || "",
 
         // Additional fields
         shipping: item.shipping || {},
-        quantity: item.qty || 1 // Keep for backward compatibility
+        quantity: item.qty || 1, // Keep for backward compatibility
       };
     });
 
@@ -1096,7 +1268,7 @@ const CheckOut = () => {
       paymentMethod: paymentMethod,
       orderId: orderId,
       transactionId: transactionId,
-      status: 'Processing',
+      status: "Processing",
       agree: true,
       orderTotal,
       isVendor,
@@ -1104,24 +1276,28 @@ const CheckOut = () => {
       // Customer details
       firstName: firstName,
       lastName: lastName,
-      email: email || session?.user?.email || '', // Use form email first, then session email
+      email: email || session?.user?.email || "", // Use form email first, then session email
       phone: phone,
 
       // Address details
       street: street,
       city: city,
-      district: district || '',
+      district: district || "",
       state: state,
       pincode: pincode,
 
       // Items for quantity updates
-      items: productsPayload.map(item => {
+      items: productsPayload.map((item) => {
         let variant = null;
         let variantIndex = 0;
 
         if (item.quantity?.variants?.length > 0) {
-          variant = item.quantity.variants.find(v => v.size === item.size) || item.quantity.variants[0];
-          variantIndex = item.quantity.variants.findIndex(v => v._id === variant._id);
+          variant =
+            item.quantity.variants.find((v) => v.size === item.size) ||
+            item.quantity.variants[0];
+          variantIndex = item.quantity.variants.findIndex(
+            (v) => v._id === variant._id
+          );
           if (variantIndex === -1) variantIndex = 0;
         }
 
@@ -1134,10 +1310,10 @@ const CheckOut = () => {
           size: item.size,
           variant: variant || {
             size: item.size,
-            qty: item.qty || 1
-          }
+            qty: item.qty || 1,
+          },
         };
-      })
+      }),
     };
   };
 
@@ -1157,7 +1333,7 @@ const CheckOut = () => {
         let isBuyNow = false;
         if (typeof window !== "undefined") {
           const params = new URLSearchParams(window.location.search);
-          isBuyNow = params.get('mode') === 'buy-now';
+          isBuyNow = params.get("mode") === "buy-now";
         }
 
         // Create order data from current state
@@ -1167,10 +1343,10 @@ const CheckOut = () => {
       let data;
 
       try {
-        response = await fetch('/api/orders', {
-          method: 'POST',
+        response = await fetch("/api/orders", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify(orderData),
         });
@@ -1178,36 +1354,41 @@ const CheckOut = () => {
         data = await response.json().catch(() => ({}));
 
         if (!response.ok) {
-          throw new Error(data.message || `HTTP error! status: ${response.status}`);
+          throw new Error(
+            data.message || `HTTP error! status: ${response.status}`
+          );
         }
       } catch (error) {
         throw error;
       }
 
       if (!response.ok) {
-        throw new Error(data.message || `Failed to create order: ${response.status} ${response.statusText}`);
+        throw new Error(
+          data.message ||
+            `Failed to create order: ${response.status} ${response.statusText}`
+        );
       }
       // Store order data to return
       createdOrder = response.data;
 
       // --- Clear cart and checkout-related data based on order type ---
-      const isBuyNow = typeof window !== "undefined" &&
-        new URLSearchParams(window.location.search).get('mode') === 'buy-now';
+      const isBuyNow =
+        typeof window !== "undefined" &&
+        new URLSearchParams(window.location.search).get("mode") === "buy-now";
 
       if (isBuyNow) {
         localStorage.removeItem("buyNowProduct");
       }
       try {
         if (buyNowMode) {
-          localStorage.removeItem('buyNowProduct');
-        }
-        else {
-          if (typeof window !== 'undefined') {
+          localStorage.removeItem("buyNowProduct");
+        } else {
+          if (typeof window !== "undefined") {
             localStorage.removeItem("cart");
             localStorage.removeItem("checkoutCart");
             localStorage.removeItem("checkoutData");
-            Object.keys(localStorage).forEach(key => {
-              if (key.startsWith('cart_')) {
+            Object.keys(localStorage).forEach((key) => {
+              if (key.startsWith("cart_")) {
                 localStorage.removeItem(key);
               }
             });
@@ -1223,11 +1404,10 @@ const CheckOut = () => {
       setShowConfirmationModal(true);
       setOrderId(data.order?._id);
 
-
       return data.order;
     } catch (error) {
-      setError(error.message || 'Failed to create order');
-      toast.error(error.message || 'Failed to place order. Please try again.');
+      setError(error.message || "Failed to create order");
+      toast.error(error.message || "Failed to place order. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -1236,20 +1416,21 @@ const CheckOut = () => {
   // Validate all required form fields
   const validateForm = () => {
     const errors = {};
-    if (!firstName.trim()) errors.firstName = 'First name is required';
-    if (!lastName.trim()) errors.lastName = 'Last name is required';
-    if (!email.trim()) errors.email = 'Email is required';
-    if (!phone.trim()) errors.phone = 'Phone number is required';
-    if (!street.trim()) errors.street = 'Address is required';
-    if (!city.trim()) errors.city = 'City is required';
-    if (!state.trim()) errors.state = 'State is required';
+    if (!firstName.trim()) errors.firstName = "First name is required";
+    if (!lastName.trim()) errors.lastName = "Last name is required";
+    if (!email.trim()) errors.email = "Email is required";
+    if (!phone.trim()) errors.phone = "Phone number is required";
+    if (!street.trim()) errors.street = "Address is required";
+    if (!city.trim()) errors.city = "City is required";
+    if (!district.trim()) errors.district = "District is required";
+    if (!state.trim()) errors.state = "State is required";
     if (!pincode.trim()) {
-      errors.pincode = 'Pincode is required';
+      errors.pincode = "Pincode is required";
     } else if (!/^\d{6}$/.test(pincode)) {
-      errors.pincode = 'Pincode must be 6 digits';
+      errors.pincode = "Pincode must be 6 digits";
     }
-    if (!payment) errors.payment = 'Please select a payment method';
-    if (!agree) errors.agree = 'You must agree to the terms and conditions';
+    if (!payment) errors.payment = "Please select a payment method";
+    if (!agree) errors.agree = "You must agree to the terms and conditions";
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -1265,7 +1446,7 @@ const CheckOut = () => {
       if (firstError) {
         const element = document.querySelector(`[name="${firstError}"]`);
         if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
         }
       }
       return;
@@ -1313,7 +1494,7 @@ const CheckOut = () => {
     let isBuyNow = false;
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
-      isBuyNow = params.get('mode') === 'buy-now';
+      isBuyNow = params.get("mode") === "buy-now";
     }
 
     if (payment === "online") {
@@ -1323,27 +1504,34 @@ const CheckOut = () => {
       }
       const customer = getCustomerInfo();
       const finalAmount = checkoutData.cartTotal;
-      await handleOnlinePaymentWithOrder(finalAmount, checkoutData.cart, customer, setLoading, setError, router, checkoutData);
-    }
-    else if (payment === "cod") {
+      await handleOnlinePaymentWithOrder(
+        finalAmount,
+        checkoutData.cart,
+        customer,
+        setLoading,
+        setError,
+        router,
+        checkoutData
+      );
+    } else if (payment === "cod") {
       // Handle Cash on Delivery
       setLoading(true);
       try {
         // Prepare and create COD order
-        setPaymentMethod('cod');
-        const orderData = prepareOrderData('cod');
-        const result = await handleCreateOrder('cod', orderData);
+        setPaymentMethod("cod");
+        const orderData = prepareOrderData("cod");
+        const result = await handleCreateOrder("cod", orderData);
         if (result) {
           // Clear the form
-          setFirstName('');
-          setLastName('');
-          setPhone('');
-          setAltPhone('');
-          setStreet('');
-          setCity('');
-          setDistrict('');
-          setState('');
-          setPincode('');
+          setFirstName("");
+          setLastName("");
+          setPhone("");
+          setAltPhone("");
+          setStreet("");
+          setCity("");
+          setDistrict("");
+          setState("");
+          setPincode("");
           // Show confirmation modal
           setShowConfirmationModal(true);
           setOrderId(result._id || result.orderId);
@@ -1351,19 +1539,20 @@ const CheckOut = () => {
           // Force a page reload to ensure all state is reset
           setTimeout(() => {
             // Clear everything again before redirecting
-            window.location.href = `/order-confirmation?orderId=${result._id || result.orderId}`;
+            window.location.href = `/order-confirmation?orderId=${
+              result._id || result.orderId
+            }`;
           }, 1000);
         }
-      }
-
-      catch (error) {
-        setError(error.message || 'Failed to create order');
-        toast.error(error.message || 'Failed to place order. Please try again.');
+      } catch (error) {
+        setError(error.message || "Failed to create order");
+        toast.error(
+          error.message || "Failed to place order. Please try again."
+        );
       } finally {
         setLoading(false);
       }
-    }
-    else if (payment === "vendor") {
+    } else if (payment === "vendor") {
       // Handle Cash on Delivery
       setLoading(true);
       try {
@@ -1371,10 +1560,10 @@ const CheckOut = () => {
 
         if (isVendor) {
           // Add vendor-specific data to order
-          orderData.orderType = 'bulk';
+          orderData.orderType = "bulk";
           orderData.isVendorOrder = true; // Important for filtering
-          orderData.status = 'Bulk Order Requested';
-          orderData.vendorStatus = 'pending';
+          orderData.status = "Bulk Order Requested";
+          orderData.vendorStatus = "pending";
         }
 
         const result = await handleCreateOrder(payment, orderData);
@@ -1388,13 +1577,15 @@ const CheckOut = () => {
             clearCart();
           }
           // Redirect to order confirmation
-          router.push(`/order-confirmation?orderId=${result._id || result.orderId}`);
+          router.push(
+            `/order-confirmation?orderId=${result._id || result.orderId}`
+          );
         }
-      }
-
-      catch (error) {
-        setError(error.message || 'Failed to create order');
-        toast.error(error.message || 'Failed to place order. Please try again.');
+      } catch (error) {
+        setError(error.message || "Failed to create order");
+        toast.error(
+          error.message || "Failed to place order. Please try again."
+        );
       } finally {
         setLoading(false);
       }
@@ -1404,7 +1595,7 @@ const CheckOut = () => {
   // Handler for confirming payment on overview (step 2 → step 3)
   const handleConfirmAndPay = async () => {
     if (!confirmedPaymentMethod) {
-      setError('Please select a payment method.');
+      setError("Please select a payment method.");
       setLoading(false);
       return;
     }
@@ -1413,13 +1604,25 @@ const CheckOut = () => {
     try {
       // Build form fields from state for payload
       const formFields = {
-        street, city, district, state, pincode, firstName, lastName, email, phone, altPhone
+        street,
+        city,
+        district,
+        state,
+        pincode,
+        firstName,
+        lastName,
+        email,
+        phone,
+        altPhone,
       };
       let orderId = checkoutData?.orderId;
       let transactionId = checkoutData?.transactionId;
 
       // Check for buy now product in localStorage
-      const buyNowProductRaw = typeof window !== 'undefined' ? localStorage.getItem('buyNowProduct') : null;
+      const buyNowProductRaw =
+        typeof window !== "undefined"
+          ? localStorage.getItem("buyNowProduct")
+          : null;
       const isBuyNow = buyNowProductRaw !== null;
 
       // Get products based on mode (buy now or regular cart)
@@ -1430,60 +1633,73 @@ const CheckOut = () => {
         // Parse buy now product and add to products array
         const buyNowProduct = JSON.parse(buyNowProductRaw);
         if (buyNowProduct) {
-          productsToProcess = [{
-            ...buyNowProduct,
-            // Ensure required fields
-            qty: Number(buyNowProduct.qty) || 1,
-            price: Number(buyNowProduct.price) || 0,
-            originalPrice: Number(buyNowProduct.originalPrice) || Number(buyNowProduct.price) || 0,
-            color: buyNowProduct.color || '',
-            size: buyNowProduct.size || '',
-            weight: Number(buyNowProduct.weight) || 0,
-            cgst: Number(buyNowProduct.cgst) || 0,
-            sgst: Number(buyNowProduct.sgst) || 0,
-            // Handle image URL
-            image: typeof buyNowProduct.image === 'string'
-              ? buyNowProduct.image
-              : buyNowProduct.image?.url || ''
-          }];
+          productsToProcess = [
+            {
+              ...buyNowProduct,
+              // Ensure required fields
+              qty: Number(buyNowProduct.qty) || 1,
+              price: Number(buyNowProduct.price) || 0,
+              originalPrice:
+                Number(buyNowProduct.originalPrice) ||
+                Number(buyNowProduct.price) ||
+                0,
+              color: buyNowProduct.color || "",
+              size: buyNowProduct.size || "",
+              weight: Number(buyNowProduct.weight) || 0,
+              cgst: Number(buyNowProduct.cgst) || 0,
+              sgst: Number(buyNowProduct.sgst) || 0,
+              // Handle image URL
+              image:
+                typeof buyNowProduct.image === "string"
+                  ? buyNowProduct.image
+                  : buyNowProduct.image?.url || "",
+            },
+          ];
         }
       } else {
         // Use regular cart items
         productsToProcess = [...contextCart];
       }
-      if (confirmedPaymentMethod === 'vendor') {
+      if (confirmedPaymentMethod === "vendor") {
         // Generate order ID and set transaction ID
         orderId = generateOrderId();
         transactionId = orderId; // For vendor orders, use orderId as transactionId
-        setPaymentMethod('vendor');
+        setPaymentMethod("vendor");
 
         // Prepare products with vendor pricing
-        const preparedProducts = productsToProcess.map(item => ({
+        const preparedProducts = productsToProcess.map((item) => ({
           ...item,
-          image: typeof item.image === 'string' ? item.image : item.image?.url || '',
+          image:
+            typeof item.image === "string" ? item.image : item.image?.url || "",
           qty: item.qty || 1,
           price: item.vendorPrice || item.price || 0,
           originalPrice: item.price || 0,
-          color: item.color || '',
-          size: item.size || ''
+          color: item.color || "",
+          size: item.size || "",
         }));
 
         // Calculate shipping cost from multiple possible fields
         const shippingCost = Number(
           checkoutData?.shippingCost ||
-          checkoutData?.shipping ||
-          checkoutData?.finalShipping ||
-          0
+            checkoutData?.shipping ||
+            checkoutData?.finalShipping ||
+            0
         );
 
         // Calculate tax from items
         const totalTax = preparedProducts.reduce((sum, item) => {
-          const itemTax = ((item.price * (item.cgst || 0) / 100) + (item.price * (item.sgst || 0) / 100)) * item.qty;
+          const itemTax =
+            ((item.price * (item.cgst || 0)) / 100 +
+              (item.price * (item.sgst || 0)) / 100) *
+            item.qty;
           return sum + itemTax;
         }, 0);
 
         // Calculate subtotal from items
-        const subTotal = preparedProducts.reduce((sum, item) => sum + (item.price * item.qty), 0);
+        const subTotal = preparedProducts.reduce(
+          (sum, item) => sum + item.price * item.qty,
+          0
+        );
 
         // Calculate final cart total (subtotal + shipping + tax)
         const cartTotal = subTotal + shippingCost + totalTax;
@@ -1498,7 +1714,7 @@ const CheckOut = () => {
           // Ensure these values are numbers
           totalAmount: cartTotal,
           finalAmount: cartTotal,
-          grandTotal: cartTotal
+          grandTotal: cartTotal,
         };
 
         // Prepare complete order data
@@ -1507,18 +1723,18 @@ const CheckOut = () => {
             cart: preparedProducts,
             checkoutData: updatedCheckoutData,
             ...formFields,
-            payment: 'vendor',
-            paymentMethod: 'vendor',
-            paymentMethodValue: 'vendor',
+            payment: "vendor",
+            paymentMethod: "vendor",
+            paymentMethodValue: "vendor",
             transactionId,
             orderId,
             agree: true,
-            statusValue: 'Bulk Order Requested'
+            statusValue: "Bulk Order Requested",
           }),
           // Vendor-specific fields
           isVendorOrder: true,
-          vendorStatus: 'pending',
-          orderType: 'bulk',
+          vendorStatus: "pending",
+          orderType: "bulk",
           totalDiscount: 0,
           promoDiscount: 0,
           shippingCost: shippingCost,
@@ -1530,7 +1746,7 @@ const CheckOut = () => {
           totalAmount: cartTotal,
           promoCode: null,
           // Include items array
-          items: preparedProducts.map(item => ({
+          items: preparedProducts.map((item) => ({
             ...item,
             productId: item._id || item.productId,
             variantId: item.variantId || 0,
@@ -1538,89 +1754,90 @@ const CheckOut = () => {
             price: item.price || 0,
             total: (item.price || 0) * (item.qty || 1),
             originalPrice: item.originalPrice || item.price || 0,
-            color: item.color || '',
-            size: item.size || '',
+            color: item.color || "",
+            size: item.size || "",
             weight: item.weight || 0,
             cgst: item.cgst || 0,
-            sgst: item.sgst || 0
-          }))
+            sgst: item.sgst || 0,
+          })),
         };
         try {
           // Submit the order
-          const response = await fetch('/api/orders', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(orderData)
+          const response = await fetch("/api/orders", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(orderData),
           });
 
           const result = await response.json();
 
           if (!response.ok) {
-            throw new Error(result.message || 'Failed to create order');
+            throw new Error(result.message || "Failed to create order");
           }
 
           // Get the order ID from the response
           const createdOrderId = result._id || result.orderId || orderId;
 
           if (!createdOrderId) {
-            console.error('No order ID found in response:', result);
-            toast.error('Error: Could not retrieve order ID');
+            console.error("No order ID found in response:", result);
+            toast.error("Error: Could not retrieve order ID");
             return;
           }
 
           // Set order ID and show success modal
           setOrderId(createdOrderId);
           setShowConfirmationModal(true);
-          toast.success('Bulk order request submitted successfully! We will contact you soon.');
+          toast.success(
+            "Bulk order request submitted successfully! We will contact you soon."
+          );
 
           // Clear cart after successful order
           await clearCart();
           if (buyNowMode) {
-            localStorage.removeItem('buyNowProduct');
+            localStorage.removeItem("buyNowProduct");
           } else {
-            if (typeof window !== 'undefined') {
+            if (typeof window !== "undefined") {
               localStorage.removeItem("cart");
               localStorage.removeItem("checkoutCart");
               localStorage.removeItem("checkoutData");
-              Object.keys(localStorage).forEach(key => {
-                if (key.startsWith('cart_')) {
+              Object.keys(localStorage).forEach((key) => {
+                if (key.startsWith("cart_")) {
                   localStorage.removeItem(key);
                 }
               });
             }
           }
         } catch (error) {
-          console.error('Error creating order:', error);
-          toast.error(error.message || 'Failed to create order');
+          console.error("Error creating order:", error);
+          toast.error(error.message || "Failed to create order");
           setLoading(false);
         }
         return;
       }
-      if (confirmedPaymentMethod === 'cod') {
+      if (confirmedPaymentMethod === "cod") {
         // Always generate unique orderId for COD using shared generator
         orderId = generateOrderId();
         transactionId = orderId; // For COD, transactionId is same as orderId
-        setPaymentMethod('cod');
+        setPaymentMethod("cod");
         // Prepare products with proper image URL handling
-        const preparedProducts = productsToProcess.map(item => ({
+        const preparedProducts = productsToProcess.map((item) => ({
           ...item,
           // Ensure image is a string URL
-          image: typeof item.image === 'string'
-            ? item.image
-            : item.image?.url || '',
+          image:
+            typeof item.image === "string" ? item.image : item.image?.url || "",
           // Ensure required fields have defaults
           qty: item.qty || 1,
           price: item.price || 0,
-          color: item.color || '',
-          size: item.size || ''
+          color: item.color || "",
+          size: item.size || "",
         }));
 
         // Calculate shipping cost - use the most reliable source
         const shippingCost = Number(
           checkoutData?.shippingCost ||
-          checkoutData?.shipping ||
-          checkoutData?.finalShipping ||
-          0
+            checkoutData?.shipping ||
+            checkoutData?.finalShipping ||
+            0
         );
 
         // Prepare complete order data
@@ -1635,41 +1852,47 @@ const CheckOut = () => {
               totalDiscount: checkoutData?.totalDiscount || 0,
               totalTax: checkoutData?.totalTax || checkoutData?.taxTotal || 0,
               // Ensure promo code data is included from the root of checkoutData
-              promoCode: checkoutData?.promoCode || checkoutData?.appliedCoupon?.code || null,
-              promoDiscount: checkoutData?.promoDiscount || checkoutData?.appliedCoupon?.discount || 0,
+              promoCode:
+                checkoutData?.promoCode ||
+                checkoutData?.appliedCoupon?.code ||
+                null,
+              promoDiscount:
+                checkoutData?.promoDiscount ||
+                checkoutData?.appliedCoupon?.discount ||
+                0,
               // Include the appliedCoupon object if it exists
               ...(checkoutData?.appliedCoupon && {
                 appliedCoupon: {
                   code: checkoutData.appliedCoupon.code,
                   discount: checkoutData.appliedCoupon.discount || 0,
-                  type: checkoutData.appliedCoupon.type || 'fixed',
+                  type: checkoutData.appliedCoupon.type || "fixed",
                   minPurchase: checkoutData.appliedCoupon.minPurchase,
-                  maxDiscount: checkoutData.appliedCoupon.maxDiscount
-                }
+                  maxDiscount: checkoutData.appliedCoupon.maxDiscount,
+                },
               }),
               // Use the calculated shipping cost
               shippingCost: shippingCost,
               // Include coupon data from products if available
-              ...(preparedProducts.some(p => p.couponCode) && {
-                products: preparedProducts.map(p => ({
+              ...(preparedProducts.some((p) => p.couponCode) && {
+                products: preparedProducts.map((p) => ({
                   ...p,
                   // Ensure coupon data is included in each product
                   couponApplied: p.couponApplied || false,
-                  couponCode: p.couponCode || ''
-                }))
-              })
+                  couponCode: p.couponCode || "",
+                })),
+              }),
             },
             ...formFields,
-            payment: 'cod',
-            paymentMethod: 'cod',
-            paymentMethodValue: 'cod',
+            payment: "cod",
+            paymentMethod: "cod",
+            paymentMethodValue: "cod",
             transactionId,
             orderId,
             agree: true,
-            statusValue: 'Pending'
+            statusValue: "Pending",
           }),
           // Include additional required fields
-          items: preparedProducts.map(item => ({
+          items: preparedProducts.map((item) => ({
             ...item,
             productId: item._id || item.productId,
             variantId: item.variantId || 0,
@@ -1678,8 +1901,8 @@ const CheckOut = () => {
             total: (item.price || 0) * (item.qty || 1),
             // Include additional product details
             originalPrice: item.originalPrice || item.price || 0,
-            color: item.color || '',
-            size: item.size || '',
+            color: item.color || "",
+            size: item.size || "",
             weight: item.weight || 0,
             cgst: item.cgst || 0,
             sgst: item.sgst || 0,
@@ -1688,44 +1911,53 @@ const CheckOut = () => {
             // Ensure tax and discount info is included
             tax: item.tax || 0,
             taxPercentage: item.taxPercentage || 0,
-            taxType: item.taxType || 'inclusive',
-            discountType: item.discountType || 'amount'
+            taxType: item.taxType || "inclusive",
+            discountType: item.discountType || "amount",
           })),
           // Ensure order-level tax and promo data is included
           tax: checkoutData?.totalTax || 0,
           taxPercentage: checkoutData?.taxPercentage || 0,
           // Get promo code from multiple possible locations in checkoutData
-          promoCode: checkoutData?.promoCode || checkoutData?.appliedCoupon?.code || null,
-          promoDiscount: checkoutData?.promoDiscount || checkoutData?.appliedCoupon?.discount || 0,
+          promoCode:
+            checkoutData?.promoCode ||
+            checkoutData?.appliedCoupon?.code ||
+            null,
+          promoDiscount:
+            checkoutData?.promoDiscount ||
+            checkoutData?.appliedCoupon?.discount ||
+            0,
           // Include applied coupon details if available
-          ...(checkoutData?.appliedCoupon ? {
-            appliedCoupon: {
-              code: checkoutData.appliedCoupon.code,
-              discount: checkoutData.appliedCoupon.discount || 0,
-              type: checkoutData.appliedCoupon.type || 'fixed',
-              minPurchase: checkoutData.appliedCoupon.minPurchase,
-              maxDiscount: checkoutData.appliedCoupon.maxDiscount
-            }
-          } : {}),
+          ...(checkoutData?.appliedCoupon
+            ? {
+                appliedCoupon: {
+                  code: checkoutData.appliedCoupon.code,
+                  discount: checkoutData.appliedCoupon.discount || 0,
+                  type: checkoutData.appliedCoupon.type || "fixed",
+                  minPurchase: checkoutData.appliedCoupon.minPurchase,
+                  maxDiscount: checkoutData.appliedCoupon.maxDiscount,
+                },
+              }
+            : {}),
           // Ensure coupon data is included in the root of the order
-          couponApplied: preparedProducts.some(p => p.couponApplied) || false,
-          couponCode: preparedProducts.find(p => p.couponCode)?.couponCode || null,
+          couponApplied: preparedProducts.some((p) => p.couponApplied) || false,
+          couponCode:
+            preparedProducts.find((p) => p.couponCode)?.couponCode || null,
           // Ensure these fields are included
-          status: 'Pending',
-          paymentStatus: 'Pending',
-          paymentMethod: 'cod',
+          status: "Pending",
+          paymentStatus: "Pending",
+          paymentMethod: "cod",
           isBuyNow: isBuyNow,
-          datePurchased: new Date().toISOString()
+          datePurchased: new Date().toISOString(),
         };
         // console.log('Sending order data:', JSON.stringify(orderData, null, 2));
-        const res = await fetch('/api/orders', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(orderData)
+        const res = await fetch("/api/orders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(orderData),
         });
         const data = await res.json();
         if (!data.orderId) {
-          setError('Order creation failed.');
+          setError("Order creation failed.");
           setLoading(false);
           return;
         }
@@ -1735,74 +1967,81 @@ const CheckOut = () => {
             {
               ...formFields,
               orderId: orderId,
-              paymentMethod: 'cod',
+              paymentMethod: "cod",
               orderDate: new Date().toISOString(),
               subTotal: checkoutData?.subTotal || 0,
               totalDiscount: checkoutData?.totalDiscount || 0,
-              promoCode: checkoutData?.promoCode || '',
+              promoCode: checkoutData?.promoCode || "",
               totalTax: checkoutData?.totalTax || checkoutData?.taxTotal || 0,
-              shippingCost: checkoutData?.shippingCost || checkoutData?.shipping || 0,
+              shippingCost:
+                checkoutData?.shippingCost || checkoutData?.shipping || 0,
               cartTotal: checkoutData?.cartTotal || 0,
               // Include other form fields needed in the email
               email: formFields.email || session?.user?.email,
-              firstName: formFields.firstName || '',
-              lastName: formFields.lastName || '',
-              street: formFields.street || '',
-              city: formFields.city || '',
-              state: formFields.state || '',
-              pincode: formFields.pincode || '',
-              phone: formFields.phone || '',
-              altPhone: formFields.altPhone || ''
+              firstName: formFields.firstName || "",
+              lastName: formFields.lastName || "",
+              street: formFields.street || "",
+              city: formFields.city || "",
+              district: formFields.district || "",
+              state: formFields.state || "",
+              pincode: formFields.pincode || "",
+              phone: formFields.phone || "",
+              altPhone: formFields.altPhone || "",
             },
             // Pass cart items as second parameter
-            (isBuyNow && checkoutData?.cart)
-              ? checkoutData.cart.map(item => ({
-                ...item,
-                image: typeof item.image === 'string' ? item.image : item.image?.url || '',
-                name: item.name || 'Product',
-                qty: item.qty || 1,
-                price: item.price || 0,
-                size: item.size || ''
-              }))
-              : checkoutData?.cart.map(item => ({
-                ...item,
-                image: typeof item.image === 'string' ? item.image : item.image?.url || '',
-                name: item.name || 'Product',
-                qty: item.qty || 1,
-                price: item.price || 0,
-                size: item.size || ''
-              })),
-            'cod'
+            isBuyNow && checkoutData?.cart
+              ? checkoutData.cart.map((item) => ({
+                  ...item,
+                  image:
+                    typeof item.image === "string"
+                      ? item.image
+                      : item.image?.url || "",
+                  name: item.name || "Product",
+                  qty: item.qty || 1,
+                  price: item.price || 0,
+                  size: item.size || "",
+                }))
+              : checkoutData?.cart.map((item) => ({
+                  ...item,
+                  image:
+                    typeof item.image === "string"
+                      ? item.image
+                      : item.image?.url || "",
+                  name: item.name || "Product",
+                  qty: item.qty || 1,
+                  price: item.price || 0,
+                  size: item.size || "",
+                })),
+            "cod"
           );
 
           if (emailSent) {
-            toast.success('Order confirmation email sent!');
+            toast.success("Order confirmation email sent!");
           }
         } catch (emailError) {
           // console.error('Error sending order confirmation email:', emailError);
-          toast.error('Order placed, but failed to send confirmation email');
+          toast.error("Order placed, but failed to send confirmation email");
         }
 
         // Clear buy now product from localStorage if this was a buy now order
-        if (isBuyNow && typeof window !== 'undefined') {
-          localStorage.removeItem('buyNowProduct');
+        if (isBuyNow && typeof window !== "undefined") {
+          localStorage.removeItem("buyNowProduct");
         }
         setOrderId(orderId); // orderId should be the Razorpay/order DB ID you get back
         setShowConfirmationModal(true);
         // toast.success('Order placed successfully!');
-        toast.success('Invoice Sent to Email');
+        toast.success("Invoice Sent to Email");
         // router.push(`/dashboard?orderId=${data.orderId}`);
         await clearCart();
         if (buyNowMode) {
-          localStorage.removeItem('buyNowProduct');
-        }
-        else {
-          if (typeof window !== 'undefined') {
+          localStorage.removeItem("buyNowProduct");
+        } else {
+          if (typeof window !== "undefined") {
             localStorage.removeItem("cart");
             localStorage.removeItem("checkoutCart");
             localStorage.removeItem("checkoutData");
-            Object.keys(localStorage).forEach(key => {
-              if (key.startsWith('cart_')) {
+            Object.keys(localStorage).forEach((key) => {
+              if (key.startsWith("cart_")) {
                 localStorage.removeItem(key);
               }
             });
@@ -1812,30 +2051,31 @@ const CheckOut = () => {
         return;
       }
       // For online, always go through Razorpay handler
-      if (confirmedPaymentMethod === 'online') {
-        setPaymentMethod('online');
+      if (confirmedPaymentMethod === "online") {
+        setPaymentMethod("online");
         const customer = {
           name: `${firstName} ${lastName}`.trim(),
           email,
-          phone
+          phone,
         };
 
         // Use the prepared products array that includes buy now product if in buy now mode
-        const paymentProducts = productsToProcess.map(item => ({
+        const paymentProducts = productsToProcess.map((item) => ({
           ...item,
           // Ensure all required fields are included
           _id: item._id || item.productId,
           productId: item._id || item.productId,
-          name: item.name || 'Product',
+          name: item.name || "Product",
           price: Number(item.price) || 0,
           qty: Number(item.qty) || 1,
-          image: typeof item.image === 'string' ? item.image : item.image?.url || '',
-          color: item.color || '',
-          size: item.size || '',
+          image:
+            typeof item.image === "string" ? item.image : item.image?.url || "",
+          color: item.color || "",
+          size: item.size || "",
           weight: Number(item.weight) || 0,
           cgst: Number(item.cgst) || 0,
           sgst: Number(item.sgst) || 0,
-          originalPrice: Number(item.originalPrice) || Number(item.price) || 0
+          originalPrice: Number(item.originalPrice) || Number(item.price) || 0,
         }));
 
         await handleOnlinePaymentWithOrder(
@@ -1849,12 +2089,12 @@ const CheckOut = () => {
             ...checkoutData,
             orderId: generateOrderId(),
             transactionId: generateTransactionId(),
-            isBuyNow // Pass buy now flag to the payment handler
+            isBuyNow, // Pass buy now flag to the payment handler
           },
           {
             ...formFields,
-            paymentMethod: 'online',
-            isBuyNow // Include in form fields as well
+            paymentMethod: "online",
+            isBuyNow, // Include in form fields as well
           },
           session?.user
         );
@@ -1862,10 +2102,10 @@ const CheckOut = () => {
       }
       setLoading(false);
     } catch (error) {
-      setError(error.message || 'Order creation failed.');
+      setError(error.message || "Order creation failed.");
       setLoading(false);
     }
-  }
+  };
   // Show order overview after successful payment or when navigating back
   if (showOverview || showConfirmationModal) {
     return (
@@ -1882,7 +2122,9 @@ const CheckOut = () => {
           district,
           state,
           pincode,
-          address: [street, city, district, state, pincode].filter(Boolean).join(', '),
+          address: [street, city, district, state, pincode]
+            .filter(Boolean)
+            .join(", "),
         }}
         paymentMethod={confirmedPaymentMethod}
         onEdit={() => setShowOverview(false)}
@@ -1891,7 +2133,9 @@ const CheckOut = () => {
         error={error}
         showConfirmationModal={showConfirmationModal}
         orderId={orderId}
-        onGoToDashboard={() => { window.location.href = `/dashboard?orderId=${orderId}`; }}
+        onGoToDashboard={() => {
+          window.location.href = `/dashboard?orderId=${orderId}`;
+        }}
       />
     );
   }
@@ -1900,74 +2144,116 @@ const CheckOut = () => {
       {/* Billing Details Form */}
       <div className="flex-1 bg-white rounded-lg shadow p-4 md:p-8">
         <div className="border-b border-gray-200 pb-4 mb-6">
-          <h2 className="text-xl py-5 md:text-2xl font-bold">Thanks for being a loyal customer,</h2>
-          <p className="text-md md:text-xl font-semibold"> Your cart is ready. Rishkish Handmade is a trusted growth partner to millions of everyday entrepreneurs.</p>
+          <h2 className="text-xl py-5 md:text-2xl font-bold">
+            Thanks for being a loyal customer,
+          </h2>
+          <p className="text-md md:text-xl font-semibold">
+            {" "}
+            Your cart is ready. Rishikesh Handmade is a trusted growth partner
+            to millions of everyday entrepreneurs.
+          </p>
           <br />
-          <p className="text-sm md:text-lg font-semibold">Dear Customer,To proceed with your order and ensure smooth delivery, we kindly request you to provide the following basic information:</p>
+          <p className="text-sm md:text-lg font-semibold">
+            Dear Customer,To proceed with your order and ensure smooth delivery,
+            we kindly request you to provide the following basic information:
+          </p>
         </div>
 
-        <form className="space-y-6" onSubmit={(e) => {
-          e.preventDefault();
-          handlePlaceOrder(e);
-        }}>
+        <form
+          className="space-y-6"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handlePlaceOrder(e);
+          }}
+        >
           <div>
             <h3 className="text-md font-semibold mb-4">Basic Profile</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-sm mb-1 text-gray-600">First Name</label>
+                <label className="block text-sm mb-1 text-gray-600">
+                  First Name
+                </label>
                 <input
-                  className={`w-full py-2 px-3 bg-gray-100 rounded-md ${formErrors.firstName ? 'border-2 border-red-500' : 'border-0'}`}
+                  className={`w-full py-2 px-3 bg-gray-100 rounded-md ${
+                    formErrors.firstName
+                      ? "border-2 border-red-500"
+                      : "border-0"
+                  }`}
                   required
                   type="text"
                   name="firstName"
                   placeholder="Enter First Name"
                   value={firstName}
-                  onChange={e => {
+                  onChange={(e) => {
                     setFirstName(e.target.value);
                     if (formErrors.firstName) {
-                      setFormErrors(prev => ({ ...prev, firstName: '' }));
+                      setFormErrors((prev) => ({ ...prev, firstName: "" }));
                     }
                   }}
                 />
-                {formErrors.firstName && <p className="text-red-500 text-xs mt-1">{formErrors.firstName}</p>}
+                {formErrors.firstName && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {formErrors.firstName}
+                  </p>
+                )}
               </div>
               <div>
-                <label className="block text-sm mb-1 text-gray-600">Last Name</label>
+                <label className="block text-sm mb-1 text-gray-600">
+                  Last Name
+                </label>
                 <input
-                  className={`w-full py-2 px-3 bg-gray-100 rounded-md ${formErrors.lastName ? 'border-2 border-red-500' : 'border-0'}`}
+                  className={`w-full py-2 px-3 bg-gray-100 rounded-md ${
+                    formErrors.lastName ? "border-2 border-red-500" : "border-0"
+                  }`}
                   required
                   type="text"
                   name="lastName"
                   placeholder="Enter Last Name"
                   value={lastName}
-                  onChange={e => {
+                  onChange={(e) => {
                     setLastName(e.target.value);
                     if (formErrors.lastName) {
-                      setFormErrors(prev => ({ ...prev, lastName: '' }));
+                      setFormErrors((prev) => ({ ...prev, lastName: "" }));
                     }
                   }}
                 />
-                {formErrors.lastName && <p className="text-red-500 text-xs mt-1">{formErrors.lastName}</p>}
+                {formErrors.lastName && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {formErrors.lastName}
+                  </p>
+                )}
               </div>
               <div>
-                <label className="block text-sm mb-1 text-gray-600">Email</label>
+                <label className="block text-sm mb-1 text-gray-600">
+                  Email
+                </label>
                 <input
-                  className={`w-full py-2 px-3 bg-gray-100 rounded-md border-0 cursor-not-allowed ${formErrors.email ? 'border-2 border-red-500' : ''}`}
+                  className={`w-full py-2 px-3 bg-gray-100 rounded-md border-0 cursor-not-allowed ${
+                    formErrors.email ? "border-2 border-red-500" : ""
+                  }`}
                   type="email"
                   name="email"
                   placeholder="example@gmail.com"
                   required
                   value={checkoutData?.email || email}
-                  onChange={e => setEmail(e.target.value)}
+                  onChange={(e) => setEmail(e.target.value)}
                   disabled
                 />
-                {formErrors.email && <p className="text-red-500 text-xs mt-1">{formErrors.email}</p>}
+                {formErrors.email && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {formErrors.email}
+                  </p>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm mb-1 text-gray-600">Call No.</label>
+                  <label className="block text-sm mb-1 text-gray-600">
+                    Call No.
+                  </label>
                   <input
-                    className={`w-full py-2 px-3 bg-gray-100 rounded-md ${formErrors.phone ? 'border-2 border-red-500' : 'border-0'}`}
+                    className={`w-full py-2 px-3 bg-gray-100 rounded-md ${
+                      formErrors.phone ? "border-2 border-red-500" : "border-0"
+                    }`}
                     type="tel"
                     name="phone"
                     placeholder="Type Number"
@@ -1975,17 +2261,23 @@ const CheckOut = () => {
                     maxLength={10}
                     pattern="[0-9]{10}"
                     value={phone}
-                    onChange={e => {
+                    onChange={(e) => {
                       setPhone(e.target.value);
                       if (formErrors.phone) {
-                        setFormErrors(prev => ({ ...prev, phone: '' }));
+                        setFormErrors((prev) => ({ ...prev, phone: "" }));
                       }
                     }}
                   />
-                  {formErrors.phone && <p className="text-red-500 text-xs mt-1">{formErrors.phone}</p>}
+                  {formErrors.phone && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {formErrors.phone}
+                    </p>
+                  )}
                 </div>
                 <div>
-                  <label className="block text-sm mb-1 text-gray-600">Alt. Call No.</label>
+                  <label className="block text-sm mb-1 text-gray-600">
+                    Alt. Call No.
+                  </label>
                   <input
                     className={`w-full py-2 px-3 bg-gray-100 rounded-md`}
                     type="tel"
@@ -1993,11 +2285,10 @@ const CheckOut = () => {
                     placeholder="Type Number"
                     pattern="[0-9]{10}"
                     value={altPhone}
-                    onChange={e => {
+                    onChange={(e) => {
                       setAltPhone(e.target.value);
                     }}
                   />
-
                 </div>
               </div>
             </div>
@@ -2007,97 +2298,145 @@ const CheckOut = () => {
             <h3 className="text-md font-semibold mb-4">Shipping Address</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm mb-1 text-gray-600">Address</label>
+                <label className="block text-sm mb-1 text-gray-600">
+                  Address
+                </label>
                 <input
-                  className={`w-full py-2 px-3 bg-gray-100 rounded-md ${formErrors.street ? 'border-2 border-red-500' : 'border-0'}`}
+                  className={`w-full py-2 px-3 bg-gray-100 rounded-md ${
+                    formErrors.street ? "border-2 border-red-500" : "border-0"
+                  }`}
                   required
                   type="text"
                   name="street"
                   placeholder="Enter Address"
                   value={street}
-                  onChange={e => {
+                  onChange={(e) => {
                     setStreet(e.target.value);
                     if (formErrors.street) {
-                      setFormErrors(prev => ({ ...prev, street: '' }));
+                      setFormErrors((prev) => ({ ...prev, street: "" }));
                     }
                   }}
                 />
-                {formErrors.street && <p className="text-red-500 text-xs mt-1">{formErrors.street}</p>}
+                {formErrors.street && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {formErrors.street}
+                  </p>
+                )}
               </div>
               <div>
-                <label className="block text-sm mb-1 text-gray-600">Pincode</label>
+                <label className="block text-sm mb-1 text-gray-600">
+                  Pincode
+                </label>
                 <div>
                   <input
-                    className={`w-fit py-2 px-3 bg-gray-100 rounded-md ${formErrors.pincode ? 'border-2 border-red-500' : 'border-0'}`}
+                    className={`w-fit py-2 px-3 bg-gray-100 rounded-md ${
+                      formErrors.pincode
+                        ? "border-2 border-red-500"
+                        : "border-0"
+                    }`}
                     required
                     type="number"
                     name="pincode"
                     maxLength={6}
                     pattern="[0-9]{6}"
-                    placeholder='Enter Pincode'
+                    placeholder="Enter Pincode"
                     value={pincode}
-                    onChange={e => {
+                    onChange={(e) => {
                       setPincode(e.target.value);
                       if (formErrors.pincode) {
-                        setFormErrors(prev => ({ ...prev, pincode: '' }));
+                        setFormErrors((prev) => ({ ...prev, pincode: "" }));
                       }
                     }}
                   />
-                  {formErrors.pincode && <p className="text-red-500 text-xs mt-1">{formErrors.pincode}</p>}
+                  {formErrors.pincode && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {formErrors.pincode}
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm mb-1 text-gray-600">City</label>
+                  <label className="block text-sm mb-1 text-gray-600">
+                    City
+                  </label>
                   <input
-                    className={`w-full py-2 px-3 bg-gray-100 rounded-md ${formErrors.city ? 'border-2 border-red-500' : 'border-0'}`}
+                    className={`w-full py-2 px-3 bg-gray-100 rounded-md ${
+                      formErrors.city ? "border-2 border-red-500" : "border-0"
+                    }`}
                     required
                     type="text"
                     name="city"
                     placeholder="Enter City"
                     value={city}
-                    onChange={e => {
+                    onChange={(e) => {
                       setCity(e.target.value);
                       if (formErrors.city) {
-                        setFormErrors(prev => ({ ...prev, city: '' }));
+                        setFormErrors((prev) => ({ ...prev, city: "" }));
                       }
                     }}
                   />
-                  {formErrors.city && <p className="text-red-500 text-xs mt-1">{formErrors.city}</p>}
+                  {formErrors.city && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {formErrors.city}
+                    </p>
+                  )}
                 </div>
                 <div>
-                  <label className="block text-sm mb-1 text-gray-600">Distt.</label>
+                  <label className="block text-sm mb-1 text-gray-600">
+                    Distt.
+                  </label>
                   <input
-                    className="w-full py-2 px-3 bg-gray-100 rounded-md border-0"
+                    className={`w-full py-2 px-3 bg-gray-100 rounded-md ${
+                      formErrors.district
+                        ? "border-2 border-red-500"
+                        : "border-0"
+                    }`}
+                    required
                     type="text"
+                    name="district"
                     placeholder="Enter District"
                     value={district}
-                    onChange={e => setDistrict(e.target.value)}
+                    onChange={(e) => setDistrict(e.target.value)}
                   />
+                  {formErrors.district && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {formErrors.district}
+                    </p>
+                  )}
                 </div>
                 <div>
-                  <label className="block text-sm mb-1 text-gray-600">State</label>
+                  <label className="block text-sm mb-1 text-gray-600">
+                    State
+                  </label>
                   <input
-                    className={`w-full py-2 px-3 bg-gray-100 rounded-md ${formErrors.state ? 'border-2 border-red-500' : 'border-0'}`}
+                    className={`w-full py-2 px-3 bg-gray-100 rounded-md ${
+                      formErrors.state ? "border-2 border-red-500" : "border-0"
+                    }`}
                     required
                     type="text"
                     name="state"
                     placeholder="Enter State"
                     value={state}
-                    onChange={e => {
+                    onChange={(e) => {
                       setState(e.target.value);
                       if (formErrors.state) {
-                        setFormErrors(prev => ({ ...prev, state: '' }));
+                        setFormErrors((prev) => ({ ...prev, state: "" }));
                       }
                     }}
                   />
-                  {formErrors.state && <p className="text-red-500 text-xs mt-1">{formErrors.state}</p>}
+                  {formErrors.state && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {formErrors.state}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
           </div>
           <div className="text-center text-gray-700 text-sm">
-            This helps us serve you better and keep you updated on your order status.
+            This helps us serve you better and keep you updated on your order
+            status.
           </div>
         </form>
 
@@ -2118,29 +2457,53 @@ const CheckOut = () => {
         {checkoutData ? (
           <>
             <div className="divide-y divide-neutral-200 mb-4">
-              {checkoutData.cart.map(item => (
-                <div key={item.id} className="flex items-center gap-3 py-3 relative">
-                  <img src={item.image?.url || item.image} alt={item.name} className="w-16 h-16 rounded object-cover border" />
+              {checkoutData.cart.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center gap-3 py-3 relative"
+                >
+                  <img
+                    src={item.image?.url || item.image}
+                    alt={item.name}
+                    className="w-16 h-16 rounded object-cover border"
+                  />
                   <div className="flex-1">
-                    <div className="font-medium text-sm leading-tight mb-1">{item.name}</div>
+                    <div className="font-medium text-sm leading-tight mb-1">
+                      {item.name}
+                    </div>
                     <div className="flex items-center justify-between">
-
                       <div className="flex items-center border rounded-md bg-gray-100 px-2">
                         Qty:
-                        <span className="px-3 py-1 text-base font-semibold">{item.qty}</span>
-
+                        <span className="px-3 py-1 text-base font-semibold">
+                          {item.qty}
+                        </span>
                       </div>
                       <div className="text-md text-black font-semibold whitespace-nowrap">
-                        ₹{Number(isVendor && item.vendorPrice ? item.vendorPrice : (item.originalPrice || item.price || 0)).toFixed(2)}
+                        ₹
+                        {Number(
+                          isVendor && item.vendorPrice
+                            ? item.vendorPrice
+                            : item.originalPrice || item.price || 0
+                        ).toFixed(2)}
                       </div>
                     </div>
                     <div className="flex justify-between items-center text-sm mb-2">
                       <span className="text-gray-600">CGST ({item.cgst}%)</span>
-                      <span>₹{((item.price * item.cgst / 100) * item.qty).toFixed(2)}</span>
+                      <span>
+                        ₹
+                        {(((item.price * item.cgst) / 100) * item.qty).toFixed(
+                          2
+                        )}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center text-sm mb-2">
                       <span className="text-gray-600">SGST ({item.sgst}%)</span>
-                      <span>₹{((item.price * item.sgst / 100) * item.qty).toFixed(2)}</span>
+                      <span>
+                        ₹
+                        {(((item.price * item.sgst) / 100) * item.qty).toFixed(
+                          2
+                        )}
+                      </span>
                     </div>
                     {item.couponApplied && (
                       <div className="mt-2">
@@ -2159,7 +2522,17 @@ const CheckOut = () => {
                     onClick={() => removeFromCart(item.id)}
                     aria-label="Remove"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
                       <line x1="18" y1="6" x2="6" y2="18"></line>
                       <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
@@ -2171,35 +2544,54 @@ const CheckOut = () => {
             <div className="bg-gray-50 p-3 rounded-md mb-4">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>
-                  ₹{isVendor
-                    ? checkoutData.cart.reduce((sum, item) => sum + (Number(item.vendorPrice) || 0) * item.qty, 0).toFixed(2)
-                    : checkoutData.subTotal.toFixed(2)}
-                </span>
+                <span>₹{checkoutData.subTotal.toFixed(2)}</span>
               </div>
-              <div className="text-xs text-red-500 mb-1">Subtotal does not include applicable taxes</div>
+              <div className="text-xs text-red-500 mb-1">
+                Subtotal does not include applicable taxes
+              </div>
               <div className="flex justify-between items-center text-sm mb-2">
                 <span className="text-gray-600">Discount Amount</span>
-                <span className="text-green-600">-₹{checkoutData.totalDiscount?.toFixed(2)}</span>
+                <span className="text-green-600">
+                  -₹{checkoutData.totalDiscount?.toFixed(2)}
+                </span>
               </div>
+
               {checkoutData.couponApplied && (
                 <div className="flex justify-between items-center text-sm mb-2">
-                  <span className="text-gray-600">Coupon <span className="text-xs text-green-600">({checkoutData.coupon.code})</span></span>
-                  <span className="text-green-600">-₹{checkoutData.coupon.discount?.toFixed(2)}</span>
+                  <span className="text-gray-600">
+                    Coupon{" "}
+                    <span className="text-xs text-green-600">
+                      ({checkoutData.coupon.code})
+                    </span>
+                  </span>
+                  <span className="text-green-600">
+                    -₹{checkoutData.coupon.discount?.toFixed(2)}
+                  </span>
                 </div>
               )}
               <div className="border-t border-gray-200 my-2"></div>
-              {(checkoutData.totalDiscount > 0 || (checkoutData.promo && checkoutData.promo.discount > 0)) && (
+              {(checkoutData.totalDiscount > 0 ||
+                (checkoutData.promo && checkoutData.promo.discount > 0)) && (
                 <div className="flex items-center text-green-700 font-semibold text-base mb-2">
-                  Nice! You saved <span className="mx-1">₹ {checkoutData.totalDiscount?.toFixed(2)}</span> on your order.
+                  Nice! You saved{" "}
+                  <span className="mx-1">
+                    ₹ {checkoutData.totalDiscount?.toFixed(2)}
+                  </span>{" "}
+                  on your order.
                 </div>
               )}
-              <div className="text-xs text-gray-500 mb-2">Note : If discount promo code already applied extra additional coupon not applicable</div>
+              <div className="text-xs text-gray-500 mb-2">
+                Note : If discount promo code already applied extra additional
+                coupon not applicable
+              </div>
             </div>
             {checkoutData?.shippingCost !== undefined && (
               <div className="flex justify-between items-center mt-2">
                 <span className="font-semibold">
-                  Shipping Charges{checkoutData.shippingTierLabel ? ` (${checkoutData.shippingTierLabel})` : ''}
+                  Shipping Charges
+                  {checkoutData.shippingTierLabel
+                    ? ` (${checkoutData.shippingTierLabel})`
+                    : ""}
                 </span>
                 <span className="font-semibold">
                   ₹{Number(checkoutData.shippingCost).toFixed(2)}
@@ -2212,11 +2604,13 @@ const CheckOut = () => {
             </div> */}
             {(() => {
               const totalCGST = checkoutData.cart.reduce(
-                (sum, item) => sum + ((item.price * item.cgst / 100) * item.qty),
+                (sum, item) =>
+                  sum + ((item.price * item.cgst) / 100) * item.qty,
                 0
               );
               const totalSGST = checkoutData.cart.reduce(
-                (sum, item) => sum + ((item.price * item.sgst / 100) * item.qty),
+                (sum, item) =>
+                  sum + ((item.price * item.sgst) / 100) * item.qty,
                 0
               );
               return (
@@ -2232,6 +2626,12 @@ const CheckOut = () => {
                 </>
               );
             })()}
+            <div className="flex justify-between items-center text-sm mb-2">
+              <span className="text-gray-600">Shipping Amount</span>
+              <span className="text-black">
+                ₹{checkoutData.finalShipping?.toFixed(2)}
+              </span>
+            </div>
 
             <div className="border-t border-gray-200 pt-3 mb-4">
               <div className="flex justify-between items-center font-bold text-lg">
@@ -2241,7 +2641,9 @@ const CheckOut = () => {
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">Have a promo code?</label>
+              <label className="block text-sm font-medium mb-2">
+                Have a promo code?
+              </label>
               {appliedPromo && (
                 <div className="text-green-700 text-xs mt-1">
                   Promo code "{appliedPromo}" applied successfully!
@@ -2252,7 +2654,7 @@ const CheckOut = () => {
                   className="border rounded px-3 py-2 flex-1 text-sm bg-blue-50"
                   placeholder="Apply Promo Code"
                   value={couponInput}
-                  onChange={e => {
+                  onChange={(e) => {
                     setCouponInput(e.target.value);
                     setCouponError("");
                   }}
@@ -2261,13 +2663,17 @@ const CheckOut = () => {
                 <button
                   className="px-4 py-2 bg-blue-500 text-white rounded font-semibold text-sm disabled:opacity-60"
                   onClick={handleApplyPromo}
-                  disabled={loadingCoupon || !couponInput.trim() || !!appliedPromo}
+                  disabled={
+                    loadingCoupon || !couponInput.trim() || !!appliedPromo
+                  }
                   type="button"
                 >
                   {loadingCoupon ? "Applying..." : "Apply"}
                 </button>
               </div>
-              {couponError && <div className="text-red-600 text-xs mt-1">{couponError}</div>}
+              {couponError && (
+                <div className="text-red-600 text-xs mt-1">{couponError}</div>
+              )}
             </div>
 
             <div className="mb-6">
@@ -2276,7 +2682,11 @@ const CheckOut = () => {
                 {paymentOptions.map((option) => (
                   <label
                     key={option.value}
-                    className={`flex items-center p-3 border rounded-md cursor-pointer ${payment === option.value ? 'border-black' : 'border-gray-200'}`}
+                    className={`flex items-center p-3 border rounded-md cursor-pointer ${
+                      payment === option.value
+                        ? "border-black"
+                        : "border-gray-200"
+                    }`}
                   >
                     <input
                       type="radio"
@@ -2291,9 +2701,13 @@ const CheckOut = () => {
                       className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 mr-3"
                     />
                     <div className="flex-1">
-                      <div className="font-medium text-gray-900">{option.label}</div>
-                      {option.value === 'cod' && (
-                        <p className="text-sm text-gray-500 mt-1">Pay when you receive your order</p>
+                      <div className="font-medium text-gray-900">
+                        {option.label}
+                      </div>
+                      {option.value === "cod" && (
+                        <p className="text-sm text-gray-500 mt-1">
+                          Pay when you receive your order
+                        </p>
                       )}
                     </div>
                   </label>
@@ -2302,7 +2716,9 @@ const CheckOut = () => {
 
               <div className="flex items-center gap-2 mt-4">
                 {/* <img src="/images/razorpay.svg" alt="Razorpay" className="h-6" /> */}
-                <span className="text-sm text-gray-600">100% Secure Payment</span>
+                <span className="text-sm text-gray-600">
+                  100% Secure Payment
+                </span>
               </div>
 
               <div className="flex items-center gap-2 mt-2">
@@ -2311,7 +2727,9 @@ const CheckOut = () => {
                 <img src="/rupay.png" alt="Rupay" className="h-4" />
                 <img src="/upi.png" alt="UPI" className="h-4" />
               </div>
-              <p className="text-xs text-gray-500 mt-2">We accept all major credit/debit cards, UPI, and Netbanking.</p>
+              <p className="text-xs text-gray-500 mt-2">
+                We accept all major credit/debit cards, UPI, and Netbanking.
+              </p>
             </div>
           </>
         ) : (
@@ -2325,19 +2743,23 @@ const CheckOut = () => {
               id="terms"
               name="agree"
               checked={agree}
-              onChange={e => {
+              onChange={(e) => {
                 setAgree(e.target.checked);
                 if (formErrors.agree) {
-                  setFormErrors(prev => ({ ...prev, agree: '' }));
+                  setFormErrors((prev) => ({ ...prev, agree: "" }));
                 }
               }}
-              className={`accent-pink-600 w-4 h-4 ${formErrors.agree ? 'ring-2 ring-red-500' : ''}`}
+              className={`accent-pink-600 w-4 h-4 ${
+                formErrors.agree ? "ring-2 ring-red-500" : ""
+              }`}
             />
             <label htmlFor="terms" className="text-xs text-gray-600 ml-2">
               I have read and agree to the website terms and conditions
             </label>
           </div>
-          {formErrors.agree && <p className="text-red-500 text-xs mt-1 ml-6">{formErrors.agree}</p>}
+          {formErrors.agree && (
+            <p className="text-red-500 text-xs mt-1 ml-6">{formErrors.agree}</p>
+          )}
         </div>
         {formErrors.payment && (
           <div className="mb-4 p-2 bg-red-50 border-l-4 border-red-500">
@@ -2385,20 +2807,31 @@ const CheckOut = () => {
               // Scroll to first error
               const firstError = Object.keys(formErrors)[0];
               if (firstError) {
-                const element = document.querySelector(`[name="${firstError}"]`);
+                const element = document.querySelector(
+                  `[name="${firstError}"]`
+                );
                 if (element) {
-                  element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  element.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center",
+                  });
                 }
               }
               return;
             }
             if (!payment) {
-              setFormErrors(prev => ({ ...prev, payment: 'Please select a payment method' }));
+              setFormErrors((prev) => ({
+                ...prev,
+                payment: "Please select a payment method",
+              }));
               return;
             }
 
             if (!agree) {
-              setFormErrors(prev => ({ ...prev, agree: 'You must agree to the terms and conditions' }));
+              setFormErrors((prev) => ({
+                ...prev,
+                agree: "You must agree to the terms and conditions",
+              }));
               return;
             }
 
@@ -2408,21 +2841,22 @@ const CheckOut = () => {
         >
           {loading ? (
             <>
-              <span className="animate-spin inline-block mr-2">🔄</span> Processing...
+              <span className="animate-spin inline-block mr-2">🔄</span>{" "}
+              Processing...
             </>
-          ) : payment === 'vendor' ? (
-            `Confirm Bulk Order (₹${checkoutData?.cartTotal?.toFixed(2) || '0.00'})`
-          ) : payment === 'cod' ? (
-            `Place Order (₹${checkoutData?.cartTotal?.toFixed(2) || '0.00'})`
+          ) : payment === "vendor" ? (
+            `Confirm Bulk Order (₹${
+              checkoutData?.cartTotal?.toFixed(2) || "0.00"
+            })`
+          ) : payment === "cod" ? (
+            `Place Order (₹${checkoutData?.cartTotal?.toFixed(2) || "0.00"})`
           ) : (
-            `Pay ₹${checkoutData?.cartTotal?.toFixed(2) || '0.00'}`
+            `Pay ₹${checkoutData?.cartTotal?.toFixed(2) || "0.00"}`
           )}
         </button>
-
       </div>
     </div>
-
   );
-}
+};
 
 export default CheckOut;

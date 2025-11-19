@@ -77,10 +77,7 @@ const CategoryPage = async ({ params }) => {
   const categoryAds = await adRes.json();
   const categoryAdList = Array.isArray(categoryAds) && categoryAds.length > 0 ? categoryAds : [];
   // console.log(categoryAdList)
-  // Fetch all categories for the category cards row
-  const allCategoriesRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/getAllMenuItems`, { cache: 'no-store' });
-  const allCategories = await allCategoriesRes.json();
-  // console.log(allCategories)
+  
 
   return (
     <SidebarInset>
@@ -114,7 +111,7 @@ const CategoryPage = async ({ params }) => {
             <h2 className="text-2xl font-bold px-4 underline">Category</h2>
             <Carousel className="w-full mx-auto my-4">
               <CarouselContent className="w-full gap-5">
-                {Array.isArray(allCategories) && allCategories.flatMap(cat =>
+                {Array.isArray(menuItems) && menuItems.flatMap(cat =>
                   Array.isArray(cat.subMenu) ? cat.subMenu.map((sub, idx) => (
                     <CarouselItem key={`${cat._id || cat.title || idx}-${sub._id || sub.url || idx}`} className="basis-1/2 md:basis-1/4 xl:basis-1/5 min-w-0 snap-start">
                       <CategoryCard category={{

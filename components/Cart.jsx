@@ -9,7 +9,7 @@ export default function Cart({ open, onClose, initialTab = "cart" }) {
   const [tab, setTab] = useState(initialTab);
   const [show, setShow] = useState(true); // Always mount on first render
   const firstRender = React.useRef(true);
-  const { cart: rawCart, wishlist, setCart, setWishlist, updateCartQty, removeFromCart, removeFromWishlist, isClearing,clearCart } = useCart();
+  const { cart: rawCart, wishlist, setCart, setWishlist, updateCartQty, removeFromCart, removeFromWishlist, isClearing, clearCart } = useCart();
   const cart = Array.isArray(rawCart) ? rawCart : [];
   const { data: session, status } = useSession();
   const userId = session?.user?.id || session?.user?.email;
@@ -17,6 +17,8 @@ export default function Cart({ open, onClose, initialTab = "cart" }) {
   const cartTotal = cartItems.reduce((sum, item) => sum + item.price * item.qty, 0);
   const isLoggedIn = status === "authenticated" && userId;
   const isVendor = session?.user?.isVendor;
+
+  // console.log(cart)
 
   useEffect(() => {
     if (open) {
@@ -87,8 +89,10 @@ export default function Cart({ open, onClose, initialTab = "cart" }) {
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto px-6 pt-4 pb-2">
-            {(tab === "cart" ? cart : wishlist).map((item, index) => (
-              <div key={`${item.id}_${item.size || 'N/A'}_${item.color || 'N/A'}_${index}`} className="flex items-center gap-4 py-4 border-b border-neutral-200 last:border-b-0">
+            {(tab === "cart" ? cart : wishlist).map((item, index) => {
+              const itemKey = `${item.id}-${item.size || ''}-${item.color || ''}`.toLowerCase().replace(/\s+/g, '-');
+              return (
+                <div key={itemKey} className="flex items-center gap-4 py-4 border-b border-neutral-200 last:border-b-0">
                 <img src={typeof item.image === "string" ? item.image : item.image?.url} alt={item.name} className="w-20 h-20 rounded-lg object-cover border" />
                 <div className="flex-1">
                   <div className="font-semibold text-base leading-tight mb-1">{item.name}</div>
@@ -101,8 +105,10 @@ export default function Cart({ open, onClose, initialTab = "cart" }) {
                   )}
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                  {item.vendorPrice ? (
-                    <span className="font-semibold">₹{(item.vendorPrice * (item.qty || 1)).toFixed(2)}</span>
+                  {isVendor && item.vendorPrice ? (
+                    <div className="flex flex-col items-end">
+                      <span className="font-semibold text-black">₹{(item.vendorPrice * (item.qty || 1)).toFixed(2)}</span>
+                    </div>
                   ) : (
                     <span className="font-semibold">₹{(item.price * (item.qty || 1)).toFixed(2)}</span>
                   )}
@@ -117,7 +123,8 @@ export default function Cart({ open, onClose, initialTab = "cart" }) {
                   )}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Footer */}
@@ -130,9 +137,9 @@ export default function Cart({ open, onClose, initialTab = "cart" }) {
               <div className="flex items-center gap-3 mb-4">
                 <div className="flex-1">
                   <div className="text-md font-semibold mb-1 text-center">
-                  "Almost Yours—Just One Step Left!"
+                    "Almost Yours—Just One Step Left!"
                   </div>
-                </div> 
+                </div>
               </div>
               <Link href="/cartDetails" className="block w-full">
                 <button

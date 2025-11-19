@@ -22,7 +22,7 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, ha
   const { data: session } = useSession()
   const isVendor = session?.user?.isVendor;
   const vendorPrice = pkg?.vendorPrice;
-  
+
   // Prevent background scroll when Quick View is open
   useEffect(() => {
     if (quickViewProduct) {
@@ -88,7 +88,7 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, ha
         >
           {pkg?.title}
         </Link>
-        <div className="flex items-center gap-5 justify-between">
+        <div className="flex items-center justify-between w-full">
 
 
           {(() => {
@@ -111,8 +111,9 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, ha
             if (isVendor && vendorPrice) {
               // Show vendor price if user is a vendor and vendor price exists
               return (
-                <span className="font-semibold text-[18px] text-black px-2">
+                <span className="font-semibold text-[18px] text-black">
                   ₹{formatNumber(vendorPrice)}
+                  {isVendor && <span className="text-xs text-black px-1">(B2B Price)</span>}
                 </span>
               );
             } else if (hasDiscount && discountedPrice < originalPrice) {
@@ -126,7 +127,9 @@ const PackageCard = ({ pkg, wishlist = [], addToWishlist, removeFromWishlist, ha
             } else {
               // Default to regular price
               return (
-                <span className="font-semibold text-[18px] text-black">₹{formatNumber(price)}</span>
+                <span className="font-semibold text-[18px] text-black">₹{formatNumber(price)}
+
+                </span>
               );
             }
           })()}

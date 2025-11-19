@@ -62,6 +62,7 @@ const RandomTourPackageSection = () => {
       color: item?.quantity?.variants[0].color,
       originalPrice: price,
       qty: 1,
+      vendorPrice : item?.quantity?.variants[0]?.vendorPrice,
       couponApplied,
       couponCode: couponApplied ? couponCode : undefined,
       productCode: item.code || item.productCode || "",
@@ -83,9 +84,6 @@ const RandomTourPackageSection = () => {
         0,
       totalQuantity: item?.quantity?.variants[0]?.qty || 0,
     };
-    if (isVendor) {
-      cartItem.vendorPrice = item?.quantity?.variants[0]?.vendorPrice;
-    }
     addToCart(cartItem);
     toast.success("Added to cart!");
   };
@@ -419,10 +417,11 @@ const RandomTourPackageSection = () => {
                                     qty: 1,
                                     couponApplied,
                                     couponCode: couponApplied
-                                      ? couponCode
-                                      : undefined,
+                                    ? couponCode
+                                    : undefined,
                                     productCode:
-                                      item.code || item.productCode || "",
+                                    item.code || item.productCode || "",
+                                    vendorPrice :item?.quantity?.variants[0]?.vendorPrice,
                                     discountPercent:
                                       coupon &&
                                         typeof coupon.percent === "number"
@@ -446,11 +445,6 @@ const RandomTourPackageSection = () => {
                                     totalQuantity:
                                       item?.quantity?.variants[0]?.qty || 0,
                                   };
-
-                                  if (isVendor) {
-                                    wishlistItem.vendorPrice = item?.quantity?.variants[0]?.vendorPrice;
-                                  }
-
                                   addToWishlist(wishlistItem);
                                   toast.success("Added to wishlist!");
                                 }
@@ -523,7 +517,7 @@ const RandomTourPackageSection = () => {
                           >
                             {item?.title}
                           </Link>
-                          <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-2">
                             {(() => {
                               const price = item?.quantity?.variants[0].price;
                               const vendorPrice = item?.quantity?.variants[0]?.vendorPrice; // Get vendor price
@@ -558,6 +552,7 @@ const RandomTourPackageSection = () => {
                                 return (
                                   <span className="font-bold text-md md:text-md text-black">
                                     ₹{formatNumeric(displayPrice)}
+                                    {isVendor && <span className="text-xs text-black px-2">(B2B Price)</span>}
                                   </span>
                                 );
                               }
@@ -565,7 +560,7 @@ const RandomTourPackageSection = () => {
 
                             <Link
                               href={`/product/${item.slug}`}
-                              className="bg-black text-white hover:bg-gray-800 transition-colors duration-300 uppercase text-sm font-bold px-6 py-2 rounded-full shadow-lg  border-2 border-white text-nowrap"
+                              className="bg-black text-white hover:bg-gray-800 transition-colors duration-300 uppercase text-sm font-bold px-6 py-2 rounded-full shadow-lg border-2 border-white text-nowrap"
                             >
                               View Details
                             </Link>

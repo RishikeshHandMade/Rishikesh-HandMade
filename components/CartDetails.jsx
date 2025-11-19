@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { useCart } from "../context/CartContext";
 import Link from "next/link";
-import toast from "react-hot-toast"
-import { MapPin, Loader2 } from "lucide-react"
+import toast from "react-hot-toast";
+import { MapPin, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -22,9 +22,10 @@ const CartDetails = () => {
   const getAfterDiscount = (item) => {
     // Convert vendorPrice to number if it's a string
     const vendorPrice = item.vendorPrice ? Number(item.vendorPrice) : undefined;
-    const base = isVendor && vendorPrice !== undefined ?
-      vendorPrice :
-      (item.originalPrice ?? item.price);
+    const base =
+      isVendor && vendorPrice !== undefined
+        ? vendorPrice
+        : item.originalPrice ?? item.price;
 
     if (isVendor) return base; // Skip discount for vendors
     if (item.discountPercent) return base * (1 - item.discountPercent / 100);
@@ -42,71 +43,57 @@ const CartDetails = () => {
   // console.log(cart);
 
   const router = useRouter();
-
-
-
   const handleCheckout = () => {
     if (!termsChecked) {
       toast.error("Please accept the terms and conditions to proceed");
       return;
     }
-
-    // Check if pincode is added
-    if (!pincodeResult?.pincode) {
-      toast.error("Please add a delivery pincode to proceed with checkout");
-      return;
-    }
     // First, ensure we have the latest cart data
     const currentCart = Array.isArray(rawCart) ? rawCart : [];
-
-    // Helper function to get the appropriate price
-    const getItemPrice = (item) => {
-      return isVendor && item.vendorPrice !== undefined
-        ? item.vendorPrice
-        : (item.originalPrice ?? item.price);
-    };
-
     // Collect all relevant cart data for checkout
     const checkoutData = {
       cart: currentCart.map((item) => ({
         ...item,
-        price: isVendor && item.vendorPrice !== undefined ?
-          item.vendorPrice :
-          (item.originalPrice ?? item.price),
-        discountPercent: isVendor ? 0 : (item.discountPercent || null),
-        discountAmount: isVendor ? 0 : (item.discountAmount || null),
+        price:
+          isVendor && item.vendorPrice !== undefined
+            ? item.vendorPrice
+            : item.originalPrice ?? item.price,
+        discountPercent: isVendor ? 0 : item.discountPercent || null,
+        discountAmount: isVendor ? 0 : item.discountAmount || null,
         cgst: item.cgst || 0,
         sgst: item.sgst || 0,
         originalPrice: item.originalPrice ?? item.price,
-        afterDiscount: isVendor ?
-          (item.vendorPrice ?? item.originalPrice ?? item.price) :
-          getAfterDiscount(item),
+        afterDiscount: isVendor
+          ? item.vendorPrice ?? item.originalPrice ?? item.price
+          : getAfterDiscount(item),
       })),
       subTotal: currentCart.reduce((sum, item) => {
-        const price = isVendor && item.vendorPrice !== undefined ?
-          item.vendorPrice :
-          (item.originalPrice ?? item.price);
+        const price =
+          isVendor && item.vendorPrice !== undefined
+            ? item.vendorPrice
+            : item.originalPrice ?? item.price;
         return sum + price * item.qty;
       }, 0),
-      totalDiscount: isVendor ? 0 : currentCart.reduce((sum, item) => {
-        const basePrice = isVendor && item.vendorPrice !== undefined ?
-          item.vendorPrice :
-          (item.originalPrice ?? item.price);
-        const discount = item.discountPercent
-          ? basePrice * (item.discountPercent / 100)
-          : (item.discountAmount || 0);
-        return sum + (discount * item.qty);
-      }, 0),
+      totalDiscount: isVendor
+        ? 0
+        : currentCart.reduce((sum, item) => {
+            const basePrice =
+              isVendor && item.vendorPrice !== undefined
+                ? item.vendorPrice
+                : item.originalPrice ?? item.price;
+            const discount = item.discountPercent
+              ? basePrice * (item.discountPercent / 100)
+              : item.discountAmount || 0;
+            return sum + discount * item.qty;
+          }, 0),
       shipping: FinalShipping || 0,
-      pincode: pincodeResult?.pincode || null,
-      city: pincodeResult?.city || null,
-      state: pincodeResult?.state || null,
-      district: pincodeResult?.district || null,
       taxTotal: currentCart.reduce((sum, item) => {
-        const price = isVendor && item.vendorPrice !== undefined ?
-          item.vendorPrice :
-          (item.originalPrice ?? item.price);
-        const tax = ((item.cgst || 0) + (item.sgst || 0)) / 100 * price * item.qty;
+        const price =
+          isVendor && item.vendorPrice !== undefined
+            ? item.vendorPrice
+            : item.originalPrice ?? item.price;
+        const tax =
+          (((item.cgst || 0) + (item.sgst || 0)) / 100) * price * item.qty;
         return sum + tax;
       }, 0),
       finalShipping: FinalShipping || 0,
@@ -114,35 +101,39 @@ const CartDetails = () => {
       isVendor: isVendor, // Include vendor status in checkout data
       promo: appliedPromoDetails
         ? {
-          code: appliedPromoDetails.couponCode,
-          percent: appliedPromoDetails.percent || null,
-          amount: appliedPromoDetails.amount || null,
-          discount: promoDiscount,
-        }
+            code: appliedPromoDetails.couponCode,
+            percent: appliedPromoDetails.percent || null,
+            amount: appliedPromoDetails.amount || null,
+            discount: promoDiscount,
+          }
         : null,
-      cartTotal: currentCart.reduce((sum, item) => {
-        // For vendors, always use vendorPrice without any discounts
-        if (isVendor && item.vendorPrice !== undefined) {
-          const vendorPrice = Number(item.vendorPrice);
-          const tax = ((item.cgst || 0) + (item.sgst || 0)) / 100 * vendorPrice;
-          return sum + (vendorPrice + tax) * item.qty;
-        }
+      cartTotal:
+        currentCart.reduce((sum, item) => {
+          // For vendors, always use vendorPrice without any discounts
+          if (isVendor && item.vendorPrice !== undefined) {
+            const vendorPrice = Number(item.vendorPrice);
+            const tax =
+              (((item.cgst || 0) + (item.sgst || 0)) / 100) * vendorPrice;
+            return sum + (vendorPrice + tax) * item.qty;
+          }
 
-        // For regular users, apply discounts
-        const basePrice = item.originalPrice ?? item.price;
-        let finalPrice = basePrice;
+          // For regular users, apply discounts
+          const basePrice = item.originalPrice ?? item.price;
+          let finalPrice = basePrice;
 
-        // Apply item-level discounts if any
-        if (item.discountPercent) {
-          finalPrice = basePrice * (1 - (item.discountPercent / 100));
-        } else if (item.discountAmount) {
-          finalPrice = basePrice - item.discountAmount;
-        }
+          // Apply item-level discounts if any
+          if (item.discountPercent) {
+            finalPrice = basePrice * (1 - item.discountPercent / 100);
+          } else if (item.discountAmount) {
+            finalPrice = basePrice - item.discountAmount;
+          }
 
-        const tax = ((item.cgst || 0) + (item.sgst || 0)) / 100 * finalPrice;
-        return sum + (finalPrice + tax) * item.qty;
-
-      }, 0) + (FinalShipping || 0) - (isVendor ? 0 : (promoDiscount || 0)),
+          const tax =
+            (((item.cgst || 0) + (item.sgst || 0)) / 100) * finalPrice;
+          return sum + (finalPrice + tax) * item.qty;
+        }, 0) +
+        (FinalShipping || 0) -
+        (isVendor ? 0 : promoDiscount || 0),
     };
 
     // Save to localStorage before navigation
@@ -155,11 +146,15 @@ const CartDetails = () => {
   const [promoError, setPromoError] = React.useState("");
   const [termsChecked, setTermsChecked] = React.useState(false);
   // Calculate total cart weight in grams
-  // Calculate total cart weight in grams (weight is number from DB)
-  const totalWeight = cart.reduce((sum, item) => sum + ((typeof item.weight === "number" ? item.weight : 0) * item.qty), 0);
+  // Calculate total cart weight in grams (weight is number from DB in kg, convert to grams)
+  const totalWeight = cart.reduce(
+    (sum, item) =>
+      sum +
+      (typeof item.weight === "number" ? item.weight : 0) * item.qty * 1000,
+    0
+  );
+  // console.log(totalWeight);
 
-
-  const [pincodeResult, setPincodeResult] = React.useState(null);
   const [pincodeError, setPincodeError] = React.useState("");
   const [appliedPromo, setAppliedPromo] = React.useState(null); // to track applied promo
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
@@ -178,17 +173,6 @@ const CartDetails = () => {
   const [FinalShipping, setFinalShipping] = useState(0);
   const [shippingTierLabel, setShippingTierLabel] = useState("");
   const [shippingPerUnit, setShippingPerUnit] = useState(null);
-  const [statesList, setStatesList] = useState([]);
-
-  // Restore delivery location from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('deliveryLocation');
-    if (saved) {
-      const loc = JSON.parse(saved);
-      setPincodeInput(loc.pincode);
-      setPincodeResult(loc);
-    }
-  }, []);
 
   useEffect(() => {
     const fetchShippingCharge = async () => {
@@ -200,12 +184,13 @@ const CartDetails = () => {
       }
       setLoadingShipping(true);
       try {
-        const res = await fetch('/api/checkShipping', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const res = await fetch("/api/checkShipping", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ weight: totalWeight }),
         });
         const data = await res.json();
+        // console.log(data);
         if (data.available && data.shippingCharge != null) {
           setFinalShipping(Number(data.shippingCharge));
           setShippingTierLabel(data.tierLabel || "");
@@ -224,46 +209,7 @@ const CartDetails = () => {
     };
     fetchShippingCharge();
   }, [cart, totalWeight]);
-  // Add this function after the other handlers, before the return statement
-  const handlePincodeCheck = async () => {
-    if (pincodeInput.length !== 6) {
-      setPincodeError('Please enter a valid 6-digit pincode');
-      return;
-    }
 
-    setPincodeError('');
-    setLoadingShipping(true);
-
-    try {
-      // Save to local storage
-      const locationData = {
-        pincode: pincodeInput,
-        lastChecked: new Date().toISOString()
-      };
-
-      // Save to local storage
-      localStorage.setItem('deliveryLocation', JSON.stringify(locationData));
-
-      // Update state
-      setPincodeResult(locationData);
-      toast.success('Pincode saved successfully!');
-
-      // Close the modal if open
-      setIsPincodeModalOpen(false);
-
-    } catch (error) {
-      console.error('Error saving pincode:', error);
-      setPincodeError('Error saving pincode. Please try again.');
-      toast.error('Error saving pincode');
-    } finally {
-      setLoadingShipping(false);
-    }
-  };
-
-  const handleApplyPincode = () => {
-    setIsPincodeConfirmModalOpen(false);
-    // The pincodeResult is already set, so shipping charges will be updated
-  };
   // Coupon apply handler
   const handleApplyPromo = async () => {
     // Defensive: ensure cart is defined and is an array
@@ -341,35 +287,38 @@ const CartDetails = () => {
     return null;
   });
   const getAmount = (item) => {
-    const price = isVendor && item.vendorPrice !== undefined ?
-      item.vendorPrice :
-      (item.originalPrice ?? item.price);
+    const price =
+      isVendor && item.vendorPrice !== undefined
+        ? item.vendorPrice
+        : item.originalPrice ?? item.price;
     return (price * item.qty).toFixed(2);
   };
   // 5. For entire cart
   const subTotal = Array.isArray(cart)
     ? cart.reduce((sum, item) => {
-      const price = isVendor && item.vendorPrice !== undefined
-        ? item.vendorPrice
-        : (item.originalPrice ?? item.price);
-      return sum + price * item.qty;
-    }, 0)
+        const price =
+          isVendor && item.vendorPrice !== undefined
+            ? item.vendorPrice
+            : item.originalPrice ?? item.price;
+        return sum + price * item.qty;
+      }, 0)
     : 0;
   const totalDiscount = Array.isArray(cart)
     ? cart.reduce((sum, item) => {
-      const basePrice = isVendor && item.vendorPrice !== undefined
-        ? item.vendorPrice
-        : (item.originalPrice ?? item.price);
+        const basePrice =
+          isVendor && item.vendorPrice !== undefined
+            ? item.vendorPrice
+            : item.originalPrice ?? item.price;
 
-      const discount = item.discountPercent
-        ? basePrice * (item.discountPercent / 100)
-        : item.discountAmount || 0;
+        const discount = item.discountPercent
+          ? basePrice * (item.discountPercent / 100)
+          : item.discountAmount || 0;
 
-      return sum + discount * item.qty;
-    }, 0)
+        return sum + discount * item.qty;
+      }, 0)
     : 0;
 
-  const finalShipping = pincodeResult?.price || FinalShipping || 0;
+  const finalShipping = FinalShipping || 0;
 
   // Remove promo if a discounted/coupon item is present
   const hasDiscountedItem = cart.some(
@@ -389,7 +338,7 @@ const CartDetails = () => {
     if (appliedPromoDetails.percent) {
       promoDiscount = Math.round(
         (totalAfterDiscount + taxTotal + finalShipping) *
-        (appliedPromoDetails.percent / 100)
+          (appliedPromoDetails.percent / 100)
       );
     } else if (appliedPromoDetails.amount) {
       promoDiscount = appliedPromoDetails.amount;
@@ -400,27 +349,49 @@ const CartDetails = () => {
   }
   const taxTotal = cart.reduce((sum, item) => {
     const vendorPrice = item.vendorPrice ? Number(item.vendorPrice) : undefined;
-    const price = isVendor && vendorPrice !== undefined ?
-      vendorPrice :
-      (item.originalPrice ?? item.price);
+    // For vendors, use vendorPrice; for non-vendors, use after-discount price
+    const price =
+      isVendor && vendorPrice !== undefined
+        ? vendorPrice
+        : getAfterDiscount(item);
 
     const cgst = Number(item.cgst) || 0;
     const sgst = Number(item.sgst) || 0;
     const itemTax = ((cgst + sgst) / 100) * price;
 
-    return sum + (itemTax * item.qty);
+    return sum + itemTax * item.qty;
   }, 0);
-  const finalAmount = (isVendor
-    ? cart.reduce((sum, item) => {
-      const vendorPrice = item.vendorPrice ? Number(item.vendorPrice) : 0;
-      const cgst = Number(item.cgst) || 0;
-      const sgst = Number(item.sgst) || 0;
-      const itemTax = ((cgst + sgst) / 100) * vendorPrice;
-      return sum + (vendorPrice + itemTax) * item.qty;
-    }, 0)
-    : totalAfterDiscount + taxTotal) +
-    FinalShipping -
-    (isVendor ? 0 : (promoDiscount || 0));
+
+  const [finalAmount, setFinalAmount] = useState(0);
+
+  // Recalculate final amount when dependencies change
+  useEffect(() => {
+    const amount = isVendor
+      ? cart.reduce((sum, item) => {
+          // Use vendorPrice if available, otherwise fall back to originalPrice or price
+          const vendorPrice = item.vendorPrice
+            ? Number(item.vendorPrice)
+            : item.originalPrice ?? item.price;
+          const cgst = Number(item.cgst) || 0;
+          const sgst = Number(item.sgst) || 0;
+          const itemTax = ((cgst + sgst) / 100) * vendorPrice;
+          const itemTotal = (vendorPrice + itemTax) * item.qty;
+          return sum + itemTotal;
+        }, 0) + FinalShipping
+      : totalAfterDiscount +
+        taxTotal +
+        FinalShipping -
+        (isVendor ? 0 : promoDiscount || 0);
+    setFinalAmount(amount);
+  }, [
+    isVendor,
+    cart,
+    totalAfterDiscount,
+    taxTotal,
+    FinalShipping,
+    promoDiscount,
+  ]);
+
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => {
     setMounted(true);
@@ -435,7 +406,9 @@ const CartDetails = () => {
       </div>
       {cart.length === 0 ? (
         <div className="text-center text-gray-500 py-8">
-          <Link href="/" className="text-green-700 font-semibold text-sm">Continue Shopping &gt;&gt;</Link>
+          <Link href="/" className="text-green-700 font-semibold text-sm">
+            Continue Shopping &gt;&gt;
+          </Link>
           Your cart is empty.
         </div>
       ) : (
@@ -451,7 +424,9 @@ const CartDetails = () => {
                     <th className="border p-2">Name / Code</th>
                     <th className="border p-2">Base Price</th>
                     {!isVendor && <th className="border p-2">Discount</th>}
-                    {!isVendor && <th className="border p-2">After Discount</th>}
+                    {!isVendor && (
+                      <th className="border p-2">After Discount</th>
+                    )}
                     <th className="border p-2">Weight</th>
                     <th className="border p-2">CGST %</th>
                     <th className="border p-2">SGST %</th>
@@ -462,13 +437,26 @@ const CartDetails = () => {
                 </thead>
                 <tbody>
                   {cart.map((item, idx) => (
-                    <tr key={item.id} className={idx % 2 === 0 ? "bg-orange-100" : "bg-gray-100"}>
+                    <tr
+                      key={item.id}
+                      className={
+                        idx % 2 === 0 ? "bg-orange-100" : "bg-gray-100"
+                      }
+                    >
                       <td className="border p-2 text-center">
-                        <img src={item.image?.url || item.image} alt={item.name} className="w-20 h-20 rounded object-cover mx-auto" />
+                        <img
+                          src={item.image?.url || item.image}
+                          alt={item.name}
+                          className="w-20 h-20 rounded object-cover mx-auto"
+                        />
                       </td>
                       <td className="border p-2 text-center">
-                        <div className="font-bold text-base leading-tight">{item.name}</div>
-                        <div className="italic text-base text-black">{item.productCode || "N/A"}</div>
+                        <div className="font-bold text-base leading-tight">
+                          {item.name}
+                        </div>
+                        <div className="italic text-base text-black">
+                          {item.productCode || "N/A"}
+                        </div>
                       </td>
                       <td className="border p-2 text-center">
                         {isVendor && item.vendorPrice !== undefined ? (
@@ -476,35 +464,81 @@ const CartDetails = () => {
                             <span className="text-sm line-through text-gray-500">
                               ₹{item.originalPrice ?? item.price}
                             </span>
-                            <span className="text-black font-semibold">₹{item.vendorPrice}</span>
+                            <span className="text-black font-semibold">
+                              ₹{item.vendorPrice}
+                            </span>
                           </div>
                         ) : (
                           `₹${item.originalPrice ?? item.price}`
                         )}
                       </td>
-                      {!isVendor && <td className="border p-2 text-center">{getDiscount(item)}</td>}
-                      {!isVendor && <td className="border p-2 text-center">₹{getAfterDiscount(item)}</td>}
-                      <td className="border p-2 text-center">{item.weight ? (
-                        Number(item.weight) < 1
-                          ? `${(Number(item.weight) * 1000).toFixed(0)}g`
-                          : `${Number(item.weight).toFixed(3)} kg`
-                      ) : '0g'}</td>
+                      {!isVendor && (
+                        <td className="border p-2 text-center">
+                          {getDiscount(item)}
+                        </td>
+                      )}
+                      {!isVendor && (
+                        <td className="border p-2 text-center">
+                          ₹{getAfterDiscount(item)}
+                        </td>
+                      )}
                       <td className="border p-2 text-center">
-                        ₹{((isVendor && item.vendorPrice !== undefined ? item.vendorPrice : item.price) * (item.cgst || 0) / 100).toFixed(2)}
+                        {item.weight
+                          ? Number(item.weight) < 1
+                            ? `${(Number(item.weight) * 1000).toFixed(0)}g`
+                            : `${Number(item.weight).toFixed(3)} kg`
+                          : "0g"}
                       </td>
                       <td className="border p-2 text-center">
-                        ₹{((isVendor && item.vendorPrice !== undefined ? item.vendorPrice : item.price) * (item.sgst || 0) / 100).toFixed(2)}
+                        ₹
+                        {(
+                          ((isVendor && item.vendorPrice !== undefined
+                            ? item.vendorPrice
+                            : item.price) *
+                            (item.cgst || 0)) /
+                          100
+                        ).toFixed(2)}
+                      </td>
+                      <td className="border p-2 text-center">
+                        ₹
+                        {(
+                          ((isVendor && item.vendorPrice !== undefined
+                            ? item.vendorPrice
+                            : item.price) *
+                            (item.sgst || 0)) /
+                          100
+                        ).toFixed(2)}
                       </td>
                       <td className="border p-2 text-center">
                         <div className="flex items-center justify-center gap-2">
-                          <button onClick={() => updateCartQty(item.id, Math.max(1, item.qty - 1))} className="w-7 h-7 bg-black text-white rounded-full flex items-center justify-center">-</button>
-                          <span className="w-7 text-center font-semibold">{item.qty}</span>
-                          <button onClick={() => updateCartQty(item.id, item.qty + 1)} className="w-7 h-7 bg-black text-white rounded-full flex items-center justify-center">+</button>
+                          <button
+                            onClick={() =>
+                              updateCartQty(item.id, Math.max(1, item.qty - 1))
+                            }
+                            className="w-7 h-7 bg-black text-white rounded-full flex items-center justify-center"
+                          >
+                            -
+                          </button>
+                          <span className="w-7 text-center font-semibold">
+                            {item.qty}
+                          </span>
+                          <button
+                            onClick={() => updateCartQty(item.id, item.qty + 1)}
+                            className="w-7 h-7 bg-black text-white rounded-full flex items-center justify-center"
+                          >
+                            +
+                          </button>
                         </div>
                       </td>
-                      <td className="border p-2 text-center font-bold">₹{getAmount(item)}</td>
+                      <td className="border p-2 text-center font-bold">
+                        ₹{getAmount(item)}
+                      </td>
                       <td className="border p-2 text-center">
-                        <button onClick={() => removeFromCart(item.id)} className="bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 text-xl flex items-center justify-center" title="Remove">
+                        <button
+                          onClick={() => removeFromCart(item.id)}
+                          className="bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 text-xl flex items-center justify-center"
+                          title="Remove"
+                        >
                           &#10006;
                         </button>
                       </td>
@@ -519,8 +553,9 @@ const CartDetails = () => {
                   {cart.map((item, idx) => (
                     <div
                       key={item.id}
-                      className={`grid grid-cols-2 gap-2 p-2 rounded shadow ${idx % 2 === 0 ? "bg-orange-100" : "bg-gray-100"
-                        }`}
+                      className={`grid grid-cols-2 gap-2 p-2 rounded shadow ${
+                        idx % 2 === 0 ? "bg-orange-100" : "bg-gray-100"
+                      }`}
                     >
                       {/* Left Column: Image + Quantity */}
                       <div className="flex flex-col items-center justify-center gap-2">
@@ -531,12 +566,16 @@ const CartDetails = () => {
                         />
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => updateCartQty(item.id, Math.max(1, item.qty - 1))}
+                            onClick={() =>
+                              updateCartQty(item.id, Math.max(1, item.qty - 1))
+                            }
                             className="w-7 h-7 bg-black text-white rounded-full flex items-center justify-center"
                           >
                             -
                           </button>
-                          <span className="w-7 text-center font-semibold">{item.qty}</span>
+                          <span className="w-7 text-center font-semibold">
+                            {item.qty}
+                          </span>
                           <button
                             onClick={() => updateCartQty(item.id, item.qty + 1)}
                             className="w-7 h-7 bg-black text-white rounded-full flex items-center justify-center"
@@ -549,10 +588,12 @@ const CartDetails = () => {
                       {/* Right Column: Product Info */}
                       <div className="text-sm space-y-1">
                         <div>
-                          <span className="font-semibold">Name:</span> {item.name}
+                          <span className="font-semibold">Name:</span>{" "}
+                          {item.name}
                         </div>
                         <div>
-                          <span className="font-semibold">Code:</span> {item.productCode || "N/A"}
+                          <span className="font-semibold">Code:</span>{" "}
+                          {item.productCode || "N/A"}
                         </div>
                         <div className="border p-2 text-center">
                           {isVendor && item.vendorPrice !== undefined ? (
@@ -560,34 +601,55 @@ const CartDetails = () => {
                               <span className="text-sm line-through text-gray-500">
                                 ₹{item.originalPrice ?? item.price}
                               </span>
-                              <span className="text-black font-semibold">₹{item.vendorPrice}</span>
+                              <span className="text-black font-semibold">
+                                ₹{item.vendorPrice}
+                              </span>
                             </div>
                           ) : (
                             `₹${item.originalPrice ?? item.price}`
                           )}
                         </div>
                         {!isVendor && (
-
                           <div>
-                            <span className="font-semibold">Discount:</span> {getDiscount(item)}
+                            <span className="font-semibold">Discount:</span>{" "}
+                            {getDiscount(item)}
                           </div>
                         )}
                         {!isVendor && (
                           <div>
-                            <span className="font-semibold">After Discount:</span> ₹{getAfterDiscount(item)}
+                            <span className="font-semibold">
+                              After Discount:
+                            </span>{" "}
+                            ₹{getAfterDiscount(item)}
                           </div>
                         )}
                         <div>
-                          <span className="font-semibold">Weight:</span> {item.weight ?? 0}kg
+                          <span className="font-semibold">Weight:</span>{" "}
+                          {item.weight ?? 0}kg
                         </div>
                         <div className="border p-2 text-center">
-                          ₹{((isVendor && item.vendorPrice !== undefined ? item.vendorPrice : item.price) * (item.cgst || 0) / 100).toFixed(2)}
+                          ₹
+                          {(
+                            ((isVendor && item.vendorPrice !== undefined
+                              ? item.vendorPrice
+                              : item.price) *
+                              (item.cgst || 0)) /
+                            100
+                          ).toFixed(2)}
                         </div>
                         <div className="border p-2 text-center">
-                          ₹{((isVendor && item.vendorPrice !== undefined ? item.vendorPrice : item.price) * (item.sgst || 0) / 100).toFixed(2)}
+                          ₹
+                          {(
+                            ((isVendor && item.vendorPrice !== undefined
+                              ? item.vendorPrice
+                              : item.price) *
+                              (item.sgst || 0)) /
+                            100
+                          ).toFixed(2)}
                         </div>
                         <div>
-                          <span className="font-semibold">Total:</span> ₹{getAmount(item)}
+                          <span className="font-semibold">Total:</span> ₹
+                          {getAmount(item)}
                         </div>
                         <button
                           onClick={() => removeFromCart(item.id)}
@@ -601,10 +663,7 @@ const CartDetails = () => {
                 </div>
               </div>
             </div>
-
-
           </div>
-
 
           {/* Right: Order Summary Card */}
           <div className="w-full md:w-1/2 flex flex-col gap-2 mt-8 md:mt-0">
@@ -648,7 +707,7 @@ const CartDetails = () => {
               {!isVendor && (
                 <>
                   {/* Promo Code Section */}
-                  < div className="text-center font-semibold text-lg mb-2">
+                  <div className="text-center font-semibold text-lg mb-2">
                     Have a promo code?
                   </div>
                   {appliedPromo && (
@@ -679,133 +738,74 @@ const CartDetails = () => {
                   </div>
                   {/* Note about coupons */}
                   <div className="text-xs text-red-600 mb-2">
-                    Note : If discount promo code already applied extra additional
-                    coupon not applicable
+                    Note : If discount promo code already applied extra
+                    additional coupon not applicable
                   </div>
                   {/* Nice! You saved... */}
                   {totalDiscount > 0 && (
                     <div className="bg-gray-100 rounded px-2 py-1 text-center text-sm font-semibold text-black mb-2">
                       🎉 Nice! You saved{" "}
-                      <span className="font-bold">₹{totalDiscount.toFixed(2)}</span>{" "}
+                      <span className="font-bold">
+                        ₹{totalDiscount.toFixed(2)}
+                      </span>{" "}
                       on your order.
                     </div>
                   )}
                   {promoError && (
-                    <div className="text-xs text-red-600 mt-1">{promoError}</div>
+                    <div className="text-xs text-red-600 mt-1">
+                      {promoError}
+                    </div>
                   )}
                 </>
               )}
               {/* Shipping Charges */}
               <div className="flex justify-between items-center mt-2">
                 <span className="font-semibold">
-                  Shipping Charges{shippingTierLabel ? ` (${shippingTierLabel})` : ''}
+                  Shipping Charges
+                  {shippingTierLabel ? ` (${shippingTierLabel})` : ""}
                 </span>
                 <span className="font-semibold">
                   ₹{FinalShipping.toFixed(2)}
                 </span>
               </div>
-              {/* Pincode check UI */}
-              {/* Pincode Input Section */}
-              <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="flex items-center gap-2 mb-2">
-                  <MapPin size={18} className="text-gray-700" />
-                  <span className="font-medium">Delivery Location</span>
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    required
-                    type="text"
-                    className="flex-1/2 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Enter 6-digit pincode"
-                    value={pincodeInput}
-                    onChange={e => setPincodeInput(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
-                    maxLength={6}
-                  />
-                  <button
-                    className={`flex gap-2 items-center px-4 py-2 rounded font-medium ${pincodeInput.length === 6
-                      ? 'bg-blue-600 text-white hover:bg-blue-700'
-                      : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                      }`}
-                    disabled={pincodeInput.length !== 6 || loadingShipping}
-                    onClick={handlePincodeCheck}
-                  >
-                    {loadingShipping ? <Loader2 className="animate-spin" /> : 'Save Pincode'}
-                  </button>
-                </div>
-                {pincodeError && (
-                  <p className="text-red-500 text-sm mt-2">{pincodeError}</p>
-                )}
-                {pincodeResult && (
-                  <div className="mt-2 text-sm">
-                    <p className="text-green-600">
-                      ✓ Delivery available to {pincodeResult.pincode}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* PIN Code Confirmation Modal */}
-              <Dialog
-                open={isPincodeConfirmModalOpen}
-                onOpenChange={setIsPincodeConfirmModalOpen}
-              >
-                <DialogContent className="bg-white rounded-lg max-w-md">
-                  <DialogHeader>
-                    <DialogTitle className="text-center text-xl font-bold">
-                      Yes, we've confirmed!
-                    </DialogTitle>
-                  </DialogHeader>
-
-                  <div className="mt-4 space-y-4">
-                    <p className="text-center">
-                      Your area PIN code is available for shipping.
-                      <br />
-                      You can proceed with your order, and we'll
-                      <br />
-                      ensure a smooth and timely delivery.
-                    </p>
-
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="text-right font-semibold">State</div>
-                      <div className="col-span-2 border-b border-gray-300">
-                        {pincodeResult?.state}
-                      </div>
-
-                      <div className="text-right font-semibold">Distt.</div>
-                      <div className="col-span-2 border-b border-gray-300">
-                        {pincodeResult?.district}
-                      </div>
-
-                      <div className="text-right font-semibold">PIN Code</div>
-                      <div className="col-span-2 border-b border-gray-300">
-                        {pincodeResult?.pincode}
-                      </div>
-                    </div>
-
-                    <button
-                      className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-md transition-colors"
-                      onClick={handleApplyPincode}
-                    >
-                      Apply Now
-                    </button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-
               {/* Total CGST/SGST */}
               <div className="flex justify-between items-center text-sm mb-2">
-                <span className="text-gray-600">Total CGST ({cart[0]?.cgst || 0}%)</span>
-                <span className="text-gray-900 font-medium">₹{cart.reduce((total, item) => {
-                  const price = isVendor && item.vendorPrice !== undefined ? item.vendorPrice : item.price;
-                  return total + (price * (item.cgst || 0) / 100 * item.qty);
-                }, 0).toFixed(2)}</span>
+                <span className="text-gray-600">
+                  Total CGST ({cart[0]?.cgst || 0}%)
+                </span>
+                <span className="text-gray-900 font-medium">
+                  ₹
+                  {cart
+                    .reduce((total, item) => {
+                      const price =
+                        isVendor && item.vendorPrice !== undefined
+                          ? item.vendorPrice
+                          : item.price;
+                      return (
+                        total + ((price * (item.cgst || 0)) / 100) * item.qty
+                      );
+                    }, 0)
+                    .toFixed(2)}
+                </span>
               </div>
               <div className="flex justify-between items-center text-sm mb-2">
-                <span className="text-gray-600">Total SGST ({cart[0]?.sgst || 0}%)</span>
-                <span className="text-gray-900 font-medium">₹{cart.reduce((total, item) => {
-                  const price = isVendor && item.vendorPrice !== undefined ? item.vendorPrice : item.price;
-                  return total + (price * (item.sgst || 0) / 100 * item.qty);
-                }, 0).toFixed(2)}</span>
+                <span className="text-gray-600">
+                  Total SGST ({cart[0]?.sgst || 0}%)
+                </span>
+                <span className="text-gray-900 font-medium">
+                  ₹
+                  {cart
+                    .reduce((total, item) => {
+                      const price =
+                        isVendor && item.vendorPrice !== undefined
+                          ? item.vendorPrice
+                          : item.price;
+                      return (
+                        total + ((price * (item.sgst || 0)) / 100) * item.qty
+                      );
+                    }, 0)
+                    .toFixed(2)}
+                </span>
               </div>
               <hr className="my-2" />
 
@@ -830,12 +830,8 @@ const CartDetails = () => {
               </div>
               <button
                 className="w-full py-3 bg-orange-500 text-white font-bold text-base hover:bg-orange-600 mb-2"
-                disabled={!termsChecked || !pincodeResult}
+                disabled={!termsChecked}
                 onClick={() => {
-                  if (!pincodeResult) {
-                    toast.error('Please check your pincode before proceeding.');
-                    return;
-                  }
                   handleCheckout();
                 }}
               >
@@ -928,9 +924,8 @@ const CartDetails = () => {
             </div>
           </div>
         </div>
-      )
-      }
-    </div >
+      )}
+    </div>
   );
 };
 
