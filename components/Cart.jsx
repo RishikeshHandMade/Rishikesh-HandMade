@@ -96,6 +96,7 @@ export default function Cart({ open, onClose, initialTab = "cart" }) {
                 <img src={typeof item.image === "string" ? item.image : item.image?.url} alt={item.name} className="w-20 h-20 rounded-lg object-cover border" />
                 <div className="flex-1">
                   <div className="font-semibold text-base leading-tight mb-1">{item.name}</div>
+                  <div className="font-semibold text-sm leading-tight mb-1"> Size: {item?.size || "N/A"}</div>
                   {tab === "cart" && (
                     <div className="flex items-center gap-2 mt-2">
                       <button onClick={() => updateCartQty(item.id, Math.max(1, item.qty - 1))} className="w-8 h-8 rounded-full border flex items-center justify-center"><Minus size={18} /></button>

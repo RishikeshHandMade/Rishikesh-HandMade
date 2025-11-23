@@ -421,7 +421,7 @@ const CartDetails = () => {
                 <thead>
                   <tr className="bg-blue-200 text-black text-sm">
                     <th className="border p-2">Image</th>
-                    <th className="border p-2">Name / Code</th>
+                    <th className="border p-2">Name</th>
                     <th className="border p-2">Base Price</th>
                     {!isVendor && <th className="border p-2">Discount</th>}
                     {!isVendor && (
@@ -451,11 +451,14 @@ const CartDetails = () => {
                         />
                       </td>
                       <td className="border p-2 text-center">
-                        <div className="font-bold text-base leading-tight">
+                        <div className="font-bold text-sm leading-tight">
                           {item.name}
                         </div>
-                        <div className="italic text-base text-black">
-                          {item.productCode || "N/A"}
+                        <div className="italic text-start text-sm text-black">
+                         <span className="font-bold">Code:</span> {item.productCode || "N/A"}
+                        </div>
+                        <div className="italic text-start text-sm text-black">
+                          <span className="font-bold">Size:</span> {item.size || "N/A"}
                         </div>
                       </td>
                       <td className="border p-2 text-center">
@@ -594,6 +597,10 @@ const CartDetails = () => {
                         <div>
                           <span className="font-semibold">Code:</span>{" "}
                           {item.productCode || "N/A"}
+                        </div>
+                        <div>
+                          <span className="font-semibold">Size:</span>{" "}
+                          {item.size || "N/A"}
                         </div>
                         <div className="border p-2 text-center">
                           {isVendor && item.vendorPrice !== undefined ? (

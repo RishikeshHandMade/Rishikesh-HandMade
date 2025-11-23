@@ -411,8 +411,8 @@ export default function QuickViewProductCard({ product, onClose }) {
           <button
             className="bg-black text-white px-4 py-2 font-semibold hover:bg-gray-800 w-1/2"
             onClick={() => {
-              const basePrice = product?.quantity?.variants[0].price;
-              const vendorPrice = product?.quantity?.variants[0]?.vendorPrice;
+              const basePrice = selectedVariant?.price || product?.quantity?.variants[0].price;
+              const vendorPrice = selectedVariant?.vendorPrice || product?.quantity?.variants[0]?.vendorPrice;
               const price = isVendor && vendorPrice ? vendorPrice : basePrice;
               const coupon = product.coupon || product.coupons?.coupon;
               let discountedPrice = price;
@@ -472,8 +472,8 @@ export default function QuickViewProductCard({ product, onClose }) {
                 return;
               }
 
-              const basePrice = product?.quantity?.variants[0].price;
-              const vendorPrice = product?.quantity?.variants[0]?.vendorPrice;
+              const basePrice = selectedVariant?.price || product?.quantity?.variants[0].price;
+              const vendorPrice = selectedVariant?.vendorPrice || product?.quantity?.variants[0]?.vendorPrice;
               const price = isVendor && vendorPrice ? vendorPrice : basePrice;
               const coupon = product.coupon || product.coupons?.coupon;
               let discountedPrice = price;

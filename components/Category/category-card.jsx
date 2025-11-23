@@ -57,7 +57,7 @@ const CategoryCard = ({ category }) => {
         </Link>
       </div>
       <Link href={category.url || `/category/${category.url}`}>
-        <span className="font-semibold text-start text-gray-800 text-base hover:underline truncate w-full mt-5 px-2">
+        <span className="font-semibold text-start text-gray-800 text-base hover:underline w-24 mt-5">
           {category.title}
         </span>
       </Link>

@@ -24,7 +24,7 @@ import Autoplay from "embla-carousel-autoplay";
 import { useSession } from 'next-auth/react';
 
 export default function ProductDetailView({ product }) {
-  console.log(product);
+  // console.log(product);
   // --- Ask An Expert Modal State ---
   const { data: session } = useSession();
   const [showExpertModal, setShowExpertModal] = useState(false);
