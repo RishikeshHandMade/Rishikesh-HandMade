@@ -572,7 +572,7 @@ const QuantityManagement = ({ productData, productId }) => {
           color: row.color,
           price: Number(row.price),
           qty: Number(row.qty),
-          vendorPrice: row.vendorPrice,
+          vendorPrice: Number(row.vendorPrice),
           weight: Number(weightValue),
           optional: false,
           // Include both the new structure (images) and the old structure (for backward compatibility)

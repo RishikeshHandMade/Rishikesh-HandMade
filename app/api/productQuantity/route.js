@@ -26,8 +26,8 @@ export async function POST(req) {
   }
   // Validate variants
   for (const v of body.variants) {
-    if (!v.size || !v.color || typeof v.qty !== 'number' || typeof v.price !== 'number' || typeof v.vendorPrice !== 'string' || typeof v.weight !== 'number') {
-      return Response.json({ error: 'Each variant must have size, color, qty, price, vendorPrice, weight' }, { status: 400 });
+    if (!v.size || !v.color || typeof v.qty !== 'number' || typeof v.price !== 'number' || typeof v.weight !== 'number') {
+      return Response.json({ error: 'Each variant must have size, color, qty, price, weight' }, { status: 400 });
     }
     
     // Process images for each variant
