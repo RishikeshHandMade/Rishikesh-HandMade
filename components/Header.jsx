@@ -18,14 +18,13 @@ import { ArrowDown, Menu, X } from "lucide-react";
 import * as NavigationMenu from "@radix-ui/react-navigation-menu";
 import { motion, AnimatePresence } from "framer-motion";
 import clsx from "clsx";
-const Header = () => {
+const Header = ({menuItems}) => {
   const authDropdownRef = useRef(null);
   const profileMenuRef = useRef(null);
   const pathName = usePathname();
   const [isMounted, setIsMounted] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isAuthDropdownOpen, setIsAuthDropdownOpen] = useState(false);
-  const [menuItems, setMenuItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [initialCartTab, setInitialCartTab] = useState('cart');
   const { data: session, status } = useSession();
@@ -66,13 +65,6 @@ const Header = () => {
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  useEffect(() => {
-    fetch("/api/getAllMenuItems")
-      .then(res => res.json())
-      .then(data => setMenuItems(data));
-  }, []);
-
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 50) {

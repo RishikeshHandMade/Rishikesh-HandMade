@@ -62,7 +62,7 @@ const RandomTourPackageSection = () => {
       color: item?.quantity?.variants[0].color,
       originalPrice: price,
       qty: 1,
-      vendorPrice : item?.quantity?.variants[0]?.vendorPrice,
+      vendorPrice: item?.quantity?.variants[0]?.vendorPrice,
       couponApplied,
       couponCode: couponApplied ? couponCode : undefined,
       productCode: item.code || item.productCode || "",
@@ -417,11 +417,11 @@ const RandomTourPackageSection = () => {
                                     qty: 1,
                                     couponApplied,
                                     couponCode: couponApplied
-                                    ? couponCode
-                                    : undefined,
+                                      ? couponCode
+                                      : undefined,
                                     productCode:
-                                    item.code || item.productCode || "",
-                                    vendorPrice :item?.quantity?.variants[0]?.vendorPrice,
+                                      item.code || item.productCode || "",
+                                    vendorPrice: item?.quantity?.variants[0]?.vendorPrice,
                                     discountPercent:
                                       coupon &&
                                         typeof coupon.percent === "number"
@@ -1665,8 +1665,18 @@ const RandomTourPackageSection = () => {
         </div>
         <div className="w-full">
           {/* <!-- Elfsight Facebook Feed | Untitled Facebook Feed --> */}
-          <script src="https://elfsightcdn.com/platform.js" async></script>
-          <div className="elfsight-app-681f1493-b47c-4a72-9e0a-2f7e3d346475" data-elfsight-app-lazy></div>
+
+          <iframe
+            src="https://www.facebook.com/plugins/video.php?height=420&href=https%3A%2F%2Fwww.facebook.com%2F100076229983946%2Fvideos%2F1701693931215780%2F&show_text=true&width=560&t=0"
+            width="560"
+            height="631"
+            style={{ border: "none", overflow: "hidden" }}
+            scrolling="no"
+            frameBorder="0"
+            allowFullScreen={true}
+            allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+          ></iframe>
+
         </div>
       </section>
     </>

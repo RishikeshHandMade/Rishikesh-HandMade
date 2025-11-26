@@ -42,6 +42,7 @@ const OverlayButton = () => {
             document.body.removeChild(s)
         };
     }, []);
+    return null;
 }
 
 export default OverlayButton

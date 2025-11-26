@@ -1,5 +1,5 @@
-// 👇 Add this at the top to force server-side rendering
-export const dynamic = "force-dynamic";
+// // 👇 Add this at the top to force server-side rendering
+// export const dynamic = "force-dynamic";
 
 import { SidebarInset } from "@/components/ui/sidebar";
 import ResponsiveFeaturedCarousel from "@/components/ResponsiveFeaturedCarousel";
@@ -7,7 +7,6 @@ import ResponsiveFeaturedCarousel from "@/components/ResponsiveFeaturedCarousel"
 import { CategoryCarousel } from "@/components/Category/category-card";
 import connectDB from "@/lib/connectDB";
 import Product from "@/models/Product";
-
 import ProductDetailView from "@/components/ProductDetailView";
 import ProductVideo from "@/components/ProductVideo";
 import ProductInfoTabs from "@/components/ProductInfoTabs";
@@ -26,7 +25,9 @@ import ProductCoupons from '@/models/ProductCoupons';
 import Quantity from '@/models/Quantity';
 import Color from '@/models/Color';
 import ProductTagLine from '@/models/ProductTagLine';
+import ProductCategoryBar from "./ProductCategoryBar";
 import ArtisanStory from '@/models/ArtisanStory';
+
 const ProductDetailPage = async ({ params }) => {
   await connectDB();
 
@@ -62,22 +63,6 @@ const ProductDetailPage = async ({ params }) => {
   } catch (error) {
     console.error("Error fetching FBT:", error.message);
   }
-
-  // ✅ Fetch Categories
-  let allCategories = [];
-  try {
-    if (product.category) {
-      const allCategoriesRes = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/getAllMenuItems`,
-        { cache: 'no-store' }
-      );
-      if (!allCategoriesRes.ok) throw new Error("Categories fetch failed");
-      allCategories = await allCategoriesRes.json();
-    }
-  } catch (error) {
-    console.error("Error fetching categories:", error.message);
-  }
-
   // ✅ Render Product Detail Page
   return (
     <SidebarInset>
@@ -94,28 +79,14 @@ const ProductDetailPage = async ({ params }) => {
         </div>
 
         {frequentlyBoughtTogether.length > 0 && (
-          <div className="mt-8 px-4 py-10 bg-[#ededed]">
+          <div className="mt-8 px-4 py-10 bg-[#FCF7F1]">
             <h2 className="text-2xl underline md:text-3xl font-semibold px-5 md:px-10">Frequently Bought Together</h2>
             <ResponsiveFeaturedCarousel products={frequentlyBoughtTogether} />
           </div>
         )}
 
-        {allCategories.length > 0 && (
-          <div className="mt-8 px-4 py-5">
-            <h2 className="text-2xl md:text-3xl font-semibold md:px-10 px-5 underline">Categories</h2>
-            <CategoryCarousel
-              categories={allCategories.flatMap(cat =>
-                Array.isArray(cat.subMenu)
-                  ? cat.subMenu.map(sub => ({
-                    title: sub.title,
-                    profileImage: sub.profileImage,
-                    url: `/category/${sub.url}`
-                  }))
-                  : []
-              )}
-            />
-          </div>
-        )}
+        <ProductCategoryBar />
+
 
         <StickyAddToCartBar product={product} />
       </div>
