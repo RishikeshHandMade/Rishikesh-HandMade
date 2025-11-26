@@ -49,7 +49,7 @@ export const revalidate = 3600;
 async function getMenuItems() {
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/getAllMenuItems`,
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/getMenuCategories`,
       { cache: "no-store" }
     );
 
@@ -66,6 +66,7 @@ import { CartProvider } from "../context/CartContext";
 export default async function RootLayout({ children }) {
   const isPaid = process.env.NEXT_PUBLIC_IS_PAID === "true";
   const menuItems = await getMenuItems();
+  // console.log(menuItems)
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`font-gilda`}>
