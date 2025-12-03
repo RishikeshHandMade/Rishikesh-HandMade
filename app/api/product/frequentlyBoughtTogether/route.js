@@ -4,10 +4,29 @@ import Product from '@/models/Product';
 import Size from '@/models/Size';
 import Color from '@/models/Color';
 import mongoose from 'mongoose';
-
+import Artisan from '@/models/Artisan';
+import Gallery from '@/models/Gallery';
+import Video from '@/models/Video';
+import Description from '@/models/Description';
+import Info from '@/models/Info';
+import CategoryTag from '@/models/CategoryTag';
+import ProductReview from '@/models/ProductReview';
+import Quantity from '@/models/Quantity';
+import ProductCoupons from '@/models/ProductCoupons';
+import ProductTax from '@/models/ProductTax';
+import ProductTagLine from '@/models/ProductTagLine';
 // Ensure models are registered
-import '@/models/Size';
-import '@/models/Color';
+import '@/models/Artisan';
+import '@/models/Gallery';
+import '@/models/Video';
+import '@/models/Description';
+import '@/models/Info';
+import '@/models/CategoryTag';
+import '@/models/ProductReview';
+import '@/models/Quantity';
+import '@/models/ProductCoupons';
+import '@/models/ProductTax';
+import '@/models/ProductTagLine';
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -38,7 +57,6 @@ export async function GET(request) {
         'description',
         'info',
         'categoryTag',
-        'productTagLine',
         'quantity',
         'coupons',
         'artisan'
