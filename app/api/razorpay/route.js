@@ -7,8 +7,13 @@ import User from "@/models/User";
 
 // Validate Razorpay credentials
 if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-    console.error('Razorpay credentials are not properly configured');
+    console.error('❌ RAZORPAY CREDENTIALS MISSING:', {
+        hasKeyId: !!process.env.RAZORPAY_KEY_ID,
+        hasKeySecret: !!process.env.RAZORPAY_KEY_SECRET,
+        nodeEnv: process.env.NODE_ENV
+    });
 }
+
 function generateOrderId() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let result = '';
@@ -17,17 +22,20 @@ function generateOrderId() {
     }
     return `ORD-${result}`;
 }
+
 function generateTransactionId() {
     return `TXN-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
 }
+
 let razorpay;
 try {
     razorpay = new Razorpay({
         key_id: process.env.RAZORPAY_KEY_ID,
         key_secret: process.env.RAZORPAY_KEY_SECRET,
     });
+    console.log('✅ Razorpay initialized successfully');
 } catch (error) {
-    console.error('Failed to initialize Razorpay:', error.message);
+    console.error('❌ Failed to initialize Razorpay:', error.message);
     throw new Error('Payment service initialization failed');
 }
 
@@ -39,16 +47,43 @@ function isValidEmail(email) {
 
 // 📌 Create a Razorpay Order
 export async function POST(request) {
+    console.log('🔵 Razorpay POST request received');
+
     try {
+        // Validate environment variables first
+        if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+            console.error('❌ Missing Razorpay credentials in environment');
+            return NextResponse.json(
+                {
+                    error: 'Payment service not configured',
+                    details: process.env.NODE_ENV === 'development' ? 'Missing RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET' : undefined
+                },
+                { status: 500 }
+            );
+        }
+
         // Connect to database first
-        await connectDB();
+        try {
+            await connectDB();
+            console.log('✅ Database connected');
+        } catch (dbError) {
+            console.error('❌ Database connection failed:', dbError.message);
+            return NextResponse.json(
+                {
+                    error: 'Database connection failed',
+                    details: process.env.NODE_ENV === 'development' ? dbError.message : undefined
+                },
+                { status: 500 }
+            );
+        }
 
         // Parse and validate request body
         let requestBody;
         try {
             requestBody = await request.json();
+            console.log('📦 Request body parsed, amount:', requestBody.amount);
         } catch (e) {
-            console.error('Failed to parse request body:', e);
+            console.error('❌ Failed to parse request body:', e);
             return NextResponse.json(
                 { error: 'Invalid request body' },
                 { status: 400 }
@@ -96,9 +131,11 @@ export async function POST(request) {
         // Create Razorpay order
         let razorpayOrder;
         try {
-            // console.log('Creating Razorpay order with amount:', Math.round(Number(amount) * 100));
+            const amountInPaise = Math.round(Number(amount) * 100);
+            console.log('💳 Creating Razorpay order:', { amountInPaise, currency, receipt });
+
             razorpayOrder = await razorpay.orders.create({
-                amount: Math.round(Number(amount) * 100), // Convert to paise and ensure integer
+                amount: amountInPaise, // Convert to paise and ensure integer
                 currency: currency.toUpperCase(),
                 receipt: receipt.toString(),
                 notes: {
@@ -107,7 +144,14 @@ export async function POST(request) {
                 }
             });
 
+            console.log('✅ Razorpay order created:', razorpayOrder.id);
+
         } catch (razorpayError) {
+            console.error('❌ Razorpay order creation failed:', {
+                message: razorpayError.message,
+                statusCode: razorpayError.statusCode,
+                error: razorpayError.error
+            });
 
             return NextResponse.json(
                 {
@@ -240,9 +284,16 @@ export async function POST(request) {
 
 
             // Save to database
+            console.log('💾 Saving order to database...');
             dbOrder = await Order.create(orderData);
+            console.log('✅ Order saved to DB:', dbOrder._id);
 
         } catch (dbErr) {
+            console.error('❌ Failed to save order to database:', {
+                message: dbErr.message,
+                name: dbErr.name,
+                code: dbErr.code
+            });
 
             return NextResponse.json({
                 error: 'Failed to save order in DB',
@@ -251,6 +302,7 @@ export async function POST(request) {
         }
 
         // Respond with both Razorpay order ID and DB order ID
+        console.log('✅ Razorpay POST completed successfully');
         return NextResponse.json({
             id: razorpayOrder.id, // Razorpay order ID for payment modal
             orderId: dbOrder._id, // MongoDB order ID for tracking
@@ -258,9 +310,17 @@ export async function POST(request) {
             currency: razorpayOrder.currency
         });
     } catch (error) {
-        // console.error("Error creating Razorpay order:", error);
+        console.error('❌ Unexpected error in Razorpay POST:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+        });
+
         return NextResponse.json(
-            { error: "Failed to create order" },
+            {
+                error: "Failed to create order",
+                details: process.env.NODE_ENV === 'development' ? error.message : undefined
+            },
             { status: 500 }
         );
     }
