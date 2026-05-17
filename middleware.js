@@ -2,13 +2,47 @@ import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 export async function middleware(req) {
+    // --- Subdomain middleware start ---
+  // This block reads the Host header, extracts a potential subdomain,
+  // and internally rewrites requests like `form1.localhost:3000` to
+  // `/forms/form1` so the app can serve tenant-aware pages.
+  const host = req.headers.get("host") || "";
+  const hostWithoutPort = host.split(":")[0];
+  const hostParts = hostWithoutPort.split('.');
+  // Ignore top-level hosts like `localhost` or `www`
+  const ignored = ["www", "localhost"];
+  let subdomain = null;
+  if (hostParts.length >= 2) {
+    const first = hostParts[0].toLowerCase();
+    if (first && !ignored.includes(first)) {
+      subdomain = first;
+    }
+  }
+
+  const { pathname } = req.nextUrl;
+
+  // Avoid rewriting internal, API, next, or admin routes
+  if (
+    subdomain &&
+    !pathname.startsWith('/api') &&
+    !pathname.startsWith('/_next') &&
+    !pathname.startsWith('/admin') &&
+    !pathname.startsWith('/static') &&
+    !pathname.startsWith(`/forms`) // already a forms path
+  ) {
+    // Internally rewrite to /forms/{subdomain}{originalPath}
+    const rewriteTo = `/forms/${subdomain}${pathname}`;
+    return NextResponse.rewrite(new URL(rewriteTo, req.url));
+  }
+  // --- Subdomain middleware end ---
+
   const token = await getToken({
     req,
     secret: process.env.NEXTAUTH_SECRET,
     secureCookie: process.env.NODE_ENV === "production",
   });
 
-  const { pathname } = req.nextUrl;
+  // const { pathname } = req.nextUrl;
 
   // Allow access to public routes (e.g., /sign-in, /admin/login)
   if (pathname.startsWith("/admin/login")) {
@@ -65,14 +99,15 @@ return NextResponse.next();
 
 // Apply middleware to protect admin and user routes
 export const config = {
-  matcher: [
-    "/admin/:path*",
-    "/api/admin/:path*",
-    "/dashboard",
-    "/dashboard/:path*",
-    "/checkout/orderConfirmed/:path*",
-    "/sign-in",
-    "/sign-up",
-    "/admin/login",
-  ],
+  // matcher: [
+  //   "/admin/:path*",
+  //   "/api/admin/:path*",
+  //   "/dashboard",
+  //   "/dashboard/:path*",
+  //   "/checkout/orderConfirmed/:path*",
+  //   "/sign-in",
+  //   "/sign-up",
+  //   "/admin/login",
+  // ],
+   matcher: ['/:path*'],
 };
