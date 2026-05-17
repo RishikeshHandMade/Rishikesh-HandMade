@@ -11,26 +11,49 @@ export default function SubdomainForm() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+
     setStatus('Saving...');
+
     try {
       const res = await fetch('/api/forms', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, subdomain, description }),
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          subdomain,
+          description
+        })
       });
+
       const data = await res.json();
+
       if (!res.ok) {
         setStatus(data.error || 'Error');
         return;
       }
-      const url = `http://${data.form.subdomain}.localhost:3000`;
+
+      // .env
+      // NEXT_PUBLIC_BASE_URL=https://rishikeshhandmade.com
+
+      const domain = new URL(
+        process.env.NEXT_PUBLIC_BASE_URL
+      ).hostname;
+
+      const url =
+        `https://${data.form.subdomain}.${domain}`;
+
       setGeneratedUrl(url);
+
       setStatus('Saved!');
-      // clear form
+
       setName('');
       setEmail('');
       setSubdomain('');
       setDescription('');
+
     } catch (err) {
       console.error(err);
       setStatus('Server error');
@@ -39,47 +62,112 @@ export default function SubdomainForm() {
 
   return (
     <div className="max-w-xl mx-auto p-4 border rounded">
-      <h2 className="text-xl font-semibold mb-2">Create Form</h2>
+
+      <h2 className="text-xl font-semibold mb-2">
+        Create Form
+      </h2>
+
       <form onSubmit={handleSubmit}>
+
         <div className="mb-2">
-          <label className="block text-sm">Name</label>
-          <input value={name} onChange={(e)=>setName(e.target.value)} className="w-full border p-2" required />
+          <label>Name</label>
+
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full border p-2"
+            required
+          />
         </div>
-         <div className="mb-2">
-          <label className="block text-sm">Email</label>
-          <input value={email} onChange={(e)=>setEmail(e.target.value)} className="w-full border p-2" required />
-        </div>
+
         <div className="mb-2">
-          <label className="block text-sm">Subdomain Name (optional)</label>
-          <input value={subdomain} onChange={(e)=>setSubdomain(e.target.value)} className="w-full border p-2" placeholder="form1" />
+          <label>Email</label>
+
+          <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full border p-2"
+            required
+          />
         </div>
+
         <div className="mb-2">
-          <label className="block text-sm">Description</label>
-          <textarea value={description} onChange={(e)=>setDescription(e.target.value)} className="w-full border p-2" />
+          <label>Subdomain</label>
+
+          <input
+            value={subdomain}
+            onChange={(e) => {
+              const value = e.target.value
+                .toLowerCase()
+                .trim()
+                .replace(/\s+/g, "-")      // spaces → -
+                .replace(/[^a-z0-9-]/g, "") // remove special chars
+                .replace(/-+/g, "-");       // remove repeated -
+
+              setSubdomain(value);
+            }}
+            className="w-full border p-2"
+            placeholder="akhil-maratha"
+          />
         </div>
-        <div className="flex items-center gap-2">
-          <button type="submit" className="px-3 py-1 bg-blue-600 text-white rounded">Save</button>
-          {status && <span className="text-sm">{status}</span>}
+
+        <div className="mb-2">
+          <label>Description</label>
+
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full border p-2"
+          />
         </div>
+
+        <div className="flex gap-2 items-center">
+
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-3 py-1 rounded"
+          >
+            Save
+          </button>
+
+          {status && (
+            <span>{status}</span>
+          )}
+
+        </div>
+
         {generatedUrl && (
-          <div className="mt-3 flex items-center gap-2">
-            <a href={generatedUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{generatedUrl}</a>
+
+          <div className="mt-4">
+
+            <a
+              href={generatedUrl}
+              target="_blank"
+              className="text-blue-600 underline"
+            >
+              {generatedUrl}
+            </a>
+
             <button
               type="button"
-              onClick={async ()=>{
-                try {
-                  await navigator.clipboard.writeText(generatedUrl);
-                  setStatus('Link copied to clipboard');
-                } catch (err) {
-                  setStatus('Copy failed');
-                }
+              onClick={() => {
+                navigator.clipboard.writeText(
+                  generatedUrl
+                );
+
+                setStatus(
+                  'Link copied'
+                );
               }}
-              className="px-2 py-1 bg-gray-200 rounded"
+              className="ml-2 px-2 py-1 bg-gray-200 rounded"
             >
               Copy
             </button>
+
           </div>
+
         )}
+
       </form>
     </div>
   );
