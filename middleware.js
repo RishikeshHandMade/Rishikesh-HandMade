@@ -6,34 +6,42 @@ export async function middleware(req) {
   // This block reads the Host header, extracts a potential subdomain,
   // and internally rewrites requests like `form1.localhost:3000` to
   // `/forms/form1` so the app can serve tenant-aware pages.
-  const host = req.headers.get("host") || "";
-  const hostWithoutPort = host.split(":")[0];
-  const hostParts = hostWithoutPort.split('.');
-  // Ignore top-level hosts like `localhost` or `www`
-  const ignored = ["www", "localhost"];
-  let subdomain = null;
-  if (hostParts.length >= 2) {
-    const first = hostParts[0].toLowerCase();
-    if (first && !ignored.includes(first)) {
-      subdomain = first;
-    }
-  }
+  // --- Subdomain middleware start ---
+const host = req.headers.get("host") || "";
+const hostWithoutPort = host.split(":")[0];
+const hostParts = hostWithoutPort.split(".");
 
-  const { pathname } = req.nextUrl;
+const ignored = ["www", "localhost"];
 
-  // Avoid rewriting internal, API, next, or admin routes
-  if (
-    subdomain &&
-    !pathname.startsWith('/api') &&
-    !pathname.startsWith('/_next') &&
-    !pathname.startsWith('/admin') &&
-    !pathname.startsWith('/static') &&
-    !pathname.startsWith(`/forms`) // already a forms path
-  ) {
-    // Internally rewrite to /forms/{subdomain}{originalPath}
-    const rewriteTo = `/forms/${subdomain}${pathname}`;
-    return NextResponse.rewrite(new URL(rewriteTo, req.url));
+let subdomain = null;
+
+// only detect actual subdomains
+// feedback.rishikeshhandmade.com => length=3
+// rishikeshhandmade.com => length=2
+
+if (hostParts.length > 2) {
+  const first = hostParts[0].toLowerCase();
+
+  if (first && !ignored.includes(first)) {
+    subdomain = first;
   }
+}
+
+const { pathname } = req.nextUrl;
+
+if (
+  subdomain &&
+  !pathname.startsWith("/api") &&
+  !pathname.startsWith("/_next") &&
+  !pathname.startsWith("/admin") &&
+  !pathname.startsWith("/static") &&
+  !pathname.startsWith("/forms")
+) {
+  return NextResponse.rewrite(
+    new URL(`/forms/${subdomain}${pathname}`, req.url)
+  );
+}
+// --- Subdomain middleware end ---
   // --- Subdomain middleware end ---
 
   const token = await getToken({
