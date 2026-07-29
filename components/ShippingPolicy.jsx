@@ -61,9 +61,9 @@ const ShippingPolicy = () => {
           {/* Additional Shipping Policy Points 7-11 */}
           <div className="space-y-5">
             <div>
-              <p className="text-justify" style={{ textAlign: 'justify' }}><b>7. Why is the COD option not offered in my location? :-</b>
-                Availability of COD depends on the ability of our courier partner servicing your location to accept cash as payment at the time of delivery.<br />
-                Our courier partners have limits on the cash amount payable on delivery depending on the destination and your order value might have exceeded this limit.  Please enter your pin code on the product page to check if COD is available in your location.
+              <p className="text-justify" style={{ textAlign: 'justify' }}><b>7. Why is online payment not available in my location? :-</b>
+                Availability of payment options depends on the services supported for your delivery area and the order value.<br />
+                Please enter your pin code on the product page to check the available checkout options in your location.
               </p>
             </div>
             <div>

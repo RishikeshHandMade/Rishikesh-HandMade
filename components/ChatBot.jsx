@@ -22,7 +22,7 @@ const productQnA = [
   },
   {
     q: "💳 Payment & Checkout",
-    a: `Q: What payment methods do you accept?\nA: We accept credit/debit cards, UPI, PayPal, and Cash on Delivery (COD) in selected areas.\n\nQ: Is it safe to make a payment on your site?\nA: Absolutely. Our website uses SSL encryption and secure payment gateways to protect your data.`
+    a: `Q: What payment methods do you accept?\nA: We accept credit/debit cards, UPI, and secure online payment methods.\n\nQ: Is it safe to make a payment on your site?\nA: Absolutely. Our website uses SSL encryption and secure payment gateways to protect your data.`
   },
   {
     q: "🔁 Returns & Refunds",

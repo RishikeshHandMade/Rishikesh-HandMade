@@ -20,9 +20,7 @@ export async function GET(req) {
     let filter = { agree: true };
 
     // Apply filters based on type
-    if (type === 'cod') {
-      filter.paymentMethod = { $in: ['cod'] };
-    } else if (type === 'online') {
+    if (type === 'online') {
       filter.paymentMethod = { $in: ['razorpay', 'online'] };
     }
     else if (type === 'vendor') {

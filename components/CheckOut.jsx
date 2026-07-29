@@ -83,7 +83,7 @@ function buildOrderPayload({
     // Payment/order info
     orderId,
     transactionId,
-    payment: paymentMethodValue, // 'cod', 'online', 'direct'
+    payment: paymentMethodValue, // 'online', 'vendor', 'direct'
     paymentMethod: paymentMethodValue,
     status: statusValue || "Pending",
     agree,
@@ -323,9 +323,9 @@ const CheckOut = () => {
                     <h3 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 600;">Order Status: Pending</h3>
                     <p style="margin: 0; font-size: 14px; color: #4b5563;">
                       Payment Method: ${
-                        paymentMethod === "online"
+                        paymentMethod === "online" || paymentMethod === "razorpay"
                           ? "Online Payment"
-                          : "Cash on Delivery"
+                          : paymentMethod || "N/A"
                       }
                     </p>
                   </div>
@@ -1105,13 +1105,12 @@ const CheckOut = () => {
     ? [{ value: "vendor", label: "Make Bulk Order" }]
     : [
         { value: "online", label: "Online Payment" },
-        { value: "cod", label: "Cash on Delivery (COD)" },
       ];
 
   // Set default payment method based on user type
-  const [payment, setPayment] = useState(isVendor ? "vendor" : "cod");
+  const [payment, setPayment] = useState(isVendor ? "vendor" : "online");
   const [paymentMethod, setPaymentMethod] = useState(
-    isVendor ? "vendor" : "cod"
+    isVendor ? "vendor" : "online"
   );
   const [agree, setAgree] = useState(false);
   const [formErrors, setFormErrors] = useState({});
@@ -1158,7 +1157,6 @@ const CheckOut = () => {
     address: `${street}, ${city}, ${state}, ${pincode}`,
     district,
   });
-  // Handle COD order creation
   // Prepare order data without submitting
   const prepareOrderData = (paymentMethod) => {
     // Check for buy-now mode
@@ -1513,47 +1511,8 @@ const CheckOut = () => {
         router,
         checkoutData
       );
-    } else if (payment === "cod") {
-      // Handle Cash on Delivery
-      setLoading(true);
-      try {
-        // Prepare and create COD order
-        setPaymentMethod("cod");
-        const orderData = prepareOrderData("cod");
-        const result = await handleCreateOrder("cod", orderData);
-        if (result) {
-          // Clear the form
-          setFirstName("");
-          setLastName("");
-          setPhone("");
-          setAltPhone("");
-          setStreet("");
-          setCity("");
-          setDistrict("");
-          setState("");
-          setPincode("");
-          // Show confirmation modal
-          setShowConfirmationModal(true);
-          setOrderId(result._id || result.orderId);
-
-          // Force a page reload to ensure all state is reset
-          setTimeout(() => {
-            // Clear everything again before redirecting
-            window.location.href = `/order-confirmation?orderId=${
-              result._id || result.orderId
-            }`;
-          }, 1000);
-        }
-      } catch (error) {
-        setError(error.message || "Failed to create order");
-        toast.error(
-          error.message || "Failed to place order. Please try again."
-        );
-      } finally {
-        setLoading(false);
-      }
     } else if (payment === "vendor") {
-      // Handle Cash on Delivery
+      // Handle vendor bulk order
       setLoading(true);
       try {
         const orderData = prepareOrderData(payment);
@@ -1812,242 +1771,6 @@ const CheckOut = () => {
           toast.error(error.message || "Failed to create order");
           setLoading(false);
         }
-        return;
-      }
-      if (confirmedPaymentMethod === "cod") {
-        // Always generate unique orderId for COD using shared generator
-        orderId = generateOrderId();
-        transactionId = orderId; // For COD, transactionId is same as orderId
-        setPaymentMethod("cod");
-        // Prepare products with proper image URL handling
-        const preparedProducts = productsToProcess.map((item) => ({
-          ...item,
-          // Ensure image is a string URL
-          image:
-            typeof item.image === "string" ? item.image : item.image?.url || "",
-          // Ensure required fields have defaults
-          qty: item.qty || 1,
-          price: item.price || 0,
-          color: item.color || "",
-          size: item.size || "",
-        }));
-
-        // Calculate shipping cost - use the most reliable source
-        const shippingCost = Number(
-          checkoutData?.shippingCost ||
-            checkoutData?.shipping ||
-            checkoutData?.finalShipping ||
-            0
-        );
-
-        // Prepare complete order data
-        const orderData = {
-          ...buildOrderPayload({
-            cart: preparedProducts,
-            checkoutData: {
-              ...checkoutData,
-              // Ensure these fields exist with proper fallbacks
-              cartTotal: checkoutData?.cartTotal || 0,
-              subTotal: checkoutData?.subTotal || 0,
-              totalDiscount: checkoutData?.totalDiscount || 0,
-              totalTax: checkoutData?.totalTax || checkoutData?.taxTotal || 0,
-              // Ensure promo code data is included from the root of checkoutData
-              promoCode:
-                checkoutData?.promoCode ||
-                checkoutData?.appliedCoupon?.code ||
-                null,
-              promoDiscount:
-                checkoutData?.promoDiscount ||
-                checkoutData?.appliedCoupon?.discount ||
-                0,
-              // Include the appliedCoupon object if it exists
-              ...(checkoutData?.appliedCoupon && {
-                appliedCoupon: {
-                  code: checkoutData.appliedCoupon.code,
-                  discount: checkoutData.appliedCoupon.discount || 0,
-                  type: checkoutData.appliedCoupon.type || "fixed",
-                  minPurchase: checkoutData.appliedCoupon.minPurchase,
-                  maxDiscount: checkoutData.appliedCoupon.maxDiscount,
-                },
-              }),
-              // Use the calculated shipping cost
-              shippingCost: shippingCost,
-              // Include coupon data from products if available
-              ...(preparedProducts.some((p) => p.couponCode) && {
-                products: preparedProducts.map((p) => ({
-                  ...p,
-                  // Ensure coupon data is included in each product
-                  couponApplied: p.couponApplied || false,
-                  couponCode: p.couponCode || "",
-                })),
-              }),
-            },
-            ...formFields,
-            payment: "cod",
-            paymentMethod: "cod",
-            paymentMethodValue: "cod",
-            transactionId,
-            orderId,
-            agree: true,
-            statusValue: "Pending",
-          }),
-          // Include additional required fields
-          items: preparedProducts.map((item) => ({
-            ...item,
-            productId: item._id || item.productId,
-            variantId: item.variantId || 0,
-            quantity: item.qty || 1,
-            price: item.price || 0,
-            total: (item.price || 0) * (item.qty || 1),
-            // Include additional product details
-            originalPrice: item.originalPrice || item.price || 0,
-            color: item.color || "",
-            size: item.size || "",
-            weight: item.weight || 0,
-            cgst: item.cgst || 0,
-            sgst: item.sgst || 0,
-            discountAmount: item.discountAmount || 0,
-            discountPercent: item.discountPercent || 0,
-            // Ensure tax and discount info is included
-            tax: item.tax || 0,
-            taxPercentage: item.taxPercentage || 0,
-            taxType: item.taxType || "inclusive",
-            discountType: item.discountType || "amount",
-          })),
-          // Ensure order-level tax and promo data is included
-          tax: checkoutData?.totalTax || 0,
-          taxPercentage: checkoutData?.taxPercentage || 0,
-          // Get promo code from multiple possible locations in checkoutData
-          promoCode:
-            checkoutData?.promoCode ||
-            checkoutData?.appliedCoupon?.code ||
-            null,
-          promoDiscount:
-            checkoutData?.promoDiscount ||
-            checkoutData?.appliedCoupon?.discount ||
-            0,
-          // Include applied coupon details if available
-          ...(checkoutData?.appliedCoupon
-            ? {
-                appliedCoupon: {
-                  code: checkoutData.appliedCoupon.code,
-                  discount: checkoutData.appliedCoupon.discount || 0,
-                  type: checkoutData.appliedCoupon.type || "fixed",
-                  minPurchase: checkoutData.appliedCoupon.minPurchase,
-                  maxDiscount: checkoutData.appliedCoupon.maxDiscount,
-                },
-              }
-            : {}),
-          // Ensure coupon data is included in the root of the order
-          couponApplied: preparedProducts.some((p) => p.couponApplied) || false,
-          couponCode:
-            preparedProducts.find((p) => p.couponCode)?.couponCode || null,
-          // Ensure these fields are included
-          status: "Pending",
-          paymentStatus: "Pending",
-          paymentMethod: "cod",
-          isBuyNow: isBuyNow,
-          datePurchased: new Date().toISOString(),
-        };
-        // console.log('Sending order data:', JSON.stringify(orderData, null, 2));
-        const res = await fetch("/api/orders", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(orderData),
-        });
-        const data = await res.json();
-        if (!data.orderId) {
-          setError("Order creation failed.");
-          setLoading(false);
-          return;
-        }
-        // Add this email sending logic right here:
-        try {
-          const emailSent = await sendOrderConfirmationEmail(
-            {
-              ...formFields,
-              orderId: orderId,
-              paymentMethod: "cod",
-              orderDate: new Date().toISOString(),
-              subTotal: checkoutData?.subTotal || 0,
-              totalDiscount: checkoutData?.totalDiscount || 0,
-              promoCode: checkoutData?.promoCode || "",
-              totalTax: checkoutData?.totalTax || checkoutData?.taxTotal || 0,
-              shippingCost:
-                checkoutData?.shippingCost || checkoutData?.shipping || 0,
-              cartTotal: checkoutData?.cartTotal || 0,
-              // Include other form fields needed in the email
-              email: formFields.email || session?.user?.email,
-              firstName: formFields.firstName || "",
-              lastName: formFields.lastName || "",
-              street: formFields.street || "",
-              city: formFields.city || "",
-              district: formFields.district || "",
-              state: formFields.state || "",
-              pincode: formFields.pincode || "",
-              phone: formFields.phone || "",
-              altPhone: formFields.altPhone || "",
-            },
-            // Pass cart items as second parameter
-            isBuyNow && checkoutData?.cart
-              ? checkoutData.cart.map((item) => ({
-                  ...item,
-                  image:
-                    typeof item.image === "string"
-                      ? item.image
-                      : item.image?.url || "",
-                  name: item.name || "Product",
-                  qty: item.qty || 1,
-                  price: item.price || 0,
-                  size: item.size || "",
-                }))
-              : checkoutData?.cart.map((item) => ({
-                  ...item,
-                  image:
-                    typeof item.image === "string"
-                      ? item.image
-                      : item.image?.url || "",
-                  name: item.name || "Product",
-                  qty: item.qty || 1,
-                  price: item.price || 0,
-                  size: item.size || "",
-                })),
-            "cod"
-          );
-
-          if (emailSent) {
-            toast.success("Order confirmation email sent!");
-          }
-        } catch (emailError) {
-          // console.error('Error sending order confirmation email:', emailError);
-          toast.error("Order placed, but failed to send confirmation email");
-        }
-
-        // Clear buy now product from localStorage if this was a buy now order
-        if (isBuyNow && typeof window !== "undefined") {
-          localStorage.removeItem("buyNowProduct");
-        }
-        setOrderId(orderId); // orderId should be the Razorpay/order DB ID you get back
-        setShowConfirmationModal(true);
-        // toast.success('Order placed successfully!');
-        toast.success("Invoice Sent to Email");
-        // router.push(`/dashboard?orderId=${data.orderId}`);
-        await clearCart();
-        if (buyNowMode) {
-          localStorage.removeItem("buyNowProduct");
-        } else {
-          if (typeof window !== "undefined") {
-            localStorage.removeItem("cart");
-            localStorage.removeItem("checkoutCart");
-            localStorage.removeItem("checkoutData");
-            Object.keys(localStorage).forEach((key) => {
-              if (key.startsWith("cart_")) {
-                localStorage.removeItem(key);
-              }
-            });
-          }
-        }
-        setLoading(false);
         return;
       }
       // For online, always go through Razorpay handler
@@ -2704,11 +2427,6 @@ const CheckOut = () => {
                       <div className="font-medium text-gray-900">
                         {option.label}
                       </div>
-                      {option.value === "cod" && (
-                        <p className="text-sm text-gray-500 mt-1">
-                          Pay when you receive your order
-                        </p>
-                      )}
                     </div>
                   </label>
                 ))}
@@ -2835,7 +2553,7 @@ const CheckOut = () => {
               return;
             }
 
-            setConfirmedPaymentMethod(payment); // payment = 'cod' or 'online'
+            setConfirmedPaymentMethod(payment);
             setShowOverview(true);
           }}
         >
@@ -2848,8 +2566,6 @@ const CheckOut = () => {
             `Confirm Bulk Order (₹${
               checkoutData?.cartTotal?.toFixed(2) || "0.00"
             })`
-          ) : payment === "cod" ? (
-            `Place Order (₹${checkoutData?.cartTotal?.toFixed(2) || "0.00"})`
           ) : (
             `Pay ₹${checkoutData?.cartTotal?.toFixed(2) || "0.00"}`
           )}
