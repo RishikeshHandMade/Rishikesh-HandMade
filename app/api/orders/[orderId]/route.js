@@ -115,6 +115,43 @@ export async function PUT(req, { params }) {
       // Save the updated order
       order = await order.save();
       // console.log('Order updated successfully');
+
+      // Send Shipping Confirmation Email
+      if (status === 'Shipped' && order.email && process.env.BREVO_API_KEY) {
+        try {
+          const htmlContent = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+                <h2 style="color: #4F46E5;">Your Order Has Shipped! 🎉</h2>
+                <p>Hi ${order.firstName || 'Customer'},</p>
+                <p>Great news! Your order <strong>#${order.orderId || order._id}</strong> has been shipped and is on its way to you.</p>
+                <div style="background-color: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #E5E7EB;">
+                    <h3 style="margin-top: 0; color: #1F2937;">Tracking Information</h3>
+                    <p style="margin-bottom: 8px; font-size: 16px;"><strong>Tracking ID:</strong> ${otherUpdates.trackingNumber || 'N/A'}</p>
+                    ${otherUpdates.trackingUrl ? `<p style="margin-bottom: 0; font-size: 16px;"><strong>Track your package:</strong> <br/><br/><a href="${otherUpdates.trackingUrl}" style="background-color: #4F46E5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Track Order Now</a></p>` : ''}
+                </div>
+                <p>If you have any questions, feel free to reply to this email.</p>
+                <p>Best regards,<br/><strong>Rishikesh HandMade</strong></p>
+            </div>
+          `;
+          
+          await fetch("https://api.brevo.com/v3/smtp/email", {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json",
+                  "api-key": process.env.BREVO_API_KEY,
+              },
+              body: JSON.stringify({
+                  sender: { email: "rishikeshhandmade@gmail.com", name: "Rishikesh HandMade" },
+                  to: [{ email: order.email }],
+                  subject: `Your Order #${order.orderId || order._id} has shipped!`,
+                  htmlContent: htmlContent
+              }),
+          });
+          // console.log("Shipping email sent successfully to", order.email);
+        } catch(emailErr) {
+          console.error("Failed to send shipping email:", emailErr);
+        }
+      }
     }
     if (!order) {
       return new Response(

@@ -23,7 +23,7 @@ export async function POST(req, { params }) {
         const secret_key = process.env.ITHINK_SECRET_KEY;
         const pickup_address_id = process.env.ITHINK_PICKUP_ADDRESS_ID;
         // Default to Production API URL if not explicitly set in .env
-        const apiUrl = process.env.ITHINK_API_URL || 'https://my.ithinklogistics.com/api_v3/order/add.json';
+        const apiUrl = process.env.ITHINK_API_URL;
 
         if (!access_token || !secret_key || !pickup_address_id) {
             return NextResponse.json({ success: false, error: 'iThinkLogistics API keys are missing' }, { status: 500 });
