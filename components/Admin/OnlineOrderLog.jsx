@@ -6,6 +6,12 @@ import Link from "next/link";
 import { Eye, Loader, MessagesSquare, X } from "lucide-react";
 
 
+function classNames(...classes) {
+  return classes.filter(Boolean).join(" ");
+}
+
+const orderStatusOptions = ["Select Status", "Pending", "Processing", "Shipped", "Delivered", "Cancelled"];
+
 const columns = [
   "Date",
   "Order ID",
@@ -224,6 +230,12 @@ const OnlineOrderLog = () => {
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [statusUpdateOrder, setStatusUpdateOrder] = useState(null);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [trackingNumber, setTrackingNumber] = useState("");
+  const [trackingUrl, setTrackingUrl] = useState("");
+  const [isSyncing, setIsSyncing] = useState(false);
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
@@ -401,7 +413,48 @@ const OnlineOrderLog = () => {
                     </td>
                     <td className="px-4 py-3 text-sm">₹{order.cartTotal?.toFixed(2)}</td>
                     <td className="px-4 py-3">
-                      {order.status || 'Pending'}
+                      <div className="relative inline-block w-32">
+                        <select
+                          className={classNames(
+                            "block w-full px-3 py-2 pr-8 rounded border text-xs font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-200 appearance-none cursor-pointer transition-all duration-150",
+                            order.status === "Delivered"
+                              ? "bg-green-50 border-green-400 text-green-800"
+                              : order.status === "Cancelled"
+                                ? "bg-red-50 border-red-400 text-red-800"
+                                : order.status === "Processing"
+                                  ? "bg-blue-50 border-blue-400 text-blue-800"
+                                  : order.status === "Shipped"
+                                    ? "bg-purple-50 border-purple-400 text-purple-800"
+                                    : "bg-gray-50 border-gray-300 text-gray-700"
+                          )}
+                          value={order.status || "Select"} // default to "Select" if no status
+                          onChange={(e) => {
+                            const newStatus = e.target.value;
+                            setSelectedStatus(newStatus);
+                            setStatusUpdateOrder(order);
+                            setStatusMessage('');
+                            
+                            if (newStatus === 'Shipped') {
+                              const shippedHistory = order.statusHistory?.find(h => h.status === 'Shipped');
+                              setTrackingNumber(order.trackingNumber || shippedHistory?.trackingNumber || '');
+                              setTrackingUrl(order.trackingUrl || shippedHistory?.trackingUrl || '');
+                            } else {
+                              setTrackingNumber('');
+                              setTrackingUrl('');
+                            }
+                          }}
+                        >
+                          {orderStatusOptions
+                            .map(status => (
+                              <option key={status} value={status}>
+                                {status}
+                              </option>
+                            ))}
+                        </select>
+                        <span className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                          ▼
+                        </span>
+                      </div>
                     </td>
                     {/* <td className="px-4 py-3">
                       <Link
@@ -465,6 +518,184 @@ const OnlineOrderLog = () => {
             </div>
         </div>
       </div>
+
+      {/* Modal for status update */}
+      {statusUpdateOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative animate-fade-in">
+            <button
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-2xl font-bold"
+              onClick={() => setStatusUpdateOrder(null)}
+              title="Close"
+            >
+              &times;
+            </button>
+            <h2 className="text-xl font-bold mb-4 text-blue-700">Update Order Status</h2>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                New Status
+              </label>
+              <div className="relative">
+                <select
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                >
+                  {orderStatusOptions
+                    .filter(status => status !== "Select")
+                    .map(status => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Update Message (Optional)
+              </label>
+              <textarea
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                rows="3"
+                placeholder="Add a message about this status update..."
+                value={statusMessage}
+                onChange={(e) => setStatusMessage(e.target.value)}
+              />
+            </div>
+
+            {selectedStatus === 'Shipped' && (
+              <div className="space-y-4 mt-4 p-4 bg-gray-50 rounded-md border border-gray-200">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="font-medium text-gray-700">Shipping Information</h3>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setIsSyncing(true);
+                      try {
+                        const res = await fetch(`/api/orders/${statusUpdateOrder._id}/ithink-sync`, {
+                          method: 'POST',
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                          setTrackingNumber(data.waybill || '');
+                          setTrackingUrl(data.trackingUrl || '');
+                          toast.success('Successfully synced with iThinkLogistics!');
+                        } else {
+                          toast.error(data.error || 'Failed to sync with iThinkLogistics');
+                        }
+                      } catch (err) {
+                        console.error(err);
+                        toast.error('Error syncing order');
+                      } finally {
+                        setIsSyncing(false);
+                      }
+                    }}
+                    disabled={isSyncing}
+                    className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 disabled:opacity-50 transition-colors"
+                  >
+                    {isSyncing ? 'Syncing...' : 'Generate AWB (iThink)'}
+                  </button>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tracking Number *
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter tracking number"
+                    value={trackingNumber}
+                    onChange={(e) => setTrackingNumber(e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tracking URL (Optional)
+                  </label>
+                  <input
+                    type="url"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="https://example.com/tracking/123"
+                    value={trackingUrl}
+                    onChange={(e) => setTrackingUrl(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                type="button"
+                className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                onClick={() => setStatusUpdateOrder(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                onClick={async () => {
+                  try {
+                    const updateData = {
+                      status: selectedStatus,
+                      message: statusMessage || \`Status updated to \${selectedStatus}\`,
+                      ...(selectedStatus === 'Shipped' && {
+                        trackingNumber: trackingNumber || '',
+                        trackingUrl: trackingUrl || ''
+                      })
+                    };
+
+                    const res = await fetch(\`/api/orders/\${statusUpdateOrder._id}\`, {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(updateData)
+                    });
+
+                    const data = await res.json();
+                    if (!data.success) {
+                      throw new Error(data.error || 'Update failed');
+                    }
+
+                    // Update local state
+                    setOrders(orders => orders.map(o =>
+                      o._id === statusUpdateOrder._id
+                        ? {
+                          ...o,
+                          status: selectedStatus,
+                          statusHistory: [
+                            ...(o.statusHistory || []),
+                            {
+                              status: selectedStatus,
+                              message: statusMessage || \`Status updated to \${selectedStatus}\`,
+                              ...(selectedStatus === 'Shipped' && {
+                                trackingNumber: trackingNumber,
+                                trackingUrl: trackingUrl
+                              }),
+                              updatedAt: new Date().toISOString()
+                            }
+                          ]
+                        }
+                        : o
+                    ));
+
+                    toast.success('Order status updated!');
+                    setStatusUpdateOrder(null);
+                  } catch (err) {
+                    console.error('Error updating status:', err);
+                    toast.error('Failed to update order status: ' + err.message);
+                  }
+                }}
+              >
+                Update Status
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {
         selectedOrder && (
