@@ -5,9 +5,9 @@ import connectDB from '@/lib/connectDB';
 
 export async function POST(req, { params }) {
     await connectDB();
-    
+
     try {
-        const { orderId } =await params;
+        const { orderId } = await params;
 
         if (!mongoose.Types.ObjectId.isValid(orderId)) {
             return NextResponse.json({ success: false, error: 'Invalid Order ID' }, { status: 400 });
@@ -49,7 +49,7 @@ export async function POST(req, { params }) {
         if (totalWeight === 0) totalWeight = 500; // default 500 grams
 
         const addressLine1 = order.street || order.address || '';
-        
+
         const shipmentData = {
             "waybill": "",
             "order": order.orderId || orderId.toString().substring(0, 8),
@@ -99,7 +99,7 @@ export async function POST(req, { params }) {
             "eway_bill_number": "",
             "gst_number": "",
             "what3words": "",
-            "return_address_id": pickup_address_id 
+            "return_address_id": pickup_address_id
         };
 
         const payload = {
@@ -127,7 +127,7 @@ export async function POST(req, { params }) {
         });
 
         const data = await response.json();
-        
+
         console.log("--- ITHINK LOGISTICS API RESPONSE ---");
         console.log(JSON.stringify(data, null, 2));
 
@@ -136,7 +136,7 @@ export async function POST(req, { params }) {
             if (resultData && resultData.status?.toLowerCase() === "success") {
                 const waybill = resultData.waybill;
                 const trackingUrl = resultData.tracking_url || `https://ithinklogistics.co.in/postship/tracking/${waybill}`;
-                
+
                 return NextResponse.json({
                     success: true,
                     waybill: waybill,
@@ -157,7 +157,7 @@ export async function POST(req, { params }) {
             }
             return NextResponse.json({ success: false, error: errorMessage }, { status: 400 });
         }
-        
+
     } catch (error) {
         console.error('Error syncing with iThinkLogistics:', error);
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
