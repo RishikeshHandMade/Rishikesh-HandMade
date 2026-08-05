@@ -642,14 +642,14 @@ const OnlineOrderLog = () => {
                   try {
                     const updateData = {
                       status: selectedStatus,
-                      message: statusMessage || \`Status updated to \${selectedStatus}\`,
+                      message: statusMessage || `Status updated to ${selectedStatus}`,
                       ...(selectedStatus === 'Shipped' && {
                         trackingNumber: trackingNumber || '',
                         trackingUrl: trackingUrl || ''
                       })
                     };
 
-                    const res = await fetch(\`/api/orders/\${statusUpdateOrder._id}\`, {
+                    const res = await fetch(`/api/orders/${statusUpdateOrder._id}`, {
                       method: 'PUT',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify(updateData)
@@ -670,7 +670,7 @@ const OnlineOrderLog = () => {
                             ...(o.statusHistory || []),
                             {
                               status: selectedStatus,
-                              message: statusMessage || \`Status updated to \${selectedStatus}\`,
+                              message: statusMessage || `Status updated to ${selectedStatus}`,
                               ...(selectedStatus === 'Shipped' && {
                                 trackingNumber: trackingNumber,
                                 trackingUrl: trackingUrl
