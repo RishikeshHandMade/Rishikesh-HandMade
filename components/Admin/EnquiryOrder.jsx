@@ -39,6 +39,7 @@ const EnquiryOrder = () => {
   const [trackingNumber, setTrackingNumber] = useState("");
   const [trackingUrl, setTrackingUrl] = useState("");
   const [dateFilter, setDateFilter] = useState("");
+  const [isSyncing, setIsSyncing] = useState(false);
   const rowsPerPage = 8;
   // console.log(orders)
   // Filtering logic
@@ -344,9 +345,40 @@ const EnquiryOrder = () => {
             </div>
 
             {/* Tracking Information (only shown when status is Shipped) */}
+            {/* Tracking Information (only shown when status is Shipped) */}
             {selectedStatus === 'Shipped' && (
               <div className="space-y-4 mt-4 p-4 bg-gray-50 rounded-md border border-gray-200">
-                <h3 className="font-medium text-gray-700">Shipping Information</h3>
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="font-medium text-gray-700">Shipping Information</h3>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setIsSyncing(true);
+                      try {
+                        const res = await fetch(`/api/orders/${statusUpdateOrder._id}/ithink-sync`, {
+                          method: 'POST',
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                          setTrackingNumber(data.waybill || '');
+                          setTrackingUrl(data.trackingUrl || '');
+                          toast.success('Successfully synced with iThinkLogistics!');
+                        } else {
+                          toast.error(data.error || 'Failed to sync with iThinkLogistics');
+                        }
+                      } catch (err) {
+                        console.error(err);
+                        toast.error('Error syncing order');
+                      } finally {
+                        setIsSyncing(false);
+                      }
+                    }}
+                    disabled={isSyncing}
+                    className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 disabled:opacity-50 transition-colors"
+                  >
+                    {isSyncing ? 'Syncing...' : 'Generate AWB (iThink)'}
+                  </button>
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Tracking Number *

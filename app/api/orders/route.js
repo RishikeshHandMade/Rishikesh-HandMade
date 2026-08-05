@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import Order from '../../../models/Order';
 import connectDB from '@/lib/connectDB';
-import { createIThinkShipment, extractIThinkShipmentInfo, hasIThinkShipmentIdentifiers } from '@/lib/ithinkLogistics';
+
 
 export async function POST(req) {
   await connectDB();
@@ -129,60 +129,6 @@ export async function POST(req) {
     body.agree = true; // Always set agree true for all new orders
     const order = await Order.create(body);
 
-    if (!body.isVendorOrder && (body.payment === 'online' || body.paymentMethod === 'online' || body.paymentMethod === 'razorpay')) {
-      try {
-        console.log('[ITHINK][ORDERS] Sync attempt started', {
-          orderId: order?.orderId || order?._id?.toString?.() || '',
-          paymentMethod: body.paymentMethod || body.payment || '',
-        });
-
-        const logisticsResult = await createIThinkShipment(order);
-        const shipmentInfo = logisticsResult.success ? extractIThinkShipmentInfo(logisticsResult.data) : {};
-        const isShipmentSynced = logisticsResult.success && hasIThinkShipmentIdentifiers(shipmentInfo);
-        const ithinkResponseMessage =
-          logisticsResult?.data?.message ||
-          logisticsResult?.data?.error ||
-          String(logisticsResult?.data?.html_message || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-        const logisticsFailureReason = logisticsResult.error || ithinkResponseMessage || (logisticsResult.success ? 'iThink response did not include shipment identifiers' : 'Failed to sync order to iThink Logistics');
-
-        console.log('[ITHINK][ORDERS] Sync attempt result', {
-          orderId: order?.orderId || order?._id?.toString?.() || '',
-          success: logisticsResult.success,
-          skipped: logisticsResult.skipped || false,
-          isShipmentSynced,
-          logisticsOrderId: shipmentInfo.logisticsOrderId || '',
-          waybill: shipmentInfo.waybill || '',
-          trackingNumber: shipmentInfo.trackingNumber || '',
-          error: isShipmentSynced ? '' : logisticsFailureReason,
-        });
-
-        await Order.findByIdAndUpdate(order._id, {
-          logisticsProvider: 'iThink Logistics',
-          logisticsStatus: isShipmentSynced ? 'synced' : logisticsResult.skipped ? 'skipped' : 'failed',
-          logisticsOrderId: shipmentInfo.logisticsOrderId || '',
-          waybill: shipmentInfo.waybill || '',
-          trackingNumber: shipmentInfo.trackingNumber || '',
-          trackingUrl: shipmentInfo.trackingUrl || '',
-          logisticsResponse: logisticsResult.data || null,
-          logisticsError: isShipmentSynced
-            ? ''
-            : logisticsFailureReason,
-          logisticsSyncedAt: isShipmentSynced ? new Date() : null,
-        });
-      } catch (logisticsError) {
-        console.error('[ITHINK][ORDERS] Sync crashed', {
-          orderId: order?.orderId || order?._id?.toString?.() || '',
-          error: logisticsError?.message || 'Unknown iThink error',
-        });
-
-        await Order.findByIdAndUpdate(order._id, {
-          logisticsProvider: 'iThink Logistics',
-          logisticsStatus: 'failed',
-          logisticsError: logisticsError.message || 'Failed to sync order to iThink Logistics',
-          logisticsSyncedAt: null,
-        });
-      }
-    }
 
     // ✅ Update quantities using the updateQuantities endpoint
     const products = Array.isArray(body.products) ? body.products : [];
