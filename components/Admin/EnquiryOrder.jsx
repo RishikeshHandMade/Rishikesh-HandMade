@@ -235,11 +235,19 @@ const EnquiryOrder = () => {
                         )}
                         value={order.status || "Select"} // default to "Select" if no status
                         onChange={(e) => {
-                          setSelectedStatus(e.target.value);
+                          const newStatus = e.target.value;
+                          setSelectedStatus(newStatus);
                           setStatusUpdateOrder(order);
                           setStatusMessage('');
-                          setTrackingNumber('');
-                          setTrackingUrl('');
+                          
+                          if (newStatus === 'Shipped') {
+                            const shippedHistory = order.statusHistory?.find(h => h.status === 'Shipped');
+                            setTrackingNumber(order.trackingNumber || shippedHistory?.trackingNumber || '');
+                            setTrackingUrl(order.trackingUrl || shippedHistory?.trackingUrl || '');
+                          } else {
+                            setTrackingNumber('');
+                            setTrackingUrl('');
+                          }
                         }}
                       >
                         {/* <option value="Select" disabled>Select Status</option> */}

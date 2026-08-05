@@ -82,6 +82,8 @@ const OrderSchema = new Schema({
     paymentMethod: { type: String },
     datePurchased: { type: Date, default: Date.now },
     agree: { type: Boolean },
+    trackingNumber: { type: String },
+    trackingUrl: { type: String },
     // Add any additional checkout fields as needed
 }, { timestamps: true });
 
