@@ -41,7 +41,7 @@ const EnquiryOrder = () => {
   const [dateFilter, setDateFilter] = useState("");
   const [isSyncing, setIsSyncing] = useState(false);
   const rowsPerPage = 8;
-  console.log(orders)
+  // console.log(orders)
   // Filtering logic
   const filteredOrders = orders.filter(order => {
     const customerName = `${order.firstName || ''} ${order.lastName || ''}`.trim().toLowerCase();
@@ -239,7 +239,7 @@ const EnquiryOrder = () => {
                           setSelectedStatus(newStatus);
                           setStatusUpdateOrder(order);
                           setStatusMessage('');
-                          
+
                           if (newStatus === 'Shipped') {
                             const shippedHistory = order.statusHistory?.find(h => h.status === 'Shipped');
                             setTrackingNumber(order.trackingNumber || shippedHistory?.trackingNumber || '');
@@ -579,7 +579,7 @@ const EnquiryOrder = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Subtotal</span>
-                    <span>₹{viewOrder.subTotal?.toLocaleString('en-IN') || '0.00'}</span>
+                    <span>₹{(viewOrder.products?.reduce((sum, p) => sum + (p.price || 0) * (p.qty || 1), 0) || 0).toLocaleString('en-IN')}</span>
                   </div>
                   {viewOrder.totalDiscount > 0 && (
                     <div className="flex justify-between text-green-600">
@@ -595,7 +595,7 @@ const EnquiryOrder = () => {
                   )} */}
                   <div className="flex justify-between">
                     <span className="text-gray-600">Tax (CGST+SGST)</span>
-                    <span>₹{(viewOrder.cartTotal - viewOrder.subTotal + (viewOrder.totalDiscount || 0) - (viewOrder.shippingCost || 0))?.toLocaleString('en-IN') || '0.00'}</span>
+                    <span>₹{(viewOrder.cartTotal - (viewOrder.products?.reduce((sum, p) => sum + (p.price || 0) * (p.qty || 1), 0) || 0) + (viewOrder.totalDiscount || 0) - (viewOrder.shippingCost || 0))?.toLocaleString('en-IN') || '0.00'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Shipping</span>
