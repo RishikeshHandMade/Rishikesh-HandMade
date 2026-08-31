@@ -41,7 +41,7 @@ const EnquiryOrder = () => {
   const [dateFilter, setDateFilter] = useState("");
   const [isSyncing, setIsSyncing] = useState(false);
   const rowsPerPage = 8;
-  // console.log(orders)
+  console.log(orders)
   // Filtering logic
   const filteredOrders = orders.filter(order => {
     const customerName = `${order.firstName || ''} ${order.lastName || ''}`.trim().toLowerCase();
@@ -595,7 +595,7 @@ const EnquiryOrder = () => {
                   )} */}
                   <div className="flex justify-between">
                     <span className="text-gray-600">Tax (CGST+SGST)</span>
-                    <span>₹{viewOrder.totalTax?.toLocaleString('en-IN') || '0.00'}</span>
+                    <span>₹{(viewOrder.cartTotal - viewOrder.subTotal + (viewOrder.totalDiscount || 0) - (viewOrder.shippingCost || 0))?.toLocaleString('en-IN') || '0.00'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Shipping</span>
@@ -627,7 +627,7 @@ const EnquiryOrder = () => {
                     <div className="flex-1">
                       <div className="flex justify-between">
                         <h4 className="font-medium text-gray-900">{product.name}</h4>
-                        <span className="font-semibold">₹{product.price?.toLocaleString('en-IN')}</span>
+                        <span className="font-semibold">₹{((product.price || 0) * (product.qty || 1)).toLocaleString('en-IN')}</span>
                       </div>
                       <div className="text-md text-gray-800 mt-1">
                         <span>Qty: {product.qty || 1}</span>
