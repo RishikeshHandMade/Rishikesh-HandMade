@@ -41,7 +41,7 @@ const EnquiryOrder = () => {
   const [dateFilter, setDateFilter] = useState("");
   const [isSyncing, setIsSyncing] = useState(false);
   const rowsPerPage = 8;
-  // console.log(orders)
+  console.log(orders)
   // Filtering logic
   const filteredOrders = orders.filter(order => {
     const customerName = `${order.firstName || ''} ${order.lastName || ''}`.trim().toLowerCase();
@@ -528,7 +528,7 @@ const EnquiryOrder = () => {
                 <div className="text-right px-10">
                   <div className="text-sm text-gray-600">Payment Method</div>
                   <div className="font-medium">
-                    {viewOrder.paymentMethod === 'online' ? 'Online Payment' : 'Cash on Delivery'}
+                    {viewOrder.paymentMethod === 'online' ? 'Online Payment' : 'Online Payment'}
                   </div>
                 </div>
               </div>
@@ -577,34 +577,45 @@ const EnquiryOrder = () => {
               <div className="md:col-span-1">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b">Order Summary</h3>
                 <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Subtotal</span>
-                    <span>₹{(viewOrder.products?.reduce((sum, p) => sum + (p.price || 0) * (p.qty || 1), 0) || 0).toLocaleString('en-IN')}</span>
-                  </div>
-                  {viewOrder.totalDiscount > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Discount ({viewOrder.promoCode})</span>
-                      <span>-₹{viewOrder.totalDiscount?.toLocaleString('en-IN') || '0.00'}</span>
-                    </div>
-                  )}
-                  {/* {viewOrder.promoCode && (
-                    <div className="flex justify-between text-blue-600">
-                      <span>Promo Code ({viewOrder.promoCode})</span>
-                      <span>-₹{viewOrder.promoDiscount?.toLocaleString('en-IN') || '0.00'}</span>
-                    </div>
-                  )} */}
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Tax (CGST+SGST)</span>
-                    <span>₹{(viewOrder.cartTotal - (viewOrder.products?.reduce((sum, p) => sum + (p.price || 0) * (p.qty || 1), 0) || 0) + (viewOrder.totalDiscount || 0) - (viewOrder.shippingCost || 0))?.toLocaleString('en-IN') || '0.00'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Shipping</span>
-                    <span>₹{viewOrder.shippingCost?.toLocaleString('en-IN') || '0.00'}</span>
-                  </div>
-                  <div className="border-t pt-2 mt-2 flex justify-between font-bold text-lg">
-                    <span>Total</span>
-                    <span>₹{viewOrder.cartTotal?.toLocaleString('en-IN') || '0.00'}</span>
-                  </div>
+                  {(() => {
+                    const baseSubtotal = viewOrder.products?.reduce((sum, p) => sum + (Number(p.price) || 0) * (Number(p.qty) || 1), 0) || 0;
+                    
+                    let discount = Number(viewOrder.totalDiscount);
+                    if (isNaN(discount) || discount === 0) {
+                      // fallback to computing from products if totalDiscount is missing/0
+                      discount = viewOrder.products?.reduce((sum, p) => sum + ((Number(p.price) || 0) * (Number(p.qty) || 1) * (Number(p.discountPercent) || 0) / 100), 0) || 0;
+                    }
+                    
+                    let tax = Number(viewOrder.cartTotal) - baseSubtotal + discount - (Number(viewOrder.shippingCost) || 0);
+                    if (tax < 0) tax = Number(viewOrder.totalTax) || 0;
+
+                    return (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Subtotal</span>
+                          <span>₹{baseSubtotal.toLocaleString('en-IN')}</span>
+                        </div>
+                        {discount > 0 && (
+                          <div className="flex justify-between text-green-600">
+                            <span>Discount {viewOrder.promoCode ? `(${viewOrder.promoCode})` : ''}</span>
+                            <span>-₹{discount.toLocaleString('en-IN')}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Tax (CGST+SGST)</span>
+                          <span>₹{tax.toLocaleString('en-IN')}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Shipping</span>
+                          <span>₹{(Number(viewOrder.shippingCost) || 0).toLocaleString('en-IN')}</span>
+                        </div>
+                        <div className="border-t pt-2 mt-2 flex justify-between font-bold text-lg">
+                          <span>Total</span>
+                          <span>₹{(Number(viewOrder.cartTotal) || 0).toLocaleString('en-IN')}</span>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             </div>

@@ -34,6 +34,7 @@ function EyeIcon() {
 }
 
 const OrderDetailsModal = ({ order, onClose }) => {
+  console.log(order)
   if (!order) return null;
 
   return (
@@ -77,7 +78,7 @@ const OrderDetailsModal = ({ order, onClose }) => {
             <div className="text-right px-10">
               <div className="text-sm text-gray-600">Payment Method</div>
               <div className="font-medium">
-                {order.paymentMethod === 'online' ? 'Online Payment' : 'Cash on Delivery'}
+                {order.paymentMethod === 'online' ? 'Online Payment' : 'Online Delivery'}
               </div>
             </div>
           </div>
@@ -126,28 +127,45 @@ const OrderDetailsModal = ({ order, onClose }) => {
           <div className="md:col-span-1">
             <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b">Order Summary</h3>
             <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Subtotal</span>
-                <span>₹{order.subTotal?.toLocaleString('en-IN') || '0.00'}</span>
-              </div>
-              {order.totalDiscount > 0 && (
-                <div className="flex justify-between text-green-600">
-                  <span>Discount ({order.promoCode || 'Coupon'})</span>
-                  <span>-₹{order.totalDiscount?.toLocaleString('en-IN') || '0.00'}</span>
-                </div>
-              )}
-              <div className="flex justify-between">
-                <span className="text-gray-600">Tax (CGST+SGST)</span>
-                <span>₹{order.totalTax?.toLocaleString('en-IN') || '0.00'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Shipping</span>
-                <span>₹{order.shippingCost?.toLocaleString('en-IN') || '0.00'}</span>
-              </div>
-              <div className="border-t pt-2 mt-2 flex justify-between font-bold text-lg">
-                <span>Total</span>
-                <span>₹{order.cartTotal?.toLocaleString('en-IN') || '0.00'}</span>
-              </div>
+              {(() => {
+                const baseSubtotal = order.products?.reduce((sum, p) => sum + (Number(p.price) || 0) * (Number(p.qty) || 1), 0) || 0;
+                
+                let discount = Number(order.totalDiscount);
+                if (isNaN(discount) || discount === 0) {
+                  // fallback to computing from products if totalDiscount is missing/0
+                  discount = order.products?.reduce((sum, p) => sum + ((Number(p.price) || 0) * (Number(p.qty) || 1) * (Number(p.discountPercent) || 0) / 100), 0) || 0;
+                }
+                
+                let tax = Number(order.cartTotal) - baseSubtotal + discount - (Number(order.shippingCost) || 0);
+                if (tax < 0) tax = Number(order.totalTax) || 0;
+
+                return (
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Subtotal</span>
+                      <span>₹{baseSubtotal.toLocaleString('en-IN')}</span>
+                    </div>
+                    {discount > 0 && (
+                      <div className="flex justify-between text-green-600">
+                        <span>Discount {order.promoCode ? `(${order.promoCode})` : ''}</span>
+                        <span>-₹{discount.toLocaleString('en-IN')}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Tax (CGST+SGST)</span>
+                      <span>₹{tax.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Shipping</span>
+                      <span>₹{(Number(order.shippingCost) || 0).toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="border-t pt-2 mt-2 flex justify-between font-bold text-lg">
+                      <span>Total</span>
+                      <span>₹{(Number(order.cartTotal) || 0).toLocaleString('en-IN')}</span>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           </div>
         </div>
@@ -170,7 +188,7 @@ const OrderDetailsModal = ({ order, onClose }) => {
                 <div className="flex-1">
                   <div className="flex justify-between">
                     <h4 className="font-medium text-gray-900">{product.name}</h4>
-                    <span className="font-semibold">₹{product.price?.toLocaleString('en-IN')}</span>
+                    <span className="font-semibold">₹{((product.price || 0) * (product.qty || 1)).toLocaleString('en-IN')}</span>
                   </div>
                   <div className="text-md text-gray-800 mt-1">
                     <span>Qty: {product.qty || 1}</span>

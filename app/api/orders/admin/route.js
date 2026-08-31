@@ -19,9 +19,14 @@ export async function GET(req) {
 
     let filter = { agree: true };
 
+    // Globally exclude canceled, failed, and initiated (incomplete) payments for both Enquiry and Online orders
+    filter.status = { $nin: ['Failed', 'Cancelled', 'Initiated'] };
+
     // Apply filters based on type
     if (type === 'online') {
       filter.paymentMethod = { $in: ['razorpay', 'online'] };
+      // For online orders, 'Pending' means the user abandoned checkout before paying
+      filter.status.$nin.push('Pending');
     }
     else if (type === 'vendor') {
       filter.isVendorOrder = true;
