@@ -1663,21 +1663,19 @@ const RandomTourPackageSection = () => {
             </Link>
           </div>
         </div>
-        <div className="w-full">
-          {/* <!-- Elfsight Facebook Feed | Untitled Facebook Feed --> */}
-
-          <iframe
-            src="https://www.facebook.com/plugins/video.php?height=420&href=https%3A%2F%2Fwww.facebook.com%2F100076229983946%2Fvideos%2F1701693931215780%2F&show_text=true&width=560&t=0"
-            width="560"
-            height="631"
-            style={{ border: "none", overflow: "hidden" }}
-            scrolling="no"
-            frameBorder="0"
-            allowFullScreen={true}
-            allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-          ></iframe>
-
-        </div>
+<div className="w-full max-w-full overflow-hidden">
+  <div className="relative w-full max-w-[560px] mx-auto">
+    <iframe
+      src="https://www.facebook.com/plugins/video.php?height=420&href=https%3A%2F%2Fwww.facebook.com%2F100076229983946%2Fvideos%2F1701693931215780%2F&show_text=true&width=560&t=0"
+      className="w-full h-[500px] sm:h-[631px] rounded-lg"
+      style={{ border: "none" }}
+      scrolling="no"
+      frameBorder="0"
+      allowFullScreen
+      allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+    />
+  </div>
+</div>
       </section>
     </>
   );

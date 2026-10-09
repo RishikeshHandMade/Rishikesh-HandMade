@@ -50,6 +50,8 @@ const ProductDetailPage = async ({ params }) => {
     );
   }
 
+  // console.log(product)
+
   // ✅ Frequently Bought Together
   let frequentlyBoughtTogether = [];
   try {

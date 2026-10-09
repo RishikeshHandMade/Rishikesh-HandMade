@@ -92,12 +92,19 @@ if (
       return NextResponse.redirect(new URL("/sign-in", req.url));
     }
   }
-  if (pathname.startsWith('/vendor')) {
-    const session = await getToken({ req: request });
+  // Allow access to vendor login (same pattern as /admin/login)
+  if (pathname.startsWith("/vendor/login")) {
+    if (token && (token.role === "vendor" || token.isVendor)) {
+      return NextResponse.redirect(new URL("/vendor", req.url));
+    }
+    return NextResponse.next();
+  }
 
-    if (!session || session.role !== 'vendor') {
-      const url = new URL('/vendor/login', request.url);
-      url.searchParams.set('callbackUrl', pathname);
+  // Protect /vendor/* pages
+  if (pathname.startsWith("/vendor")) {
+    if (!token || (token.role !== "vendor" && !token.isVendor)) {
+      const url = new URL("/vendor/login", req.url);
+      url.searchParams.set("callbackUrl", pathname);
       return NextResponse.redirect(url);
     }
   }

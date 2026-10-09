@@ -39,8 +39,9 @@ const EnquiryOrder = () => {
   const [trackingNumber, setTrackingNumber] = useState("");
   const [trackingUrl, setTrackingUrl] = useState("");
   const [dateFilter, setDateFilter] = useState("");
+  const [isSyncing, setIsSyncing] = useState(false);
   const rowsPerPage = 8;
-  // console.log(orders)
+  console.log(orders)
   // Filtering logic
   const filteredOrders = orders.filter(order => {
     const customerName = `${order.firstName || ''} ${order.lastName || ''}`.trim().toLowerCase();
@@ -234,11 +235,19 @@ const EnquiryOrder = () => {
                         )}
                         value={order.status || "Select"} // default to "Select" if no status
                         onChange={(e) => {
-                          setSelectedStatus(e.target.value);
+                          const newStatus = e.target.value;
+                          setSelectedStatus(newStatus);
                           setStatusUpdateOrder(order);
                           setStatusMessage('');
-                          setTrackingNumber('');
-                          setTrackingUrl('');
+
+                          if (newStatus === 'Shipped') {
+                            const shippedHistory = order.statusHistory?.find(h => h.status === 'Shipped');
+                            setTrackingNumber(order.trackingNumber || shippedHistory?.trackingNumber || '');
+                            setTrackingUrl(order.trackingUrl || shippedHistory?.trackingUrl || '');
+                          } else {
+                            setTrackingNumber('');
+                            setTrackingUrl('');
+                          }
                         }}
                       >
                         {/* <option value="Select" disabled>Select Status</option> */}
@@ -344,9 +353,40 @@ const EnquiryOrder = () => {
             </div>
 
             {/* Tracking Information (only shown when status is Shipped) */}
+            {/* Tracking Information (only shown when status is Shipped) */}
             {selectedStatus === 'Shipped' && (
               <div className="space-y-4 mt-4 p-4 bg-gray-50 rounded-md border border-gray-200">
-                <h3 className="font-medium text-gray-700">Shipping Information</h3>
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="font-medium text-gray-700">Shipping Information</h3>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setIsSyncing(true);
+                      try {
+                        const res = await fetch(`/api/orders/${statusUpdateOrder._id}/ithink-sync`, {
+                          method: 'POST',
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                          setTrackingNumber(data.waybill || '');
+                          setTrackingUrl(data.trackingUrl || '');
+                          toast.success('Successfully synced with iThinkLogistics!');
+                        } else {
+                          toast.error(data.error || 'Failed to sync with iThinkLogistics');
+                        }
+                      } catch (err) {
+                        console.error(err);
+                        toast.error('Error syncing order');
+                      } finally {
+                        setIsSyncing(false);
+                      }
+                    }}
+                    disabled={isSyncing}
+                    className="px-3 py-2 bg-indigo-600 text-white text-xs font-semibold rounded shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 disabled:opacity-50 transition-colors"
+                  >
+                    {isSyncing ? 'Generating...' : 'Generate Traking Crediantials'}
+                  </button>
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Tracking Number *
@@ -488,7 +528,7 @@ const EnquiryOrder = () => {
                 <div className="text-right px-10">
                   <div className="text-sm text-gray-600">Payment Method</div>
                   <div className="font-medium">
-                    {viewOrder.paymentMethod === 'online' ? 'Online Payment' : 'Cash on Delivery'}
+                    {viewOrder.paymentMethod === 'online' ? 'Online Payment' : 'Online Payment'}
                   </div>
                 </div>
               </div>
@@ -537,34 +577,45 @@ const EnquiryOrder = () => {
               <div className="md:col-span-1">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b">Order Summary</h3>
                 <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Subtotal</span>
-                    <span>₹{viewOrder.subTotal?.toLocaleString('en-IN') || '0.00'}</span>
-                  </div>
-                  {viewOrder.totalDiscount > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Discount ({viewOrder.promoCode})</span>
-                      <span>-₹{viewOrder.totalDiscount?.toLocaleString('en-IN') || '0.00'}</span>
-                    </div>
-                  )}
-                  {/* {viewOrder.promoCode && (
-                    <div className="flex justify-between text-blue-600">
-                      <span>Promo Code ({viewOrder.promoCode})</span>
-                      <span>-₹{viewOrder.promoDiscount?.toLocaleString('en-IN') || '0.00'}</span>
-                    </div>
-                  )} */}
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Tax (CGST+SGST)</span>
-                    <span>₹{viewOrder.totalTax?.toLocaleString('en-IN') || '0.00'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Shipping</span>
-                    <span>₹{viewOrder.shippingCost?.toLocaleString('en-IN') || '0.00'}</span>
-                  </div>
-                  <div className="border-t pt-2 mt-2 flex justify-between font-bold text-lg">
-                    <span>Total</span>
-                    <span>₹{viewOrder.cartTotal?.toLocaleString('en-IN') || '0.00'}</span>
-                  </div>
+                  {(() => {
+                    const baseSubtotal = viewOrder.products?.reduce((sum, p) => sum + (Number(p.price) || 0) * (Number(p.qty) || 1), 0) || 0;
+                    
+                    let discount = Number(viewOrder.totalDiscount);
+                    if (isNaN(discount) || discount === 0) {
+                      // fallback to computing from products if totalDiscount is missing/0
+                      discount = viewOrder.products?.reduce((sum, p) => sum + ((Number(p.price) || 0) * (Number(p.qty) || 1) * (Number(p.discountPercent) || 0) / 100), 0) || 0;
+                    }
+                    
+                    let tax = Number(viewOrder.cartTotal) - baseSubtotal + discount - (Number(viewOrder.shippingCost) || 0);
+                    if (tax < 0) tax = Number(viewOrder.totalTax) || 0;
+
+                    return (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Subtotal</span>
+                          <span>₹{baseSubtotal.toLocaleString('en-IN')}</span>
+                        </div>
+                        {discount > 0 && (
+                          <div className="flex justify-between text-green-600">
+                            <span>Discount {viewOrder.promoCode ? `(${viewOrder.promoCode})` : ''}</span>
+                            <span>-₹{discount.toLocaleString('en-IN')}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Tax (CGST+SGST)</span>
+                          <span>₹{tax.toLocaleString('en-IN')}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Shipping</span>
+                          <span>₹{(Number(viewOrder.shippingCost) || 0).toLocaleString('en-IN')}</span>
+                        </div>
+                        <div className="border-t pt-2 mt-2 flex justify-between font-bold text-lg">
+                          <span>Total</span>
+                          <span>₹{(Number(viewOrder.cartTotal) || 0).toLocaleString('en-IN')}</span>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             </div>
@@ -587,7 +638,7 @@ const EnquiryOrder = () => {
                     <div className="flex-1">
                       <div className="flex justify-between">
                         <h4 className="font-medium text-gray-900">{product.name}</h4>
-                        <span className="font-semibold">₹{product.price?.toLocaleString('en-IN')}</span>
+                        <span className="font-semibold">₹{((product.price || 0) * (product.qty || 1)).toLocaleString('en-IN')}</span>
                       </div>
                       <div className="text-md text-gray-800 mt-1">
                         <span>Qty: {product.qty || 1}</span>

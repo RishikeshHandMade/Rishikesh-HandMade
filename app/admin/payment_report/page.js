@@ -80,7 +80,7 @@ const Page = async ({ searchParams }) => {
                                             </TableCell>
                                             <TableCell>{order.orderId || "N/A"}</TableCell>
                                             <TableCell>₹{order.cartTotal ? formatNumeric(order.cartTotal) : "N/A"}</TableCell>
-                                            <TableCell className="uppercase">{order.paymentMethod || "COD"}</TableCell>
+                                            <TableCell className="uppercase">{order.paymentMethod || "N/A"}</TableCell>
                                             <TableCell>{order.product?.title || "N/A"}</TableCell>
                                             <TableCell>+91 {order.phone || order.formData?.phone || "N/A"}</TableCell>
                                             <TableCell>{getStatusBadge(order.status || "Unknown")}</TableCell>

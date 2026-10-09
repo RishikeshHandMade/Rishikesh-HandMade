@@ -2,11 +2,18 @@ import { NextResponse } from 'next/server';
 import Order from '../../../models/Order';
 import connectDB from '@/lib/connectDB';
 
+
 export async function POST(req) {
   await connectDB();
 
   try {
     const body = await req.json();
+    if (body.payment === 'cod' || body.paymentMethod === 'cod') {
+      return NextResponse.json(
+        { error: 'Selected payment method is no longer supported', success: false },
+        { status: 400 }
+      );
+    }
     const isOnline = body.payment === 'online' || body.paymentMethod === 'online';
     if (isOnline && !body.transactionId) {
       body.transactionId = `TXN-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -121,6 +128,7 @@ export async function POST(req) {
     // ✅ Save the order
     body.agree = true; // Always set agree true for all new orders
     const order = await Order.create(body);
+
 
     // ✅ Update quantities using the updateQuantities endpoint
     const products = Array.isArray(body.products) ? body.products : [];
